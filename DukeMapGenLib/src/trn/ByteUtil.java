@@ -120,6 +120,10 @@ public class ByteUtil {
 		
 		int i = input.read(); //returns int [0,255]
 		
+		if(i < 0){
+			throw new RuntimeException("read() javadoc lied");
+		}
+		
 		//so I have a...signed value, but its stored unsigned in a signed type.
 		//fuck my head hurts
 		//can i just subtract 128?
@@ -128,9 +132,37 @@ public class ByteUtil {
 		//i = i - 128; //so now its in the range [-128,127]
 		//however that gives a number that doesnt match what build reports
 		
+		/*
+		 * NOTE:  converting to byte before a short causes the value to overflow into two's complement
+		 * (int sees 255 while byte sees -1, and the negative bullshit stays when converted back to a
+		 * short.  I believe java extends the sign bit or whatever)
+		 *
+		 * So bytes are toxic and infect shit with their signed-ness.
+		 *
+		{
+			byte b = (byte)i;
+			short sanityCheck = (short)b;
+			if(sanityCheck < 0){
+				throw new RuntimeException("sanity check failed i=" + i + " b=" + b);
+			}
+		}
+		*/
 		
 		
-		return (byte)i;
+		
+		short s = (short)i;
+		
+		if(s < 0){
+			throw new RuntimeException("shit");
+		}
+		
+		return s;
+		
+		//somehow, unit tests worked with this including the intput/output serialization test (which is working):
+		//return (byte)i;
+		
+		
+
 		
 	}
 	

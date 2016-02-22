@@ -31,7 +31,10 @@ public class MapSerializationTests {
 		m.toBytes(output);
 		
 		byte[] bytes1 = output.toByteArray();
+		
 		Assert.assertArrayEquals(bytes, bytes1);
+		
+		
 		
 		//in and out again
 		ByteArrayOutputStream output2 = new ByteArrayOutputStream();

@@ -45,6 +45,42 @@ public class Wall {
 		return this.picnum;
 	}
 	
+	public void setXRepeat(short s){
+		this.xrepeat = s;
+	}
+	
+	@Override
+	public String toString(){
+		String ln = "\n"; //why isn't there an appenln() ?
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("{ wall").append("\n");
+		sb.append("x : ").append(x).append(ln);
+		sb.append("y : ").append(y).append(ln);
+		
+		sb.append("point2 : ").append(point2).append(ln);
+		sb.append("nextWall : ").append(nextWall).append(ln);
+		sb.append("nextSector : ").append(nextSector).append(ln);
+		sb.append("cstat : ").append(cstat).append(ln);
+		sb.append("picnum : ").append(picnum).append(ln);
+		
+		sb.append("overpicnum : ").append(overpicnum).append(ln);
+		
+		sb.append("shade : ").append(shade).append(ln);
+		sb.append("pal : ").append(pal).append(ln);
+		sb.append("xrepeat : ").append(xrepeat).append(ln);
+		sb.append("yrepeat : ").append(yrepeat).append(ln);
+		sb.append("xpanning : ").append(xpanning).append(ln);
+		sb.append("ypanning : ").append(ypanning).append(ln);
+		
+		sb.append("lotag : ").append(lotag).append(ln);
+		sb.append("hitag : ").append(hitag).append(ln);
+		sb.append("extra : ").append(extra).append(ln);
+		sb.append("}").append(ln);
+		
+		return sb.toString();
+	}
+	
 	public void toBytes(OutputStream output) throws IOException {
 		
 		ByteUtil.writeInt32LE(output, x);
