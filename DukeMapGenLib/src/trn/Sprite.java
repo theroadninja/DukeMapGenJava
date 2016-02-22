@@ -2,6 +2,7 @@ package trn;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class Sprite {
 	
@@ -36,6 +37,50 @@ public class Sprite {
 	
 	public short getTexture(){
 		return this.picnum;
+	}
+	
+	public void setTexture(short s){
+		this.picnum = s;
+	}
+	
+	public short getLotag(){
+		return this.lotag;
+	}
+	
+	public void setLotag(short s){
+		this.lotag = s;
+	}
+	
+	public void setLotag(int i){ setLotag((short)i); }
+	
+	public void toBytes(OutputStream output) throws IOException {
+		ByteUtil.writeInt32LE(output, x);
+		ByteUtil.writeInt32LE(output, y);
+		ByteUtil.writeInt32LE(output, z);
+		
+		ByteUtil.writeInt16LE(output, cstat);
+		ByteUtil.writeInt16LE(output, picnum);
+		
+		ByteUtil.writeUint8(output, shade);
+		ByteUtil.writeUint8(output, pal);
+		ByteUtil.writeUint8(output, clipdist);
+		ByteUtil.writeUint8(output, filler);
+		ByteUtil.writeUint8(output, xrepeat);
+		ByteUtil.writeUint8(output, yrepeat);
+		ByteUtil.writeUint8(output, xoffset);
+		ByteUtil.writeUint8(output, yoffset);
+		
+		ByteUtil.writeInt16LE(output, sectnum);
+		ByteUtil.writeInt16LE(output, statnum);
+		ByteUtil.writeInt16LE(output, ang);
+		
+		ByteUtil.writeInt16LE(output, owner);
+		ByteUtil.writeInt16LE(output, xvel);
+		ByteUtil.writeInt16LE(output, yvel);
+		ByteUtil.writeInt16LE(output, zvel);
+		ByteUtil.writeInt16LE(output, lotag);
+		ByteUtil.writeInt16LE(output, hitag);
+		ByteUtil.writeInt16LE(output, extra);
 	}
 	
 	

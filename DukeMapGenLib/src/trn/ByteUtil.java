@@ -2,6 +2,7 @@ package trn;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.apache.commons.io.EndianUtils;
 
@@ -19,6 +20,7 @@ import org.apache.commons.io.EndianUtils;
  * 
  * Also in buildhlp.exe its page 40.
  * 
+ * TODO:  maybe a custom class extending InputStream would be nice.
  * 
  * @author Dave
  *
@@ -45,6 +47,18 @@ public class ByteUtil {
 		return EndianUtils.readSwappedUnsignedInteger(input);
 	}
 	
+	public static void writeUint32LE(OutputStream output, long value) throws IOException {
+		
+		//fuck I hope this is right
+		//(counting on java to just discard higher bits...)
+		EndianUtils.writeSwappedInteger(output, (int)value);
+	}
+	
+	
+	
+	
+	
+	
 	public static int readUint16LE(byte[] bytes, int start){
 		
 		//according to apache docs, this is a 16 bit integer
@@ -57,25 +71,43 @@ public class ByteUtil {
 		return EndianUtils.readSwappedUnsignedShort(input);
 	}
 	
+	public static void writeUint16LE(OutputStream output, int value) throws IOException {
+		
+		//unsigned content of larger(but signed) data type converted by truncating upper bits
+		EndianUtils.writeSwappedShort(output, (short)value);
+	}
+	
+	
+	
 	
 	
 	public static int readInt32LE(InputStream input) throws IOException {
 		return EndianUtils.readSwappedInteger(input);
 	}
 	
-	
-	public static short readInt16LE(InputStream input) throws IOException {
-		return EndianUtils.readSwappedShort(input);
+	public static void writeInt32LE(OutputStream output, int signedValue) throws IOException {
+		EndianUtils.writeSwappedInteger(output, signedValue);
 	}
 	
 	
 	
 	
 	
+	public static short readInt16LE(InputStream input) throws IOException {
+		return EndianUtils.readSwappedShort(input);
+	}
+	
+	public static void writeInt16LE(OutputStream output, short signedValue) throws IOException {
+		
+		EndianUtils.writeSwappedShort(output, signedValue);
+	}
+	
+	
+	
 	//endian-ness is only for values greater than a single byte...but what about signed vs unsinged?
 	
 	
-	
+	//still Little Endian (LE)
 	public static short readUInt8(InputStream input) throws IOException {
 		
 		//originally wrote this function for sector ceilingshade, which is: 
@@ -100,6 +132,10 @@ public class ByteUtil {
 		
 		return (byte)i;
 		
+	}
+	
+	public static void writeUint8(OutputStream output, short unsignedValue) throws IOException {
+		output.write((int)unsignedValue); // write() only writes the low order bits
 	}
 	
 }

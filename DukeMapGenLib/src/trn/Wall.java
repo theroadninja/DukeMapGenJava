@@ -2,6 +2,7 @@ package trn;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class Wall {
 	
@@ -44,6 +45,31 @@ public class Wall {
 		return this.picnum;
 	}
 	
+	public void toBytes(OutputStream output) throws IOException {
+		
+		ByteUtil.writeInt32LE(output, x);
+		ByteUtil.writeInt32LE(output, y);
+		
+		ByteUtil.writeInt16LE(output, point2);
+		ByteUtil.writeInt16LE(output, nextWall);
+		ByteUtil.writeInt16LE(output, nextSector);
+		ByteUtil.writeInt16LE(output, cstat);
+		ByteUtil.writeInt16LE(output, picnum);
+		
+		ByteUtil.writeInt16LE(output, overpicnum);
+		
+		ByteUtil.writeUint8(output, shade);
+		ByteUtil.writeUint8(output, pal);
+		ByteUtil.writeUint8(output, xrepeat);
+		ByteUtil.writeUint8(output, yrepeat);
+		ByteUtil.writeUint8(output, xpanning);
+		ByteUtil.writeUint8(output, ypanning);
+		
+		ByteUtil.writeInt16LE(output, lotag);
+		ByteUtil.writeInt16LE(output, hitag);
+		ByteUtil.writeInt16LE(output, extra);
+		
+	}
 	
 	public static Wall readWall(InputStream input) throws IOException {
 		Wall w = new Wall();
@@ -56,7 +82,7 @@ public class Wall {
 		w.cstat = ByteUtil.readInt16LE(input);
 		w.picnum = ByteUtil.readInt16LE(input);
 		
-		System.out.println("wall pic index: " + w.picnum); //oneroom.map wall pic is 191
+		//System.out.println("wall pic index: " + w.picnum); //oneroom.map wall pic is 191
 		
 		w.overpicnum = ByteUtil.readInt16LE(input);
 		w.shade = ByteUtil.readUInt8(input);

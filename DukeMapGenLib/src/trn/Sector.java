@@ -2,24 +2,22 @@ package trn;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.apache.commons.io.EndianUtils;
+import java.io.OutputStream;
 
 public class Sector {
 
-	private int firstWall; //a.k.a. wallprt
-	private int wallCount; //a.k.a. wallnum
+	private short firstWall; //a.k.a. wallprt
+	private short wallCount; //a.k.a. wallnum
 	
 	
-	//note:  these could probably be integers, since they are signed int in  the file...
-	private long ceilingz; //z coord of ceiling at first point in sector
-	private long floorz; //z coord of floor at first point of sector
+	private int ceilingz; //z coord of ceiling at first point in sector
+	private int floorz; //z coord of floor at first point of sector
 	
 	
-	private int ceilingStat;
-	private int floorstat;
-	private int ceilingPicNum;
-	private int ceilingheinum; //slope value?
+	private short ceilingStat;
+	private short floorstat;
+	private short ceilingPicNum;
+	private short ceilingheinum; //slope value?
 	
 	
 	/** note:  buildhlp and the wiki say this is signed, but i'm pretending its unsigned */
@@ -33,8 +31,8 @@ public class Sector {
 	private short ceilingxpanning; //tex coordinate X-offset for ceiling, UINT8
 	private short ceilingypanning; //tex coordinate Y-offset for ceiling, UINT8
 	
-	private int floorpicnum; //floor texture index - INT16LE
-	private int floorheinum; //floor slope value, INT16LE
+	private short floorpicnum; //floor texture index - INT16LE
+	private short floorheinum; //floor slope value, INT16LE
 	
 	private short floorshade; //should be INT8, but i'm making it UINT8, see ceilingshade
 	
@@ -61,6 +59,42 @@ public class Sector {
 		return this.ceilingpal;
 	}
 	
+	public void toBytes(OutputStream output) throws IOException {
+		ByteUtil.writeInt16LE(output, firstWall);
+		ByteUtil.writeInt16LE(output, wallCount);
+		
+		ByteUtil.writeInt32LE(output, ceilingz);
+		ByteUtil.writeInt32LE(output, floorz);
+		
+		ByteUtil.writeInt16LE(output, ceilingStat);
+		ByteUtil.writeInt16LE(output, floorstat);
+		ByteUtil.writeInt16LE(output, ceilingPicNum);
+		ByteUtil.writeInt16LE(output, ceilingheinum);
+		
+		ByteUtil.writeUint8(output, ceilingshade);
+		ByteUtil.writeUint8(output, ceilingpal);
+		ByteUtil.writeUint8(output, ceilingxpanning);
+		ByteUtil.writeUint8(output, ceilingypanning);
+		
+		ByteUtil.writeInt16LE(output, floorpicnum);
+		ByteUtil.writeInt16LE(output, floorheinum);
+		
+		ByteUtil.writeUint8(output, floorshade);
+		ByteUtil.writeUint8(output, floorpal);
+		
+		
+		
+		ByteUtil.writeUint8(output, floorxpanning);
+		ByteUtil.writeUint8(output, floorypanning);
+		ByteUtil.writeUint8(output, visibility);
+		ByteUtil.writeUint8(output, filler);
+		
+		
+		ByteUtil.writeInt16LE(output, lotag);
+		ByteUtil.writeInt16LE(output, hitag);
+		ByteUtil.writeInt16LE(output, extra);
+		
+	}
 	
 	public static Sector readSector(InputStream input) throws IOException {
 		Sector s = new Sector();
@@ -85,10 +119,7 @@ public class Sector {
 		s.ceilingPicNum = ByteUtil.readInt16LE(input);
 		s.ceilingheinum = ByteUtil.readInt16LE(input);
 		
-		
-		
-		
-		
+
 		s.ceilingshade = ByteUtil.readUInt8(input);
 		//in oneroom.map build says ceiling shade is 3 after i darkened it a bit (full bright seems to be 0)
 		

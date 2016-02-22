@@ -2,6 +2,7 @@ package trn;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class Map {
 	
@@ -9,7 +10,7 @@ public class Map {
 	
 	PlayerStart playerStart;
 	
-	long sectorWithStartPoint;
+	int sectorWithStartPoint;
 	
 	int sectorCount;
 	
@@ -58,6 +59,8 @@ public class Map {
 		return this.spriteCount;
 	}
 	
+	public int spriteCount(){ return getSpriteCount(); }
+	
 	public Sprite getSprite(int i){
 		return sprites[i];
 	}
@@ -77,6 +80,30 @@ public class Map {
 		System.out.println("sprite count: " + spriteCount);
 	}
 	
+	
+	public void toBytes(OutputStream output) throws IOException {
+		
+		ByteUtil.writeUint32LE(output, mapVersion);
+		this.playerStart.toBytes(output);
+		
+		ByteUtil.writeUint16LE(output, sectorWithStartPoint);
+		ByteUtil.writeUint16LE(output, sectorCount);
+		for(int i = 0; i < sectorCount; ++i){
+			sectors[i].toBytes(output);
+		}
+		
+		ByteUtil.writeUint16LE(output, wallCount);
+		for(int i = 0; i < wallCount; ++i){
+			walls[i].toBytes(output);
+		}
+		
+		ByteUtil.writeUint16LE(output, spriteCount);
+		for(int i = 0; i < spriteCount; ++i){
+			sprites[i].toBytes(output);
+		}
+		
+	}
+	
 	public static Map readMap(InputStream bs) throws IOException {
 		
 		Map map = new Map();
@@ -84,7 +111,7 @@ public class Map {
 		//long mapVersion = ByteUtil.readUint32LE(mapFile, 0);
 		map.mapVersion = ByteUtil.readUint32LE(bs);
 
-		map.playerStart = PlayerStart.fromBytes(bs);
+		map.playerStart = PlayerStart.readPlayerStart(bs);
 				
 				
 		map.sectorWithStartPoint = ByteUtil.readUint16LE(bs); //NOTE:  that wiki page is wrong here!

@@ -2,6 +2,7 @@ package trn;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class PlayerStart {
 	
@@ -49,6 +50,13 @@ public class PlayerStart {
 		return String.format("{ x=%d, y=%d, z=%d angle=%d", x, y, z, angle);
 	}
 	
+	public void toBytes(OutputStream output) throws IOException {
+		ByteUtil.writeUint32LE(output, x);
+		ByteUtil.writeUint32LE(output, y);
+		ByteUtil.writeUint32LE(output, z);
+		ByteUtil.writeUint16LE(output, angle);
+	}
+	
 	public static PlayerStart fromBytes(byte[] bytes, int start){
 		
 		//note:  ByteArrayInputStream does have a constructor that takes an offset...
@@ -61,7 +69,7 @@ public class PlayerStart {
 				);
 	}
 	
-	public static PlayerStart fromBytes(InputStream input) throws IOException{
+	public static PlayerStart readPlayerStart(InputStream input) throws IOException{
 		
 		return new PlayerStart(
 				ByteUtil.readUint32LE(input),

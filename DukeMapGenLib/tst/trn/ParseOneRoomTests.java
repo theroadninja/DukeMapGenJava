@@ -2,6 +2,8 @@ package trn;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -10,9 +12,27 @@ import org.junit.Test;
 
 public class ParseOneRoomTests {
 
+	
+	public static String oneRoomFilename(){
+		String fname =  "ONEROOM.MAP";
+		String filepath = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + fname;
+		return filepath;
+	}
+	
+	public static Map readOneRoomFromFile() throws FileNotFoundException, IOException {
+		
+		
+		File f = new File(oneRoomFilename());
+		
+		Assert.assertTrue(f.exists() && f.isFile());
+		
+		Map m = Map.readMap(new FileInputStream(f));
+		return m;
+	}
+	
 	@Test
 	public void testParseOneRoom() throws Exception {
-		
+		/*
 		String fname =  "ONEROOM.MAP";
 		String filepath = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + fname;
 		File f = new File(filepath);
@@ -20,7 +40,8 @@ public class ParseOneRoomTests {
 		Assert.assertTrue(f.exists() && f.isFile());
 		
 		Map m = Map.readMap(new FileInputStream(f));
-		
+		*/
+		Map m = readOneRoomFromFile();
 		
 		Assert.assertEquals(7, m.getMapVersion());
 		
