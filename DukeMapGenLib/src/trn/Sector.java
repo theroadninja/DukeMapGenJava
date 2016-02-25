@@ -47,7 +47,63 @@ public class Sector {
 	private short hitag; //INT16LE
 	private short extra; //INT16LE
 	
-	public int getFloorPicIndex(){
+	private Sector(){
+		
+	}
+	
+	public Sector(int firstWall, int wallCount){
+		this.firstWall = (short)firstWall;
+		this.wallCount = (short)wallCount;
+		
+		this.ceilingStat = 0;
+		this.floorstat = 0;
+		
+		this.ceilingheinum = 0;
+		this.ceilingshade = 0;
+		this.ceilingpal = 0;
+		this.ceilingxpanning = 0;
+		this.ceilingypanning = 0;
+		
+		this.floorheinum = 0;
+		this.floorshade = 0;
+		this.floorpal = 0;
+		this.floorxpanning = 0;
+		this.floorypanning = 0;
+		
+		this.visibility = 0;
+		this.filler = 0;
+		
+		this.lotag = 0;
+		this.hitag = 0;
+		this.extra = -1;
+	}
+	
+	public void setCeilingZ(int z){
+		this.ceilingz = z;
+	}
+	public int getCeilingZ(){
+		return this.ceilingz;
+	}
+	
+	public void setFloorZ(int z){
+		this.floorz = z;
+	}
+	public int getFloorZ(){
+		return this.floorz;
+	}
+	
+	public void setCeilingTexture(int i){
+		this.ceilingPicNum = (short)i;
+	}
+	public short getCeilingTexture(){
+		return this.ceilingPicNum;
+	}
+	
+	
+	public void setFloorTexture(int i){
+		this.floorpicnum = (short)i;
+	}
+	public short getFloorTexture(){
 		return this.floorpicnum;
 	}
 	
@@ -155,7 +211,25 @@ public class Sector {
 	}
 	
 	public void print(){
+		
+		final String ln = "\n";
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("first wall: ").append(this.firstWall).append(ln);
+		
+		
+		sb.append("ceilingstat: ").append(this.ceilingStat).append(ln);
+		sb.append("floorstat: ").append(this.floorstat).append(ln);
+		
+		sb.append("ceiling picnum: ").append(this.ceilingPicNum).append(ln);
+		sb.append("floor picnum: ").append(this.floorpicnum).append(ln);
+		System.out.println(sb.toString());
+		
 		Sector s = this; //being lazy with cut&paste
+		
+		
+		
+		
 		
 		System.out.println("wall count: " + s.wallCount);
 		System.out.println("ceilingz: " + s.ceilingz);

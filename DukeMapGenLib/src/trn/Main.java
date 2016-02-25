@@ -11,6 +11,7 @@ import org.apache.commons.io.IOUtils;
 
 import trn.duke.experiments.E1RandomSprites;
 import trn.duke.experiments.E2XRepeat;
+import trn.duke.experiments.E3AddRoom;
 
 public class Main {
 
@@ -24,12 +25,18 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		
+		System.exit(0);
 		
+		
+		
+		
+		
+		/*
 		Map m = loadMap("RT0.MAP");
 		E2XRepeat.go(m);
 		writeResult(m);
 		System.exit(0);
-		
+		*/
 		
 		
 		//RT0.MAP is for hardcoding experimentation
@@ -51,44 +58,9 @@ public class Main {
 		
 		
 		
+
 		
-		
-		//the following notes were made based on a signed/unsigned bug ...although that seems to have only affect high numbers
-		//...so this field is still a bit of a mystery
-		
-		
-		
-		//with length half a large grid (i.e. 1 pentultimate grid space) we get xrepeat 4, and maybe half the texture is showing
-		// does 8 always mean texture fits perfectly?
-		
-		
-		
-		//for a wall with length equal to 1 block of largest grid size, xrepeat = 8.
-		//two blocks of largest grid:  xrepeat = 16
-		//three blocks of largest grid:  xrepeat = 24
-		//dividing xrepeat by grid size leaves us with 8...
-		
-		//is this really a repeat??  ... or is it PIXEL repeat and not TEXTURE repeat...
-		
-		//using the keypad to shrink x (i.e. cause it to repeat itself more) results in increase:  24 -> 31
-	
-		//making the nuke button texture fit wall exactly:  xrepeat 14, yrepeat 5
-		
-		//making tex 158 (door) texture fit wall exactly: xrepeat 15, 7
-		
-		//making tex 157 (half-door) texture fit wall exactly: 10, y
-		
-		//i think the textures are different sizes, and the repeat is related to that
-		
-		//it can't be pixel repeat though
-		
-		//same texture, ridiculous stretching:  xrepeat 0
-		
-		//same texture, increased wall length to 14 (i think):  xrepeat  98
-		//	98 / 8 is about 12, but the texture only repeats 2 times
-		
-		
-		//shrink it a lot, and xrepeat goes negative.....!!!!!!!
+
 		
 	}
 	
@@ -97,6 +69,7 @@ public class Main {
 		//String fname = "TWOROOMS.MAP";
 		
 		String mapFile = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + filename;
+		System.out.println("loading mapfile: " + mapFile);
 		
 		FileInputStream bs = new FileInputStream(new File(mapFile));
 		

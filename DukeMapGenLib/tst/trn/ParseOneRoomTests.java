@@ -55,7 +55,7 @@ public class ParseOneRoomTests {
 		
 		
 		Sector sector = m.getSector(0);
-		Assert.assertEquals(183, sector.getFloorPicIndex());
+		Assert.assertEquals(183, sector.getFloorTexture());
 		Assert.assertEquals(1, sector.getCeilingPallette());
 		Assert.assertEquals(3, sector.getCeilingShadeAsUnsigned());
 		

@@ -3,6 +3,8 @@ package trn;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Map {
 	
@@ -14,11 +16,12 @@ public class Map {
 	
 	int sectorCount;
 	
-	Sector[] sectors;
+	List<Sector> sectors = new ArrayList<Sector>();
 	
+	//XXX: in theory we could get rid of this and rely on wall.size()
 	int wallCount;
 	
-	Wall walls[];
+	List<Wall> walls = new ArrayList<Wall>();
 	
 	int spriteCount;
 	
@@ -44,7 +47,12 @@ public class Map {
 	}
 	
 	public Sector getSector(int i){
-		return sectors[i];
+		return sectors.get(i);
+	}
+	public int addSector(Sector s){
+		this.sectors.add(s);
+		this.sectorCount++;
+		return this.sectorCount -1;
 	}
 	
 	public int getWallCount(){
@@ -52,7 +60,24 @@ public class Map {
 	}
 	
 	public Wall getWall(int i){
-		return this.walls[i];
+		return this.walls.get(i);
+	}
+	
+	/**
+	 * WARNING: this does not automatically update any indexes (it does update wall count)
+	 * 
+	 * @param w wall to add
+	 * @return the index of the new wall
+	 */
+	public int addWall(Wall w){
+		
+		
+		walls.add(w);
+		this.wallCount++;
+		
+		if(this.wallCount != walls.size()) throw new RuntimeException("wall count mismatch");
+		
+		return wallCount - 1;
 	}
 	
 	public int getSpriteCount(){
@@ -89,12 +114,12 @@ public class Map {
 		ByteUtil.writeUint16LE(output, sectorWithStartPoint);
 		ByteUtil.writeUint16LE(output, sectorCount);
 		for(int i = 0; i < sectorCount; ++i){
-			sectors[i].toBytes(output);
+			sectors.get(i).toBytes(output);
 		}
 		
 		ByteUtil.writeUint16LE(output, wallCount);
 		for(int i = 0; i < wallCount; ++i){
-			walls[i].toBytes(output);
+			walls.get(i).toBytes(output);
 		}
 		
 		ByteUtil.writeUint16LE(output, spriteCount);
@@ -119,18 +144,21 @@ public class Map {
 				
 		map.sectorCount = ByteUtil.readUint16LE(bs);
 
-		map.sectors = new Sector[map.sectorCount];
+		map.sectors = new ArrayList<Sector>(map.sectorCount);
 				for(int i = 0; i < map.sectorCount; ++i){
-					map.sectors[i] = Sector.readSector(bs);
-					map.sectors[i].print();
+					map.sectors.add(Sector.readSector(bs));
+					//map.sectors[i] = Sector.readSector(bs);
+					//map.sectors[i].print();
 				}
 				
 		map.wallCount = ByteUtil.readUint16LE(bs);
 				
 				
-		map.walls = new Wall[map.wallCount];
+		map.walls = new ArrayList<Wall>(map.wallCount);
 		for(int i = 0; i < map.wallCount; ++i){
-			map.walls[i] = Wall.readWall(bs);
+			map.walls.add(Wall.readWall(bs));
+			//map.walls.set(i, Wall.readWall(bs));
+			//map.walls[i] = Wall.readWall(bs);
 		}
 				
 		map.spriteCount = ByteUtil.readUint16LE(bs);
@@ -142,8 +170,13 @@ public class Map {
 					
 			System.out.println("sprite texture: " + map.sprites[i].picnum); //oneroom.map should be 22 and 24
 		}
-				
-		System.out.println("read method returns: " + bs.read()); //-1 [probably] means EOF, meaning we did it right.
+		
+		//System.out.println("read method returns: " + bs.read()); //-1 [probably] means EOF, meaning we did it right.
+		if(-1 != bs.read()){
+			throw new IOException("data left over at end of file");
+		}
+		
+		
 				
         return map;
 	}

@@ -38,7 +38,51 @@ public class Wall {
 	short hitag; //INT16LE
 	
 	short extra; //INT16LE
- 
+	
+	public Wall(){
+		
+	}
+	
+	
+	public Wall(int x, int y, int point2){
+		this(x, y, point2, 0);
+	}
+	
+	
+	public Wall(int x, int y, int point2, int wallTex){ //accepting ints because java is a pain in the ass about literals
+		this.x = x;
+		this.y = y;
+		this.point2 = (short)point2;
+		
+		this.nextWall = -1;
+		this.nextSector = -1;
+		
+		this.cstat = 0;
+		
+		this.picnum = (short)wallTex; //0 is the ugly brick
+		this.overpicnum = 0;
+		this.shade = 0;
+		this.pal = 0;
+		
+		//xrepeat = ?
+		//yrepeat = ?
+		
+		this.xpanning = 0;
+		this.ypanning = 0;
+		
+		this.lotag = 0;
+		this.hitag = 0;
+		this.extra = -1;
+	}
+	
+	public void setOtherSide(int nextWall, int nextSector){
+		this.nextWall = (short)nextWall;
+		this.nextSector = (short)nextSector;
+	}
+	
+	public void setTexture(int texture){
+		this.picnum = (short)texture;
+	}
 	
 	/** texture index, a.k.a. picnum */
 	public short getTexture(){
@@ -48,6 +92,12 @@ public class Wall {
 	public void setXRepeat(short s){
 		this.xrepeat = s;
 	}
+	public void setXRepeat(int i){ setXRepeat((short)i); }
+	
+	public void setYRepeat(short yr){
+		this.yrepeat = yr;
+	}
+	public void setYRepeat(int i){ setYRepeat((short)i); }
 	
 	@Override
 	public String toString(){
