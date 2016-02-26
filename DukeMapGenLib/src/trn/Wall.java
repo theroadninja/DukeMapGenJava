@@ -97,6 +97,10 @@ public class Wall {
 		return y;
 	}
 	
+	public boolean sameXY(Wall rh){
+		return rh != null && x == rh.x && y == rh.y;
+	}
+	
 	/**
 	 * sets the next wall in the loop.  calling this 'setPoint2' because the field 'nextWall' is already
 	 * take up by another field, which refers to the wall on the other side of this wall

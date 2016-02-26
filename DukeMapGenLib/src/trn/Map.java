@@ -78,6 +78,31 @@ public class Map {
 	}
 	
 	/**
+	 * @return indexes of all walls in a sector
+	 */
+	public List<Integer> getSectorWallIndexes(int sectorIndex){
+		
+		Sector sector = getSector(sectorIndex);
+		
+		List<Integer> list = new ArrayList<Integer>(sector.getWallCount());
+		
+		int safety = 10000;
+		int index = sector.getFirstWall();
+		while(safety-- > 0){
+			list.add(index);
+			
+			index = walls.get(index).getPoint2();
+			
+			if(index == sector.getFirstWall()){
+				break; //back to where we started
+			}
+		}
+		
+		return list;
+		
+	}
+	
+	/**
 	 * WARNING: this does not automatically update any indexes (it does update wall count)
 	 * 
 	 * @param w wall to add
@@ -130,6 +155,16 @@ public class Map {
 		
 		return firstWall;
 		
+	}
+	
+	/**
+	 * adds the walls and the new sector object.
+	 * 
+	 * @param wallsToAdd
+	 * @return
+	 */
+	public int createSectorFromLoop(Wall ... wallsToAdd){
+		return addSector(new Sector(addLoop(wallsToAdd), wallsToAdd.length));
 	}
 	
 	/**

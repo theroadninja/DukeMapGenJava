@@ -7,6 +7,7 @@ import trn.Map;
 import trn.PlayerStart;
 import trn.Sector;
 import trn.Wall;
+import trn.duke.Util;
 
 /**
  * Map generator that starts by creating a square room, and then
@@ -228,7 +229,7 @@ public class E4CreateLadderMaze {
 			
 		}
 		
-		orderWalls(map, walls);
+		Util.orderWalls(map, walls);
 		return walls;
 		
 	}
@@ -274,33 +275,12 @@ public class E4CreateLadderMaze {
 			
 		}
 		
-		orderWalls(map, walls);
+		Util.orderWalls(map, walls);
 		return walls;
 		
 	}
 	
-	/**
-	 * orders the walls so that wall 0 points to wall 1
-	 * @param map
-	 * @param walls
-	 */
-	static void orderWalls(Map map, Integer[] walls){
-		if(walls[0] == null || walls[1] == null) throw new RuntimeException();
-		
-		
-		Wall w0 = map.getWall(walls[0]);
-		Wall w1 = map.getWall(walls[1]);
-		
-		if(w0.getPoint2() == walls[1]){
-			//ok
-		}else if(w1.getPoint2() == walls[0]){
-			Integer tmp = walls[0];
-			walls[0] = walls[1];
-			walls[1] = tmp;
-		}else{
-			throw new RuntimeException("walls are not adjacent");
-		}
-	}
+
 	
 	
 }

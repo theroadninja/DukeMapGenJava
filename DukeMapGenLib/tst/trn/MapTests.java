@@ -1,5 +1,7 @@
 package trn;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,5 +44,26 @@ public class MapTests {
 		Assert.assertEquals(5, map.getWall(4).getPoint2());
 		Assert.assertEquals(3, map.getWall(5).getPoint2());
 		
+	}
+	
+	@Test
+	public void testGetSectorWallIndexes(){
+	
+		Map map = Map.createNew();
+		
+		
+		Wall w0 = new Wall(0,0);
+		Wall w1 = new Wall(1,1);
+		Wall w2 = new Wall(2,2);
+		
+		map.createSectorFromLoop(w0, w1, w2);
+		
+		List<Integer> list = map.getSectorWallIndexes(0);
+		
+		Assert.assertEquals(3, list.size());
+		
+		Assert.assertEquals(0, (int)list.get(0));
+		Assert.assertEquals(1, (int)list.get(1));
+		Assert.assertEquals(2, (int)list.get(2));
 	}
 }

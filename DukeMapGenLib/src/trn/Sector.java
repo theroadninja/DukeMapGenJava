@@ -125,6 +125,10 @@ public class Sector {
 		return this.firstWall;
 	}
 	
+	public short getWallCount(){
+		return this.wallCount;
+	}
+	
 	public void toBytes(OutputStream output) throws IOException {
 		ByteUtil.writeInt16LE(output, firstWall);
 		ByteUtil.writeInt16LE(output, wallCount);

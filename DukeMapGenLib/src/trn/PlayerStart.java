@@ -7,7 +7,9 @@ import java.io.OutputStream;
 public class PlayerStart {
 	
 	/** facing "up" when looking at the map in build */
-	public static final int NORTH = 1536;
+	public static final int NORTH = 1536;  //i think 2048 == 360 degrees, with 0 == east and 90 deg is south
+	
+	public static final int SOUTH = 512; // 90 * (2048 / 360)
 	
 	public static final int BYTE_COUNT = 14;
 
