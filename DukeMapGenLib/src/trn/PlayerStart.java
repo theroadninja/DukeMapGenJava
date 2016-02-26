@@ -6,6 +6,9 @@ import java.io.OutputStream;
 
 public class PlayerStart {
 	
+	/** facing "up" when looking at the map in build */
+	public static final int NORTH = 1536;
+	
 	public static final int BYTE_COUNT = 14;
 
 	

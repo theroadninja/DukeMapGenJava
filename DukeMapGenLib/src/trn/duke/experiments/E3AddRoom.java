@@ -47,28 +47,30 @@ public class E3AddRoom {
 		
 		
 		
-		Wall w4 = new Wall(31744, 31744, 5, wallTex); //same position as wall 0
+		Wall w4 = new Wall(31744, 31744, wallTex); //same position as wall 0
 		w4.setXRepeat(16);
 		w4.setYRepeat(8);
-		map.addWall(w4);
+		//map.addWall(w4);
 		
-		Wall w5 = new Wall(31744, 29696, 6, wallTex);
+		Wall w5 = new Wall(31744, 29696, wallTex);
 		w5.setXRepeat(16);
 		w5.setYRepeat(8);
-		map.addWall(w5);
+		//map.addWall(w5);
 		
 		
-		Wall w6 = new Wall(33792, 29696, 7, wallTex);
+		Wall w6 = new Wall(33792, 29696, wallTex);
 		w6.setXRepeat(16);
 		w6.setYRepeat(8);
-		map.addWall(w6);
+		//map.addWall(w6);
 		
 		
-		Wall w7 = new Wall(33792, 31744, 4, wallTex);
+		Wall w7 = new Wall(33792, 31744, wallTex);
 		w7.setOtherSide(0, 0);
 		w7.setXRepeat(16);
 		w7.setYRepeat(8);
-		map.addWall(w7);
+		//map.addWall(w7);
+		
+		map.addLoop(w4, w5, w6, w7);
 		
 		
 		map.getWall(0).setOtherSide(7, 1);

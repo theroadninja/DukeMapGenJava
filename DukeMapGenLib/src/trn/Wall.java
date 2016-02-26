@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import trn.duke.MapErrorException;
+
 public class Wall {
 	
 	int x; //INT32LE
@@ -44,8 +46,20 @@ public class Wall {
 	}
 	
 	
-	public Wall(int x, int y, int point2){
-		this(x, y, point2, 0);
+	
+	public Wall(int x, int y){
+		this(x, y, 0);
+	}
+	
+	
+	public Wall(int x, int y, int wallTex){
+		this(x, y, -1, wallTex);
+	}
+	
+	public Wall(int x, int y, int wallTex, int xrepeat, int yrepeat){
+		this(x, y, -1, wallTex);
+		this.xrepeat = (short)xrepeat;
+		this.yrepeat = (short)yrepeat;
 	}
 	
 	
@@ -75,6 +89,27 @@ public class Wall {
 		this.extra = -1;
 	}
 	
+	public int getX(){
+		return x;
+	}
+	
+	public int getY(){
+		return y;
+	}
+	
+	/**
+	 * sets the next wall in the loop.  calling this 'setPoint2' because the field 'nextWall' is already
+	 * take up by another field, which refers to the wall on the other side of this wall
+	 * @param point2
+	 */
+	public void setPoint2(int point2){
+		this.point2 = (short)point2;
+	}
+	
+	public int getPoint2(){
+		return this.point2;
+	}
+	
 	public void setOtherSide(int nextWall, int nextSector){
 		this.nextWall = (short)nextWall;
 		this.nextSector = (short)nextSector;
@@ -99,6 +134,13 @@ public class Wall {
 	}
 	public void setYRepeat(int i){ setYRepeat((short)i); }
 	
+	public void setTexture(int texture, int xr, int yr){
+		this.setTexture(texture);
+		this.setXRepeat((short)xr);
+		this.setYRepeat((short)yr);
+	}
+	
+	//TODO:  need an optional param to hide fields with default values
 	@Override
 	public String toString(){
 		String ln = "\n"; //why isn't there an appenln() ?
@@ -131,7 +173,15 @@ public class Wall {
 		return sb.toString();
 	}
 	
-	public void toBytes(OutputStream output) throws IOException {
+	
+	
+	
+	
+	public void toBytes(OutputStream output) throws IOException, MapErrorException {
+	
+		if(point2 == -1){
+			throw new MapErrorException("cannot serialize; point2 is -1");
+		}
 		
 		ByteUtil.writeInt32LE(output, x);
 		ByteUtil.writeInt32LE(output, y);

@@ -27,12 +27,26 @@ public class Map {
 	
 	Sprite[] sprites;
 	
+	private Map(){
+		
+	}
+	
+	public static Map createNew(){
+		Map map = new Map();
+		map.mapVersion = 7; //duke.  not sure if it includes atomic or not.
+		return map;
+	}
+	
 	public long getMapVersion(){
 		return mapVersion;
 	}
 	
 	public PlayerStart getPlayerStart(){
 		return this.playerStart;
+	}
+	
+	public void setPlayerStart(PlayerStart ps){
+		this.playerStart = ps;
 	}
 	
 	/**
@@ -80,6 +94,55 @@ public class Map {
 		return wallCount - 1;
 	}
 	
+	/**
+	 * Adds the walls and links them together by setting their 'nextwall' pointers to the 
+	 * indices they get when they are added to the wall array.
+	 * 
+	 * Details:  in the build format walls are identified by their index in the global list of
+	 * walls for the entire map, so we don't really have an identifier for them until we add them to
+	 * that list.  This method makes it easy to add all the wals for a sector at once.
+	 * 
+	 * @param walls
+	 * @return
+	 */
+	public int addLoop(Wall ... wallsToAdd){
+		if(wallsToAdd == null || wallsToAdd.length < 3) throw new IllegalArgumentException();
+		
+		int firstWall = -1;
+		Wall lastWall = null;
+		
+		for(Wall w : wallsToAdd){
+			
+			//add the wall
+			int index = addWall(w);
+			
+			w.setPoint2(index + 1);
+			
+			//if its the first wall, update the index
+			if(firstWall == -1){
+				firstWall = index;
+			}
+			
+			lastWall = w;	
+		}
+		
+		lastWall.setPoint2(firstWall);
+		
+		return firstWall;
+		
+	}
+	
+	/**
+	 * connects two sectors by creating the necessary link between the sectors' walls,
+	 * creating two-sided walls (which appear red in build); 
+	 */
+	public void linkRedWalls(int sectorIndex, int wallIndex, int sectorIndex2, int wallIndex2){
+		
+		getWall(wallIndex).setOtherSide(wallIndex2, sectorIndex2);
+		getWall(wallIndex2).setOtherSide(wallIndex, sectorIndex);
+		
+	}
+	
 	public int getSpriteCount(){
 		return this.spriteCount;
 	}
@@ -103,6 +166,30 @@ public class Map {
 		System.out.println("wall count: " + wallCount);
 		
 		System.out.println("sprite count: " + spriteCount);
+	}
+	
+	public void printAll(){
+		
+		print();
+		
+		System.out.println(this.playerStart.toString());
+		
+		System.out.println("SECTORS");
+		
+		for(int i = 0; i < sectors.size(); ++i){
+			sectors.get(i).print();
+		}
+		
+		System.out.println("WALLS");
+		
+		for(int i = 0; i < walls.size(); ++i){
+			System.out.println(walls.get(i).toString());
+		}
+		
+		System.out.println("SPRITES");
+		
+		System.out.println("todo");
+		
 	}
 	
 	

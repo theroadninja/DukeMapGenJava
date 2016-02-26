@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Sector {
+	
+	public static final int DEFAULT_FLOOR_Z = 8192;
+	public static final int DEFAULT_CEILING_Z = -8192;
 
 	private short firstWall; //a.k.a. wallprt
 	private short wallCount; //a.k.a. wallnum
@@ -76,6 +79,9 @@ public class Sector {
 		this.lotag = 0;
 		this.hitag = 0;
 		this.extra = -1;
+		
+		this.ceilingz = DEFAULT_CEILING_Z;
+		this.floorz = DEFAULT_FLOOR_Z;
 	}
 	
 	public void setCeilingZ(int z){
@@ -113,6 +119,10 @@ public class Sector {
 	
 	public short getCeilingPallette(){
 		return this.ceilingpal;
+	}
+	
+	public short getFirstWall(){
+		return this.firstWall;
 	}
 	
 	public void toBytes(OutputStream output) throws IOException {
@@ -212,6 +222,9 @@ public class Sector {
 	
 	public void print(){
 		
+		System.out.println("{");
+		
+		
 		final String ln = "\n";
 		
 		StringBuilder sb = new StringBuilder();
@@ -256,6 +269,6 @@ public class Sector {
 		System.out.println("lotag: " + s.lotag);
 		System.out.println("hitag: " + s.hitag);
 		System.out.println("extra:" + extra);
-		
+		System.out.println("}");
 	}
 }
