@@ -12,19 +12,44 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import trn.duke.experiments.Grid;
+
 public class DfsMazeGen {
 	
 	private static final Random random = new Random();
+	
+	/**
+	 * just tacking this on to get a little more mileage out of this
+	 * graph class before I'm forced to write something better.
+	 * 
+	 * @author Dave
+	 *
+	 */
+	public static class NodeInfo {
+		public Grid.SimpleTileset tileset;
+	}
 	
 	/** adjacency list */
 	public static class Graph<T> {
 		
 		Map<T, Set<T>> adjacencyList = new HashMap<T, Set<T>>();
 		
+		Map<T, NodeInfo> nodeInfo = new HashMap<T, NodeInfo>();
+		
+		
 		public Graph(){
 			
 		}
 		
+		
+		public NodeInfo getNodeInfo(T t){
+			NodeInfo ni = nodeInfo.get(t);
+			if(ni == null){
+				ni = new NodeInfo();
+			}
+			nodeInfo.put(t, ni);
+			return ni;
+		}
 		
 		public Map<T, Set<T>> getAdjacencyList(){
 			return this.adjacencyList;

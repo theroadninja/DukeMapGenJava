@@ -36,7 +36,8 @@ public class E5CreateMaze {
 		int width = 10;
 		int height = 10;
 		
-		Set<Pair<Integer, Integer>> grid = toGrid(DfsMazeGen.createGridMaze(width, height));
+		
+		Grid grid = new Grid(DfsMazeGen.createGridMaze(width, height));
 
 		/* simple ass grid for testing
 		Set<Pair<Integer, Integer>> grid = new HashSet<Pair<Integer, Integer>>();
@@ -53,7 +54,7 @@ public class E5CreateMaze {
 	
 	
 	
-	public static trn.Map createMap(Set<Pair<Integer, Integer>> grid, int width, int height){
+	public static trn.Map createMap(Grid grid, int width, int height){
 		
 		Map map = Map.createNew();
 		
@@ -63,16 +64,16 @@ public class E5CreateMaze {
 		java.util.Map<Pair<Integer, Integer>, Integer> gridToSector = new HashMap<Pair<Integer, Integer>, Integer>();
 		
 		//create the sectors
-		for(Pair<Integer, Integer> p : grid){
+		for(Pair<Integer, Integer> p : grid.getNodes()){
 			//System.out.println(p);
 			
-			int sectorIndex = createSector(map, p);
+			int sectorIndex = createSector(map, p, grid.getBlockInfo(p));
 			
 			gridToSector.put(p, sectorIndex);
 		}
 		
 		//link the sectors
-		for(Pair<Integer, Integer> p : grid){
+		for(Pair<Integer, Integer> p : grid.getNodes()){
 			
 			Pair<Integer, Integer> east = DfsMazeGen.Heading.EAST.move(p);
 			Pair<Integer, Integer> south = DfsMazeGen.Heading.SOUTH.move(p);
@@ -135,69 +136,37 @@ public class E5CreateMaze {
 	
 	
 	
-	public static int createSector(Map map, Pair<Integer, Integer> gc){
+	public static int createSector(Map map, Pair<Integer, Integer> gc, Grid.BlockInfo blockInfo){
+		
+		int wallTex = MAZE_WALL_TEX;
+		if(blockInfo != null && blockInfo.tileset != null){
+			wallTex = blockInfo.tileset.wallTexture;
+		}
+		
 		
 		int west = gc.getLeft() * WALL_LENGTH;
 		int east = (gc.getLeft() + 1) * WALL_LENGTH;
 		int north = gc.getRight() * WALL_LENGTH;
 		int south = (gc.getRight() + 1) * WALL_LENGTH;
 		
-		Wall nw = new Wall(west, north, MAZE_WALL_TEX, 16, 8); //first wall; also matches the grid coordinate
-		Wall ne = new Wall(east, north, MAZE_WALL_TEX, 16, 8);
-		Wall se = new Wall(east, south, MAZE_WALL_TEX, 16, 8);
-		Wall sw = new Wall(west, south, MAZE_WALL_TEX, 16, 8);
+		Wall nw = new Wall(west, north, wallTex, 16, 8); //first wall; also matches the grid coordinate
+		Wall ne = new Wall(east, north, wallTex, 16, 8);
+		Wall se = new Wall(east, south, wallTex, 16, 8);
+		Wall sw = new Wall(west, south, wallTex, 16, 8);
 		
-		return map.createSectorFromLoop(nw, ne, se, sw);
-	}
-	
-	
-	
-	/**
-	 * turns the maze, specified by an adjacency list, into a grid implementation, where each edge
-	 * between nodes gets its own square in the grid.
-	 * 
-	 * e.g.    (0,0)--edge-->(0,1)
-	 * 
-	 * becomes:
-	 * 
-	 *     (0,0), (0,1), (0,2)
-	 * 
-	 * Where 0,0 and 0,2 represent the nodes in the maze.  So we need to multiple node indices by 2 to
-	 * be able to add the edges between them.
-	 * 
-	 * @param maze
-	 * @return
-	 */
-	public static Set<Pair<Integer, Integer>> toGrid(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
+		int sectorIndex =  map.createSectorFromLoop(nw, ne, se, sw);
 		
-		Set<Pair<Integer, Integer>> grid = new HashSet<Pair<Integer, Integer>>();
-		
-		for(Pair<Integer, Integer> node : maze.getAdjacencyList().keySet()){
-			
-			grid.add(toGridNode(node));
-			
-			for(Pair<Integer, Integer> n2 : maze.getAdjacencyList().get(node)){
-				grid.add(toGridEdge(node, n2));
-			}
-			
+		if(blockInfo != null && blockInfo.tileset != null){
+			blockInfo.tileset.applyToCeilAndFloor(map.getSector(sectorIndex));
+			System.out.println("applying tileset: " + blockInfo.tileset);
 		}
 		
-		return grid;
-		
+		return sectorIndex;
 	}
 	
 	
-	static Pair<Integer, Integer> toGridNode(Pair<Integer, Integer> node){
-		return new ImmutablePair<Integer, Integer>(
-				node.getLeft() * 2, node.getRight() * 2);
-	}
 	
-	static Pair<Integer, Integer> toGridEdge(Pair<Integer, Integer> node, Pair<Integer, Integer> node2){
-		//super lazy way of doing it
-		return new ImmutablePair<Integer, Integer>(
-				(node.getLeft() + node2.getLeft()),
-				(node.getRight() + node2.getRight()));
-	}
+
 
 	
 }
