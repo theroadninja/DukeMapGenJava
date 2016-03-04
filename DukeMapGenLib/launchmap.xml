@@ -1,0 +1,23 @@
+<project name="CopyMapAndLaunch" default="copyandlaunch" basedir=".">
+    
+    <property file="local.properties"/>
+    
+    <property name="mapfile" location="dukeoutput/output.map"/>
+    
+    
+    
+   <target name="info">
+      <echo>Apache Ant version is ${ant.version} - Map destination: ${mapdest} </echo>
+   </target>
+   
+   <target name="copyandlaunch">
+        <copy todir="${mapdest}">
+            <file file="${mapfile}"/>
+        </copy>
+        
+        <exec executable="${dosbox}">
+        </exec>
+   </target>
+   
+    
+</project>
