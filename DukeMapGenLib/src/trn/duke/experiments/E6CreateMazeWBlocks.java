@@ -1,13 +1,17 @@
 package trn.duke.experiments;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Random;
-import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 
 import trn.Main;
+import trn.Map;
+import trn.PlayerStart;
+import trn.Sector;
 import trn.maze.DfsMazeGen;
+import trn.maze.Heading;
 
 /**
  * Maze generation, but the nodes can be different "blocks" which
@@ -27,34 +31,14 @@ public class E6CreateMazeWBlocks {
 	
 	private static final Random random = new Random();
 
-	//block 0 - default shit from last experiment.
-	
-	/*
-	 * block 1
-	 * 
-	 * walls - 781
-	 * floor - 782
-	 * ceiling - 781
-	 * 
-	 */
-	
-	/*
-	 * block 2
-	 * 
-	 * walls - 800
-	 * floor - 801
-	 * ceiling - 800
-	 */
-	
 
+	static LegacyGrid.SimpleTileset Block0 = new LegacyGrid.SimpleTileset(E5CreateMaze.MAZE_WALL_TEX, 0, 0);
 	
-	static Grid.SimpleTileset Block0 = new Grid.SimpleTileset(E5CreateMaze.MAZE_WALL_TEX, 0, 0);
+	static LegacyGrid.SimpleTileset Block1 = new LegacyGrid.SimpleTileset(781, 782, 781);
 	
-	static Grid.SimpleTileset Block1 = new Grid.SimpleTileset(781, 782, 781);
+	static LegacyGrid.SimpleTileset Block2 = new LegacyGrid.SimpleTileset(800, 801, 800);
 	
-	static Grid.SimpleTileset Block2 = new Grid.SimpleTileset(800, 801, 800);
-	
-	static Grid.SimpleTileset BLOCKS[] = new Grid.SimpleTileset[]{ Block0, Block1, Block2 };
+	static LegacyGrid.SimpleTileset BLOCKS[] = new LegacyGrid.SimpleTileset[]{ Block0, Block1, Block2 };
 	
 	
 	public static void main(String[] args) throws IOException{
@@ -62,9 +46,12 @@ public class E6CreateMazeWBlocks {
 		//System.out.println(DfsMazeGen.createGridMaze(5, 5));
 		
 		
-		int width = 10;
-		int height = 10;
+		int width = 9;
+		int height = 9;
 		
+		
+		final int oneLevelDown = 24576;
+		int[] floorz = new int[]{Sector.DEFAULT_FLOOR_Z, Sector.DEFAULT_FLOOR_Z, oneLevelDown};
 		
 		//create a graph that represents a maze
 		DfsMazeGen.Graph<Pair<Integer,Integer>> graph = DfsMazeGen.createGridMaze(width, height);
@@ -72,11 +59,19 @@ public class E6CreateMazeWBlocks {
 		
 		//assign random integers to represent tilesets/blocks
 		for(Pair<Integer, Integer> node : graph.getAdjacencyList().keySet()){
-			graph.getNodeInfo(node).tileset = BLOCKS[random.nextInt(BLOCKS.length)];
+			LegacyGrid.BlockInfo bi = graph.getBlockInfo(node);
+			bi.tileset = BLOCKS[random.nextInt(BLOCKS.length)];
+			bi.floorZ = Integer.valueOf(floorz[random.nextInt(floorz.length)]);
 		}
 		
 		
-		Grid grid = new Grid(graph);
+		LegacyGrid grid = new LegacyGrid(graph);
+		
+		
+		
+		
+		
+		
 
 		
 		trn.Map map = E5CreateMaze.createMap(grid, width, height);
@@ -84,6 +79,7 @@ public class E6CreateMazeWBlocks {
 		Main.writeResult(map);
 		
 	}
+
 
 	
 }

@@ -12,29 +12,30 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import trn.duke.experiments.Grid;
+import trn.duke.experiments.LegacyGrid;
 
 public class DfsMazeGen {
 	
 	private static final Random random = new Random();
 	
-	/**
-	 * just tacking this on to get a little more mileage out of this
-	 * graph class before I'm forced to write something better.
-	 * 
-	 * @author Dave
-	 *
-	 */
-	public static class NodeInfo {
+	
+	/*public static class NodeInfo {
 		public Grid.SimpleTileset tileset;
-	}
+	}*/
 	
 	/** adjacency list */
 	public static class Graph<T> {
 		
 		Map<T, Set<T>> adjacencyList = new HashMap<T, Set<T>>();
 		
-		Map<T, NodeInfo> nodeInfo = new HashMap<T, NodeInfo>();
+		/**
+		 * just tacking this on to get a little more mileage out of this
+		 * graph class before I'm forced to write something better.
+		 * 
+		 * @author Dave
+		 *
+		 */
+		Map<T, LegacyGrid.BlockInfo> nodeInfo = new HashMap<T, LegacyGrid.BlockInfo>();
 		
 		
 		public Graph(){
@@ -42,10 +43,10 @@ public class DfsMazeGen {
 		}
 		
 		
-		public NodeInfo getNodeInfo(T t){
-			NodeInfo ni = nodeInfo.get(t);
+		public LegacyGrid.BlockInfo getBlockInfo(T t){
+			LegacyGrid.BlockInfo ni = nodeInfo.get(t);
 			if(ni == null){
-				ni = new NodeInfo();
+				ni = new LegacyGrid.BlockInfo();
 			}
 			nodeInfo.put(t, ni);
 			return ni;
@@ -92,33 +93,6 @@ public class DfsMazeGen {
 			return sb.toString();
 		}
 		
-	}
-	
-	/**
-	 * using same coordinate system as Build map format.
-	 * y+ is south, x+ is east
-	 * @author Dave
-	 *
-	 */
-	public static enum Heading {
-		NORTH(0, -1),
-		EAST(1, 0),
-		SOUTH(0, 1),
-		WEST(-1, 0);
-		
-		private final int dx;
-		private final int dy;
-		
-		private Heading(int dx, int dy){
-			this.dx = dx;
-			this.dy = dy;
-		}
-		
-		public Pair<Integer, Integer> move(Pair<Integer, Integer> node){
-			return new ImmutablePair<Integer, Integer>(node.getLeft() + dx, node.getRight() + dy);
-		}
-		
-
 	}
 	
 	/**

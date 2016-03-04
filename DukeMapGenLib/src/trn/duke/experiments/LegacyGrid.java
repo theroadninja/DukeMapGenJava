@@ -15,7 +15,7 @@ import trn.maze.DfsMazeGen;
  * @author Dave
  *
  */
-public class Grid {
+public class LegacyGrid {
 	
 	
 	/**
@@ -24,9 +24,9 @@ public class Grid {
 	 *
 	 */
 	public static class SimpleTileset {
-		final int wallTexture;
-		final int floorTexture;
-		final int ceilingTexture;
+		public final int wallTexture;
+		public final int floorTexture;
+		public final int ceilingTexture;
 		
 		public SimpleTileset(int wall, int floor, int ceil){
 			this.wallTexture = wall;
@@ -51,6 +51,12 @@ public class Grid {
 		//integer that identifies a 
 		SimpleTileset tileset;
 		
+		
+		//default floor is 8192
+		//one "level" down is 8192 + 16*1024 = 24576
+		
+		public Integer floorZ = null;
+		
 		public BlockInfo(){
 			
 		}
@@ -71,12 +77,12 @@ public class Grid {
 	
 	private final java.util.Map<Pair<Integer, Integer>, BlockInfo> gridData = new HashMap<Pair<Integer, Integer>, BlockInfo>();
 	
-	public Grid(){
+	public LegacyGrid(){
 		
 	}
 	
-	public Grid(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
-		this.copyFromGraph(maze);
+	public LegacyGrid(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
+		this.copyFromGraphAndExpand(maze);
 	}
 	
 	/**
@@ -103,8 +109,6 @@ public class Grid {
 		return gridData.containsKey(node);
 	}
 	
-	
-	
 
 	
 	/**
@@ -123,18 +127,19 @@ public class Grid {
 	 * @param maze
 	 * @return
 	 */
-	public void copyFromGraph(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
+	public void copyFromGraphAndExpand(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
 	
 		
 		
 		for(Pair<Integer, Integer> node : maze.getAdjacencyList().keySet()){
 			
 			
-			DfsMazeGen.NodeInfo ni = maze.getNodeInfo(node);
+			BlockInfo ni = maze.getBlockInfo(node);
 			if(ni == null || ni.tileset == null){
 				add(toGridNode(node));
 			}else{
-				put(toGridNode(node), new BlockInfo(maze.getNodeInfo(node).tileset));
+				//put(toGridNode(node), new BlockInfo(maze.getBlockInfo(node).tileset));
+				put(toGridNode(node), maze.getBlockInfo(node));
 			}
 			
 			

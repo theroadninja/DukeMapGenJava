@@ -8,39 +8,68 @@ import org.apache.commons.lang3.tuple.Pair;
 import trn.Main;
 import trn.Map;
 import trn.PlayerStart;
-import trn.Wall;
+import trn.Sector;
+import trn.duke.Util;
+import trn.duke.experiments.gridblock.Block;
+import trn.duke.experiments.gridblock.Grid;
 import trn.duke.experiments.gridblock.GridUtils;
 import trn.maze.DfsMazeGen;
 import trn.maze.Heading;
 
-/**
- * Like E4 but creates a full maze.
- * 
- * 
- * @author Dave
- *
- */
-public class E5CreateMaze {
+public class E7BetterBlocks {
 	
-	public static final int MAZE_WALL_TEX = 772;
-	public static final int WALL_LENGTH = 2048; //1024 seems just big enough to fit duke comfortably
+	
+	
+	/**
+	 * 
+	 * TODO:  instead of tilesets, we need an array of block prefabs, which create blocks.
+	 */
 
+	static LegacyGrid.SimpleTileset Block0 = new LegacyGrid.SimpleTileset(E5CreateMaze.MAZE_WALL_TEX, 0, 0);
+	
+	static LegacyGrid.SimpleTileset Block1 = new LegacyGrid.SimpleTileset(781, 782, 781);
+	
+	static LegacyGrid.SimpleTileset Block2 = new LegacyGrid.SimpleTileset(800, 801, 800);
+	
+	static LegacyGrid.SimpleTileset BLOCKS[] = new LegacyGrid.SimpleTileset[]{ Block0, Block1, Block2 };
+	
+	
 	public static void main(String[] args) throws IOException{
 		
 		//System.out.println(DfsMazeGen.createGridMaze(5, 5));
 		
 		
-		int width = 10;
-		int height = 10;
+		int width = 9;
+		int height = 9;
 		
 		
-		LegacyGrid grid = new LegacyGrid(DfsMazeGen.createGridMaze(width, height));
+		final int oneLevelDown = 24576;
+		int[] floorz = new int[]{Sector.DEFAULT_FLOOR_Z, 
+				//Sector.DEFAULT_FLOOR_Z, 
+				oneLevelDown};
+		
+		//create a graph that represents a maze
+		DfsMazeGen.Graph<Pair<Integer,Integer>> graph = DfsMazeGen.createGridMaze(width, height);
+		
+		
+		//assign random integers to represent tilesets/blocks
+		for(Pair<Integer, Integer> node : graph.getAdjacencyList().keySet()){
+			LegacyGrid.BlockInfo bi = graph.getBlockInfo(node);
+			bi.tileset = BLOCKS[Util.getRandom().nextInt(BLOCKS.length)];
+			bi.floorZ = Integer.valueOf(floorz[Util.getRandom().nextInt(floorz.length)]);
+		}
+		
+		
+		Grid grid = new Grid(graph);
+		
+		//LegacyGrid grid = new LegacyGrid(graph);
+		
+		
+		
+		
+		
+		
 
-		/* simple ass grid for testing
-		Set<Pair<Integer, Integer>> grid = new HashSet<Pair<Integer, Integer>>();
-		grid.add(new ImmutablePair<Integer, Integer>(0, 0));
-		grid.add(new ImmutablePair<Integer, Integer>(0, 1));
-		 */
 		
 		trn.Map map = createMap(grid, width, height);
 		
@@ -48,10 +77,7 @@ public class E5CreateMaze {
 		
 	}
 	
-	
-	
-	
-	public static trn.Map createMap(LegacyGrid grid, int width, int height){
+	public static trn.Map createMap(Grid grid, int width, int height){
 		
 		Map map = Map.createNew();
 		
@@ -64,7 +90,7 @@ public class E5CreateMaze {
 		for(Pair<Integer, Integer> p : grid.getNodes()){
 			//System.out.println(p);
 			
-			int sectorIndex = createSector(map, p, grid.getBlockInfo(p));
+			int sectorIndex = createSector(map, p, grid.getBlock(p));
 			
 			gridToSector.put(p, sectorIndex);
 		}
@@ -76,11 +102,15 @@ public class E5CreateMaze {
 			Pair<Integer, Integer> south = Heading.SOUTH.move(p);
 			
 			if(grid.contains(east)){
-				GridUtils.linkSectors(map, gridToSector.get(p), gridToSector.get(east));
+				
+				grid.getBlock(p).getConnector(Heading.EAST).draw(map,  grid.getBlock(east));
+				
 			}
 			
 			if(grid.contains(south)){
-				GridUtils.linkSectors(map, gridToSector.get(p), gridToSector.get(south));
+				
+				grid.getBlock(p).getConnector(Heading.SOUTH).draw(map, grid.getBlock(south));
+				
 			}
 			
 		}
@@ -89,13 +119,9 @@ public class E5CreateMaze {
 	}
 	
 	
-
-	
-	
-	
-	
-	public static int createSector(Map map, Pair<Integer, Integer> gc, LegacyGrid.BlockInfo blockInfo){
+	public static int createSector(Map map, Pair<Integer, Integer> gc, Block block){
 		
+		/*
 		int wallTex = MAZE_WALL_TEX;
 		if(blockInfo != null && blockInfo.tileset != null){
 			wallTex = blockInfo.tileset.wallTexture;
@@ -127,14 +153,13 @@ public class E5CreateMaze {
 			
 			
 			
-		}
+		}*/
+		
+		int sectorIndex = block.draw(map);
 		
 		return sectorIndex;
 	}
 	
 	
-	
-
-
 	
 }

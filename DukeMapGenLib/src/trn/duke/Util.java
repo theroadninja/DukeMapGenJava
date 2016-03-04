@@ -2,6 +2,7 @@ package trn.duke;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -10,6 +11,12 @@ import trn.Map;
 import trn.Wall;
 
 public class Util {
+	
+	private static final Random random = new Random();
+	
+	public static Random getRandom(){
+		return random;
+	}
 
 	/**
 	 * 
