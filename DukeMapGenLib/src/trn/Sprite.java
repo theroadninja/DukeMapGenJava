@@ -6,6 +6,63 @@ import java.io.OutputStream;
 
 public class Sprite {
 	
+	public static final short DEFAULT_X_REPEAT = 64;
+	public static final short DEFAULT_Y_REPEAT = 64;
+	
+	public static class CSTAT_FLAGS {
+		
+		/** cstat you get if you place a sprite on the floor in build */
+		public static final int PLACED_ON_FLOOR = 1;
+		
+		/** cstat you get if you place sprite on floor, then wall align it with 'r' */
+		public static final int PLACED_ON_FLOOR_WALL_ALIGNED = 17; // bit 0 blocking, bit 4 wall
+		
+		/** cstat you get if you place sprite on floor, then floor align it with 'r' */
+		public static final int PLACED_ON_FLOOR_FLOOR_ALIGNED = 33; // bit 0 blocking, bit 5 floor
+		
+		/** cstat you get if you place a sprite directly on the wall */
+		public static final int PLACED_ON_WALL = 80; // bit 4 wall sprite, bit 6 one-sided sprite
+		
+		
+		//TODO
+		
+		// http://www.shikadi.net/moddingwiki/MAP_Format_%28Build%29
+		
+		public static final int BIT_0_BLOCKING_SPRITE = 1; //a.k.a. the 1 bit
+	}
+	
+	/*
+	 * CSTAT notes
+	 * 
+	 * http://www.shikadi.net/moddingwiki/MAP_Format_%28Build%29
+	 * 
+	 * 'r' in build changes the floor/wall/player alignment
+	 * 
+	 * When I put a sprint on the floor and "floor aligned it" it had
+	 * cstat 33 = 
+	 * 	* bit 0 - blocking sprite
+	 *  * bit 5 - floor sprite
+	 *  
+	 * when I put a sprite on the floor and 'wall sligned' it, it had
+	 * cstat 17
+	 *  * bit 0 - blocking sprite
+	 *  * bit 4 - wall sprite
+	 *  
+	 * when I put a sprite on the floor and left it player aligned it had
+	 * cstat 1
+	 *  * bit 0 - blocking sprite
+	 *  
+	 * when I put a sprite directly onto the wall, it had
+	 * cstat 80
+	 *  * bit 4 - wall sprite
+	 *  * bit 6 - one-sided sprite
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
+	
 	int x; //INT32LE
 	int y; //INT32LE
 	int z; //INT32LE -- possibly fucked by 4
@@ -35,12 +92,50 @@ public class Sprite {
 	short hitag;
 	short extra;
 	
+	public Sprite(){
+		
+
+	}
+	
+	public Sprite(int x, int y, int z, short sectnum){
+		
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		
+		//todo:  picnum ?
+		
+		//initializing some fields to defaults they'd get if you just place them
+		this.cstat = CSTAT_FLAGS.BIT_0_BLOCKING_SPRITE;
+		this.shade = 0;
+		this.pal = 0;
+		this.clipdist = 32;
+		this.filler = 0;
+		this.xrepeat = DEFAULT_X_REPEAT;
+		this.yrepeat = DEFAULT_Y_REPEAT;
+		this.xoffset = 0;
+		this.yoffset = 0;
+		this.sectnum = sectnum;
+		this.statnum = 0;
+		this.ang = DukeConstants.DEFAULT_ANGLE;
+		this.owner = -1;
+		this.xvel = this.yvel = this.zvel = 0;
+		this.lotag = 0;
+		this.hitag = 0;
+		this.extra = -1;
+		
+	}
+	
 	public short getTexture(){
 		return this.picnum;
 	}
 	
 	public void setTexture(short s){
 		this.picnum = s;
+	}
+	
+	public void setTexture(int i){
+		this.picnum = (short)i;
 	}
 	
 	public short getLotag(){
@@ -52,6 +147,46 @@ public class Sprite {
 	}
 	
 	public void setLotag(int i){ setLotag((short)i); }
+	
+	@Override
+	public String toString(){
+		
+		final String ln = "\n";
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("{ sprite").append(ln);
+		sb.append("x: ").append(x).append(ln);
+		sb.append("y: ").append(y).append(ln);
+		sb.append("z: ").append(z).append(ln);
+		sb.append("cstat: ").append(cstat).append(ln);
+		sb.append("picnum: ").append(picnum).append(ln);
+		
+		sb.append("shade: ").append(shade).append(ln);
+		sb.append("pal: ").append(pal).append(ln);
+		sb.append("clipdist: ").append(clipdist).append(ln);
+		sb.append("filler: ").append(filler).append(ln);
+		sb.append("xrepeat: ").append(xrepeat).append(ln);
+		sb.append("yrepeat: ").append(yrepeat).append(ln);
+		sb.append("xoffset: ").append(xoffset).append(ln);
+		sb.append("yoffset: ").append(yoffset).append(ln);
+		
+		sb.append("sectnum: ").append(sectnum).append(ln);
+		sb.append("statnum: ").append(statnum).append(ln);
+		sb.append("ang: ").append(ang).append(ln);
+		
+		sb.append("owner: ").append(owner).append(ln);
+		sb.append("xvel: ").append(xvel).append(ln);
+		sb.append("yvel: ").append(yvel).append(ln);
+		sb.append("zvel: ").append(zvel).append(ln);
+		sb.append("lotag: ").append(lotag).append(ln);
+		sb.append("hitag: ").append(hitag).append(ln);
+		sb.append("extra: ").append(extra).append(ln);
+		sb.append("}").append(ln);
+		
+		
+		return sb.toString();
+		
+	}
 	
 	public void toBytes(OutputStream output) throws IOException {
 		ByteUtil.writeInt32LE(output, x);

@@ -55,7 +55,7 @@ public class HorizStairsBlock extends AbstractBlock implements Block {
 		//int stepCount = y.length -1;
 		
 		
-		int stepCount = 4;
+		int stepCount = 5;
 		int[] x = new int[stepCount + 1];
 		x[x.length-1] = east;
 		

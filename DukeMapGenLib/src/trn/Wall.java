@@ -8,6 +8,11 @@ import trn.duke.MapErrorException;
 
 public class Wall {
 	
+	public static final class CSTAT_FLAGS {
+		
+		public static final int BIT_2_ALIGN_TEX_ON_BOTTOM = 4;
+	}
+	
 	int x; //INT32LE
 	int y; //INT32LE
 	short point2; //INT16LE
@@ -126,6 +131,11 @@ public class Wall {
 	/** texture index, a.k.a. picnum */
 	public short getTexture(){
 		return this.picnum;
+	}
+	
+	public Wall addCstat(int flag){
+		this.cstat |= flag;
+		return this;
 	}
 	
 	public void setXRepeat(short s){

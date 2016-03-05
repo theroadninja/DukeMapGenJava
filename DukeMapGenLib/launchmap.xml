@@ -16,6 +16,8 @@
         </copy>
         
         <exec executable="${dosbox}">
+            <arg value="-c"/>
+            <arg value="duketest"/><!--  TODO: spell out the commands instead of relying on this .bat file -->
         </exec>
    </target>
    

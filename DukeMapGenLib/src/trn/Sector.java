@@ -129,6 +129,10 @@ public class Sector {
 		return this.wallCount;
 	}
 	
+	public void setLotag(int lotag){
+		this.lotag = (short)lotag;
+	}
+	
 	public void toBytes(OutputStream output) throws IOException {
 		ByteUtil.writeInt16LE(output, firstWall);
 		ByteUtil.writeInt16LE(output, wallCount);

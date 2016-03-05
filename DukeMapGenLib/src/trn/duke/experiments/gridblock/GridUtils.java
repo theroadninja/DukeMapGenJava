@@ -54,4 +54,21 @@ public class GridUtils {
 		map.linkRedWalls(sector0, w0, sector1, w1);
 	
 	}
+	
+	/**
+	 * links every sector in the array to its neighboors.  Does NOT
+	 * link the first index to the last.
+	 * 
+	 * @param map
+	 * @param sectorIndexes
+	 */
+	public static void linkSectorsNoWrap(trn.Map map, int[] sectorIndexes){
+		if(sectorIndexes == null || sectorIndexes.length < 2) throw new IllegalArgumentException();
+		
+		for(int i = 0; i < sectorIndexes.length - 1; ++i){
+			linkSectors(map, sectorIndexes[i], sectorIndexes[i+1]);
+		}
+		
+		
+	}
 }

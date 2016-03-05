@@ -25,7 +25,7 @@ public class Map {
 	
 	int spriteCount;
 	
-	Sprite[] sprites;
+	List<Sprite> sprites = new ArrayList<Sprite>();
 	
 	private Map(){
 		
@@ -178,6 +178,14 @@ public class Map {
 		
 	}
 	
+	public int addSprite(Sprite s){
+		this.sprites.add(s);
+		this.spriteCount++;
+		if(sprites.size() != spriteCount) throw new RuntimeException();
+		
+		return spriteCount - 1;
+	}
+	
 	public int getSpriteCount(){
 		return this.spriteCount;
 	}
@@ -185,7 +193,7 @@ public class Map {
 	public int spriteCount(){ return getSpriteCount(); }
 	
 	public Sprite getSprite(int i){
-		return sprites[i];
+		return sprites.get(i);
 	}
 	
 	
@@ -223,7 +231,11 @@ public class Map {
 		
 		System.out.println("SPRITES");
 		
-		System.out.println("todo");
+		for(int i = 0; i < sprites.size(); ++i){
+			System.out.println(sprites.get(i).toString());
+		}
+		
+		
 		
 	}
 	
@@ -246,8 +258,9 @@ public class Map {
 		
 		ByteUtil.writeUint16LE(output, spriteCount);
 		for(int i = 0; i < spriteCount; ++i){
-			sprites[i].toBytes(output);
+			sprites.get(i).toBytes(output);
 		}
+		
 		
 	}
 	
@@ -286,11 +299,13 @@ public class Map {
 		map.spriteCount = ByteUtil.readUint16LE(bs);
 		
 				
-		map.sprites = new Sprite[map.spriteCount];
+		//map.sprites = new Sprite[map.spriteCount];
+		map.sprites = new ArrayList<Sprite>(map.spriteCount);
 		for(int i = 0; i < map.spriteCount; ++i){
-			map.sprites[i] = Sprite.readSprite(bs);
+			map.sprites.add(Sprite.readSprite(bs));
+			//map.sprites[i] = Sprite.readSprite(bs);
 					
-			System.out.println("sprite texture: " + map.sprites[i].picnum); //oneroom.map should be 22 and 24
+			//System.out.println("sprite texture: " + map.sprites[i].picnum); //oneroom.map should be 22 and 24
 		}
 		
 		//System.out.println("read method returns: " + bs.read()); //-1 [probably] means EOF, meaning we did it right.

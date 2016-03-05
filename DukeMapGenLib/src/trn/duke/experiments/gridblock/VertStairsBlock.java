@@ -7,10 +7,9 @@ import trn.Sector;
 import trn.Wall;
 import trn.maze.Heading;
 
-public class VertStairsBlock extends AbstractBlock implements Block {
+public class VertStairsBlock extends VertBlock implements Block {
 
-	private final NorthSouthConnector northConnector;
-	private final NorthSouthConnector southConnector;
+	
 
 	
 	private int southZ = Sector.DEFAULT_FLOOR_Z;
@@ -19,24 +18,11 @@ public class VertStairsBlock extends AbstractBlock implements Block {
 	public VertStairsBlock(Pair<Integer, Integer> gridCoordinate, int southZ, int northZ) {
 		super(gridCoordinate);
 		
-		northConnector = NorthSouthConnector.northEdge(this);
-		southConnector = NorthSouthConnector.southEdge(this);
-		
 		this.southZ = southZ;
 		this.northZ = northZ;
 	}
 
-	@Override
-	public Connector getConnector(Heading heading) {
-		
-		if(Heading.NORTH == heading){
-			return northConnector;
-		}else if(Heading.SOUTH == heading){
-			return southConnector;
-		}else{
-			return null;
-		}
-	}
+
 
 	@Override
 	public int draw(Map map) {
@@ -44,10 +30,10 @@ public class VertStairsBlock extends AbstractBlock implements Block {
 		final int wallTex = 786, floorTex = 0, ceilTex = 0;
 		
 		
-		int west = gridCoordinate.getLeft() * SimpleBlock.WALL_LENGTH;
-		int east = (gridCoordinate.getLeft() + 1) * SimpleBlock.WALL_LENGTH;
-		int north = gridCoordinate.getRight() * SimpleBlock.WALL_LENGTH;
-		int south = (gridCoordinate.getRight() + 1) * SimpleBlock.WALL_LENGTH;
+		int west = getWestEdge(); //gridCoordinate.getLeft() * SimpleBlock.WALL_LENGTH;
+		int east = getEastEdge(); //(gridCoordinate.getLeft() + 1) * SimpleBlock.WALL_LENGTH;
+		int north = getNorthEdge(); //gridCoordinate.getRight() * SimpleBlock.WALL_LENGTH;
+		int south = getSouthEdge(); //(gridCoordinate.getRight() + 1) * SimpleBlock.WALL_LENGTH;
 		
 		
 		int ydelta = north - south;
@@ -55,7 +41,7 @@ public class VertStairsBlock extends AbstractBlock implements Block {
 		//int stepCount = y.length -1;
 		
 		
-		int stepCount = 4;
+		int stepCount = 5; //with only 4, duke has to jump
 		int[] y = new int[stepCount + 1];
 		y[y.length-1] = north;
 		

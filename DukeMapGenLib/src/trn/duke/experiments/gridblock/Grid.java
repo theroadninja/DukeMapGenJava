@@ -120,9 +120,20 @@ public class Grid {
 					}else{
 						
 						//at least make sure the floor matches
-						SimpleBlock sb = new SimpleBlock(edgeBlockCoordinate);
+						
+						
+						//SimpleBlock sb = new SimpleBlock(edgeBlockCoordinate);
+						VertDoorBlock sb = new VertDoorBlock(edgeBlockCoordinate);
+						
+						
 						sb.setFloorZ(southZ);
 						add(sb);
+						
+						
+						
+						
+						
+						
 					}
 					
 				}else if(isHorizontalPassage(edgeBlockCoordinate)){
