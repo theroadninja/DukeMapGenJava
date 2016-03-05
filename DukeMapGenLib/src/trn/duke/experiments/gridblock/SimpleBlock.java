@@ -13,7 +13,7 @@ import trn.maze.Heading;
  */
 public class SimpleBlock extends AbstractBlock implements Block {
 	
-	public static final int WALL_LENGTH = 2048;
+	public static final int WALL_LENGTH = 2048; //2 x largest grid size
 	
 	//connectors, indexed by heading
 	private final OrdinalConnector[] connectors = new OrdinalConnector[]{null, null, null, null};

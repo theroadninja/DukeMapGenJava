@@ -15,6 +15,19 @@ public class DukeConstants {
 	//POSITIVE Z GOES DOWN/LOWER (more negative means more higher)
 	
 	
+	public static final class GridSizes {
+		public static final int LARGEST = 1024;
+		//512
+		//256
+		//128
+		//64
+		//32
+		public static final int SMALLEST = 32;
+	}
+	
+	
+	
+	
 	/** facing "up" when looking at the map in build */
 	public static final int ANGLE_NORTH = 1536;  //i think 2048 == 360 degrees, with 0 == east and 90 deg is south
 	

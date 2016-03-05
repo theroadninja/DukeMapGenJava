@@ -15,6 +15,10 @@ public abstract class AbstractBlock implements Block {
 		return this.gridCoordinate;
 	}
 	
+	public final int getOuterWallLength(){
+		return SimpleBlock.WALL_LENGTH;
+	}
+	
 	public final int getWestEdge(){
 		return gridCoordinate.getLeft() * SimpleBlock.WALL_LENGTH;
 	}

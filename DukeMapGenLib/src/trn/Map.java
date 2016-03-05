@@ -78,12 +78,16 @@ public class Map {
 	}
 	
 	/**
-	 * @return indexes of all walls in a sector
+	 * @return indexes of all walls in a sector ...actually no, just all walls in the loop that has the first wall
 	 */
 	public List<Integer> getSectorWallIndexes(int sectorIndex){
 		
 		Sector sector = getSector(sectorIndex);
 		
+		
+		
+		
+		/*
 		List<Integer> list = new ArrayList<Integer>(sector.getWallCount());
 		
 		int safety = 10000;
@@ -99,7 +103,31 @@ public class Map {
 		}
 		
 		return list;
+		*/
+		return getWallLoop(sector.getFirstWall());
+	}
+	
+	/**
+	 * 
+	 * @param wallIndex any wall index in the loop
+	 * @return
+	 */
+	public List<Integer> getWallLoop(int wallIndex){
+		List<Integer> list = new ArrayList<Integer>();
 		
+		int safety = 10000;
+		int index = wallIndex;
+		while(safety-- > 0){
+			list.add(index);
+			
+			index = walls.get(index).getPoint2();
+			
+			if(index == wallIndex){
+				break; //back to where we started
+			}
+		}
+		
+		return list;
 	}
 	
 	/**
@@ -217,16 +245,20 @@ public class Map {
 		
 		System.out.println(this.playerStart.toString());
 		
-		System.out.println("SECTORS");
+		System.out.println("\nSECTORS\n");
 		
 		for(int i = 0; i < sectors.size(); ++i){
+			System.out.print("sector " + i + ": ");
 			sectors.get(i).print();
+			System.out.println();
 		}
 		
 		System.out.println("WALLS");
 		
 		for(int i = 0; i < walls.size(); ++i){
+			System.out.print("wall " + i + ": ");
 			System.out.println(walls.get(i).toString());
+			System.out.println();
 		}
 		
 		System.out.println("SPRITES");

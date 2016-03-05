@@ -56,9 +56,22 @@ public class Wall {
 		this(x, y, 0);
 	}
 	
+	public Wall(PointXY xy, WallPrefab spec){
+		this(xy.x, xy.y);
+		
+		if(spec != null){
+			spec.writeTo(this);
+		}
+	}
+	
 	
 	public Wall(int x, int y, int wallTex){
 		this(x, y, -1, wallTex);
+	}
+	
+	
+	public Wall(PointXY xy, int wallTex, int xrepeat, int yrepeat){
+		this(xy.x, xy.y, wallTex, xrepeat, yrepeat);
 	}
 	
 	public Wall(int x, int y, int wallTex, int xrepeat, int yrepeat){
@@ -248,6 +261,30 @@ public class Wall {
 		
 		
 		return w;
+	}
+	
+	
+	
+	public static Wall[] createLoop(PointXY[] points, WallPrefab spec){
+		Wall[] walls = new Wall[points.length];
+		
+		for(int i = 0; i < points.length; ++i){
+			walls[i] = new Wall(points[i], spec);
+			
+		}
+		
+		return walls;
+	}
+	
+	
+	public static Wall[] createLoop(PointXY[] points, int wallTex, int xrepeat, int yrepeat){
+		Wall[] walls = new Wall[points.length];
+		
+		for(int i = 0; i < points.length; ++i){
+			walls[i] = new Wall(points[i], wallTex, xrepeat, yrepeat);
+		}
+		
+		return walls;
 	}
 
 }

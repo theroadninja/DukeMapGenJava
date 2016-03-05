@@ -7,6 +7,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import trn.duke.Util;
 
 /**
+ * See also MapUtil
+ * 
+ * 
  * Collection of methods useful if the map is made of square rooms arranged in a grid.
  * 
  * @author Dave

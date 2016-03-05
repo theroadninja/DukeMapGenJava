@@ -64,11 +64,17 @@ public class Main {
 		
 	}
 	
+	
 	public static Map loadMap(String filename) throws IOException{
+		return loadMap(System.getProperty("user.dir") + File.separator + "testdata" + File.separator, filename);
+	}
+	
+	public static Map loadMap(String folder, String filename) throws IOException{
 		
 		//String fname = "TWOROOMS.MAP";
 		
-		String mapFile = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + filename;
+		//String mapFile = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + filename;
+		String mapFile = folder + filename;
 		System.out.println("loading mapfile: " + mapFile);
 		
 		FileInputStream bs = new FileInputStream(new File(mapFile));
