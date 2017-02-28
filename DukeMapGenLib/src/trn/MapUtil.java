@@ -9,6 +9,26 @@ import java.util.List;
  *
  */
 public class MapUtil {
+	
+	
+	/**
+	 * Takes an array of wall loops (array of arrays) and returns the
+	 * total number of walls.
+	 * 
+	 * @param wallLoops
+	 * @return
+	 */
+	public static int countWalls(Wall[] ... wallLoops){
+		if(wallLoops == null) throw new IllegalArgumentException();
+		
+		int sum = 0;
+		for(Wall[] wallLoop : wallLoops){
+			if(wallLoop == null) throw new IllegalArgumentException();
+			sum += wallLoop.length;
+		}
+		
+		return sum;
+	}
 
 	
 	/**

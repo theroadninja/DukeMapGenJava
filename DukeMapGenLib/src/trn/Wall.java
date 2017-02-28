@@ -167,6 +167,10 @@ public class Wall {
 		this.setYRepeat((short)yr);
 	}
 	
+	public void setShade(short shade){
+		this.shade = shade;
+	}
+	
 	//TODO:  need an optional param to hide fields with default values
 	@Override
 	public String toString(){

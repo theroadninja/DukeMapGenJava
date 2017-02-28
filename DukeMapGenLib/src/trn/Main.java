@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import trn.duke.experiments.E1RandomSprites;
@@ -84,12 +85,33 @@ public class Main {
 		return map;
 	}
 	
-	
 	public static void writeResult(Map map) throws IOException{
 		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + "output.map";
+		writeResult(map, resultsFile);
+	}
+	public static void writeResult(Map map, String resultsFile) throws IOException{
+		
 		FileOutputStream output = new FileOutputStream(new File(resultsFile)); 
 		map.toBytes(output);
 		output.close();
+	}
+	
+	/**
+	 * writes the map and copies to hardcoded duke3d path in dosbox drive.
+	 * @param map
+	 * @throws IOException
+	 */
+	public static void deployTest(Map map) throws IOException{
+		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + "output.map";
+		Main.writeResult(map, resultsFile);
+		
+		//TODO:  this should go in some conf/ini/json file that is not checked in
+		String copyDest = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/output.map";
+		FileUtils.copyFile(new File(resultsFile), new File(copyDest));
+		System.out.println("map generated");
+		
+		//TODO:  can we put build times in the map somewhere?
+		
 	}
 	
 	public static void runExperiment1() throws Exception {

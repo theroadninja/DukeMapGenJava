@@ -1,5 +1,14 @@
 package trn.duke;
 
+/**
+ * 
+ * 
+ * 
+ * http://infosuite.duke4.net/index.php?page=references_special_textures
+ * 
+ * @author Dave
+ *
+ */
 public class TextureList {
 
 	public static final int SECTOR_EFFECTOR = 1;
@@ -99,7 +108,9 @@ public class TextureList {
 		/** looks like a big breaker switch */
 		public static final int FRANKENSTINE_SWITCH = 140;
 		
-		/** end of level switch */
+		/** end of level switch.
+		 * does it need a lotag of 65535  ?
+		 *  */
 		public static final int NUKE_BUTTON = 142; //TODO:  document the pallete to make it a special level
 		
 		/** switch with 4 positions, like in the death row level */
@@ -146,6 +157,57 @@ public class TextureList {
 		public static final int HANDPRINT_SWITCH = 1155;
 		
 		
+	}
+	
+	/**
+	 * See
+	 * http://infosuite.duke4.net/index.php?page=references_special_textures
+	 * for more details.
+	 * 
+	 *
+	 */
+	public static final class Enemies {
+		
+		//stayput == stay in same sector?
+		
+		public static final int EGG = 675;
+		public static final int SHARK = 1680;
+		public static final int LIZTROOP = 1680;
+		public static final int LIZTROOP_RUNNING = 1681;
+		public static final int LIZTROOP_STAYPUT = 1682;
+		public static final int LIZTROOP_SHOOT = 1715;
+		public static final int LIZTROOP_JETPACK = 1725;
+		public static final int LIZTROOP_TOILET = 1741;
+		public static final int LIZTROOP_JUSTSIT = 1742;
+		public static final int LIZTROOP_DUCKING = 1744;
+		public static final int CANNON = 1810;
+		public static final int OCTABRAIN = 1820;
+		public static final int OCTABRAIN_STAYPUT = 1821;
+		public static final int DRONE = 1880;
+		public static final int COMMANDER = 1920;
+		public static final int COMMANDER_STAYPUT = 1921;
+		public static final int RECON = 1960;
+		public static final int TANK = 1975;
+		public static final int PIGCOP = 2000;
+		public static final int PIGCOP_STAYPUT = 2001;
+		public static final int PIGCOP_DIVE = 2025; //apparently this counts as a stayput
+		public static final int LIZMAN = 2120;
+		public static final int LIZMAN_STAYPUT = 2121;
+		public static final int LIZMAN_SPITTING = 2150;
+		public static final int LIZMAN_JUMP = 2165;
+		public static final int ROTATEGUN = 2360;
+		public static final int GREENSLIME = 2370;
+		public static final int BOSS1 = 2630;
+		public static final int BOSS1_STAYPUT = 2631;
+		public static final int BOSS2 = 2710;
+		public static final int BOSS3 = 2760;
+		public static final int NEWBEAST = 4610;
+		public static final int NEWBEAST_STAYPUT = 4611;
+		public static final int NEWBEAST_HANG = 4670;
+		public static final int NEWBEAST_HANGDEAD = 4671;
+		public static final int NEWBEAST_JUMP = 4690;
+		public static final int BOSS4 = 4740;
+		public static final int BOSS4_STAYPUT = 4741;
 	}
 	
 	//TODO:  add door tiles, see 150

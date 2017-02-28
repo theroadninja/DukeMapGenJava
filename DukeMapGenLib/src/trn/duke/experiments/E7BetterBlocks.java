@@ -60,6 +60,7 @@ public class E7BetterBlocks {
 		}
 		
 		
+		//block construction is here
 		Grid grid = new Grid(graph);
 		
 		//LegacyGrid grid = new LegacyGrid(graph);
@@ -71,13 +72,15 @@ public class E7BetterBlocks {
 		
 
 		
-		trn.Map map = createMap(grid, width, height);
+		trn.Map map = createMap(grid);
 		
-		Main.writeResult(map);
+		//Main.writeResult(map);
+		Main.deployTest(map);
 		
 	}
 	
-	public static trn.Map createMap(Grid grid, int width, int height){
+	public static trn.Map createMap(Grid grid 
+			){
 		
 		Map map = Map.createNew();
 		

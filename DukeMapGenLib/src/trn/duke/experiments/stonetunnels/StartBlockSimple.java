@@ -88,7 +88,7 @@ public class StartBlockSimple extends AbstractBlock implements Block {
 		
 		//so..this showed that the wall direction really matters: ArrayUtils.reverse(box);
 		
-		WallPrefab wallspec = new WallPrefab(StoneConstants.UPPER_WALL).setXRepeat(16).setYRepeat(8);
+		WallPrefab wallspec = new WallPrefab(StoneConstants.UPPER_WALL_TEX).setXRepeat(16).setYRepeat(8);
 		
 		int largerBoxFirstWall = map.addLoop(Wall.createLoop(box, wallspec));
 		int smallerBoxFirstWall = map.addLoop(Wall.createLoop(outerSmallerBox, wallspec));

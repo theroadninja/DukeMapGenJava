@@ -3,7 +3,9 @@ package trn.duke.experiments.gridblock;
 import org.apache.commons.lang3.tuple.Pair;
 
 import trn.Sector;
+import trn.SectorPrefab;
 import trn.Wall;
+import trn.WallPrefab;
 import trn.maze.Heading;
 
 /**
@@ -16,7 +18,7 @@ public class SimpleBlock extends AbstractBlock implements Block {
 	public static final int WALL_LENGTH = 2048; //2 x largest grid size
 	
 	//connectors, indexed by heading
-	private final OrdinalConnector[] connectors = new OrdinalConnector[]{null, null, null, null};
+	protected final OrdinalConnector[] connectors = new OrdinalConnector[]{null, null, null, null};
 	
 	//edge walls (red walls that touch the connectors) indexed by heading
 	private final int[] walls = new int[]{-1,-1,-1,-1};
@@ -26,6 +28,10 @@ public class SimpleBlock extends AbstractBlock implements Block {
 	private int floorTex = 0;
 	
 	private Integer floorZ = null;
+	
+	private WallPrefab wallPrefab = null;
+	
+	private SectorPrefab sectorPrefab = null;
 	
 	/**
 	 * index of the sector that was created by this block.
@@ -47,6 +53,14 @@ public class SimpleBlock extends AbstractBlock implements Block {
 		
 		this.setConnector(Heading.EAST, new EastWestConnector(this, Connector.MALE));
 		this.setConnector(Heading.WEST, new EastWestConnector(this, Connector.FEMALE));
+	}
+	
+	public void setWallPrefab(WallPrefab w){
+		this.wallPrefab = w;
+	}
+	
+	public void setSectorPrefab(SectorPrefab s){
+		this.sectorPrefab = s;
 	}
 	
 	public Integer getFloorZ(){
@@ -100,6 +114,14 @@ public class SimpleBlock extends AbstractBlock implements Block {
 		Wall se = new Wall(east, south, wallTex, 16, 8);
 		Wall sw = new Wall(west, south, wallTex, 16, 8);
 		
+		if(this.wallPrefab != null){
+			wallPrefab.writeTo(nw);
+			wallPrefab.writeTo(ne);
+			wallPrefab.writeTo(se);
+			wallPrefab.writeTo(sw);
+		}
+		
+		
 		int sectorIndex =  map.createSectorFromLoop(nw, ne, se, sw);
 		
 		
@@ -110,6 +132,10 @@ public class SimpleBlock extends AbstractBlock implements Block {
 		
 		if(this.floorZ != null){
 			s.setFloorZ(this.floorZ);
+		}
+		
+		if(this.sectorPrefab != null){
+			this.sectorPrefab.writeTo(s);
 		}
 		
 

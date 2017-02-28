@@ -138,21 +138,32 @@ public class StartBlock extends AbstractBlock implements Block {
 		//first, try to create the outer sector
 		//  NOTE:  the multiple loops must be next to each other, due to build's format
 		
-		WallPrefab wall = new WallPrefab(StoneConstants.UPPER_WALL).setXRepeat(16).setYRepeat(8);
+		WallPrefab wall = StoneConstants.UPPER_WALL;
 		
 		//map.createSectorFromLoop(wallsToAdd)
 		int outerLoopCircle = map.addLoop(Wall.createLoop(circle, wall));
 		int outerBox = map.addLoop(Wall.createLoop(box, wall));
 		int outerSectorIndex = map.addSector(new Sector(outerLoopCircle, /*wall count*/circle.length + box.length));
-		
+		Sector outerSector = map.getSector(outerSectorIndex);
+		outerSector.setFloorTexture(StoneConstants.UPPER_FLOOR);
+		outerSector.setCeilingTexture(StoneConstants.UPPER_CEILING);
+		outerSector.setFloorShade(StoneConstants.SHADE);
+		outerSector.setCeilingShade(StoneConstants.SHADE);
 		
 		//
 		// inner sector
 		//
-		ArrayUtils.reverse(circle);//now its the inner sector circle
-		int innerLoop = map.addLoop(Wall.createLoop(circle, wall));
-		int innerSectorIndex = map.addSector(new Sector(innerLoop, circle.length));
 		
+		WallPrefab innerWallPrefab = new WallPrefab(wall);
+		innerWallPrefab.setXRepeat(4).setShade((short)0).setTexture(StoneConstants.UPPER_CEILING);
+		
+		ArrayUtils.reverse(circle);//now its the inner sector circle
+		int innerLoop = map.addLoop(Wall.createLoop(circle, innerWallPrefab));
+		int innerSectorIndex = map.addSector(new Sector(innerLoop, circle.length));
+		Sector innerSector = map.getSector(innerSectorIndex);
+		innerSector.setFloorTexture(StoneConstants.UPPER_FLOOR);
+		innerSector.setCeilingTexture(StoneConstants.UPPER_CEILING);
+		innerSector.setCeilingZ(floorZ - 3*4*4096);
 		
 		MapUtil.linkAllWalls(map, outerSectorIndex, outerLoopCircle, innerSectorIndex, innerLoop);
 		
@@ -175,7 +186,7 @@ public class StartBlock extends AbstractBlock implements Block {
 		
 		
 		
-		
+		this.connector.setSectorIndex(outerSectorIndex);
 		
 		
 		

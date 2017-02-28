@@ -2,6 +2,8 @@ package trn.duke.experiments.gridblock;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import trn.PointXY;
+
 public abstract class AbstractBlock implements Block {
 
 	protected final Pair<Integer, Integer> gridCoordinate;
@@ -33,6 +35,11 @@ public abstract class AbstractBlock implements Block {
 
 	public final int getSouthEdge(){
 		return (gridCoordinate.getRight() + 1) * SimpleBlock.WALL_LENGTH;
+	}
+	
+	public PointXY getCenter(){
+		return new PointXY((getWestEdge() + getEastEdge()) / 2,
+				(getNorthEdge() + getSouthEdge()) / 2);
 	}
 
 

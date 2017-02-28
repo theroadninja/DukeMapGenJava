@@ -37,6 +37,12 @@ public class Sector {
 	private short floorpicnum; //floor texture index - INT16LE
 	private short floorheinum; //floor slope value, INT16LE
 	
+	
+	/*
+	 * Shading notes:
+	 * 32 appears to be completely black, althought it might not be
+	 */
+	
 	private short floorshade; //should be INT8, but i'm making it UINT8, see ceilingshade
 	
 	private short floorpal; //floor pallette.  UINT8
@@ -84,6 +90,10 @@ public class Sector {
 		this.floorz = DEFAULT_FLOOR_Z;
 	}
 	
+
+	
+
+	
 	public void setCeilingZ(int z){
 		this.ceilingz = z;
 	}
@@ -105,7 +115,6 @@ public class Sector {
 		return this.ceilingPicNum;
 	}
 	
-	
 	public void setFloorTexture(int i){
 		this.floorpicnum = (short)i;
 	}
@@ -115,6 +124,18 @@ public class Sector {
 	
 	public short getCeilingShadeAsUnsigned(){
 		return this.ceilingshade;
+	}
+	
+	public void setCeilingShade(short unsigned){
+		this.ceilingshade = unsigned;
+	}
+	
+	public short getFloorShadeUnsigned(){
+		return this.floorshade;
+	}
+	
+	public void setFloorShade(short unsigned){
+		this.floorshade = unsigned;
 	}
 	
 	public short getCeilingPallette(){

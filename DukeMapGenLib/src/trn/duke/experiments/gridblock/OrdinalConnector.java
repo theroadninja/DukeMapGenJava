@@ -5,7 +5,7 @@ import trn.maze.Heading;
 
 public abstract class OrdinalConnector extends Connector {
 
-	private int sectorIndex;
+	private int sectorIndex = -1;
 	
 	private Integer floorZ;
 	
@@ -27,6 +27,7 @@ public abstract class OrdinalConnector extends Connector {
 	}
 	
 	public final int getCreatedSectorIndex(){
+		if(sectorIndex == -1) throw new RuntimeException("sector index not set on connector");
 		return sectorIndex;
 	}
 	

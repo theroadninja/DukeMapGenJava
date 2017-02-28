@@ -23,6 +23,8 @@ public class Grid {
 	
 	public void add(Block block){
 		gridData.put(block.getGridCoordinate(), block);
+		
+		//TODO:  check neighboors for connectors
 	}
 	
 	public Block getBlock(Pair<Integer, Integer> node){

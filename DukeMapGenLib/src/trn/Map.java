@@ -84,27 +84,19 @@ public class Map {
 		
 		Sector sector = getSector(sectorIndex);
 		
+
+		//this is invalid because sectors can have more than one wall loop:
+		//return getWallLoop(sector.getFirstWall());
 		
+		int firstWall = sector.getFirstWall();
 		
-		
-		/*
 		List<Integer> list = new ArrayList<Integer>(sector.getWallCount());
-		
-		int safety = 10000;
-		int index = sector.getFirstWall();
-		while(safety-- > 0){
-			list.add(index);
-			
-			index = walls.get(index).getPoint2();
-			
-			if(index == sector.getFirstWall()){
-				break; //back to where we started
-			}
+		for(int i = firstWall; i < firstWall + sector.getWallCount(); ++i){
+			list.add(i);
 		}
 		
 		return list;
-		*/
-		return getWallLoop(sector.getFirstWall());
+		
 	}
 	
 	/**
@@ -193,6 +185,25 @@ public class Map {
 	 */
 	public int createSectorFromLoop(Wall ... wallsToAdd){
 		return addSector(new Sector(addLoop(wallsToAdd), wallsToAdd.length));
+	}
+	
+	public int createSectorFromMultipleLoops(Wall[] ... wallLoops){
+		
+		int wallCount = MapUtil.countWalls(wallLoops);
+		if(wallCount < 3) throw new RuntimeException(); //sanity check
+		
+		int firstWall = -1;
+		for(Wall[] wallLoop : wallLoops){
+			int i = addLoop(wallLoop);
+			if(firstWall == -1){
+				firstWall = i;
+			}
+		}
+		if(firstWall < 0) throw new RuntimeException(); //sanity check
+		
+		return addSector(new Sector(firstWall, wallCount));
+		
+		
 	}
 	
 	/**

@@ -23,7 +23,8 @@ public class E4CreateLadderMaze {
 		final int WLENGTH = 2048; //1024 seems just big enough to fit duke comfortably
 
 		E4CreateLadderMaze e = new E4CreateLadderMaze(WLENGTH, MAZE_WALL_TEX);
-		Main.writeResult(e.createMaze());
+		//Main.writeResult(e.createMaze());
+		Main.deployTest(e.createMaze());
 		
 		
 	}

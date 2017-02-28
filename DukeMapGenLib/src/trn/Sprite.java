@@ -21,7 +21,7 @@ public class Sprite {
 		public static final int PLACED_ON_FLOOR_FLOOR_ALIGNED = 33; // bit 0 blocking, bit 5 floor
 		
 		/** cstat you get if you place a sprite directly on the wall */
-		public static final int PLACED_ON_WALL = 80; // bit 4 wall sprite, bit 6 one-sided sprite
+		public static final short PLACED_ON_WALL = 80; // bit 4 wall sprite, bit 6 one-sided sprite
 		
 		
 		//TODO
@@ -97,6 +97,10 @@ public class Sprite {
 
 	}
 	
+	public Sprite(PointXY xy, int z, int sectnum){
+		this(xy.x, xy.y, z, (short)sectnum);
+	}
+	
 	public Sprite(int x, int y, int z, short sectnum){
 		
 		this.x = x;
@@ -138,6 +142,10 @@ public class Sprite {
 		this.picnum = (short)i;
 	}
 	
+	public void setPal(short pallette){
+		this.pal = pallette;
+	}
+	
 	public short getLotag(){
 		return this.lotag;
 	}
@@ -147,6 +155,29 @@ public class Sprite {
 	}
 	
 	public void setLotag(int i){ setLotag((short)i); }
+	
+	public short getCstat(){
+		return this.cstat;
+	}
+	
+	public void setCstat(short cstat){
+		this.cstat = cstat;
+	}
+	
+	public void setXRepeat(short s){
+		this.xrepeat = s;
+	}
+	public void setXRepeat(int i){ setXRepeat((short)i); }
+	
+	public void setYRepeat(short yr){
+		this.yrepeat = yr;
+	}
+	public void setYRepeat(int i){ setYRepeat((short)i); }
+	
+	public void setAngle(short angle){
+		this.ang = angle;
+	}
+	public void setAngle(int i){ setAngle((short)ang); }
 	
 	@Override
 	public String toString(){
