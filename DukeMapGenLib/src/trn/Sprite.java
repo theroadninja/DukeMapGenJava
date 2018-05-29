@@ -158,6 +158,13 @@ public class Sprite {
 		return sprite;
 	}
 	
+	public Sprite translate(final PointXYZ transform){
+		this.x += transform.x;
+		this.y += transform.y;
+		this.z += transform.z;
+		return this;
+	}
+	
 	public short getSectorId(){
 		return this.sectnum;
 	}

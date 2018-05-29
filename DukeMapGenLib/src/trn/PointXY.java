@@ -19,6 +19,16 @@ public class PointXY {
 		this.y = y;
 	}
 	
+	public PointXY(Wall w){
+		this.x = w.getX();
+		this.y = w.getY();
+	}
+	
+	@Override
+	public String toString(){
+		return "{ PointXY x=" + this.x + " y=" + y + " }";
+	}
+	
 	/* is this useful?
 	public Pair<Integer, Integer> toPair(){
 		return new ImmutablePair<Integer, Integer>(x,y);

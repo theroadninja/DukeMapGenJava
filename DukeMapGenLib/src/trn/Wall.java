@@ -146,6 +146,12 @@ public class Wall {
 		}
 	}
 	
+	public Wall translate(final PointXYZ delta){
+		this.x += delta.x;
+		this.y += delta.y;
+		return this;
+	}
+	
 	public int getX(){
 		return x;
 	}
@@ -210,7 +216,9 @@ public class Wall {
 		this.shade = shade;
 	}
 	
-	
+	public short getLotag(){
+		return this.lotag;
+	}
 	
 	
 	

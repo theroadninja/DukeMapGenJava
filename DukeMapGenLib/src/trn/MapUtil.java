@@ -123,7 +123,7 @@ public class MapUtil {
 	 * @param sourceMap
 	 * @param destMap
 	 */
-	public static void copySectorGroup(final Map sourceMap, Map destMap, int sourceSectorId){
+	public static CopyState copySectorGroup(final Map sourceMap, Map destMap, int sourceSectorId, PointXYZ transform){
 		
 		//maps from ids in the old map, to ids in the new map
 		//java.util.Map<Short, Short> idmap = new HashMap<Short, Short>();
@@ -139,7 +139,7 @@ public class MapUtil {
 			Integer nextId = pop(sectorsToCopy);
 			alreadyCopied.add(nextId);
 			
-			Set<Integer> moreSectors = copySector(sourceMap, destMap, cpstate, nextId);
+			Set<Integer> moreSectors = copySector(sourceMap, destMap, cpstate, nextId, transform);
 			for(int i : moreSectors){
 				if(! alreadyCopied.contains(i)){
 					sectorsToCopy.add(i);
@@ -158,6 +158,7 @@ public class MapUtil {
 		}
 		updateIds(destMap, cpstate);
 		
+		return cpstate;
 		
 	}
 	
@@ -176,7 +177,8 @@ public class MapUtil {
 	static Set<Integer> copySector(final Map sourceMap,
 			Map destMap,
 			CopyState cpstate,
-			int sourceSectorId
+			int sourceSectorId,
+			PointXYZ transform
 			){
 		
 		Set<Integer> neighboors = new TreeSet<Integer>();
@@ -185,18 +187,18 @@ public class MapUtil {
 		System.out.println("sector first wall is: " + sector.getFirstWall());
 		
 		
-		int newSectorId = destMap.addSector(sector.copy());
+		int newSectorId = destMap.addSector(sector.copy().translate(transform));
 		cpstate.idmap.putSector(sourceSectorId, newSectorId);
 		cpstate.sectorsToUpdate.add(newSectorId);
 		
 		
 		List<Integer> wallLoopIds = sourceMap.getFirstWallLoop(sector);
-		neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, wallLoopIds));
+		neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, wallLoopIds, transform));
 		
 		List<Integer> secondWallLoopIds = sourceMap.getSecondWallLoop(sector);
-		neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, secondWallLoopIds));
+		neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, secondWallLoopIds, transform));
 		
-		copySpritesInSector(sourceMap, destMap, sourceSectorId, (short)newSectorId);
+		copySpritesInSector(sourceMap, destMap, sourceSectorId, (short)newSectorId, transform);
 
 		return neighboors;
 	}
@@ -206,7 +208,7 @@ public class MapUtil {
 			destMap.getSector(sid).translateIds(cpstate.idmap);
 		}
 		for(int wid: cpstate.wallsToUpdate){
-			destMap.getWall(wid).translateIds(cpstate.idmap, true);
+			destMap.getWall(wid).translateIds(cpstate.idmap, false);
 		}
 	}
 	
@@ -218,7 +220,8 @@ public class MapUtil {
 			Map destMap, 
 			CopyState cpstate,
 			List<Integer> wallsToUpdate,
-			List<Integer> wallLoopIds){
+			List<Integer> wallLoopIds,
+			PointXYZ transform){
 		
 		Set<Integer> otherSourceSectors = new TreeSet<Integer>();
 		
@@ -231,19 +234,20 @@ public class MapUtil {
 			if(w.nextSector != -1){
 				otherSourceSectors.add((int)w.nextSector);
 			}
-			int newId = destMap.addWall(w.copy());
+			int newId = destMap.addWall(w.copy().translate(transform));
 			cpstate.idmap.putWall(wi, newId);
 			wallsToUpdate.add(newId);
 		}
 		return otherSourceSectors;
 	}
 	
-	static void copySpritesInSector(final Map sourceMap, Map destMap, int sourceSectorId, short destSectorId){
+	static void copySpritesInSector(final Map sourceMap, Map destMap, int sourceSectorId, short destSectorId,
+			PointXYZ transform){
 		
 		List<Sprite> sprites = sourceMap.findSprites(null, null, sourceSectorId);
 		for(Sprite sp: sprites){
 			System.out.println("copying sprite!v picnum=" + sp.picnum);
-			destMap.addSprite(sp.copy(destSectorId));
+			destMap.addSprite(sp.copy(destSectorId).translate(transform));
 		}
 	}
 }

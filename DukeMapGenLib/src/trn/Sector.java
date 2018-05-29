@@ -128,6 +128,12 @@ public class Sector {
 		this.firstWall = idmap.wall(this.firstWall);
 	}
 	
+	public Sector translate(final PointXYZ delta){
+		this.floorz += delta.z;
+		this.ceilingz += delta.z;
+		return this;
+	}
+	
 	@Override
 	public String toString(){
 		String ln = "\n";

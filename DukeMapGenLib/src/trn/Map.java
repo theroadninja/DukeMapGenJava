@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -102,11 +103,25 @@ public class Map {
 	}
 	
 	
+	/**
+	 * 
+	 * @param sector
+	 * @returns all walls for the sector, which might be in two loops or more
+	 */
+	public List<Integer> getAllSectorWallIds(final Sector sector){
+		List<Integer> walls = new LinkedList<Integer>();
+		for(int i = sector.getFirstWall(); i < sector.getFirstWall() + sector.getWallCount(); ++i){
+			walls.add(i);
+		}
+		return walls;
+	}
 	
 	public List<Integer> getFirstWallLoop(final Sector sector){
 		return this.getWallLoop(sector.getFirstWall());
 	}
 	
+	
+	// TODO: !!!! i'm an idiot; the sector could have many wall loops...
 	public List<Integer> getSecondWallLoop(final Sector sector){
 		
 		int loop1size = getFirstWallLoop(sector).size();
@@ -228,6 +243,11 @@ public class Map {
 		
 		
 	}
+	
+	
+	
+	
+ 
 	
 	/**
 	 * connects two sectors by creating the necessary link between the sectors' walls,

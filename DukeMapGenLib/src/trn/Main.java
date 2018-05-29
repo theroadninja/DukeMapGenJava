@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -25,12 +26,14 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		
+		//TODO:  sectors can have an arbitrary number of all loops, need to adjust ...
 
 		
-		Map fromMap = loadMap(DOSPATH + "cptest2.map");
-		int sector = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 2, null).get(0).sectnum;
+		//Map fromMap = loadMap(DOSPATH + "cptest2.map");
+		Map fromMap = loadMap(DOSPATH + "cptest3.map");
 		
 		
+		//int sector = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 2, null).get(0).sectnum;
 		/*{
 			int s2 = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 2, null).get(0).sectnum;
 			int s3 = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 3, null).get(0).sectnum;
@@ -40,13 +43,58 @@ public class Main {
 			System.exit(0);
 		}*/
 		
+		int sector = 0;
 		PlayerStart ps = new PlayerStart(fromMap.guessCenter(sector), 0);
 		Map outMap = Map.createNew();
-		outMap.setPlayerStart(ps);
-		
-		PrefabUtils.copySectorGroup(fromMap, outMap, sector);
+		outMap.setPlayerStart(new PlayerStart(0,0,0,0));
 		
 		
+		Map clipboard = Map.createNew();
+		MapUtil.copySectorGroup(fromMap, clipboard, sector, new PointXYZ(0, 0, 0));
+		//MapUtil.copySectorGroup(fromMap, outMap, sector, new PointXYZ(1024*3, 0, 0));
+		
+		// --------------
+		
+		int sectorId = 0;
+		MapUtil.copySectorGroup(clipboard, outMap, sectorId, new PointXYZ(-1024*30, -1024*50, 0));
+		
+		//now delete the connector, for sanity check
+		{
+			PrefabUtils.Connector conn1 = PrefabUtils.findConnector(outMap, PrefabUtils.SIMPLE_JOIN, 1);
+			
+			//TODO:  this is horrible; need a tuple for (spriteId, sprite) !!!
+			conn1.sprite.picnum = 0;
+			
+			
+		}
+		
+		
+		PrefabUtils.Connector conn2 = PrefabUtils.findConnector(outMap, PrefabUtils.SIMPLE_JOIN, 2);
+		System.out.println("connector 2: " + conn2);
+		
+		PrefabUtils.Connector conn1 = PrefabUtils.findConnector(clipboard, PrefabUtils.SIMPLE_JOIN, 1);
+		System.out.println("connector 1: " + conn1);
+		
+		
+		PointXYZ delta = conn1.getTransformTo(conn2);
+		MapUtil.CopyState cpstate = MapUtil.copySectorGroup(clipboard, outMap, sectorId, delta);
+		
+		conn1.translateIds(cpstate.idmap);
+		
+		PrefabUtils.joinWalls(outMap, conn1, conn2);
+		
+		
+		//outMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 1, null);
+		
+		
+		//lotag of 2 is on the right side
+		
+		//System.out.println("connector: " + conn.toString());
+		
+		
+		//MapUtil.copySectorGroup(clipboard, outMap, sectorId, new PointXYZ(-1024*3, 0, 0));
+		
+		// TODO:  print all walls with lotags 1 and 2
 
 		
 		
