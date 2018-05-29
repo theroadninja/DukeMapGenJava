@@ -69,4 +69,10 @@ public class DukeConstants {
 		
 		public static final int DOOR_OPERATE1 = 74;
 	}
+	
+	public static final class TEXTURES {
+		
+		/** black and yellow striped construction texture */
+		public static int CONSTRUCTION_SPRITE = 355;
+	}
 }

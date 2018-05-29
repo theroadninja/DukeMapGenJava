@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Map {
 	
@@ -99,6 +101,27 @@ public class Map {
 		
 	}
 	
+	
+	
+	public List<Integer> getFirstWallLoop(final Sector sector){
+		return this.getWallLoop(sector.getFirstWall());
+	}
+	
+	public List<Integer> getSecondWallLoop(final Sector sector){
+		
+		int loop1size = getFirstWallLoop(sector).size();
+		if(loop1size > sector.getWallCount()){
+			throw new RuntimeException("something went very wrong");
+		}else if(loop1size == sector.getWallCount()){
+			return null; // it has no second loop;
+		}
+		int loop2start = (loop1size + sector.getFirstWall());
+		
+		return this.getWallLoop(loop2start);
+	}
+	
+	
+	
 	/**
 	 * 
 	 * @param wallIndex any wall index in the loop
@@ -145,7 +168,7 @@ public class Map {
 	 * 
 	 * Details:  in the build format walls are identified by their index in the global list of
 	 * walls for the entire map, so we don't really have an identifier for them until we add them to
-	 * that list.  This method makes it easy to add all the wals for a sector at once.
+	 * that list.  This method makes it easy to add all the walls for a sector at once.
 	 * 
 	 * @param walls
 	 * @return
@@ -233,6 +256,68 @@ public class Map {
 	
 	public Sprite getSprite(int i){
 		return sprites.get(i);
+	}
+	
+	public List<Sprite> findSprites(Integer picnum, Integer lotag, Integer sectorId){
+		// later:  use Wall.nextSector
+		
+		List<Sprite> results = new ArrayList<Sprite>(sprites.size());
+		for(Sprite s : sprites){
+			if(picnum != null && picnum != s.picnum){
+				continue;
+			}else if(lotag != null && lotag != s.lotag){
+				continue;
+			}else if(sectorId != null && sectorId != s.sectnum){
+				continue;
+			}
+			
+			results.add(s);
+		}
+		return results;
+	}
+	
+	/**
+	 * TODO:  this doesnt handle inner sectors yet!
+	 * 
+	 * Gets all of the adjacent sectors (sectors that share a red wall)
+	 * @param sectorId - sector id (a.k.a. secnum) of the starting sector
+	 * @return set of sector Ids that share a red wall with this sector
+	 */
+	public Set<Integer> getAdjacentSectors(int sectorId){
+		Set<Integer> results = new TreeSet<Integer>();
+		if(sectorId < 0 || sectorId >= this.sectors.size()){
+			throw new IllegalArgumentException();
+		}
+		
+		Sector sector = this.sectors.get(sectorId);
+		List<Integer> walls = this.getWallLoop(sector.getFirstWall());
+		for(int i : walls){
+			int otherSector = this.getWall(i).nextSector;
+			if(otherSector != -1){
+				results.add(otherSector);
+			}
+		}
+		return results;
+	}
+	
+	/**
+	 * Do a really dumb point average to guess the center of a sector.
+	 * For convex sectors this could be totally wrong.
+	 * 
+	 * @param sectorId
+	 * @return
+	 */
+	public PointXYZ guessCenter(int sectorId){
+		Sector sector = this.getSector(sectorId);
+		List<Integer> walls = this.getFirstWallLoop(sector);
+		
+		List<Integer> xvalues = new ArrayList<Integer>(walls.size());
+		List<Integer> yvalues = new ArrayList<Integer>(walls.size());
+		for(int wi : walls){
+			xvalues.add(this.getWall(wi).x);
+			yvalues.add(this.getWall(wi).y);
+		}
+		return new PointXYZ(MapUtil.average(xvalues), MapUtil.average(yvalues), sector.getFloorZ());
 	}
 	
 	

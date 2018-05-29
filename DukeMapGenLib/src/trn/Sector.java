@@ -3,6 +3,7 @@ package trn;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Set;
 
 public class Sector {
 	
@@ -10,6 +11,11 @@ public class Sector {
 	public static final int DEFAULT_CEILING_Z = -8192;
 
 	private short firstWall; //a.k.a. wallprt
+	
+	/**
+	 * NOTE:  i think this is necessary to know if the sector
+	 * 	has more than 1 wall loop!
+	 */
 	private short wallCount; //a.k.a. wallnum
 	
 	
@@ -90,7 +96,47 @@ public class Sector {
 		this.floorz = DEFAULT_FLOOR_Z;
 	}
 	
-
+	public Sector copy(){
+		Sector sector = new Sector();
+		sector.firstWall = this.firstWall;
+		sector.wallCount = this.wallCount;
+		sector.ceilingz = this.ceilingz;
+		sector.floorz = this.floorz;
+		sector.ceilingStat = this.ceilingStat;
+		sector.floorstat = this.floorstat;
+		sector.ceilingPicNum = this.ceilingPicNum;
+		sector.ceilingheinum = this.ceilingheinum;
+		sector.ceilingshade = this.ceilingshade;
+		sector.ceilingpal = this.ceilingpal;
+		sector.ceilingxpanning = this.ceilingxpanning;
+		sector.ceilingypanning = this.ceilingypanning;
+		sector.floorpicnum = this.floorpicnum;
+		sector.floorheinum = this.floorheinum;
+		sector.floorshade = this.floorshade;
+		sector.floorpal = this.floorpal;
+		sector.floorxpanning = this.floorxpanning;
+		sector.floorypanning = this.floorypanning;
+		sector.visibility = this.visibility;
+		sector.filler = this.filler;
+		sector.lotag = this.lotag;
+		sector.hitag = this.hitag;
+		sector.extra = this.extra;
+		return sector;
+	}
+	
+	public void translateIds(final IdMap idmap){
+		this.firstWall = idmap.wall(this.firstWall);
+	}
+	
+	@Override
+	public String toString(){
+		String ln = "\n";
+		StringBuilder sb = new StringBuilder();
+		sb.append("{ sector \n").append(ln);
+		sb.append("first wall: " + this.firstWall).append(ln);
+		sb.append("}").append(ln);
+		return sb.toString();
+	}
 	
 
 	

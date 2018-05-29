@@ -3,7 +3,6 @@ package trn;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -11,8 +10,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import trn.duke.experiments.E1RandomSprites;
-import trn.duke.experiments.E2XRepeat;
-import trn.duke.experiments.E3AddRoom;
+import trn.prefab.PrefabUtils;
 
 public class Main {
 
@@ -23,14 +21,51 @@ public class Main {
 	/** TODO:  remove when I have some real unit tests */
 	public static final String HELLO = "hello world";
 	
+	static String DOSPATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
 	
 	public static void main(String[] args) throws Exception {
 		
-		System.exit(0);
+
+		
+		Map fromMap = loadMap(DOSPATH + "cptest2.map");
+		int sector = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 2, null).get(0).sectnum;
+		
+		
+		/*{
+			int s2 = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 2, null).get(0).sectnum;
+			int s3 = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 3, null).get(0).sectnum;
+			printWalls(fromMap);
+			System.out.println("outer sector: " + fromMap.getSector(s2));
+			System.out.println("inner sector: " + fromMap.getSector(s3));
+			System.exit(0);
+		}*/
+		
+		PlayerStart ps = new PlayerStart(fromMap.guessCenter(sector), 0);
+		Map outMap = Map.createNew();
+		outMap.setPlayerStart(ps);
+		
+		PrefabUtils.copySectorGroup(fromMap, outMap, sector);
+		
+		
+
 		
 		
 		
 		
+		
+		
+		
+		
+		//writeResult(outMap);
+		deployTest(outMap);
+		
+		// prefab.map
+		
+		//String dosPath = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
+		//Map map = loadMap(dosPath + "prefab.map");
+		//PrefabGenerator generator = new PrefabGenerator(map);
+		
+
 		
 		/*
 		Map m = loadMap("RT0.MAP");
@@ -43,34 +78,26 @@ public class Main {
 		//RT0.MAP is for hardcoding experimentation
 		
 		
-		printWalls(loadMap("RT0.MAP"));
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		//printWalls(loadMap("RT0.MAP"));
 		
 		
 
-		
 
 		
 	}
 	
 	
 	public static Map loadMap(String filename) throws IOException{
-		return loadMap(System.getProperty("user.dir") + File.separator + "testdata" + File.separator, filename);
+		File path = new File(filename);
+		if(path.isAbsolute()){
+			// C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/
+			return loadMap(path);
+		}else{
+			return loadMap(new File(System.getProperty("user.dir") + File.separator + "testdata" + File.separator, filename));
+		}
 	}
 	
-	public static Map loadMap(String folder, String filename) throws IOException{
+	/*public static Map loadMap(String folder, String filename) throws IOException{
 		
 		//String fname = "TWOROOMS.MAP";
 		
@@ -82,6 +109,12 @@ public class Main {
 		
 		Map map = Map.readMap(bs);
 		
+		return map;
+	}*/
+	
+	public static Map loadMap(File mapfile) throws IOException {
+		FileInputStream bs = new FileInputStream(mapfile);
+		Map map = Map.readMap(bs);
 		return map;
 	}
 	
@@ -102,13 +135,15 @@ public class Main {
 	 * @throws IOException
 	 */
 	public static void deployTest(Map map) throws IOException{
-		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + "output.map";
+		String filename = "output.map";
+		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + filename;
 		Main.writeResult(map, resultsFile);
 		
 		//TODO:  this should go in some conf/ini/json file that is not checked in
-		String copyDest = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/output.map";
+		
+		String copyDest = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/" + filename;
 		FileUtils.copyFile(new File(resultsFile), new File(copyDest));
-		System.out.println("map generated");
+		System.out.println("map generated: " + filename);
 		
 		//TODO:  can we put build times in the map somewhere?
 		
@@ -150,7 +185,7 @@ public class Main {
 		System.out.println();
 		
 		for(int i = 0; i < map.getWallCount(); ++i){
-			System.out.println(map.getWall(i).toString());
+			System.out.println(map.getWall(i).toString(i));
 		}
 	}
 	

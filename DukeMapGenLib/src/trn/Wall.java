@@ -15,8 +15,12 @@ public class Wall {
 	
 	int x; //INT32LE
 	int y; //INT32LE
-	short point2; //INT16LE
 	
+	//apparently this is the actual next wall
+	short point2; //INT16LE 
+	
+	
+	// other "other" wall with a red wall ...
 	short nextWall; //INT16LE ... -1 means no sector on other side of wall
 		//think this is for red (two-sided) walls
 	
@@ -49,8 +53,6 @@ public class Wall {
 	public Wall(){
 		
 	}
-	
-	
 	
 	public Wall(int x, int y){
 		this(x, y, 0);
@@ -105,6 +107,43 @@ public class Wall {
 		this.lotag = 0;
 		this.hitag = 0;
 		this.extra = -1;
+	}
+	
+	public Wall copy(){
+		Wall w = new Wall();
+		w.x = this.x;
+		w.y = this.y;
+		w.point2 = this.point2;
+		w.nextWall = this.nextWall;
+		w.nextSector = this.nextSector;
+		w.cstat = this.cstat;
+		w.picnum = this.picnum;
+		w.overpicnum = this.overpicnum;
+		w.shade = this.shade;
+		w.pal = this.pal;
+		w.xrepeat = this.xrepeat;
+		w.yrepeat = this.yrepeat;
+		w.xpanning = this.xpanning;
+		w.ypanning = this.ypanning;
+		w.lotag = this.lotag;
+		w.hitag = this.hitag;
+		w.extra = this.extra;
+		return w;
+	}
+	
+	/**
+	 * 
+	 * @param idmap
+	 * @param wallsOnly - cheap debug param to skip translating sectors
+	 */
+	public void translateIds(final IdMap idmap, final boolean wallsOnly){
+		this.point2 = idmap.wall(this.point2);
+		if(this.nextWall != -1){
+			this.nextWall = idmap.wall(this.nextWall);
+		}
+		if(this.nextSector != -1 && ! wallsOnly){
+			this.nextSector = idmap.sector(this.nextSector);
+		}
 	}
 	
 	public int getX(){
@@ -171,13 +210,24 @@ public class Wall {
 		this.shade = shade;
 	}
 	
+	
+	
+	
+	
 	//TODO:  need an optional param to hide fields with default values
 	@Override
 	public String toString(){
+		return toString(null);
+	}
+	
+	public String toString(Integer wallId){
 		String ln = "\n"; //why isn't there an appenln() ?
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append("{ wall").append("\n");
+		if(wallId != null){
+			sb.append("(id): ").append(wallId).append(ln);
+		}
 		sb.append("x : ").append(x).append(ln);
 		sb.append("y : ").append(y).append(ln);
 		

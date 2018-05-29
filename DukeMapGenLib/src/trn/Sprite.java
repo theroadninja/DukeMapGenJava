@@ -130,6 +130,38 @@ public class Sprite {
 		
 	}
 	
+	public Sprite copy(short newSectorId){
+		Sprite sprite = new Sprite();
+		sprite.x = this.x;
+		sprite.y = this.y;
+		sprite.z = this.z;
+		sprite.cstat = this.cstat;
+		sprite.picnum = this.picnum;
+		sprite.shade = this.shade;
+		sprite.pal = this.pal;
+		sprite.clipdist = this.clipdist;
+		sprite.filler = this.filler;
+		sprite.xrepeat = this.xrepeat;
+		sprite.yrepeat = this.yrepeat;
+		sprite.xoffset = this.xoffset;
+		sprite.yoffset = this.yoffset;
+		sprite.sectnum = newSectorId;
+		sprite.statnum = this.statnum;
+		sprite.ang = this.ang;
+		sprite.owner = this.owner;
+		sprite.xvel = this.xvel;
+		sprite.yvel = this.yvel;
+		sprite.zvel = this.zvel;
+		sprite.lotag = this.lotag;
+		sprite.hitag = this.hitag;
+		sprite.extra = this.extra;
+		return sprite;
+	}
+	
+	public short getSectorId(){
+		return this.sectnum;
+	}
+	
 	public short getTexture(){
 		return this.picnum;
 	}

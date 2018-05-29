@@ -1,6 +1,11 @@
 package trn;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * See also GridUtils
@@ -9,6 +14,20 @@ import java.util.List;
  *
  */
 public class MapUtil {
+	
+	public static int average(Iterable<Integer> ints){
+		int total = 0;
+		int count = 0;
+		for(int i: ints){
+			total += i;
+			count += 1;
+		}
+		if(count == 0){
+			throw new IllegalArgumentException();
+		}else{
+			return total / count;
+		}
+	}
 	
 	
 	/**
@@ -86,5 +105,145 @@ public class MapUtil {
 		}
 		
 		
+	}
+	
+	public static <T> T pop(Collection<T> whatever){
+		Iterator<T> it = whatever.iterator();
+		T result = it.next();
+		it.remove();
+		return result;
+	}
+	
+	
+	/**
+	 * Copy a sector, and everything it touches to another map.
+	 * 
+	 * In a normal map with no elevators, this would copy pretty much everything.
+	 * 
+	 * @param sourceMap
+	 * @param destMap
+	 */
+	public static void copySectorGroup(final Map sourceMap, Map destMap, int sourceSectorId){
+		
+		//maps from ids in the old map, to ids in the new map
+		//java.util.Map<Short, Short> idmap = new HashMap<Short, Short>();
+		
+		
+		CopyState cpstate = new CopyState();
+		
+		Set<Integer> sectorsToCopy = new TreeSet<Integer>();
+		Set<Integer> alreadyCopied = new TreeSet<Integer>();
+		
+		sectorsToCopy.add(sourceSectorId);
+		while(sectorsToCopy.size() > 0){
+			Integer nextId = pop(sectorsToCopy);
+			alreadyCopied.add(nextId);
+			
+			Set<Integer> moreSectors = copySector(sourceMap, destMap, cpstate, nextId);
+			for(int i : moreSectors){
+				if(! alreadyCopied.contains(i)){
+					sectorsToCopy.add(i);
+				}
+			}
+		}
+		
+
+		boolean ignoreOtherSectors = false;
+		if(ignoreOtherSectors){
+			for(Wall w: destMap.walls){
+				w.nextSector = -1;
+				w.nextWall = -1;
+						
+			}
+		}
+		updateIds(destMap, cpstate);
+		
+		
+	}
+	
+	
+	static class CopyState {
+		IdMap idmap = new IdMap();
+		
+		List<Integer> wallsToUpdate = new LinkedList<Integer>();
+		List<Integer> sectorsToUpdate = new LinkedList<Integer>();
+	}
+	
+	/**
+	 * 
+	 * @returns more source sector ids, which are neighboors
+	 */
+	static Set<Integer> copySector(final Map sourceMap,
+			Map destMap,
+			CopyState cpstate,
+			int sourceSectorId
+			){
+		
+		Set<Integer> neighboors = new TreeSet<Integer>();
+		
+		Sector sector = sourceMap.getSector(sourceSectorId);
+		System.out.println("sector first wall is: " + sector.getFirstWall());
+		
+		
+		int newSectorId = destMap.addSector(sector.copy());
+		cpstate.idmap.putSector(sourceSectorId, newSectorId);
+		cpstate.sectorsToUpdate.add(newSectorId);
+		
+		
+		List<Integer> wallLoopIds = sourceMap.getFirstWallLoop(sector);
+		neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, wallLoopIds));
+		
+		List<Integer> secondWallLoopIds = sourceMap.getSecondWallLoop(sector);
+		neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, secondWallLoopIds));
+		
+		copySpritesInSector(sourceMap, destMap, sourceSectorId, (short)newSectorId);
+
+		return neighboors;
+	}
+	
+	static void updateIds(Map destMap, CopyState cpstate){
+		for(int sid: cpstate.sectorsToUpdate){
+			destMap.getSector(sid).translateIds(cpstate.idmap);
+		}
+		for(int wid: cpstate.wallsToUpdate){
+			destMap.getWall(wid).translateIds(cpstate.idmap, true);
+		}
+	}
+	
+	/**
+	 * 
+	 * @returns set of source ids of other sectors
+	 */
+	static Set<Integer> copyWallLoop(final Map sourceMap, 
+			Map destMap, 
+			CopyState cpstate,
+			List<Integer> wallsToUpdate,
+			List<Integer> wallLoopIds){
+		
+		Set<Integer> otherSourceSectors = new TreeSet<Integer>();
+		
+		if(wallLoopIds == null){
+			return otherSourceSectors;
+		}
+		
+		for(int wi: wallLoopIds){
+			Wall w = sourceMap.getWall(wi);
+			if(w.nextSector != -1){
+				otherSourceSectors.add((int)w.nextSector);
+			}
+			int newId = destMap.addWall(w.copy());
+			cpstate.idmap.putWall(wi, newId);
+			wallsToUpdate.add(newId);
+		}
+		return otherSourceSectors;
+	}
+	
+	static void copySpritesInSector(final Map sourceMap, Map destMap, int sourceSectorId, short destSectorId){
+		
+		List<Sprite> sprites = sourceMap.findSprites(null, null, sourceSectorId);
+		for(Sprite sp: sprites){
+			System.out.println("copying sprite!v picnum=" + sp.picnum);
+			destMap.addSprite(sp.copy(destSectorId));
+		}
 	}
 }

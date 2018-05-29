@@ -27,6 +27,13 @@ public class PlayerStart {
 		
 	}
 	
+	public PlayerStart(final PointXYZ xyz, int angle){
+		this.x = xyz.x;
+		this.y = xyz.y;
+		this.z = xyz.z;
+		this.angle = angle;
+	}
+	
 	public long x(){
 		return this.x;
 	}

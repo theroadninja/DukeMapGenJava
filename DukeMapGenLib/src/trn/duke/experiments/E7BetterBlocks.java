@@ -48,11 +48,12 @@ public class E7BetterBlocks {
 				//Sector.DEFAULT_FLOOR_Z, 
 				oneLevelDown};
 		
-		//create a graph that represents a maze
+		//1. create a graph that represents a maze
+		//node types not define here -- see Grid() constructor
 		DfsMazeGen.Graph<Pair<Integer,Integer>> graph = DfsMazeGen.createGridMaze(width, height);
 		
 		
-		//assign random integers to represent tilesets/blocks
+		//2. assign random integers to represent tilesets/blocks
 		for(Pair<Integer, Integer> node : graph.getAdjacencyList().keySet()){
 			LegacyGrid.BlockInfo bi = graph.getBlockInfo(node);
 			bi.tileset = BLOCKS[Util.getRandom().nextInt(BLOCKS.length)];
@@ -60,7 +61,8 @@ public class E7BetterBlocks {
 		}
 		
 		
-		//block construction is here
+		//3. block construction is here
+		//node types selected here; think they are the 'connector' blocks
 		Grid grid = new Grid(graph);
 		
 		//LegacyGrid grid = new LegacyGrid(graph);
