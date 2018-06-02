@@ -191,13 +191,12 @@ public class MapUtil {
 		cpstate.idmap.putSector(sourceSectorId, newSectorId);
 		cpstate.sectorsToUpdate.add(newSectorId);
 		
-		
-		List<Integer> wallLoopIds = sourceMap.getFirstWallLoop(sector);
-		neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, wallLoopIds, transform));
-		
-		List<Integer> secondWallLoopIds = sourceMap.getSecondWallLoop(sector);
-		neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, secondWallLoopIds, transform));
-		
+		Iterator<Collection<Integer>> loopIterator = sourceMap.wallLoopIterator(sourceSectorId);
+		while(loopIterator.hasNext()){
+			Collection<Integer> wallLoopIds = loopIterator.next();
+			neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, wallLoopIds, transform));
+		}
+
 		copySpritesInSector(sourceMap, destMap, sourceSectorId, (short)newSectorId, transform);
 
 		return neighboors;
@@ -220,7 +219,7 @@ public class MapUtil {
 			Map destMap, 
 			CopyState cpstate,
 			List<Integer> wallsToUpdate,
-			List<Integer> wallLoopIds,
+			Iterable<Integer> wallLoopIds,
 			PointXYZ transform){
 		
 		Set<Integer> otherSourceSectors = new TreeSet<Integer>();

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -135,6 +137,9 @@ public class Map {
 		return this.getWallLoop(loop2start);
 	}
 	
+	public Iterator<Collection<Integer>> wallLoopIterator(int sectorId){
+		return new WallLoopIterator(this, sectorId);
+	}
 	
 	
 	/**
