@@ -283,6 +283,24 @@ public class Map {
 		return sprites.get(i);
 	}
 	
+
+	
+	public List<Sprite> findSprites(ISpriteFilter... filters){
+		List<Sprite> results = new ArrayList<Sprite>(sprites.size());
+		for(Sprite s : sprites){
+			if(! SpriteFilter.matchAll(s, filters)){
+				continue;
+			}
+			//for(ISpriteFilter st : filters){
+			//	if(! st.matches(s)){
+			//		continue;
+			//	}
+			//}
+			results.add(s);
+		}
+		return results;
+	}
+	
 	public List<Sprite> findSprites(Integer picnum, Integer lotag, Integer sectorId){
 		// later:  use Wall.nextSector
 		

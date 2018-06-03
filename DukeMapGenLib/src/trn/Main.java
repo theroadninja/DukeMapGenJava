@@ -11,6 +11,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import trn.duke.experiments.E1RandomSprites;
+import trn.prefab.Connector;
+import trn.prefab.PastedSectorGroup;
+import trn.prefab.PrefabPalette;
 import trn.prefab.PrefabUtils;
 
 public class Main {
@@ -26,22 +29,24 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		
-		//TODO:  sectors can have an arbitrary number of all loops, need to adjust ...
 
 		
 		//Map fromMap = loadMap(DOSPATH + "cptest2.map");
+		
+		
+		// cptest3.map
+		//  group 10 is the plus sign hallway intersection
+		//		connector on left:  connector id 123 and wall lotag 2
+		//		connector on right: connector id 456 and wall lotag 1
+		//
 		Map fromMap = loadMap(DOSPATH + "cptest3.map");
 		
 		
-		//int sector = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 2, null).get(0).sectnum;
-		/*{
-			int s2 = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 2, null).get(0).sectnum;
-			int s3 = fromMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 3, null).get(0).sectnum;
-			printWalls(fromMap);
-			System.out.println("outer sector: " + fromMap.getSector(s2));
-			System.out.println("inner sector: " + fromMap.getSector(s3));
-			System.exit(0);
-		}*/
+		
+		// cptest4.map - space joins
+		
+		
+		
 		
 		int sector = 0;
 		PlayerStart ps = new PlayerStart(fromMap.guessCenter(sector), 0);
@@ -49,57 +54,81 @@ public class Main {
 		outMap.setPlayerStart(new PlayerStart(0,0,0,0));
 		
 		
+		PrefabPalette palette = new PrefabPalette();
+		palette.loadAllGroups(fromMap);
+		
+		
+		
 		Map clipboard = Map.createNew();
 		MapUtil.copySectorGroup(fromMap, clipboard, sector, new PointXYZ(0, 0, 0));
-		//MapUtil.copySectorGroup(fromMap, outMap, sector, new PointXYZ(1024*3, 0, 0));
+
 		
 		// --------------
+		// TODO - maybe also need some santity checks before the join
+		// maybe PastedSectorGroup.join(pastedSectorGroup) :?
+		//TODO - have an auto-joiner that just finds overlapping walls ??
 		
-		int sectorId = 0;
-		MapUtil.copySectorGroup(clipboard, outMap, sectorId, new PointXYZ(-1024*30, -1024*50, 0));
 		
-		//now delete the connector, for sanity check
+		
+		PastedSectorGroup psg1 = palette.pasteSectorGroup(10, outMap, new PointXYZ(-1024*30, -1024*50, 0));
+		
+		// connector on left side of group
+		Connector conn2 = psg1.getConnector(123);
+
+		Connector conn1_beforepaste = palette.getConnector(10, 456);
+		
+		PointXYZ delta = conn1_beforepaste.getTransformTo(conn2);
+
+		PastedSectorGroup psg2 = palette.pasteSectorGroup(10, outMap, delta);
+
+		conn1_beforepaste.translateIds(psg2.copystate.idmap); // sector and wall ids
+		
+		Connector conn1_afterpaste = psg2.getConnector(456);
+		
+		//PrefabUtils.joinWalls(outMap, conn1_beforepaste, conn2);
+		PrefabUtils.joinWalls(outMap, conn1_afterpaste, conn2);
+		
+		
+		// add a third group!
+		PastedSectorGroup psg3 = null;
 		{
-			PrefabUtils.Connector conn1 = PrefabUtils.findConnector(outMap, PrefabUtils.SIMPLE_JOIN, 1);
+			Connector leftEdge = psg2.getConnector(123);
 			
-			//TODO:  this is horrible; need a tuple for (spriteId, sprite) !!!
-			conn1.sprite.picnum = 0;
+			//Connector rightEdge = palette.getConnector(10, 456);
+			//PointXYZ cdelta = rightEdge.getTransformTo(leftEdge);
+			psg3 = palette.pasteAndLink(10, 456, outMap, leftEdge);
+			
+			//PastedSectorGroup psg3 = palette.pasteSectorGroup(10, outMap, cdelta);
+			
+		}
+		
+		// now try to add the player start group - 11
+		{
+			Connector leftEdge = psg3.getConnector(123);
+			
+			PastedSectorGroup psg4 = palette.pasteAndLink(11, 456, outMap, leftEdge);
 			
 			
 		}
 		
 		
-		PrefabUtils.Connector conn2 = PrefabUtils.findConnector(outMap, PrefabUtils.SIMPLE_JOIN, 2);
-		System.out.println("connector 2: " + conn2);
+		ISpriteFilter psfilter = SpriteFilter.playerstart();
+		List<Sprite> sprites = outMap.findSprites(psfilter);
 		
-		PrefabUtils.Connector conn1 = PrefabUtils.findConnector(clipboard, PrefabUtils.SIMPLE_JOIN, 1);
-		System.out.println("connector 1: " + conn1);
+		System.out.println("filter matches = " + psfilter.matches(sprites.get(0)));
+		System.out.println("sprite is: " + sprites.get(0));
 		
+		if(sprites.size() != 1){
+			throw new RuntimeException("wft? sprite count is " + sprites.size());
+		}
+		Sprite pstart = outMap.findSprites(psfilter).iterator().next();
 		
-		PointXYZ delta = conn1.getTransformTo(conn2);
-		MapUtil.CopyState cpstate = MapUtil.copySectorGroup(clipboard, outMap, sectorId, delta);
+		//Sprite pstart = outMap.findSprites(SpriteFilter.playerstart()).iterator().next();
+		System.out.println("found player start: " + pstart);
 		
-		conn1.translateIds(cpstate.idmap);
-		
-		PrefabUtils.joinWalls(outMap, conn1, conn2);
-		
-		
-		//outMap.findSprites(DukeConstants.TEXTURES.CONSTRUCTION_SPRITE, 1, null);
-		
-		
-		//lotag of 2 is on the right side
-		
-		//System.out.println("connector: " + conn.toString());
-		
-		
-		//MapUtil.copySectorGroup(clipboard, outMap, sectorId, new PointXYZ(-1024*3, 0, 0));
-		
-		// TODO:  print all walls with lotags 1 and 2
-
-		
-		
-		
-		
+		//PlayerStart ps = new PlayerStart(fromMap.guessCenter(sector), 0);
+		//Map outMap = Map.createNew();
+		outMap.setPlayerStart(new PlayerStart(pstart.getLocation(),0));
 		
 		
 		

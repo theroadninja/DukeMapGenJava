@@ -3,84 +3,79 @@ package trn.prefab;
 import java.util.List;
 
 import trn.DukeConstants;
-import trn.IdMap;
+import trn.ISpriteFilter;
 import trn.Map;
 import trn.PointXY;
-import trn.PointXYZ;
 import trn.Sector;
 import trn.Sprite;
+import trn.SpriteFilter;
 import trn.Wall;
 
 public class PrefabUtils {
+	/*
+	public static class JoinType {
+		// hitag of constructions sprite - marking it as simple vertical join 
+		public static int VERTICAL_JOIN = 1;
+	}
+	*/
 	
-	public static int MARKER = DukeConstants.TEXTURES.CONSTRUCTION_SPRITE;
+	public static class SpriteLoTags {
+		
+		/** lotag of construction sprite whose hitag serves as an id for the group */
+		public static int GROUP_ID = 1;
+		
+		// is the hitag then a priority to beat out other player starts?
+		public static int PLAYER_START = 2;
+		
+		/** lotag that marks a construction sprite as connector */
+		public static int VERTICAL_CONNECTOR = 16;
+	}
 	
-	public static int SIMPLE_JOIN = 1;
+	public static class WallLoTags {
+		
+		/** connect wall on the left side of the group on the right */
+		public static int LEFT_WALL = 2;
+		
+		/** the connector wall on the right side of the left group */
+		public static int RIGHT_WALL = 1;
+	}
+	
+	// simple join
+	// - construction sprite with lotag 1
+	// - walls with lotag 1 and 2
+	//   - 2 is on the left side of a group, and 1 is on the right
+	
+	public static int MARKER_SPRITE_TEX = DukeConstants.TEXTURES.CONSTRUCTION_SPRITE;
+	
+	public static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
+	public static ISpriteFilter CONNECTOR_SPRITE = SpriteFilter.loTag(SpriteLoTags.VERTICAL_CONNECTOR);
+	
+	
+	
+	
+	
+	//public static int SPRITE_LO_CONNECTOR = 2;
+	
+
+	
 
 	
 	public void go(){
 		
 	}
 	
-	public static class Connector {
-		public Sprite sprite;
-		int sectorId;
-		int wallId;
+	public static Connector findConnector(Map map, int wallLotag){
 		
-		//Sector sector;
-		Wall wall;
-		//PointXY p1;
-		//PointXY p2;
-		int x;
-		int ymin;
-		int ymax;
-		int z;
+		// TODO - there is another findConnector() method on PrefabPalette
 		
-		public void setPoints(PointXY p1, PointXY p2){
-			if(p1.x != p2.x){
-				throw new IllegalArgumentException();
-			}
-			this.x = p1.x;
-			this.ymin = Math.min(p1.y, p2.y);
-			this.ymax = Math.max(p1.y, p2.y);
-			if(this.ymin == this.ymax){
-				throw new IllegalArgumentException();
-			}
-			
-		}
 		
-		@Override
-		public String toString(){
-			StringBuilder sb = new StringBuilder();
-			sb.append("{ connector\n");
-			sb.append("  x: ").append(x).append("\n");
-			sb.append(" ymin: ").append(ymin).append("\n");
-			sb.append(" ymax: ").append(ymax).append("\n");
-			return sb.toString();
-		}
-		
-		public PointXYZ getTransformTo(Connector c2){
-			return new PointXYZ(
-					c2.x - this.x, 
-					c2.ymin - this.ymin, 
-					c2.z - this.z);
-					//c2.sector.getFloorZ() - this.sector.getFloorZ());
-			//return new PointXYZ(-1024*5, c2.ymin - this.ymin, c2.sector.getFloorZ() - this.sector.getFloorZ());
-		}
-		
-		public void translateIds(final IdMap idmap){
-			//TODO:  also do sprite ...
-			this.sectorId = idmap.sector(this.sectorId);
-			this.wallId = idmap.wall(this.wallId);
-			
-		}
-	}
-	
-	public static Connector findConnector(Map map, int connectorType, int wallLotag){
 		//List<Sprite> sprites = new LinkedList<Sprite>();
 		
 		
-		for(Sprite s: map.findSprites(MARKER, connectorType, null)){
+		//for(Sprite s: map.findSprites(MARKER_SPRITE, connectorType, null)){
+		for(Sprite s: map.findSprites(
+				MARKER_SPRITE, 
+				CONNECTOR_SPRITE)){
 			
 			Sector sector = map.getSector(s.getSectorId());
 			List<Integer> walls = map.getAllSectorWallIds(sector);

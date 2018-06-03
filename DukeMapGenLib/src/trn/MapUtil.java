@@ -163,11 +163,22 @@ public class MapUtil {
 	}
 	
 	
-	static class CopyState {
+	// this is public because someone might need the source sector ids
+	public static class CopyState {
 		IdMap idmap = new IdMap();
 		
 		List<Integer> wallsToUpdate = new LinkedList<Integer>();
 		List<Integer> sectorsToUpdate = new LinkedList<Integer>();
+		
+		public Set<Short> sourceSectorIds(){
+			return idmap.sectorIdMap.keySet();
+		}
+		
+		public Set<Short> destSectorIds(){
+			Set<Short> ids = new TreeSet<Short>();
+			ids.addAll(idmap.sectorIdMap.values());
+			return ids;
+		}
 	}
 	
 	/**

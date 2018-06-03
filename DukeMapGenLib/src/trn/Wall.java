@@ -24,7 +24,8 @@ public class Wall {
 	short nextWall; //INT16LE ... -1 means no sector on other side of wall
 		//think this is for red (two-sided) walls
 	
-	short nextSector; //INT16LE ... -1 means no sector on other side of wall
+	// TODO - make this not public
+	public short nextSector; //INT16LE ... -1 means no sector on other side of wall
 	
 	short cstat; //INT16LE
 	

@@ -165,6 +165,10 @@ public class Sprite {
 		return this;
 	}
 	
+	public PointXYZ getLocation(){
+		return new PointXYZ(this.x, this.y, this.z);
+	}
+	
 	public short getSectorId(){
 		return this.sectnum;
 	}
@@ -187,6 +191,10 @@ public class Sprite {
 	
 	public short getLotag(){
 		return this.lotag;
+	}
+	
+	public short getHiTag(){
+		return this.hitag;
 	}
 	
 	public void setLotag(short s){
