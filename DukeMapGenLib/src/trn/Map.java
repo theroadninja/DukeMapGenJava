@@ -283,7 +283,33 @@ public class Map {
 		return sprites.get(i);
 	}
 	
+	public void deleteSprite(int spriteId){
+		
+		sprites.remove(spriteId);
+		this.spriteCount = sprites.size();
+	}
+	
 
+	public List<Integer> findSpriteIds(ISpriteFilter... filters){
+		List<Integer> results = new ArrayList<Integer>(sprites.size());
+		for(int i = 0; i < sprites.size(); ++i){
+			if(! SpriteFilter.matchAll(sprites.get(i), filters)){
+				continue;
+			}
+			results.add(i);
+		}
+		return results;
+	}
+	
+	public void deleteSprites(ISpriteFilter... filters){
+		Iterator<Sprite> it = sprites.iterator();
+		while(it.hasNext()){
+			if(SpriteFilter.matchAll(it.next(), filters)){
+				it.remove();
+			}
+		}
+		this.spriteCount = this.sprites.size();
+	}
 	
 	public List<Sprite> findSprites(ISpriteFilter... filters){
 		List<Sprite> results = new ArrayList<Sprite>(sprites.size());
@@ -291,11 +317,6 @@ public class Map {
 			if(! SpriteFilter.matchAll(s, filters)){
 				continue;
 			}
-			//for(ISpriteFilter st : filters){
-			//	if(! st.matches(s)){
-			//		continue;
-			//	}
-			//}
 			results.add(s);
 		}
 		return results;
@@ -412,6 +433,7 @@ public class Map {
 	
 	
 	public void toBytes(OutputStream output) throws IOException {
+		if(sprites.size() != this.spriteCount) throw new IllegalStateException("sprite count messed up");
 		
 		ByteUtil.writeUint32LE(output, mapVersion);
 		this.playerStart.toBytes(output);

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -33,6 +34,7 @@ public class Main {
 		
 		//Map fromMap = loadMap(DOSPATH + "cptest2.map");
 		
+		// cptest4.map - space joins
 		
 		// cptest3.map
 		//  group 10 is the plus sign hallway intersection
@@ -43,30 +45,14 @@ public class Main {
 		
 		
 		
-		// cptest4.map - space joins
+
 		
-		
-		
-		
-		int sector = 0;
-		PlayerStart ps = new PlayerStart(fromMap.guessCenter(sector), 0);
 		Map outMap = Map.createNew();
-		outMap.setPlayerStart(new PlayerStart(0,0,0,0));
+		
 		
 		
 		PrefabPalette palette = new PrefabPalette();
 		palette.loadAllGroups(fromMap);
-		
-		
-		
-		Map clipboard = Map.createNew();
-		MapUtil.copySectorGroup(fromMap, clipboard, sector, new PointXYZ(0, 0, 0));
-
-		
-		// --------------
-		// TODO - maybe also need some santity checks before the join
-		// maybe PastedSectorGroup.join(pastedSectorGroup) :?
-		//TODO - have an auto-joiner that just finds overlapping walls ??
 		
 		
 		
@@ -96,7 +82,7 @@ public class Main {
 			
 			//Connector rightEdge = palette.getConnector(10, 456);
 			//PointXYZ cdelta = rightEdge.getTransformTo(leftEdge);
-			psg3 = palette.pasteAndLink(10, 456, outMap, leftEdge);
+			psg3 = palette.pasteAndLink(12, 456, outMap, leftEdge);
 			
 			//PastedSectorGroup psg3 = palette.pasteSectorGroup(10, outMap, cdelta);
 			
@@ -123,43 +109,15 @@ public class Main {
 		}
 		Sprite pstart = outMap.findSprites(psfilter).iterator().next();
 		
-		//Sprite pstart = outMap.findSprites(SpriteFilter.playerstart()).iterator().next();
-		System.out.println("found player start: " + pstart);
 		
-		//PlayerStart ps = new PlayerStart(fromMap.guessCenter(sector), 0);
-		//Map outMap = Map.createNew();
 		outMap.setPlayerStart(new PlayerStart(pstart.getLocation(),0));
 		
 		
 		
 		
-		//writeResult(outMap);
+		outMap.deleteSprites(SpriteFilter.texture(PrefabUtils.MARKER_SPRITE_TEX));
+
 		deployTest(outMap);
-		
-		// prefab.map
-		
-		//String dosPath = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
-		//Map map = loadMap(dosPath + "prefab.map");
-		//PrefabGenerator generator = new PrefabGenerator(map);
-		
-
-		
-		/*
-		Map m = loadMap("RT0.MAP");
-		E2XRepeat.go(m);
-		writeResult(m);
-		System.exit(0);
-		*/
-		
-		
-		//RT0.MAP is for hardcoding experimentation
-		
-		
-		//printWalls(loadMap("RT0.MAP"));
-		
-		
-
-
 		
 	}
 	

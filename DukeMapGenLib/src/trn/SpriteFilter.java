@@ -49,6 +49,10 @@ public class SpriteFilter implements ISpriteFilter {
 		return new SpriteFilter(HITAG, filterValue);
 	}
 	
+	public static ISpriteFilter texture(int texture){
+		return new SpriteFilter(TEXTURE, texture);
+	}
+	
 	public static boolean matchAll(Sprite sprite, ISpriteFilter ... filters){
 		for(ISpriteFilter sf: filters){
 			if(! sf.matches(sprite)){

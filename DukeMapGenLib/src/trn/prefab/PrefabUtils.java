@@ -29,6 +29,12 @@ public class PrefabUtils {
 		
 		/** lotag that marks a construction sprite as connector */
 		public static int VERTICAL_CONNECTOR = 16;
+		
+		/** horizontal connector; the wall with lotag 1 is on the south edge of the sector */
+		public static int HORIZONTAL_CONNECTOR_SOUTH = 17;
+		
+		/** horizontal connector; the wall with lotag 1 is on the north edge of the sector */
+		public static int HORIZONTAL_CONNECTOR_NORTH = 18;
 	}
 	
 	public static class WallLoTags {

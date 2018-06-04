@@ -102,6 +102,7 @@ public class Connector {
 				PrefabUtils.CONNECTOR_SPRITE)){
 			
 			
+			
 			//if(onlyInTheseSectors != null && ! onlyInTheseSectors.contains(s.getSectorId()));
 			
 			// look through each wall in the sector
