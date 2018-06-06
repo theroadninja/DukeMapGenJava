@@ -1,6 +1,7 @@
 package trn.prefab;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -55,6 +56,11 @@ public class PastedSectorGroup {
 		}
 		
 		throw new IllegalArgumentException();
+	}
+	
+	public Connector findFirstConnector(ConnectorFilter cf){
+		Iterator<Connector> it = Connector.findConnectors(this.connectors, cf).iterator();
+		return it.hasNext() ? it.next() : null;
 	}
 	
 

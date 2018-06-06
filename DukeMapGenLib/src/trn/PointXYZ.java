@@ -16,4 +16,14 @@ public class PointXYZ {
 		this.y = y;
 		this.z = z;
 	}
+	
+	public PointXYZ(PointXY xy, int z){
+		this.x = xy.x;
+		this.y = xy.y;
+		this.z = z;
+	}
+	
+	public PointXYZ getTransformTo(PointXYZ dest){
+		return new PointXYZ(dest.x - this.x, dest.y - this.y, dest.z - this.z);
+	}
 }

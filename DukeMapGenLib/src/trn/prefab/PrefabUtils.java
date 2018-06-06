@@ -28,13 +28,13 @@ public class PrefabUtils {
 		public static int PLAYER_START = 2;
 		
 		/** lotag that marks a construction sprite as connector */
-		public static int VERTICAL_CONNECTOR = 16;
+		public static int HORIZONTAL_CONNECTOR = 16;
 		
-		/** horizontal connector; the wall with lotag 1 is on the south edge of the sector */
-		public static int HORIZONTAL_CONNECTOR_SOUTH = 17;
+		/** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the south edge of the sector */
+		public static int VERTICAL_CONNECTOR_SOUTH = 18;
 		
-		/** horizontal connector; the wall with lotag 1 is on the north edge of the sector */
-		public static int HORIZONTAL_CONNECTOR_NORTH = 18;
+		/** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the north edge of the sector */
+		public static int VERTICAL_CONNECTOR_NORTH = 19;
 	}
 	
 	public static class WallLoTags {
@@ -54,7 +54,7 @@ public class PrefabUtils {
 	public static int MARKER_SPRITE_TEX = DukeConstants.TEXTURES.CONSTRUCTION_SPRITE;
 	
 	public static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
-	public static ISpriteFilter CONNECTOR_SPRITE = SpriteFilter.loTag(SpriteLoTags.VERTICAL_CONNECTOR);
+	//public static ISpriteFilter CONNECTOR_SPRITE = SpriteFilter.loTag(SpriteLoTags.HORIZONTAL_CONNECTOR);
 	
 	
 	
@@ -70,6 +70,8 @@ public class PrefabUtils {
 		
 	}
 	
+	
+	/*
 	public static Connector findConnector(Map map, int wallLotag){
 		
 		// TODO - there is another findConnector() method on PrefabPalette
@@ -98,7 +100,7 @@ public class PrefabUtils {
 					
 					//connector.p1 = new PointXY(w);
 					//connector.p2 = new PointXY(map.getWall(w.getPoint2()));
-					connector.setPoints(new PointXY(w), new PointXY(map.getWall(w.getPoint2())));
+					connector.setVerticalLinePoints(new PointXY(w), new PointXY(map.getWall(w.getPoint2())));
 					
 					return connector;
 				}
@@ -106,7 +108,7 @@ public class PrefabUtils {
 		}
 		
 		throw new RuntimeException("cant find connector");
-	}
+	}*/
 	
 	
 	public static void joinWalls(Map map, Connector c1, Connector c2){

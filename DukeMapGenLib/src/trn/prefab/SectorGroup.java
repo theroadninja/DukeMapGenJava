@@ -1,6 +1,7 @@
 package trn.prefab;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import trn.Map;
@@ -27,5 +28,10 @@ public class SectorGroup {
 		}
 		
 		throw new IllegalArgumentException();
+	}
+	
+	public Connector findFirstConnector(ConnectorFilter cf){
+		Iterator<Connector> it = Connector.findConnectors(this.connectors, cf).iterator();
+		return it.hasNext() ? it.next() : null;
 	}
 }

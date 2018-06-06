@@ -1,6 +1,7 @@
 package trn.prefab;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
@@ -84,6 +85,39 @@ public class PrefabPalette {
 		return result;
 	}
 	
+	public PastedSectorGroup pasteAndLink(
+			int sectorGroupId,
+			ConnectorFilter paletteConnectorFilter,
+			Map destMap,
+			Connector destConnector){
+		
+		if(destConnector == null){
+			throw new IllegalArgumentException("destConnector is null");
+		}
+		
+		Connector paletteConnector = getSectorGroup(sectorGroupId).findFirstConnector(paletteConnectorFilter);
+		if(paletteConnector == null){
+			throw new IllegalArgumentException("cant find connector: " + paletteConnectorFilter);
+		}
+		
+		PointXYZ cdelta = paletteConnector.getTransformTo(destConnector);
+		PastedSectorGroup result = this.pasteSectorGroup(sectorGroupId, destMap, cdelta);
+		
+		
+		paletteConnector.translateIds(result.copystate.idmap);
+		//paletteConnector = result.getConnector(paletteConnectorId);
+		//destMap.linkRedWalls(sectorIndex, wallIndex, sectorIndex2, wallIndex2)
+		
+		PrefabUtils.joinWalls(destMap, paletteConnector, destConnector);
+		
+		return result;
+		
+	}
+	
+	private SectorGroup getSectorGroup(int sectorGroupId){
+		return this.numberedSectorGroups.get(sectorGroupId);
+	}
+	
 	/**
 	 * 
 	 * TODO - need to zero out the groups as we read them in
@@ -110,6 +144,8 @@ public class PrefabPalette {
 
 		return Connector.matchConnectors(numberedSectorGroups.get(sectorGroupId).connectors, filters);
 	}
+	
+	
 	
 	
 	public Connector getConnector(int sectorGroupId, int connectorId){

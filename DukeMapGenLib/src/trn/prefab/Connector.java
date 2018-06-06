@@ -12,6 +12,24 @@ import trn.Sprite;
 import trn.Wall;
 
 public class Connector {
+
+	
+	
+	/**
+	 * ----| - - |----
+	 *     |SOUTH|
+	 *      \   /
+	 *     |\\ //|
+	 *     | \ / |
+	 *     |NORTH|
+	 * ----| - - |----
+	 */
+	public static ConnectorFilter SouthConnector = new SpriteLotagConnectorFilter(
+			PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_SOUTH);
+	
+	public static ConnectorFilter NorthConnector = new SpriteLotagConnectorFilter(
+			PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH);
+
 	
 	public static ConnectorFilter lotagFilter(final int lotag){
 		return new ConnectorFilter(){
@@ -21,6 +39,8 @@ public class Connector {
 			}
 		};
 	}
+	
+	
 	
 
 	int connectorId = -1;
@@ -32,12 +52,56 @@ public class Connector {
 	public Wall wall;  // TODO - make private
 	//PointXY p1;
 	//PointXY p2;
+	
+	
+	// used for horizontal connector
 	int x;
 	int ymin;
 	int ymax;
+	
+	
+	PointXYZ anchorPoint = null;
+	
+	
 	int z;
 	
-	public void setPoints(PointXY p1, PointXY p2){
+	
+	
+	public Connector(){
+		//TODO - get rid of this one
+	}
+	
+	public Connector(Sprite markerSprite, Wall wall){
+		if(markerSprite == null){
+			throw new IllegalArgumentException("markerSprite is null");
+		}
+		if(markerSprite.getTexture() != PrefabUtils.MARKER_SPRITE_TEX){
+			throw new IllegalArgumentException();
+		}
+		this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
+		this.sprite = markerSprite;
+		this.sectorId = markerSprite.getSectorId();
+		this.wall = wall;
+	}
+	
+	public Connector(Sprite markerSprite, Wall wall, Sector sector){
+		this(markerSprite, wall);
+		this.z = sector.getFloorZ();
+	}
+	
+	public short getMarkerSpriteLotag() {
+		return this.sprite.getLotag();
+	}
+	
+	public void setAnchorPoint(PointXYZ anchor){
+		this.anchorPoint = anchor;
+	}
+	
+	public void setAnchorPoint(PointXY anchor){
+		this.anchorPoint = new PointXYZ(anchor, this.z);
+	}
+	
+	public void setVerticalLinePoints(PointXY p1, PointXY p2){
 		if(p1.x != p2.x){
 			throw new IllegalArgumentException();
 		}
@@ -58,9 +122,9 @@ public class Connector {
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
 		sb.append("{ connector\n");
-		sb.append("  x: ").append(x).append("\n");
-		sb.append(" ymin: ").append(ymin).append("\n");
-		sb.append(" ymax: ").append(ymax).append("\n");
+		//sb.append("  x: ").append(x).append("\n");
+		//sb.append(" ymin: ").append(ymin).append("\n");
+		//sb.append(" ymax: ").append(ymax).append("\n");
 		sb.append(" sectorId: ").append(sectorId).append("\n");
 		sb.append(" wallId: ").append(wallId).append("\n");
 		sb.append(" wall nextSector: ").append(wall.nextSector).append("\n");
@@ -68,12 +132,21 @@ public class Connector {
 	}
 	
 	public PointXYZ getTransformTo(Connector c2){
-		return new PointXYZ(
-				c2.x - this.x, 
-				c2.ymin - this.ymin, 
-				c2.z - this.z);
-				//c2.sector.getFloorZ() - this.sector.getFloorZ());
-		//return new PointXYZ(-1024*5, c2.ymin - this.ymin, c2.sector.getFloorZ() - this.sector.getFloorZ());
+		if(c2 == null){
+			throw new IllegalArgumentException("c2 is null");
+		}
+		if(this.anchorPoint != null){
+			if(c2.anchorPoint == null) throw new SpriteLogicException();
+			
+			return this.anchorPoint.getTransformTo(c2.anchorPoint); 
+		}else{
+			return new PointXYZ(
+					c2.x - this.x, 
+					c2.ymin - this.ymin, 
+					c2.z - this.z);
+					//c2.sector.getFloorZ() - this.sector.getFloorZ());
+			//return new PointXYZ(-1024*5, c2.ymin - this.ymin, c2.sector.getFloorZ() - this.sector.getFloorZ());	
+		}
 	}
 	
 	public void translateIds(final IdMap idmap){
@@ -87,6 +160,16 @@ public class Connector {
 		return wall.getLotag();
 	}
 	
+	public static Iterable<Connector> findConnectors(Iterable<Connector> connectors, ConnectorFilter ... cf){
+		List<Connector> results = new ArrayList<Connector>();
+		for(Connector c: connectors){
+			if(cf == null ||  ConnectorFilter.allMatch(c, cf)){
+				results.add(c);
+			}
+		}
+		return results;
+	}
+	
 	public static List<Connector> findConnectors(Map map){
 		return findConnectors(map, null);
 	}
@@ -98,50 +181,78 @@ public class Connector {
 		List<Connector> results = new ArrayList<Connector>();
 		
 		for(Sprite s: map.findSprites(
-				PrefabUtils.MARKER_SPRITE, 
-				PrefabUtils.CONNECTOR_SPRITE)){
+				PrefabUtils.MARKER_SPRITE)){
 			
-			
-			
-			//if(onlyInTheseSectors != null && ! onlyInTheseSectors.contains(s.getSectorId()));
-			
-			// look through each wall in the sector
 			Sector sector = map.getSector(s.getSectorId());
-			List<Integer> walls = map.getAllSectorWallIds(sector);
-			for(int i: walls){
-				Wall w = map.getWall(i); 
+			if(s.getLotag() == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR){
 				
+				
+				//if(onlyInTheseSectors != null && ! onlyInTheseSectors.contains(s.getSectorId()));
+				
+				// look through each wall in the sector
+				
+				List<Integer> walls = map.getAllSectorWallIds(sector);
 				int wallsPerSprite = 0; 
-				if(w.getLotag() == PrefabUtils.WallLoTags.LEFT_WALL
-						|| w.getLotag() == PrefabUtils.WallLoTags.RIGHT_WALL){
+				for(int i: walls){
+					Wall w = map.getWall(i); 
 					
 					
-					Connector connector = new Connector();
-					if(s.getHiTag() > 0){
-						connector.connectorId = s.getHiTag();
+					
+					
+					// horizontal connector
+					if(w.getLotag() == PrefabUtils.WallLoTags.LEFT_WALL
+							|| w.getLotag() == PrefabUtils.WallLoTags.RIGHT_WALL){
+						
+						
+						Connector connector = new Connector();
+						if(s.getHiTag() > 0){
+							connector.connectorId = s.getHiTag(); // TODO - convered by new constructor
+						}
+						connector.sprite = s; // TODO - covered by new constructor
+						connector.sectorId = s.getSectorId(); // TODO - covered by new constructor
+						connector.wallId = i;
+						connector.wall = w; // TODO - covered by new constructor
+						connector.z = sector.getFloorZ();
+						
+						
+						PointXY p1 = new PointXY(w);
+						PointXY p2 = new PointXY(map.getWall(w.getPoint2()));
+						
+						if(p1.x != p2.x){
+							throw new IllegalArgumentException();
+						}
+						PointXY anchor = new PointXY(p1.x, Math.min(p1.y, p2.y));
+						connector.setAnchorPoint(anchor);
+						
+							
+					
+						//TODO: remove this
+						//connector.setVerticalLinePoints(new PointXY(w), new PointXY(map.getWall(w.getPoint2())));
+						
+						if(cf == null ||  ConnectorFilter.allMatch(connector, cf)){
+							results.add(connector);
+						}
+						
+						
+						wallsPerSprite += 1;
+						if(wallsPerSprite > 1){
+							throw new SpriteLogicException("connectors can only have one wall per join sprite");
+						}
+						
 					}
-					connector.sprite = s;
-					connector.sectorId = s.getSectorId();
-					connector.wallId = i;
-					connector.wall = w;
-					connector.z = sector.getFloorZ();
-					connector.setPoints(new PointXY(w), new PointXY(map.getWall(w.getPoint2())));
-					
-					if(cf == null ||  ConnectorFilter.allMatch(connector, cf)){
-						results.add(connector);
-					}
-					
-					
-					wallsPerSprite += 1;
-					if(wallsPerSprite > 1){
-						throw new SpriteLogicException("connectors can only have one wall per join sprite");
-					}
-					
 				}
-					
-				
 
+			}else{
+				
+				Connector connector = ConnectorFactory.create(map, s);				
+				if(connector != null && (cf == null ||  ConnectorFilter.allMatch(connector, cf))){
+					results.add(connector);
+				}
 			}
+			
+			
+			
+
 			//
 		} // for sprite
 		

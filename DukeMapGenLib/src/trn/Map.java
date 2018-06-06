@@ -118,6 +118,15 @@ public class Map {
 		return walls;
 	}
 	
+	/* - TODO - only useful if walls know their own ids...
+	public Collection<Wall> getWalls(Iterable<Integer> wallIds){
+		List<Wall> results = new ArrayList<Wall>();
+		for(int i : wallIds){
+			results.add(this.walls.get(i));
+		}
+		return results;
+	}*/
+	
 	public List<Integer> getFirstWallLoop(final Sector sector){
 		return this.getWallLoop(sector.getFirstWall());
 	}
