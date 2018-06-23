@@ -55,9 +55,10 @@ public class PrefabExperiment {
 		
 		// now try to add the player start group - 11
 		{
-			Connector leftEdge = psg3.getConnector(123);
+			//Connector leftEdge = psg3.getConnector(123);
+			Connector leftEdge = psg3.findFirstConnector(Connector.WestConnector);
 			
-			PastedSectorGroup sgPlayerStart = palette.pasteAndLink(11, 456, outMap, leftEdge);
+			PastedSectorGroup sgPlayerStart = palette.pasteAndLink(11, Connector.EastConnector, outMap, leftEdge);
 			
 			
 		}

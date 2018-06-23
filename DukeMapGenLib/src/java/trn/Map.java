@@ -79,6 +79,9 @@ public class Map {
 	}
 	
 	public Wall getWall(int i){
+		if(i < 0){
+			throw new IllegalArgumentException("invalid wall id: " + i);
+		}
 		return this.walls.get(i);
 	}
 	

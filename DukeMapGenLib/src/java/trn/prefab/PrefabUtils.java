@@ -28,7 +28,9 @@ public class PrefabUtils {
 		public static int PLAYER_START = 2;
 		
 		/** lotag that marks a construction sprite as connector */
-		public static int HORIZONTAL_CONNECTOR = 16;
+		public static int HORIZONTAL_CONNECTOR_EAST = 16;
+		
+		public static int HORIZONTAL_CONNECTOR_WEST = 17;
 		
 		/** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the south edge of the sector */
 		public static int VERTICAL_CONNECTOR_SOUTH = 18;

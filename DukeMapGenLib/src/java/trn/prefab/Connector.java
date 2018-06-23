@@ -30,6 +30,24 @@ public class Connector {
 	public static ConnectorFilter NorthConnector = new SpriteLotagConnectorFilter(
 			PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH);
 
+	/**
+	 * -+               +--------+
+	 *  |               |        |
+	 *  |----\ \--------|
+	 *  |     \ \       |
+	 *    EAST \ \    
+	 *  |      / / WEST |
+	 *        / /       
+	 *  |----/ /--------|
+	 *  |               |        |
+	 * -+               +--------+
+	 * 
+	 */
+	public static ConnectorFilter EastConnector = new SpriteLotagConnectorFilter(
+			PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST);
+	
+	public static ConnectorFilter WestConnector = new SpriteLotagConnectorFilter(
+			PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST);
 	
 	public static ConnectorFilter lotagFilter(final int lotag){
 		return new ConnectorFilter(){
@@ -184,62 +202,11 @@ public class Connector {
 				PrefabUtils.MARKER_SPRITE)){
 			
 			Sector sector = map.getSector(s.getSectorId());
-			if(s.getLotag() == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR){
+			if(s.getLotag() == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST){
 				
-				
-				//if(onlyInTheseSectors != null && ! onlyInTheseSectors.contains(s.getSectorId()));
-				
-				// look through each wall in the sector
-				
-				List<Integer> walls = map.getAllSectorWallIds(sector);
-				int wallsPerSprite = 0; 
-				for(int i: walls){
-					Wall w = map.getWall(i); 
-					
-					
-					
-					
-					// horizontal connector
-					if(w.getLotag() == PrefabUtils.WallLoTags.LEFT_WALL
-							|| w.getLotag() == PrefabUtils.WallLoTags.RIGHT_WALL){
-						
-						
-						Connector connector = new Connector();
-						if(s.getHiTag() > 0){
-							connector.connectorId = s.getHiTag(); // TODO - convered by new constructor
-						}
-						connector.sprite = s; // TODO - covered by new constructor
-						connector.sectorId = s.getSectorId(); // TODO - covered by new constructor
-						connector.wallId = i;
-						connector.wall = w; // TODO - covered by new constructor
-						connector.z = sector.getFloorZ();
-						
-						
-						PointXY p1 = new PointXY(w);
-						PointXY p2 = new PointXY(map.getWall(w.getPoint2()));
-						
-						if(p1.x != p2.x){
-							throw new IllegalArgumentException();
-						}
-						PointXY anchor = new PointXY(p1.x, Math.min(p1.y, p2.y));
-						connector.setAnchorPoint(anchor);
-						
-							
-					
-						//TODO: remove this
-						//connector.setVerticalLinePoints(new PointXY(w), new PointXY(map.getWall(w.getPoint2())));
-						
-						if(cf == null ||  ConnectorFilter.allMatch(connector, cf)){
-							results.add(connector);
-						}
-						
-						
-						wallsPerSprite += 1;
-						if(wallsPerSprite > 1){
-							throw new SpriteLogicException("connectors can only have one wall per join sprite");
-						}
-						
-					}
+				Connector connector = ConnectorFactory.create(map, s);
+				if(cf == null ||  ConnectorFilter.allMatch(connector, cf)){
+					results.add(connector);
 				}
 
 			}else{
