@@ -1,11 +1,6 @@
 package trn.prefab;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import trn.Map;
 import trn.MapUtil;
@@ -24,6 +19,8 @@ public class PrefabPalette {
 	
 	/** sector groups that dont have ids */
 	private List<SectorGroup> anonymousSectorGroups = new ArrayList<SectorGroup>();
+
+	private Random random = new Random();
 
 	
 	public void loadAllGroups(Map map){
@@ -62,22 +59,30 @@ public class PrefabPalette {
 		} // while
 
 	}
-	
-	
-	
+
+
+	public PastedSectorGroup pasteAndLink(
+			int sectorGroupId,
+			int paletteConnectorId,
+			Map destMap,
+			Connector destConnector){
+
+		Connector paletteConnector = this.getConnector(sectorGroupId, paletteConnectorId);
+		return pasteAndLink(sectorGroupId, paletteConnector, destMap, destConnector);
+    }
+
 	public PastedSectorGroup pasteAndLink(
 			int sectorGroupId, 
-			int paletteConnectorId, 
+			Connector paletteConnector,
 			Map destMap, 
 			Connector destConnector){
-		
-		Connector paletteConnector = this.getConnector(sectorGroupId, paletteConnectorId);
-		
+
 		PointXYZ cdelta = paletteConnector.getTransformTo(destConnector);
 				
 		PastedSectorGroup result = this.pasteSectorGroup(sectorGroupId, destMap, cdelta);
 		
-		paletteConnector = result.getConnector(paletteConnectorId);
+		//paletteConnector = result.getConnector(paletteConnectorId);
+		paletteConnector.translateIds(result.copystate.idmap);
 		//destMap.linkRedWalls(sectorIndex, wallIndex, sectorIndex2, wallIndex2)
 		
 		PrefabUtils.joinWalls(destMap, paletteConnector, destConnector);
@@ -86,36 +91,58 @@ public class PrefabPalette {
 	}
 	
 	public PastedSectorGroup pasteAndLink(
-			int sectorGroupId,
+			SectorGroup sg,
 			ConnectorFilter paletteConnectorFilter,
 			Map destMap,
 			Connector destConnector){
-		
+
 		if(destConnector == null){
 			throw new IllegalArgumentException("destConnector is null");
 		}
 		
-		Connector paletteConnector = getSectorGroup(sectorGroupId).findFirstConnector(paletteConnectorFilter);
+		Connector paletteConnector = sg.findFirstConnector(paletteConnectorFilter);
 		if(paletteConnector == null){
 			throw new IllegalArgumentException("cant find connector: " + paletteConnectorFilter);
 		}
 		
 		PointXYZ cdelta = paletteConnector.getTransformTo(destConnector);
-		PastedSectorGroup result = this.pasteSectorGroup(sectorGroupId, destMap, cdelta);
+
+		if(paletteConnector.sectorId < 0 || paletteConnector.sectorId >= sg.getSectorCount() ){
+		    throw new RuntimeException("sectorId invalid: " + paletteConnector.sectorId);
+        }
+
+		PastedSectorGroup result = this.pasteSectorGroup(sg, destMap, cdelta);
 		
 		
-		paletteConnector.translateIds(result.copystate.idmap);
+		Connector pastedConnector = paletteConnector.translateIds(result.copystate.idmap);
 		//paletteConnector = result.getConnector(paletteConnectorId);
 		//destMap.linkRedWalls(sectorIndex, wallIndex, sectorIndex2, wallIndex2)
 		
-		PrefabUtils.joinWalls(destMap, paletteConnector, destConnector);
+		PrefabUtils.joinWalls(destMap, pastedConnector, destConnector);
 		
 		return result;
 		
 	}
 	
-	private SectorGroup getSectorGroup(int sectorGroupId){
+	public SectorGroup getSectorGroup(int sectorGroupId){
 		return this.numberedSectorGroups.get(sectorGroupId);
+	}
+
+	public SectorGroup getRandomGroupWith(ConnectorFilter cf){
+		// TODO - need source of entropy ...
+		List<SectorGroup> results = new ArrayList<SectorGroup>();
+		for(SectorGroup sg : this.numberedSectorGroups.values()){
+			if(sg.findFirstConnector(cf) != null){
+				results.add(sg);
+			}
+		}
+		for(SectorGroup sg : this.anonymousSectorGroups){
+			if(sg.findFirstConnector(cf) != null){
+				results.add(sg);
+			}
+		}
+
+		return results.get(random.nextInt(results.size()));
 	}
 	
 	/**
@@ -126,8 +153,11 @@ public class PrefabPalette {
 	 * @param destMap
 	 * @param rawTrasform
 	 */
-	public PastedSectorGroup pasteSectorGroup(int sectorGroupId, Map destMap, PointXYZ rawTrasform){
-		Map fromMap = this.numberedSectorGroups.get(sectorGroupId).map;
+	public PastedSectorGroup pasteSectorGroup(int sectorGroupId, Map destMap, PointXYZ rawTrasform) {
+		return pasteSectorGroup(this.numberedSectorGroups.get(sectorGroupId), destMap, rawTrasform);
+	}
+	public PastedSectorGroup pasteSectorGroup(SectorGroup sg, Map destMap, PointXYZ rawTrasform) {
+		Map fromMap = sg.map;
 		
 		PastedSectorGroup psg = new PastedSectorGroup(
 				destMap, 

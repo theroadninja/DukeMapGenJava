@@ -1,9 +1,6 @@
 package trn.prefab;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import trn.Map;
 import trn.MapUtil;
@@ -25,7 +22,7 @@ public class PastedSectorGroup {
 	/** map the sectors were pasted to */
 	public final Map destMap;
 	
-	final List<Connector> connectors = new ArrayList<Connector>();
+	public final List<Connector> connectors = new ArrayList<Connector>();
 	
 	//should this be here?
 	public final MapUtil.CopyState copystate;
@@ -46,6 +43,13 @@ public class PastedSectorGroup {
 		this.connectors.addAll(Connector.findConnectors(map, cf));
 	}
 
+
+	public boolean isConnectorLinked(Connector c){ // TODO - replace with version in MapBuilder
+
+		// TODO - will not work with teleporer connectors, etc
+		return this.destMap.getWall(c.wallId).isRedWall();
+	}
+
 	public Connector getConnector(int connectorId){
 		if(connectorId < 0) throw new IllegalArgumentException();
 		
@@ -61,6 +65,16 @@ public class PastedSectorGroup {
 	public Connector findFirstConnector(ConnectorFilter cf){
 		Iterator<Connector> it = Connector.findConnectors(this.connectors, cf).iterator();
 		return it.hasNext() ? it.next() : null;
+	}
+
+	public List<Connector> unlinkedConnectors(){
+		LinkedList<Connector> list = new LinkedList<Connector>();
+		for(Connector c : this.connectors){
+			if(! isConnectorLinked(c)){
+				list.add(c);
+			}
+		}
+		return list;
 	}
 	
 

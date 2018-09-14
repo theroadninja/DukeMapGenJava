@@ -109,7 +109,7 @@ public class TextureList {
 		public static final int FRANKENSTINE_SWITCH = 140;
 		
 		/** end of level switch.
-		 * does it need a lotag of 65535  ?
+		 * needs a lotag of 65535 to work
 		 *  */
 		public static final int NUKE_BUTTON = 142; //TODO:  document the pallete to make it a special level
 		

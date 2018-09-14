@@ -58,13 +58,18 @@ public class Connector {
 		};
 	}
 	
-	
+
+
 	
 
 	int connectorId = -1;
 	public Sprite sprite;
 	int sectorId = -1;
 	int wallId = -1;
+
+	public int getWallId(){
+		return this.wallId;
+	}
 	
 	//Sector sector;
 	public Wall wall;  // TODO - make private
@@ -99,6 +104,9 @@ public class Connector {
 		this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
 		this.sprite = markerSprite;
 		this.sectorId = markerSprite.getSectorId();
+		if(this.sectorId < 0){
+			throw new RuntimeException("Connector sectorId cannot be < 0");
+		}
 		this.wall = wall;
 	}
 	
@@ -106,7 +114,23 @@ public class Connector {
 		this(markerSprite, wall);
 		this.z = sector.getFloorZ();
 	}
-	
+
+	private Connector(int connectorId, int sectorId, int wallId){
+		//TODO add more fields ...
+        this.connectorId = connectorId;
+        this.sectorId = sectorId;
+        this.wallId = wallId;
+	}
+
+	public Connector translateIds(final IdMap idmap){
+		//TODO:  also do sprite ...
+		//this.sectorId = idmap.sector(this.sectorId);
+		//this.wallId = idmap.wall(this.wallId);
+		return new Connector(this.connectorId,
+				idmap.sector(this.sectorId),
+				idmap.wall(this.wallId));
+	}
+
 	public short getMarkerSpriteLotag() {
 		return this.sprite.getLotag();
 	}
@@ -130,6 +154,22 @@ public class Connector {
 			throw new IllegalArgumentException();
 		}
 		
+	}
+
+	public boolean canMate(Connector c){
+	    if(1==1) throw new RuntimeException("TODO - this doesnt work");
+		int x = Math.min(this.sprite.getLotag(), c.sprite.getLotag());
+		int y = Math.max(this.sprite.getLotag(), c.sprite.getLotag());
+
+		// TODO ...
+		if(x == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST && y == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST){
+			return true;
+		}
+		if(x == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_SOUTH && y == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH){
+			return true;
+		}
+		return false;
+
 	}
 	
 	public short getSectorId(){
@@ -167,13 +207,7 @@ public class Connector {
 		}
 	}
 	
-	public void translateIds(final IdMap idmap){
-		//TODO:  also do sprite ...
-		this.sectorId = idmap.sector(this.sectorId);
-		this.wallId = idmap.wall(this.wallId);
-		
-	}
-	
+
 	public int getJoinWallLotag(){
 		return wall.getLotag();
 	}

@@ -45,15 +45,8 @@ public class Main {
 		Map fromMap = loadMap(DOSPATH + "cptest3.map");
 		
 		
-		
 
-		
-		Map outMap = Map.createNew();
-		
-		PrefabExperiment.copytest3(fromMap, outMap);
-		
-		
-
+		Map outMap = PrefabExperiment.copytest3(fromMap);
 		deployTest(outMap);
 		
 	}

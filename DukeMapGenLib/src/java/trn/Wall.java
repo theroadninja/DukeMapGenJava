@@ -23,6 +23,10 @@ public class Wall {
 	// other "other" wall with a red wall ...
 	short nextWall; //INT16LE ... -1 means no sector on other side of wall
 		//think this is for red (two-sided) walls
+
+	public boolean isRedWall(){
+		return nextWall != -1;
+	}
 	
 	// TODO - make this not public
 	public short nextSector; //INT16LE ... -1 means no sector on other side of wall
