@@ -222,7 +222,7 @@ public class E4CreateLadderMaze {
 				walls[1] = index;
 			}
 			
-			index = w.getPoint2();
+			index = w.getPoint2Id();
 			if(index == startWallIndex){
 				//we are back to where we started
 				break;
@@ -268,7 +268,7 @@ public class E4CreateLadderMaze {
 				walls[1] = index;
 			}
 			
-			index = w.getPoint2();
+			index = w.getPoint2Id();
 			if(index == startWallIndex){
 				//we are back to where we started
 				break;

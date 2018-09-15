@@ -5,18 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import trn.duke.experiments.E1RandomSprites;
 import trn.duke.experiments.prefab.PrefabExperiment;
-import trn.prefab.Connector;
-import trn.prefab.PastedSectorGroup;
-import trn.prefab.PrefabPalette;
-import trn.prefab.PrefabUtils;
 
 public class Main {
 

@@ -1,14 +1,7 @@
 package trn.duke.experiments.prefab;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import trn.ISpriteFilter;
 import trn.Map;
-import trn.PlayerStart;
 import trn.PointXYZ;
-import trn.Sprite;
-import trn.SpriteFilter;
 import trn.prefab.*;
 
 public class PrefabExperiment {
@@ -35,49 +28,49 @@ public class PrefabExperiment {
 
 		PastedSectorGroup psg2 = null;
 		{
-			//Connector conn2 = psg1.getConnector(123);
+			//SimpleConnector conn2 = psg1.getConnector(123);
 			//psg2 = mb.pasteAndLink(12, conn2);
 
-			Connector conn2 = psg1.findFirstConnector(Connector.WestConnector);
-			psg2 = mb.pasteAndLink(12, Connector.EastConnector, conn2);
+			Connector conn2 = psg1.findFirstConnector(SimpleConnector.WestConnector);
+			psg2 = mb.pasteAndLink(12, SimpleConnector.EastConnector, conn2);
 
 		}
 
 		// add a third group!
-		PastedSectorGroup psg3 = mb.pasteAndLink(10, Connector.EastConnector, psg2.findFirstConnector(Connector.WestConnector));
+		PastedSectorGroup psg3 = mb.pasteAndLink(10, SimpleConnector.EastConnector, psg2.findFirstConnector(SimpleConnector.WestConnector));
 
 		// add exit
 		{
-			//Connector c = psg3.findFirstConnector(Connector.EastConnector);
-			Connector c = mb.findFirstUnlinkedConnector(Connector.EastConnector);
-            mb.pasteAndLink(14, Connector.WestConnector, c);
+			//SimpleConnector c = psg3.findFirstConnector(SimpleConnector.EastConnector);
+			Connector c = mb.findFirstUnlinkedConnector(SimpleConnector.EastConnector);
+            mb.pasteAndLink(14, SimpleConnector.WestConnector, c);
 		}
 		
 		// now try to add the player start group - 11
 		{
-			Connector leftEdge = psg3.findFirstConnector(Connector.WestConnector);
-            mb.pasteAndLink(11, Connector.EastConnector, leftEdge);
+			Connector leftEdge = psg3.findFirstConnector(SimpleConnector.WestConnector);
+            mb.pasteAndLink(11, SimpleConnector.EastConnector, leftEdge);
 		}
 		
 		//try adding a group(s) to the north of psg3
 		{
-			Connector north = psg3.findFirstConnector(Connector.NorthConnector);
-            PastedSectorGroup sgNorth = mb.pasteAndLink(10, Connector.SouthConnector, north);
+			Connector north = psg3.findFirstConnector(SimpleConnector.NorthConnector);
+            PastedSectorGroup sgNorth = mb.pasteAndLink(10, SimpleConnector.SouthConnector, north);
 
-			north = sgNorth.findFirstConnector(Connector.NorthConnector);
-            PastedSectorGroup sgNorth2 = mb.pasteAndLink(13, Connector.SouthConnector, north);
+			north = sgNorth.findFirstConnector(SimpleConnector.NorthConnector);
+            PastedSectorGroup sgNorth2 = mb.pasteAndLink(13, SimpleConnector.SouthConnector, north);
 		}
 
 		//some random groups to the south of something
 
-        mb.pasteAndLink(10, Connector.NorthConnector, mb.findFirstUnlinkedConnector(Connector.SouthConnector));
-        SectorGroup sg = palette.getRandomGroupWith(Connector.NorthConnector);
-        mb.pasteAndLink(sg, Connector.NorthConnector, mb.findFirstUnlinkedConnector(Connector.SouthConnector));
+        mb.pasteAndLink(10, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
+        SectorGroup sg = palette.getRandomGroupWith(SimpleConnector.NorthConnector);
+        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
 
-        mb.pasteAndLink(sg, Connector.NorthConnector, mb.findFirstUnlinkedConnector(Connector.SouthConnector));
-        mb.pasteAndLink(sg, Connector.NorthConnector, mb.findFirstUnlinkedConnector(Connector.SouthConnector));
-        mb.pasteAndLink(sg, Connector.NorthConnector, mb.findFirstUnlinkedConnector(Connector.SouthConnector));
-        mb.pasteAndLink(sg, Connector.NorthConnector, mb.findFirstUnlinkedConnector(Connector.SouthConnector));
+        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
+        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
+        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
+        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
 
 
 		

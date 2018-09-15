@@ -164,21 +164,44 @@ public class Wall {
 	public int getY(){
 		return y;
 	}
+
+	/**
+	 * @param point2
+	 * @return the vector indicating the direction from point 1 (this wall)
+	 * 		to point 2 (the next wall in the wall loop).  According to
+	 * 	    http://fabiensanglard.net/duke3d/BUILDINF.TXT  this next wall
+	 * 	    is always "to the right" I assume from a point of view inside
+	 * 	    the sector.  Which would mean walls are defined clockwise.
+	 */
+	public PointXY getUnitVector(Wall point2){
+		int dx = point2.x - x;
+		int dy = point2.y - y;
+		if(dx == 0 && dy == 0){
+			throw new RuntimeException("invalid vector");
+		}else if(dx == 0){
+			return new PointXY(0, 1);
+		}else if(dy == 0){
+			return new PointXY(1, 0);
+		}else{
+			double magnitude = Math.sqrt(dx*dx + dy*dy);
+			return new PointXY((int)(dx/magnitude), (int)(dy/magnitude));
+		}
+	}
 	
 	public boolean sameXY(Wall rh){
 		return rh != null && x == rh.x && y == rh.y;
 	}
 	
 	/**
-	 * sets the next wall in the loop.  calling this 'setPoint2' because the field 'nextWall' is already
+	 * sets the next wall in the loop.  calling this 'setPoint2Id' because the field 'nextWall' is already
 	 * take up by another field, which refers to the wall on the other side of this wall
 	 * @param point2
 	 */
-	public void setPoint2(int point2){
+	public void setPoint2Id(int point2){
 		this.point2 = (short)point2;
 	}
 	
-	public int getPoint2(){
+	public int getPoint2Id(){
 		return this.point2;
 	}
 	

@@ -86,7 +86,7 @@ public abstract class Connector {
 	protected abstract Heading genderToBlockEdgeHeading(boolean gender);
 	
 	/**
-	 * this should only be called by Connector.
+	 * this should only be called by SimpleConnector.
 	 * 
 	 * Always calls the male connector and passes the female as the argument.
 	 * 

@@ -1,15 +1,9 @@
 package trn.prefab;
 
-import java.util.List;
-
 import trn.DukeConstants;
 import trn.ISpriteFilter;
 import trn.Map;
-import trn.PointXY;
-import trn.Sector;
-import trn.Sprite;
 import trn.SpriteFilter;
-import trn.Wall;
 
 public class PrefabUtils {
 	/*
@@ -37,11 +31,15 @@ public class PrefabUtils {
 		
 		/** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the north edge of the sector */
 		public static int VERTICAL_CONNECTOR_NORTH = 19;
+
+		/** marks the sector as a east,west,south or north connector */
+		public static int SIMPLE_CONNECTOR = 20;
 	}
 	
 	public static class WallLoTags {
 		
 		/** connect wall on the left side of the group on the right */
+		// NOTE:  pretty sure I'm not using this
 		public static int LEFT_WALL = 2;
 		
 		/** the connector wall on the right side of the left group */
@@ -74,7 +72,7 @@ public class PrefabUtils {
 	
 	
 	/*
-	public static Connector findConnector(Map map, int wallLotag){
+	public static SimpleConnector findConnector(Map map, int wallLotag){
 		
 		// TODO - there is another findConnector() method on PrefabPalette
 		
@@ -92,7 +90,7 @@ public class PrefabUtils {
 			for(int i: walls){
 				Wall w = map.getWall(i); 
 				if(wallLotag == w.getLotag()){
-					Connector connector = new Connector();
+					SimpleConnector connector = new SimpleConnector();
 					connector.sprite = s;
 					connector.sectorId = s.getSectorId();
 					//connector.sector = sector;
@@ -101,8 +99,8 @@ public class PrefabUtils {
 					connector.z = sector.getFloorZ();
 					
 					//connector.p1 = new PointXY(w);
-					//connector.p2 = new PointXY(map.getWall(w.getPoint2()));
-					connector.setVerticalLinePoints(new PointXY(w), new PointXY(map.getWall(w.getPoint2())));
+					//connector.p2 = new PointXY(map.getWall(w.getPoint2Id()));
+					connector.setVerticalLinePoints(new PointXY(w), new PointXY(map.getWall(w.getPoint2Id())));
 					
 					return connector;
 				}
@@ -117,7 +115,7 @@ public class PrefabUtils {
 		//Wall w1 = map.getWall(c1.wallId)
 		//Wall w2 = map.getWall(c2.wallId);
 		
-		map.linkRedWalls(c1.sectorId, c1.wallId, c2.sectorId, c2.wallId);
+		map.linkRedWalls(c1.getSectorId(), c1.getWallId(), c2.getSectorId(), c2.getWallId());
 		
 		
 	}

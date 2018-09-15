@@ -73,25 +73,25 @@ public class MapUtil {
 		for(int i = 0; i < wallsA.size(); ++i){
 			int a = wallsA.get(i);
 			Wall wallA = map.getWall(a);
-			Wall wallA2 = map.getWall(wallA.getPoint2());
+			Wall wallA2 = map.getWall(wallA.getPoint2Id());
 		
 			boolean foundMatch = false;
 			for(int j = 0; j < wallsB.size(); ++j){
 				
 				int b = wallsB.get(j);
 				Wall wallB = map.getWall(b);
-				Wall wallB2 = map.getWall(wallB.getPoint2());
+				Wall wallB2 = map.getWall(wallB.getPoint2Id());
 				
 				if(wallA.sameXY(wallB2) && wallA2.sameXY(wallB)){
 					foundMatch = true;
 					
 					
-					//map.linkRedWalls(sectorA, a, sectorB, wallB.getPoint2());
+					//map.linkRedWalls(sectorA, a, sectorB, wallB.getPoint2Id());
 					
 					map.linkRedWalls(sectorA, a, sectorB, b);
 					
 					
-					//wallA.setOtherSide(wallB.getPoint2(), sectorB);
+					//wallA.setOtherSide(wallB.getPoint2Id(), sectorB);
 					//wallB2.setOtherSide(a, sectorA);
 					
 					break;

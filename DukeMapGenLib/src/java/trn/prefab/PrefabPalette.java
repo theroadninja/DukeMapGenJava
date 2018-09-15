@@ -107,8 +107,8 @@ public class PrefabPalette {
 		
 		PointXYZ cdelta = paletteConnector.getTransformTo(destConnector);
 
-		if(paletteConnector.sectorId < 0 || paletteConnector.sectorId >= sg.getSectorCount() ){
-		    throw new RuntimeException("sectorId invalid: " + paletteConnector.sectorId);
+		if(paletteConnector.getSectorId() < 0 || paletteConnector.getSectorId() >= sg.getSectorCount() ){
+		    throw new RuntimeException("sectorId invalid: " + paletteConnector.getSectorId());
         }
 
 		PastedSectorGroup result = this.pasteSectorGroup(sg, destMap, cdelta);
@@ -170,7 +170,7 @@ public class PrefabPalette {
 	public List<Connector> findConnectors(int sectorGroupId, ConnectorFilter... filters){
 		//PrefabUtils.findConnector(outMap, PrefabUtils.JoinType.VERTICAL_JOIN, 1);
 		//Map map = numberedSectorGroups.get(sectorGroupId).map;
-		//return Connector.findConnectors(map, filters);
+		//return SimpleConnector.findConnectors(map, filters);
 
 		return Connector.matchConnectors(numberedSectorGroups.get(sectorGroupId).connectors, filters);
 	}

@@ -74,8 +74,10 @@ public class MapBuilder {
 
     public boolean isConnectorLinked(Connector c){
 
-        // TODO - will not work with teleporer connectors, etc
-        return this.outMap.getWall(c.getWallId()).isRedWall();
+        return c.isLinked(this.outMap);
+
+        //// TODO - will not work with teleporer connectors, etc
+        //return this.outMap.getWall(c.getWallId()).isRedWall();
     }
 
 

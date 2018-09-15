@@ -20,9 +20,9 @@ public class MapTests {
 		
 		Assert.assertEquals(3, map.getWallCount());
 		
-		Assert.assertEquals(1, map.getWall(0).getPoint2());
-		Assert.assertEquals(2, map.getWall(1).getPoint2());
-		Assert.assertEquals(0, map.getWall(2).getPoint2());
+		Assert.assertEquals(1, map.getWall(0).getPoint2Id());
+		Assert.assertEquals(2, map.getWall(1).getPoint2Id());
+		Assert.assertEquals(0, map.getWall(2).getPoint2Id());
 		
 		//
 		// add another set
@@ -36,13 +36,13 @@ public class MapTests {
 		
 		Assert.assertEquals(6, map.getWallCount());
 		
-		Assert.assertEquals(1, map.getWall(0).getPoint2());
-		Assert.assertEquals(2, map.getWall(1).getPoint2());
-		Assert.assertEquals(0, map.getWall(2).getPoint2());
+		Assert.assertEquals(1, map.getWall(0).getPoint2Id());
+		Assert.assertEquals(2, map.getWall(1).getPoint2Id());
+		Assert.assertEquals(0, map.getWall(2).getPoint2Id());
 		
-		Assert.assertEquals(4, map.getWall(3).getPoint2());
-		Assert.assertEquals(5, map.getWall(4).getPoint2());
-		Assert.assertEquals(3, map.getWall(5).getPoint2());
+		Assert.assertEquals(4, map.getWall(3).getPoint2Id());
+		Assert.assertEquals(5, map.getWall(4).getPoint2Id());
+		Assert.assertEquals(3, map.getWall(5).getPoint2Id());
 		
 	}
 	

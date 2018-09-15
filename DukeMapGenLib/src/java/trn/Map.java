@@ -167,7 +167,7 @@ public class Map {
 		while(safety-- > 0){
 			list.add(index);
 			
-			index = walls.get(index).getPoint2();
+			index = walls.get(index).getPoint2Id();
 			
 			if(index == wallIndex){
 				break; //back to where we started
@@ -216,7 +216,7 @@ public class Map {
 			//add the wall
 			int index = addWall(w);
 			
-			w.setPoint2(index + 1);
+			w.setPoint2Id(index + 1);
 			
 			//if its the first wall, update the index
 			if(firstWall == -1){
@@ -226,7 +226,7 @@ public class Map {
 			lastWall = w;	
 		}
 		
-		lastWall.setPoint2(firstWall);
+		lastWall.setPoint2Id(firstWall);
 		
 		return firstWall;
 		

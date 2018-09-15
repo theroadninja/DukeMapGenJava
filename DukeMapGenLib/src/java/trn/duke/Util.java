@@ -60,9 +60,9 @@ public class Util {
 		Wall w0 = map.getWall(walls[0]);
 		Wall w1 = map.getWall(walls[1]);
 		
-		if(w0.getPoint2() == walls[1]){
+		if(w0.getPoint2Id() == walls[1]){
 			//ok
-		}else if(w1.getPoint2() == walls[0]){
+		}else if(w1.getPoint2Id() == walls[0]){
 			Integer tmp = walls[0];
 			walls[0] = walls[1];
 			walls[1] = tmp;
@@ -83,9 +83,9 @@ public class Util {
 		Wall w0 = map.getWall(walls.get(0));
 		Wall w1 = map.getWall(walls.get(1));
 		
-		if(w0.getPoint2() == walls.get(1)){
+		if(w0.getPoint2Id() == walls.get(1)){
 			//ok
-		}else if(w1.getPoint2() == walls.get(0)){
+		}else if(w1.getPoint2Id() == walls.get(0)){
 			Integer tmp = walls.get(0);
 			walls.set(0, walls.get(1));
 			walls.set(1, tmp);

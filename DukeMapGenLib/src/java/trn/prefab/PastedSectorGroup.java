@@ -36,25 +36,25 @@ public class PastedSectorGroup {
 		ConnectorFilter cf = new ConnectorFilter(){
 			@Override
 			public boolean matches(Connector c) {
-				return destSectorIds.contains((short)c.sectorId);
+				return destSectorIds.contains(c.getSectorId());
 			}
 		};
 		
-		this.connectors.addAll(Connector.findConnectors(map, cf));
+		this.connectors.addAll(SimpleConnector.findConnectors(map, cf));
 	}
 
 
 	public boolean isConnectorLinked(Connector c){ // TODO - replace with version in MapBuilder
-
-		// TODO - will not work with teleporer connectors, etc
-		return this.destMap.getWall(c.wallId).isRedWall();
+		return c.isLinked(destMap);
+		//// TODO - will not work with teleporer connectors, etc
+		//return this.destMap.getWall(c.wallId).isRedWall();
 	}
 
 	public Connector getConnector(int connectorId){
 		if(connectorId < 0) throw new IllegalArgumentException();
 		
 		for(Connector c: connectors){
-			if(c.connectorId == connectorId){
+			if(c.getConnectorId() == connectorId){
 				return c;
 			}
 		}
@@ -79,15 +79,15 @@ public class PastedSectorGroup {
 	
 
 	/*
-	public Iterable<Connector> findConnectors(ConnectorFilter filter){
-		return Connector.findConnectors(destMap, new ConnectorFilter() {
+	public Iterable<SimpleConnector> findConnectors(ConnectorFilter filter){
+		return SimpleConnector.findConnectors(destMap, new ConnectorFilter() {
 			@Override
-			public boolean matches(Connector c) {
+			public boolean matches(SimpleConnector c) {
 				// TODO Auto-generated method stub
 				return copystate.sourceSectorIds().contains(c.getSectorId());
 			}
 		}, filter);
-		//return Connector.findConnectors(destMap, copystate.sourceSectorIds());
+		//return SimpleConnector.findConnectors(destMap, copystate.sourceSectorIds());
 	}*/
 
 }

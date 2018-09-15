@@ -3,7 +3,6 @@ package trn.prefab;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import trn.Map;
 import trn.duke.TextureList;
@@ -13,22 +12,22 @@ public class SectorGroup {
 	/** map object used to store all the sectors, walls and sprites */
 	final Map map;
 	
-	List<Connector> connectors = new ArrayList<Connector>(); 
+	List<Connector> connectors = new ArrayList<Connector>();
 	
 	public SectorGroup(Map map){
 		this.map = map;
-		//this.connectors.addAll(Connector.findConnectors(map));
+		//this.connectors.addAll(SimpleConnector.findConnectors(map));
 		for(Connector c : Connector.findConnectors(map)){
 		    addConnector(c);
         }
 	}
 
 	private void addConnector(Connector c){
-	    if(c.sectorId < 0){
-	        throw new RuntimeException("connector has invalid sectorId: " + c.sectorId);
+	    if(c.getSectorId() < 0){
+	        throw new RuntimeException("connector has invalid sectorId: " + c.getSectorId());
         }
-        if(c.sectorId >= map.getSectorCount()){
-	        throw new RuntimeException("connector has sectorId " + c.sectorId + " but there are only " + map.getSectorCount() + " sectors in group");
+        if(c.getSectorId() >= map.getSectorCount()){
+	        throw new RuntimeException("connector has sectorId " + c.getSectorId() + " but there are only " + map.getSectorCount() + " sectors in group");
         }
 	    this.connectors.add(c);
     }
@@ -37,7 +36,7 @@ public class SectorGroup {
 		if(connectorId < 0) throw new IllegalArgumentException();
 		
 		for(Connector c: connectors){
-			if(c.connectorId == connectorId){
+			if(c.getConnectorId() == connectorId){
 				return c;
 			}
 		}

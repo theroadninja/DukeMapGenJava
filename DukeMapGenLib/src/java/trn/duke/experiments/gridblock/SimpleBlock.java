@@ -68,7 +68,7 @@ public class SimpleBlock extends AbstractBlock implements Block {
 	}
 	
 	/*
-	public void setConnectors(Connector northConn, Connector eastConn, Connector southConn, Connector westConn){
+	public void setConnectors(SimpleConnector northConn, SimpleConnector eastConn, SimpleConnector southConn, SimpleConnector westConn){
 		
 		connectors[Heading.NORTH.arrayIndex] = northConn;
 		connectors[Heading.EAST.arrayIndex] = eastConn;
