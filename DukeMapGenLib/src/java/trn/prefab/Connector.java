@@ -1,14 +1,14 @@
 package trn.prefab;
 
 import trn.*;
+import trn.duke.MapErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Connector {
 
-    // TODO - get rid of this!
-    public abstract short getMarkerSpriteLotag();
+    public abstract short getConnectorType();
 
     // TODO - get rid of this!
     public abstract int getWallId();
@@ -34,7 +34,7 @@ public abstract class Connector {
 
     public abstract boolean canMate(Connector c);
 
-    public static List<Connector> findConnectors(Map map){
+    public static List<Connector> findConnectors(Map map) throws MapErrorException {
         return findConnectors(map, null);
     }
 
@@ -47,7 +47,7 @@ public abstract class Connector {
         }
         return results;
     }
-    public static List<Connector> findConnectors(Map map, ConnectorFilter ... cf){
+    public static List<Connector> findConnectors(Map map, ConnectorFilter ... cf) throws MapErrorException {
         //PrefabUtils.findConnector(outMap, PrefabUtils.JoinType.VERTICAL_JOIN, 1);
         //Map map = numberedSectorGroups.get(sectorGroupId);
 

@@ -1,16 +1,16 @@
 package trn.prefab;
 
-class SpriteLotagConnectorFilter implements ConnectorFilter {
+class ConnectorTypeFilter implements ConnectorFilter {
 	
 	final int spriteLotag;
 	
-	public SpriteLotagConnectorFilter(int spriteLotag){
+	public ConnectorTypeFilter(int spriteLotag){
 		this.spriteLotag = spriteLotag;
 	}
 
 	@Override
 	public boolean matches(Connector c) {
-		return c.getMarkerSpriteLotag() == this.spriteLotag;
+		return c.getConnectorType() == this.spriteLotag;
 	}
 	
 	@Override

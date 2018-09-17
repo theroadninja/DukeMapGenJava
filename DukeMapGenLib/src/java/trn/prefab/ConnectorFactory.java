@@ -1,15 +1,11 @@
 package trn.prefab;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-import trn.Map;
-import trn.PointXY;
-import trn.Sector;
-import trn.Sprite;
-import trn.Wall;
+import trn.*;
+import trn.duke.MapErrorException;
 
 public class ConnectorFactory {
 		
-	public static Connector create(Map map, Sprite markerSprite){
+	public static Connector create(Map map, Sprite markerSprite) throws MapErrorException {
 		Sprite s = markerSprite;
 		
 		Sector sector = map.getSector(s.getSectorId());
@@ -19,95 +15,27 @@ public class ConnectorFactory {
 				|| s.getLotag() == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST){
 			
 			
-			
-			
-			//if(onlyInTheseSectors != null && ! onlyInTheseSectors.contains(s.getSectorId()));
-			
-			// look through each wall in the sector
-			
-			
-			
+
 			int wallId = getLinkWallId(map, sector);
 			Wall w = map.getWall(wallId);
 			
-			SimpleConnector connector = new SimpleConnector(s, w, sector);
-			//connector.wallId = i;
-			connector.wallId = wallId;
-			connector.z = sector.getFloorZ();
-			
-			
-			PointXY p1 = new PointXY(w);
-			PointXY p2 = new PointXY(map.getWall(w.getPoint2Id()));
-			
-			if(p1.x != p2.x){
-				throw new IllegalArgumentException();
-			}
-			PointXY anchor = new PointXY(p1.x, Math.min(p1.y, p2.y));
+			SimpleConnector connector = new SimpleConnector(s, wallId, w, sector);
+			PointXYZ anchor = SimpleConnector.getHorizontalConnectorAnchor(w, map.getWall(w.getPoint2Id()), sector.getFloorZ());
 			connector.setAnchorPoint(anchor);
 			return connector;
-			//*/
-			
-			
-			/*SimpleConnector connector = null;
-			List<Integer> walls = map.getAllSectorWallIds(sector);
-			int wallsPerSprite = 0; 
-			for(int i: walls){
-				Wall w = map.getWall(i); 
-				
-				
-				
-				
-				// horizontal connector
-				if(w.getLotag() == PrefabUtils.WallLoTags.LEFT_WALL
-						|| w.getLotag() == PrefabUtils.WallLoTags.RIGHT_WALL){
-					
-					connector = new SimpleConnector(s, w, sector);
-					connector.wallId = i;
-					connector.z = sector.getFloorZ();
-					
-					
-					PointXY p1 = new PointXY(w);
-					PointXY p2 = new PointXY(map.getWall(w.getPoint2Id()));
-					
-					if(p1.x != p2.x){
-						throw new IllegalArgumentException();
-					}
-					PointXY anchor = new PointXY(p1.x, Math.min(p1.y, p2.y));
-					connector.setAnchorPoint(anchor);
-					
-						
-				
-					
-					
-					
-					wallsPerSprite += 1;
-					if(wallsPerSprite > 1){
-						throw new SpriteLogicException("connectors can only have one wall per join sprite");
-					}
-					
-					
-					
-				}
-			}
-			
-			return connector;
-			//*/
-			
-			
-			
-			
-			
+
+
 		}else if(s.getLotag() == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH
 				|| s.getLotag() == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_SOUTH) {
 
 			int wallId = getLinkWallId(map, sector);
 
 			Wall w = map.getWall(wallId);
-			SimpleConnector connector = new SimpleConnector(s, w, sector);
-			connector.wallId = wallId;
+			SimpleConnector connector = new SimpleConnector(s, wallId, w, sector);
 
-			PointXY anchor = getHorizontalAnchorPoint(w, map.getWall(w.getPoint2Id()));
+			int z = map.getSector(s.getSectorId()).getFloorZ();
 
+			PointXYZ anchor = SimpleConnector.getVerticalConnectorAnchor(w, map.getWall(w.getPoint2Id()), z);
 			connector.setAnchorPoint(anchor);
 			return connector;
 
@@ -116,12 +44,8 @@ public class ConnectorFactory {
 			int wallId = getLinkWallId(map, sector);
 			Wall w1 = map.getWall(wallId);
 			Wall w2 = map.getWall(w1.getPoint2Id());
-
-			PointXY vector = w1.getUnitVector(w2);
-			//throw new NotImplementedException();
-            return null;
-
-
+			int z = map.getSector(s.getSectorId()).getFloorZ();
+			return new SimpleConnector(s, wallId, w1, w2, z);
 
 		}else{
 			//throw new SpriteLogicException("sprite lotag=" + s.getLotag())
@@ -129,17 +53,7 @@ public class ConnectorFactory {
 		}
 	}
 	
-	private static PointXY getHorizontalAnchorPoint(Wall w1, Wall w2){
-		PointXY p1 = new PointXY(w1);
-		PointXY p2 = new PointXY(w2);
-		if(p1.y != p2.y){
-			throw new SpriteLogicException();
-		}
-		return new PointXY(
-				Math.min(p1.x, p2.x),
-				p1.y);
-	}
-	
+
 	private static int getLinkWallId(Map map, Sector sector){
 		final int linkLotag = 1;
 		

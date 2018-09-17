@@ -1,6 +1,7 @@
 package trn.duke.experiments.prefab;
 
 import trn.*;
+import trn.duke.MapErrorException;
 import trn.prefab.*;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class MapBuilder {
         return null;
     }
 
-    public PastedSectorGroup pasteSectorGroup(int sectorGroupId, PointXYZ rawTrasform){
+    public PastedSectorGroup pasteSectorGroup(int sectorGroupId, PointXYZ rawTrasform) throws MapErrorException {
         PastedSectorGroup psg = palette.pasteSectorGroup(sectorGroupId, this.outMap, rawTrasform);
         pastedGroups.add(psg);
         return psg;
@@ -41,7 +42,7 @@ public class MapBuilder {
         return psg;
     }
 
-    public PastedSectorGroup pasteAndLink(int sectorGroupId, Connector destConnector){
+    public PastedSectorGroup pasteAndLink(int sectorGroupId, Connector destConnector) throws MapErrorException {
         if(1==1) throw new RuntimeException("TODO - this doesnt work");
         if(isConnectorLinked(destConnector)){
             throw new IllegalArgumentException("connector already connected");
@@ -55,7 +56,7 @@ public class MapBuilder {
     public PastedSectorGroup pasteAndLink(
             int sectorGroupId,
             ConnectorFilter paletteConnectorFilter,
-            Connector destConnector){
+            Connector destConnector) throws MapErrorException {
         SectorGroup sg = palette.getSectorGroup(sectorGroupId);
         if(isConnectorLinked(destConnector)){
             throw new IllegalArgumentException("connector already connected");
@@ -65,7 +66,9 @@ public class MapBuilder {
     public PastedSectorGroup pasteAndLink(
             SectorGroup sg,
             ConnectorFilter paletteConnectorFilter,
-            Connector destConnector){
+            Connector destConnector) throws MapErrorException {
+        if(destConnector == null) throw new IllegalArgumentException("destConnector is null");
+
         if(isConnectorLinked(destConnector)){
             throw new IllegalArgumentException("connector already connected");
         }
@@ -73,6 +76,7 @@ public class MapBuilder {
     }
 
     public boolean isConnectorLinked(Connector c){
+        if(c == null) throw new IllegalArgumentException("connector cannot be null");
 
         return c.isLinked(this.outMap);
 

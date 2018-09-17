@@ -6,6 +6,7 @@ import trn.Map;
 import trn.MapUtil;
 import trn.PointXYZ;
 import trn.Sprite;
+import trn.duke.MapErrorException;
 
 /**
  * Stores sector groups for use.
@@ -23,7 +24,7 @@ public class PrefabPalette {
 	private Random random = new Random();
 
 	
-	public void loadAllGroups(Map map){
+	public void loadAllGroups(Map map) throws MapErrorException {
 		
 		Set<Short> processedSectorIds = new TreeSet<Short>();
 		
@@ -65,7 +66,7 @@ public class PrefabPalette {
 			int sectorGroupId,
 			int paletteConnectorId,
 			Map destMap,
-			Connector destConnector){
+			Connector destConnector) throws MapErrorException {
 
 		Connector paletteConnector = this.getConnector(sectorGroupId, paletteConnectorId);
 		return pasteAndLink(sectorGroupId, paletteConnector, destMap, destConnector);
@@ -75,7 +76,7 @@ public class PrefabPalette {
 			int sectorGroupId, 
 			Connector paletteConnector,
 			Map destMap, 
-			Connector destConnector){
+			Connector destConnector) throws MapErrorException {
 
 		PointXYZ cdelta = paletteConnector.getTransformTo(destConnector);
 				
@@ -94,7 +95,7 @@ public class PrefabPalette {
 			SectorGroup sg,
 			ConnectorFilter paletteConnectorFilter,
 			Map destMap,
-			Connector destConnector){
+			Connector destConnector) throws MapErrorException {
 
 		if(destConnector == null){
 			throw new IllegalArgumentException("destConnector is null");
@@ -128,7 +129,7 @@ public class PrefabPalette {
 		return this.numberedSectorGroups.get(sectorGroupId);
 	}
 
-	public SectorGroup getRandomGroupWith(ConnectorFilter cf){
+	public List<SectorGroup> getAllGroupsWith(ConnectorFilter cf){
 		// TODO - need source of entropy ...
 		List<SectorGroup> results = new ArrayList<SectorGroup>();
 		for(SectorGroup sg : this.numberedSectorGroups.values()){
@@ -141,10 +142,13 @@ public class PrefabPalette {
 				results.add(sg);
 			}
 		}
-
-		return results.get(random.nextInt(results.size()));
+		return results;
 	}
-	
+    public SectorGroup getRandomGroupWith(ConnectorFilter cf){
+        List<SectorGroup> results = getAllGroupsWith(cf);
+        return results.get(random.nextInt(results.size()));
+    }
+
 	/**
 	 * 
 	 * TODO - need to zero out the groups as we read them in
@@ -153,10 +157,10 @@ public class PrefabPalette {
 	 * @param destMap
 	 * @param rawTrasform
 	 */
-	public PastedSectorGroup pasteSectorGroup(int sectorGroupId, Map destMap, PointXYZ rawTrasform) {
+	public PastedSectorGroup pasteSectorGroup(int sectorGroupId, Map destMap, PointXYZ rawTrasform) throws MapErrorException {
 		return pasteSectorGroup(this.numberedSectorGroups.get(sectorGroupId), destMap, rawTrasform);
 	}
-	public PastedSectorGroup pasteSectorGroup(SectorGroup sg, Map destMap, PointXYZ rawTrasform) {
+	public PastedSectorGroup pasteSectorGroup(SectorGroup sg, Map destMap, PointXYZ rawTrasform) throws MapErrorException {
 		Map fromMap = sg.map;
 		
 		PastedSectorGroup psg = new PastedSectorGroup(

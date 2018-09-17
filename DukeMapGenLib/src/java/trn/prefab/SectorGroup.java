@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import trn.Map;
+import trn.duke.MapErrorException;
 import trn.duke.TextureList;
 
 public class SectorGroup {
@@ -14,7 +15,7 @@ public class SectorGroup {
 	
 	List<Connector> connectors = new ArrayList<Connector>();
 	
-	public SectorGroup(Map map){
+	public SectorGroup(Map map) throws MapErrorException {
 		this.map = map;
 		//this.connectors.addAll(SimpleConnector.findConnectors(map));
 		for(Connector c : Connector.findConnectors(map)){

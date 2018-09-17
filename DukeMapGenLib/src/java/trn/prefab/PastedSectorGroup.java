@@ -4,6 +4,7 @@ import java.util.*;
 
 import trn.Map;
 import trn.MapUtil;
+import trn.duke.MapErrorException;
 
 
 /**
@@ -28,7 +29,7 @@ public class PastedSectorGroup {
 	public final MapUtil.CopyState copystate;
 	
 
-	public PastedSectorGroup(Map map, MapUtil.CopyState copystate) {
+	public PastedSectorGroup(Map map, MapUtil.CopyState copystate) throws MapErrorException {
 		this.destMap = map;
 		this.copystate = copystate;
 		final Set<Short> destSectorIds = this.copystate.destSectorIds();

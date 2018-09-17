@@ -1,8 +1,5 @@
 package trn.prefab;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import trn.IdMap;
 import trn.Map;
 import trn.PointXY;
@@ -10,58 +7,35 @@ import trn.PointXYZ;
 import trn.Sector;
 import trn.Sprite;
 import trn.Wall;
+import trn.duke.MapErrorException;
 
 public class SimpleConnector extends Connector {
 
 	
 	
-	/**
-	 * ----| - - |----
-	 *     |SOUTH|
-	 *      \   /
-	 *     |\\ //|
-	 *     | \ / |
-	 *     |NORTH|
-	 * ----| - - |----
-	 */
-	public static ConnectorFilter SouthConnector = new SpriteLotagConnectorFilter(
+	public static ConnectorFilter SouthConnector = new ConnectorTypeFilter(
 			PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_SOUTH);
 	
-	public static ConnectorFilter NorthConnector = new SpriteLotagConnectorFilter(
+	public static ConnectorFilter NorthConnector = new ConnectorTypeFilter(
 			PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH);
 
-	/**
-	 * -+               +--------+
-	 *  |               |        |
-	 *  |----\ \--------|
-	 *  |     \ \       |
-	 *    EAST \ \    
-	 *  |      / / WEST |
-	 *        / /       
-	 *  |----/ /--------|
-	 *  |               |        |
-	 * -+               +--------+
-	 * 
-	 */
-	public static ConnectorFilter EastConnector = new SpriteLotagConnectorFilter(
+	public static ConnectorFilter EastConnector = new ConnectorTypeFilter(
 			PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST);
 	
-	public static ConnectorFilter WestConnector = new SpriteLotagConnectorFilter(
+	public static ConnectorFilter WestConnector = new ConnectorTypeFilter(
 			PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST);
 
 
 	int connectorId = -1;
-	public Sprite sprite;
-	int sectorId = -1;
-	int wallId = -1;
+	final int sectorId;
+	final int wallId;
+	final int connectorType;
 
 	@Override
 	public int getWallId(){
 		return this.wallId;
 	}
 	
-	public Wall wall;  // TODO - make private
-
 	// used for horizontal connector
 	int x;
 	int ymin;
@@ -75,7 +49,7 @@ public class SimpleConnector extends Connector {
 	}
 
 
-	public SimpleConnector(Sprite markerSprite, Wall wall){
+	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall){
 		if(markerSprite == null){
 			throw new IllegalArgumentException("markerSprite is null");
 		}
@@ -83,24 +57,51 @@ public class SimpleConnector extends Connector {
 			throw new IllegalArgumentException();
 		}
 		this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
-		this.sprite = markerSprite;
+        this.connectorType = markerSprite.getLotag();
 		this.sectorId = markerSprite.getSectorId();
 		if(this.sectorId < 0){
 			throw new RuntimeException("SimpleConnector sectorId cannot be < 0");
 		}
-		this.wall = wall;
+		this.wallId = wallId;
 	}
 	
-	public SimpleConnector(Sprite markerSprite, Wall wall, Sector sector){
-		this(markerSprite, wall);
+	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall, Sector sector){
+		this(markerSprite, wallId, wall);
 		this.z = sector.getFloorZ();
 	}
 
-	private SimpleConnector(int connectorId, int sectorId, int wallId){
+	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall, Wall nextWallInLoop, int z) throws MapErrorException {
+        this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
+        this.wallId = wallId;
+        this.sectorId = markerSprite.getSectorId();
+
+        PointXY vector = wall.getUnitVector(nextWallInLoop);
+        if(vector.x == 1) {
+            // horizontal wall, vertical connector
+            this.connectorType = ConnectorType.VERTICAL_NORTH;
+            this.setAnchorPoint(SimpleConnector.getVerticalConnectorAnchor(wall, nextWallInLoop, z));
+        }else if(vector.x == -1){
+            this.connectorType = ConnectorType.VERTICAL_SOUTH;
+            this.setAnchorPoint(SimpleConnector.getVerticalConnectorAnchor(wall, nextWallInLoop, z));
+        }else if(vector.y == 1){
+            // vertical wall, horizontal connector
+            this.connectorType = ConnectorType.HORIZONTAL_WEST;
+            this.setAnchorPoint(SimpleConnector.getHorizontalConnectorAnchor(wall, nextWallInLoop, z));
+        }else if(vector.y == -1){
+            this.connectorType = ConnectorType.HORIZONTAL_EAST;
+            this.setAnchorPoint(SimpleConnector.getHorizontalConnectorAnchor(wall, nextWallInLoop, z));
+        }else{
+            throw new MapErrorException("connector wall must be horizontal or vertical");
+        }
+
+    }
+
+	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType){
 		//TODO add more fields ...
         this.connectorId = connectorId;
         this.sectorId = sectorId;
         this.wallId = wallId;
+        this.connectorType = connectorType;
 	}
 
 	public SimpleConnector translateIds(final IdMap idmap){
@@ -109,7 +110,8 @@ public class SimpleConnector extends Connector {
 		//this.wallId = idmap.wall(this.wallId);
 		return new SimpleConnector(this.connectorId,
 				idmap.sector(this.sectorId),
-				idmap.wall(this.wallId));
+				idmap.wall(this.wallId),
+                this.connectorType);
 	}
 
 
@@ -120,8 +122,8 @@ public class SimpleConnector extends Connector {
 	}
 
 	@Override
-	public short getMarkerSpriteLotag() {
-		return this.sprite.getLotag();
+	public short getConnectorType() {
+		return (short)this.connectorType;
 	}
 	
 	public void setAnchorPoint(PointXYZ anchor){
@@ -129,9 +131,10 @@ public class SimpleConnector extends Connector {
 	}
 	
 	public void setAnchorPoint(PointXY anchor){
-		this.anchorPoint = new PointXYZ(anchor, this.z);
+		setAnchorPoint(new PointXYZ(anchor, this.z));
 	}
-	
+
+	/*
 	public void setVerticalLinePoints(PointXY p1, PointXY p2){
 		if(p1.x != p2.x){
 			throw new IllegalArgumentException();
@@ -143,7 +146,7 @@ public class SimpleConnector extends Connector {
 			throw new IllegalArgumentException();
 		}
 		
-	}
+	}*/
 
 	@Override
 	public boolean canMate(Connector c){
@@ -176,7 +179,7 @@ public class SimpleConnector extends Connector {
 		//sb.append(" ymax: ").append(ymax).append("\n");
 		sb.append(" sectorId: ").append(sectorId).append("\n");
 		sb.append(" wallId: ").append(wallId).append("\n");
-		sb.append(" wall nextSector: ").append(wall.nextSector).append("\n");
+		//sb.append(" wall nextSector: ").append(wall.nextSector).append("\n");
 		return sb.toString();
 	}
 
@@ -191,20 +194,47 @@ public class SimpleConnector extends Connector {
 			
 			return this.anchorPoint.getTransformTo(c2.anchorPoint); 
 		}else{
-			return new PointXYZ(
-					c2.x - this.x, 
-					c2.ymin - this.ymin, 
-					c2.z - this.z);
+		    throw new RuntimeException("deprecated");
+			//return new PointXYZ(
+			//		c2.x - this.x,
+			//		c2.ymin - this.ymin,
+			//		c2.z - this.z);
+
+
+			//this code is even older:
 					//c2.sector.getFloorZ() - this.sector.getFloorZ());
 			//return new PointXYZ(-1024*5, c2.ymin - this.ymin, c2.sector.getFloorZ() - this.sector.getFloorZ());	
 		}
 	}
-	
 
-	public int getJoinWallLotag(){
-		return wall.getLotag();
-	}
-	
 
+	public static PointXYZ getHorizontalConnectorAnchor(Wall w1, Wall w2, int z){
+	    // make sure its a VERTICAL line
+        if(0 != w1.getUnitVector(w2).x){
+            throw new IllegalArgumentException();
+        }
+        PointXY p1 = new PointXY(w1);
+        PointXY p2 = new PointXY(w2);
+        if(p1.x != p2.x){
+            throw new IllegalArgumentException();
+        }
+        return new PointXYZ(p1.x, Math.min(p1.y, p2.y), z);
+    }
+
+    public static PointXYZ getVerticalConnectorAnchor(Wall w1, Wall w2, int z){
+	    // make sure its a HORIZONTAL line
+        if(0 != w1.getUnitVector(w2).y){
+            throw new IllegalArgumentException();
+        }
+        PointXY p1 = new PointXY(w1);
+        PointXY p2 = new PointXY(w2);
+        if(p1.y != p2.y){
+            throw new SpriteLogicException();
+        }
+        return new PointXYZ(
+                Math.min(p1.x, p2.x),
+                p1.y,
+                z);
+    }
 
 }

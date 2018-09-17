@@ -2,7 +2,10 @@ package trn.duke.experiments.prefab;
 
 import trn.Map;
 import trn.PointXYZ;
+import trn.duke.MapErrorException;
 import trn.prefab.*;
+
+import java.util.List;
 
 public class PrefabExperiment {
 
@@ -11,7 +14,7 @@ public class PrefabExperiment {
     // group 12 = round horizontal corridor
     // group 14 = nuke button
 
-	public static Map copytest3(Map fromMap){
+	public static Map copytest3(Map fromMap) throws MapErrorException {
 
         Map outMap = Map.createNew();
 
@@ -64,13 +67,32 @@ public class PrefabExperiment {
 		//some random groups to the south of something
 
         mb.pasteAndLink(10, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
-        SectorGroup sg = palette.getRandomGroupWith(SimpleConnector.NorthConnector);
-        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
 
-        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
-        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
-        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
-        mb.pasteAndLink(sg, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
+        //try sector group 15
+        mb.pasteAndLink(15, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
+
+
+        List<SectorGroup> groups = palette.getAllGroupsWith(SimpleConnector.NorthConnector);
+        if(groups.size() != 3) throw new RuntimeException("something wrong");
+        for(SectorGroup sg: groups){
+            Connector south = mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector);
+            if(south == null){
+                throw new RuntimeException("cannot find south connector");
+            }
+            mb.pasteAndLink(sg, SimpleConnector.NorthConnector, south);
+        }
+
+
+        // more random
+
+        //SectorGroup sg = palette.getRandomGroupWith(SimpleConnector.NorthConnector);
+        //for(int i = 0; i < 20; ++i){
+        //    Connector south = mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector);
+        //    if(south == null){
+        //        throw new RuntimeException("cannot find south connector");
+        //    }
+        //    mb.pasteAndLink(sg, SimpleConnector.NorthConnector, south);
+        //}
 
 
 		
