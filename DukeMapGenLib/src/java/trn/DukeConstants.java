@@ -46,7 +46,10 @@ public class DukeConstants {
 	public static final int MAX_DUKE_JUMP_HEIGHT = 20;
 	
 	
-	
+
+	public static final class SE_LOTAGS {
+		public static final int TELEPORT = 7;
+	}
 	public static final class LOTAGS {
 		
 		public static final int NUKE_BUTTON_END_LEVEL = 65535;
@@ -71,6 +74,7 @@ public class DukeConstants {
 	}
 	
 	public static final class TEXTURES {
+		public static int SECTOR_EFFECTOR = 1;
 		
 		/** black and yellow striped construction texture */
 		public static int CONSTRUCTION_SPRITE = 355;

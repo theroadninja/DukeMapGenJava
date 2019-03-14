@@ -41,11 +41,18 @@ public class ConnectorFactory {
 
 		}else if(s.getLotag() == PrefabUtils.SpriteLoTags.SIMPLE_CONNECTOR){
 
-			int wallId = getLinkWallId(map, sector);
-			Wall w1 = map.getWall(wallId);
-			Wall w2 = map.getWall(w1.getPoint2Id());
-			int z = map.getSector(s.getSectorId()).getFloorZ();
-			return new SimpleConnector(s, wallId, w1, w2, z);
+			// see if it has a transporter ( SE with lotag 7 )
+            if(map.findSprites(null, DukeConstants.SE_LOTAGS.TELEPORT, (int)s.getSectorId()).size() > 0){
+            	//its a teleporter
+				return new TeleportConnector(s);
+			} else {
+				int wallId = getLinkWallId(map, sector);
+				Wall w1 = map.getWall(wallId);
+				Wall w2 = map.getWall(w1.getPoint2Id());
+				int z = map.getSector(s.getSectorId()).getFloorZ();
+				return new SimpleConnector(s, wallId, w1, w2, z);
+			}
+
 
 		}else{
 			//throw new SpriteLogicException("sprite lotag=" + s.getLotag())
@@ -71,7 +78,10 @@ public class ConnectorFactory {
 			}
 		}
 		if(wallId == null){
-			throw new SpriteLogicException();
+		    // wait... what about teleporting connectors??
+			int x = map.getWall(sector.getFirstWall()).getX();
+			int y = map.getWall(sector.getFirstWall()).getY();
+			throw new SpriteLogicException(String.format("cannot find link wall for sector at %s, %s ", x, y));
 		}
 		return wallId;
 	}

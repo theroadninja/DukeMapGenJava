@@ -9,18 +9,32 @@ import trn.duke.MapErrorException;
 import trn.duke.TextureList;
 
 public class SectorGroup {
+
+	/** optional id that can be added to group by user to manually identify it
+	 * -1 means no id
+	 */
+	final int sectorGroupId;
 	
 	/** map object used to store all the sectors, walls and sprites */
 	final Map map;
 	
 	List<Connector> connectors = new ArrayList<Connector>();
 	
-	public SectorGroup(Map map) throws MapErrorException {
+	public SectorGroup(Map map, int sectorGroupId) throws MapErrorException {
+		this.sectorGroupId = sectorGroupId;
 		this.map = map;
 		//this.connectors.addAll(SimpleConnector.findConnectors(map));
 		for(Connector c : Connector.findConnectors(map)){
 		    addConnector(c);
         }
+	}
+
+	public SectorGroup(Map map) throws MapErrorException {
+		this(map, -1);
+	}
+
+	public int getGroupId(){
+		return this.sectorGroupId;
 	}
 
 	private void addConnector(Connector c){
@@ -56,19 +70,19 @@ public class SectorGroup {
 		return it.hasNext() ? it.next() : null;
 	}
 
-    /**
-     * @param otherConnector
-     * @returns the first connect in this group that could match with the given connector
-     */
-	public Connector findFirstMate(Connector otherConnector){
-        if(1==1) throw new RuntimeException("TODO - this doesnt work");
-	    for(Connector c : connectors){
-	        if(c.canMate(otherConnector)){
-	            return c;
-            }
-        }
-        return null;
-    }
+    // **
+    //  * @param otherConnector
+    //  * @returns the first connect in this group that could match with the given connector
+    //  */
+	// public Connector findFirstMate(Connector otherConnector){
+    //     if(1==1) throw new RuntimeException("TODO - this doesnt work");
+	//     for(Connector c : connectors){
+	//         if(c.canMate(otherConnector)){
+	//             return c;
+    //         }
+    //     }
+    //     return null;
+    // }
 
 	// TODO - add:
     // isPlayerStart()

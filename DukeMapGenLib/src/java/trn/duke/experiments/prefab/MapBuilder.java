@@ -42,6 +42,7 @@ public class MapBuilder {
         return psg;
     }
 
+    /*
     public PastedSectorGroup pasteAndLink(int sectorGroupId, Connector destConnector) throws MapErrorException {
         if(1==1) throw new RuntimeException("TODO - this doesnt work");
         if(isConnectorLinked(destConnector)){
@@ -49,9 +50,11 @@ public class MapBuilder {
         }
 
         SectorGroup sg = palette.getSectorGroup(sectorGroupId);
-        Connector paletteConnector = sg.findFirstMate(destConnector);
-        return add(palette.pasteAndLink(sectorGroupId, paletteConnector, outMap, destConnector));
+        RedwallConnector paletteConnector = (RedwallConnector)sg.findFirstMate(destConnector);
+        // TODO - the cast to RedwallConnector
+        return add(palette.pasteAndLink(sectorGroupId, paletteConnector, outMap, (RedwallConnector)destConnector));
     }
+    */
 
     public PastedSectorGroup pasteAndLink(
             int sectorGroupId,

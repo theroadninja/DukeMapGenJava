@@ -111,7 +111,7 @@ public class PrefabUtils {
 	}*/
 	
 	
-	public static void joinWalls(Map map, Connector c1, Connector c2){
+	public static void joinWalls(Map map, RedwallConnector c1, RedwallConnector c2){
 		//Wall w1 = map.getWall(c1.wallId)
 		//Wall w2 = map.getWall(c2.wallId);
 		

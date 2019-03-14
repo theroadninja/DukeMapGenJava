@@ -10,7 +10,12 @@ class ConnectorTypeFilter implements ConnectorFilter {
 
 	@Override
 	public boolean matches(Connector c) {
-		return c.getConnectorType() == this.spriteLotag;
+		if(c instanceof RedwallConnector){ // TODO - gross
+			return ((RedwallConnector)c).getConnectorType() == this.spriteLotag;
+		} else {
+			//throw new RuntimeException("c not isntance of " + c.getClass().getName().toString());
+			return false;
+		}
 	}
 	
 	@Override

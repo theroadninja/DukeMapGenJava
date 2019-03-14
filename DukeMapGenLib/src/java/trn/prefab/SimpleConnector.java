@@ -9,7 +9,7 @@ import trn.Sprite;
 import trn.Wall;
 import trn.duke.MapErrorException;
 
-public class SimpleConnector extends Connector {
+public class SimpleConnector extends RedwallConnector {
 
 	
 	
@@ -117,7 +117,6 @@ public class SimpleConnector extends Connector {
 
 	@Override
 	public boolean isLinked(Map map){
-		// TODO - will not work with teleporer connectors, etc
 		return map.getWall(wallId).isRedWall();
 	}
 
@@ -148,23 +147,23 @@ public class SimpleConnector extends Connector {
 		
 	}*/
 
-	@Override
-	public boolean canMate(Connector c){
-	    throw new RuntimeException("TODO - this doesnt work");
-	    /*
-		int x = Math.min(this.sprite.getLotag(), c.sprite.getLotag());
-		int y = Math.max(this.sprite.getLotag(), c.sprite.getLotag());
+	// @Override
+	// public boolean canMate(Connector c){
+	//     throw new RuntimeException("TODO - this doesnt work");
+	//     /*
+	// 	int x = Math.min(this.sprite.getLotag(), c.sprite.getLotag());
+	// 	int y = Math.max(this.sprite.getLotag(), c.sprite.getLotag());
 
-		// TODO ...
-		if(x == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST && y == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST){
-			return true;
-		}
-		if(x == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_SOUTH && y == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH){
-			return true;
-		}
-		return false;
-		*/
-	}
+	// 	// TODO ...
+	// 	if(x == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST && y == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST){
+	// 		return true;
+	// 	}
+	// 	if(x == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_SOUTH && y == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH){
+	// 		return true;
+	// 	}
+	// 	return false;
+	// 	*/
+	// }
 	
 	public short getSectorId(){
 		return (short)this.sectorId;

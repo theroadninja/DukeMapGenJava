@@ -50,7 +50,7 @@ public class PrefabPalette {
 				if(numberedSectorGroups.containsKey(groupId)){
 					throw new SpriteLogicException("more than one sector group with id " + groupId);
 				}
-				numberedSectorGroups.put(groupId, new SectorGroup(clipboard));
+				numberedSectorGroups.put(groupId, new SectorGroup(clipboard, groupId));
 				
 			}else{
 				anonymousSectorGroups.add(new SectorGroup(clipboard));
@@ -66,17 +66,18 @@ public class PrefabPalette {
 			int sectorGroupId,
 			int paletteConnectorId,
 			Map destMap,
-			Connector destConnector) throws MapErrorException {
+			RedwallConnector destConnector) throws MapErrorException {
 
-		Connector paletteConnector = this.getConnector(sectorGroupId, paletteConnectorId);
+	    // TODO - avoid cast here
+		RedwallConnector paletteConnector = (RedwallConnector)this.getConnector(sectorGroupId, paletteConnectorId);
 		return pasteAndLink(sectorGroupId, paletteConnector, destMap, destConnector);
     }
 
 	public PastedSectorGroup pasteAndLink(
 			int sectorGroupId, 
-			Connector paletteConnector,
+			RedwallConnector paletteConnector,
 			Map destMap, 
-			Connector destConnector) throws MapErrorException {
+			RedwallConnector destConnector) throws MapErrorException {
 
 		PointXYZ cdelta = paletteConnector.getTransformTo(destConnector);
 				
@@ -90,18 +91,29 @@ public class PrefabPalette {
 		
 		return result;
 	}
-	
+
 	public PastedSectorGroup pasteAndLink(
 			SectorGroup sg,
 			ConnectorFilter paletteConnectorFilter,
 			Map destMap,
 			Connector destConnector) throws MapErrorException {
 
+	    // TODO - this method is a hack
+		return pasteAndLink(sg, paletteConnectorFilter, destMap, (RedwallConnector)destConnector);
+    }
+
+	public PastedSectorGroup pasteAndLink(
+			SectorGroup sg,
+			ConnectorFilter paletteConnectorFilter,
+			Map destMap,
+			RedwallConnector destConnector) throws MapErrorException {
+
 		if(destConnector == null){
 			throw new IllegalArgumentException("destConnector is null");
 		}
-		
-		Connector paletteConnector = sg.findFirstConnector(paletteConnectorFilter);
+
+		// TODO - avoid cast here
+		RedwallConnector paletteConnector = (RedwallConnector)sg.findFirstConnector(paletteConnectorFilter);
 		if(paletteConnector == null){
 			throw new IllegalArgumentException("cant find connector: " + paletteConnectorFilter);
 		}
@@ -115,7 +127,7 @@ public class PrefabPalette {
 		PastedSectorGroup result = this.pasteSectorGroup(sg, destMap, cdelta);
 		
 		
-		Connector pastedConnector = paletteConnector.translateIds(result.copystate.idmap);
+		RedwallConnector pastedConnector = paletteConnector.translateIds(result.copystate.idmap);
 		//paletteConnector = result.getConnector(paletteConnectorId);
 		//destMap.linkRedWalls(sectorIndex, wallIndex, sectorIndex2, wallIndex2)
 		
@@ -183,6 +195,7 @@ public class PrefabPalette {
 	
 	
 	public Connector getConnector(int sectorGroupId, int connectorId){
+		// TODO - shouldnt cast here ...
 		return numberedSectorGroups.get(sectorGroupId).getConnector(connectorId);
 	}
 	

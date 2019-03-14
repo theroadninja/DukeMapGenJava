@@ -36,6 +36,13 @@ public class Main {
 		//		connector on left:  connector id 123 and wall lotag 2
 		//		connector on right: connector id 456 and wall lotag 1
 		//
+
+		File f = new File(DOSPATH);
+		if(!(f.exists() && f.isDirectory())){
+			throw new Exception(DOSPATH + " does not exist");
+		}
+
+
 		Map fromMap = loadMap(DOSPATH + "cptest3.map");
 		
 		

@@ -71,16 +71,31 @@ public class PrefabExperiment {
         //try sector group 15
         mb.pasteAndLink(15, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
 
+        //try sector group 18 - teleporter
+		mb.pasteAndLink(18, SimpleConnector.NorthConnector, mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
 
+        /* TODO - bring this back
         List<SectorGroup> groups = palette.getAllGroupsWith(SimpleConnector.NorthConnector);
-        if(groups.size() != 3) throw new RuntimeException("something wrong");
+        //if(groups.size() != 3) throw new RuntimeException("something wrong");
         for(SectorGroup sg: groups){
+
+        	if(sg.getGroupId() == 18){
+        		// teleport sector
+				continue;
+			}
+
+        	// TODO  - broken?  NOTE: SimpleConnector constructor maps from 20 to 18
             Connector south = mb.findFirstUnlinkedConnector(SimpleConnector.SouthConnector);
             if(south == null){
-                throw new RuntimeException("cannot find south connector");
-            }
-            mb.pasteAndLink(sg, SimpleConnector.NorthConnector, south);
+                throw new RuntimeException("cannot find south connector.  group " + sg.getGroupId());
+				// System.out.println("WARNING:  cannot find south connector");
+            } else {
+
+				mb.pasteAndLink(sg, SimpleConnector.NorthConnector, south);
+			}
         }
+        */
+
 
 
         // more random

@@ -6,16 +6,11 @@ import trn.duke.MapErrorException;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO:  consider making Connector an interface, and RedwallConnector the base class.
 public abstract class Connector {
 
-    public abstract short getConnectorType();
 
-    // TODO - get rid of this!
-    public abstract int getWallId();
 
-    // TODO - maybe get rid of this...
-    // (teleporters wont need a "transformto" ...
-    public abstract PointXYZ getTransformTo(Connector c2);
 
 
 
@@ -25,14 +20,17 @@ public abstract class Connector {
 
     public abstract short getSectorId();
 
+    /**
+     * the connector id is an optional id which is set as the hitag of the marker sprite
+     * in order to let you name that specific connector.
+     * @return
+     */
     public abstract int getConnectorId();
 
 
 
     public abstract boolean isLinked(Map map);
 
-
-    public abstract boolean canMate(Connector c);
 
     public static List<Connector> findConnectors(Map map) throws MapErrorException {
         return findConnectors(map, null);
