@@ -47,7 +47,8 @@ public class Main {
 		
 		
 
-		Map outMap = PrefabExperiment.copytest3(fromMap);
+		//Map outMap = PrefabExperiment.copytest3(fromMap);
+		Map outMap = PrefabExperiment.copytest4(fromMap);
 		deployTest(outMap);
 		
 	}

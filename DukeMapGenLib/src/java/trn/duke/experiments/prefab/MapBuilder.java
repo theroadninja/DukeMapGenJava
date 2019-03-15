@@ -7,7 +7,7 @@ import trn.prefab.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapBuilder {
+public final class MapBuilder {
 
     final Map outMap;
 
@@ -15,9 +15,21 @@ public class MapBuilder {
 
     List<PastedSectorGroup> pastedGroups = new ArrayList<PastedSectorGroup>();
 
-    public MapBuilder(Map outMap, PrefabPalette palette){
+    private MapBuilder(Map outMap, PrefabPalette palette){
         this.outMap = outMap;
         this.palette = palette;
+    }
+
+
+    public MapBuilder(PrefabPalette palette){
+        this(Map.createNew(), palette);
+    }
+
+    public final Map getOutMap(){
+        return this.outMap;
+    }
+    public final PrefabPalette getPalette(){
+        return this.palette;
     }
 
     public Connector findFirstUnlinkedConnector(ConnectorFilter cf){
@@ -92,9 +104,12 @@ public class MapBuilder {
     /**
      * pick a "player start" marker sprite and set the actual player start location there
      */
-    public void selectPlayerStart(){
+    public void selectPlayerStart() throws SpriteLogicException {
         ISpriteFilter psfilter = SpriteFilter.playerstart();
         List<Sprite> sprites = outMap.findSprites(psfilter);
+        if(sprites.size() < 1){
+            throw new SpriteLogicException("cannot set player start - there are no player start markers");
+        }
 
         System.out.println("filter matches = " + psfilter.matches(sprites.get(0)));
         System.out.println("sprite is: " + sprites.get(0));

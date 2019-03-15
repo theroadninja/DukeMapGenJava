@@ -195,7 +195,7 @@ public class MapUtil {
 		Set<Integer> neighboors = new TreeSet<Integer>();
 		
 		Sector sector = sourceMap.getSector(sourceSectorId);
-		System.out.println("sector first wall is: " + sector.getFirstWall());
+		//System.out.println("sector first wall is: " + sector.getFirstWall());
 		
 		
 		int newSectorId = destMap.addSector(sector.copy().translate(transform));
@@ -256,7 +256,7 @@ public class MapUtil {
 		
 		List<Sprite> sprites = sourceMap.findSprites(null, null, sourceSectorId);
 		for(Sprite sp: sprites){
-			System.out.println("copying sprite!v picnum=" + sp.picnum);
+			//System.out.println("copying sprite!v picnum=" + sp.picnum);
 			destMap.addSprite(sp.copy(destSectorId).translate(transform));
 		}
 	}

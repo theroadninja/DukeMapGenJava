@@ -5,8 +5,6 @@ import trn.PointXYZ;
 import trn.duke.MapErrorException;
 import trn.prefab.*;
 
-import java.util.List;
-
 public class PrefabExperiment {
 
     // group 10 = plus sign
@@ -16,12 +14,11 @@ public class PrefabExperiment {
 
 	public static Map copytest3(Map fromMap) throws MapErrorException {
 
-        Map outMap = Map.createNew();
+        //Map outMap = Map.createNew();
 
-        final PrefabPalette palette = new PrefabPalette();
-
-        MapBuilder mb = new MapBuilder(outMap, palette);
-        palette.loadAllGroups(fromMap);
+		final PrefabPalette palette = PrefabPalette.fromMap(fromMap);
+		MapBuilder mb = new MapBuilder(palette);
+        palette.fromMap(fromMap);
 
 
 
@@ -113,7 +110,26 @@ public class PrefabExperiment {
 		
 		mb.selectPlayerStart();
 		mb.clearMarkers();
-		return outMap;
+		return mb.getOutMap();
 	}
+
+
+	public static Map copytest4(Map fromMap) throws MapErrorException {
+
+		final PrefabPalette palette = PrefabPalette.fromMap(fromMap);
+		MapBuilder mb = new MapBuilder(palette);
+		//palette.fromMap(fromMap);
+
+		// next ... find all groups with bounding box of a certain size
+		for(SectorGroup sg : palette.allSectorGroups()){
+			// TODO - add bboxHeight() and bboxWidth() to SectorGroup and print out all bounding box dimensions ...
+		}
+
+		//palette.getSectorGroup()
+
+		mb.selectPlayerStart();
+		mb.clearMarkers();
+		return mb.getOutMap();
+    }
 
 }

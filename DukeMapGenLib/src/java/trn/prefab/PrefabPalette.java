@@ -7,6 +7,7 @@ import trn.MapUtil;
 import trn.PointXYZ;
 import trn.Sprite;
 import trn.duke.MapErrorException;
+import trn.javax.MultiIterable;
 
 /**
  * Stores sector groups for use.
@@ -16,16 +17,27 @@ import trn.duke.MapErrorException;
  */
 public class PrefabPalette {
 	
-	private java.util.Map<Integer, SectorGroup> numberedSectorGroups = new TreeMap<Integer, SectorGroup>();
+	private final java.util.Map<Integer, SectorGroup> numberedSectorGroups;
 	
 	/** sector groups that dont have ids */
-	private List<SectorGroup> anonymousSectorGroups = new ArrayList<SectorGroup>();
+	private final List<SectorGroup> anonymousSectorGroups;
 
 	private Random random = new Random();
 
-	
-	public void loadAllGroups(Map map) throws MapErrorException {
-		
+
+	public PrefabPalette(java.util.Map<Integer, SectorGroup> numberedSectorGroups, List<SectorGroup> anonymousSectorGroups){
+		this.numberedSectorGroups = numberedSectorGroups;
+		this.anonymousSectorGroups = anonymousSectorGroups;
+	}
+
+	public Iterable<SectorGroup> allSectorGroups(){
+		return new MultiIterable<SectorGroup>(numberedSectorGroups.values(), anonymousSectorGroups);
+	}
+
+	public static PrefabPalette fromMap(Map map) throws MapErrorException {
+		final java.util.Map<Integer, SectorGroup> numberedSectorGroups = new java.util.TreeMap<>();
+		final List<SectorGroup> anonymousSectorGroups = new ArrayList<>();
+
 		Set<Short> processedSectorIds = new TreeSet<Short>();
 		
 		short sector = 0;
@@ -58,6 +70,8 @@ public class PrefabPalette {
 			
 			sector++;
 		} // while
+
+		return new PrefabPalette(numberedSectorGroups, anonymousSectorGroups);
 
 	}
 
@@ -183,13 +197,13 @@ public class PrefabPalette {
 		return psg;
 	}
 	
-	public List<Connector> findConnectors(int sectorGroupId, ConnectorFilter... filters){
-		//PrefabUtils.findConnector(outMap, PrefabUtils.JoinType.VERTICAL_JOIN, 1);
-		//Map map = numberedSectorGroups.get(sectorGroupId).map;
-		//return SimpleConnector.findConnectors(map, filters);
+	// public List<Connector> findConnectors(int sectorGroupId, ConnectorFilter... filters){
+	// 	//PrefabUtils.findConnector(outMap, PrefabUtils.JoinType.VERTICAL_JOIN, 1);
+	// 	//Map map = numberedSectorGroups.get(sectorGroupId).map;
+	// 	//return SimpleConnector.findConnectors(map, filters);
 
-		return Connector.matchConnectors(numberedSectorGroups.get(sectorGroupId).connectors, filters);
-	}
+	// 	return Connector.matchConnectors(numberedSectorGroups.get(sectorGroupId).connectors, filters);
+	// }
 	
 	
 	

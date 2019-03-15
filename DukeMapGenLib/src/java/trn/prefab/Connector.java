@@ -8,17 +8,8 @@ import java.util.List;
 
 // TODO:  consider making Connector an interface, and RedwallConnector the base class.
 public abstract class Connector {
-
-
-
-
-
-
-
     /** used to get new connector when pasting sector group onto a map */
     public abstract Connector translateIds(final IdMap idmap);
-
-    public abstract short getSectorId();
 
     /**
      * the connector id is an optional id which is set as the hitag of the marker sprite
@@ -27,7 +18,7 @@ public abstract class Connector {
      */
     public abstract int getConnectorId();
 
-
+    public abstract short getSectorId();
 
     public abstract boolean isLinked(Map map);
 
@@ -55,35 +46,14 @@ public abstract class Connector {
                 PrefabUtils.MARKER_SPRITE)){
 
             Sector sector = map.getSector(s.getSectorId());
-            if(s.getLotag() == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST){
 
-                Connector connector = ConnectorFactory.create(map, s);
-                if(cf == null ||  ConnectorFilter.allMatch(connector, cf)){
-                    results.add(connector);
-                }
-
-            }else{
-
-                Connector connector = ConnectorFactory.create(map, s);
-                if(connector != null && (cf == null ||  ConnectorFilter.allMatch(connector, cf))){
-                    results.add(connector);
-                }
+            Connector connector = ConnectorFactory.create(map, s);
+            if(connector != null && (cf == null ||  ConnectorFilter.allMatch(connector, cf))){
+                results.add(connector);
             }
-
-
-            //
         } // for sprite
 
         return results;
     }
 
-    public static List<Connector> matchConnectors(Iterable<Connector> connectors, ConnectorFilter ... cf){
-        List<Connector> results = new ArrayList<Connector>();
-        for(Connector c: connectors){
-            if(cf == null || ConnectorFilter.allMatch(c, cf)){
-                results.add(c);
-            }
-        }
-        return results;
-    }
 }
