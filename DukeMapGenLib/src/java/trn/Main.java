@@ -11,6 +11,7 @@ import org.apache.commons.io.IOUtils;
 
 import trn.duke.experiments.E1RandomSprites;
 import trn.duke.experiments.prefab.PrefabExperiment;
+import trn.prefab.experiments.GridExperiment;
 
 public class Main {
 
@@ -21,7 +22,7 @@ public class Main {
 	/** TODO:  remove when I have some real unit tests */
 	public static final String HELLO = "hello world";
 	
-	static String DOSPATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
+	public static String DOSPATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -48,9 +49,11 @@ public class Main {
 		
 
 		//Map outMap = PrefabExperiment.copytest3(fromMap);
-		Map outMap = PrefabExperiment.copytest4(fromMap);
+		//Map outMap = PrefabExperiment.copytest4(fromMap);
+		Map outMap = GridExperiment.run(fromMap);
 		deployTest(outMap);
-		
+		//GridExperiment.sanityCheck();
+
 	}
 	
 	

@@ -23,6 +23,19 @@ public class PointXY {
 		this.x = w.getX();
 		this.y = w.getY();
 	}
+
+	@Override
+	public boolean equals(Object other){
+		if(other == this){
+			return true;
+		}
+		if(!(other instanceof PointXY)){
+			return false;
+		}
+
+		PointXY p2 = (PointXY)other;
+		return x == p2.x && y == p2.y;
+	}
 	
 	@Override
 	public String toString(){
@@ -33,5 +46,8 @@ public class PointXY {
 	public Pair<Integer, Integer> toPair(){
 		return new ImmutablePair<Integer, Integer>(x,y);
 	}*/
-	
+
+	public PointXY translateTo(PointXY dest){
+		return new PointXY(dest.x - this.x, dest.y - this.y);
+	}
 }

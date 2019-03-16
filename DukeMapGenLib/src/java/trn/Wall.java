@@ -172,6 +172,12 @@ public class Wall {
 	 * 	    http://fabiensanglard.net/duke3d/BUILDINF.TXT  this next wall
 	 * 	    is always "to the right" I assume from a point of view inside
 	 * 	    the sector.  Which would mean walls are defined clockwise.
+	 *
+	 *
+	 * 	    NOTE:  this appears to be wrong!!  I think walls might be counter clockwise
+	 * 	    See the SimpleConnector constructor (or wherever the code is that guesses
+	 * 	    connector types).  Based on experimentation, these can go either way
+	 * 	    CORRECTON:  ignore note...maybe i just suck at writing unit vectors
 	 */
 	public PointXY getUnitVector(Wall point2){
 		int dx = point2.x - x;
@@ -179,9 +185,11 @@ public class Wall {
 		if(dx == 0 && dy == 0){
 			throw new RuntimeException("invalid vector");
 		}else if(dx == 0){
-			return new PointXY(0, 1);
+			dy = (dy > 0) ? 1 : -1;
+			return new PointXY(0, dy);
 		}else if(dy == 0){
-			return new PointXY(1, 0);
+			dx = (dx > 0) ? 1 : -1;
+			return new PointXY(dx, 0);
 		}else{
 			double magnitude = Math.sqrt(dx*dx + dy*dy);
 			return new PointXY((int)(dx/magnitude), (int)(dy/magnitude));

@@ -11,5 +11,6 @@ public abstract class RedwallConnector extends Connector {
 
     public abstract int getWallId();
 
-    public abstract short getConnectorType();
+    @Override
+    public abstract int getConnectorType();
 }

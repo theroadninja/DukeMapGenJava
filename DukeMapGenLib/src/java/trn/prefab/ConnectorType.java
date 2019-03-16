@@ -1,6 +1,9 @@
 package trn.prefab;
 
 public class ConnectorType {
+
+    public static int TELEPORTER = 7;
+
     /**
      * -+               +--------+
      *  |               |        |

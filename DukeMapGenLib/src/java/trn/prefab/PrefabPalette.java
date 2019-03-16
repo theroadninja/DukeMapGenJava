@@ -187,7 +187,7 @@ public class PrefabPalette {
 		return pasteSectorGroup(this.numberedSectorGroups.get(sectorGroupId), destMap, rawTrasform);
 	}
 	public PastedSectorGroup pasteSectorGroup(SectorGroup sg, Map destMap, PointXYZ rawTrasform) throws MapErrorException {
-		Map fromMap = sg.map;
+		Map fromMap = sg.map();
 		
 		PastedSectorGroup psg = new PastedSectorGroup(
 				destMap, 

@@ -8,6 +8,9 @@ import java.util.List;
 
 // TODO:  consider making Connector an interface, and RedwallConnector the base class.
 public abstract class Connector {
+
+    public abstract int getConnectorType();
+
     /** used to get new connector when pasting sector group onto a map */
     public abstract Connector translateIds(final IdMap idmap);
 

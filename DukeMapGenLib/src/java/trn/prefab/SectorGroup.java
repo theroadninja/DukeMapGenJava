@@ -8,7 +8,7 @@ import trn.Map;
 import trn.duke.MapErrorException;
 import trn.duke.TextureList;
 
-public class SectorGroup {
+public class SectorGroup extends SectorGroupS {
 
 	/** optional id that can be added to group by user to manually identify it
 	 * -1 means no id
@@ -16,13 +16,16 @@ public class SectorGroup {
 	final int sectorGroupId;
 	
 	/** map object used to store all the sectors, walls and sprites */
-	final Map map;
-	
-	List<Connector> connectors = new ArrayList<Connector>();
+	//final Map map;
+
+
+	// TODO - make this not public (need iterator for scala code?)
+	public List<Connector> connectors = new ArrayList<Connector>();
 	
 	public SectorGroup(Map map, int sectorGroupId) throws MapErrorException {
+	    super(map);
 		this.sectorGroupId = sectorGroupId;
-		this.map = map;
+		//this.map = map;
 		//this.connectors.addAll(SimpleConnector.findConnectors(map));
 		for(Connector c : Connector.findConnectors(map)){
 		    addConnector(c);
@@ -37,7 +40,25 @@ public class SectorGroup {
 		return this.sectorGroupId;
 	}
 
+	public int bbHeight(){
+
+
+	    Map map = super.map();
+		if(map.getWallCount() < 1){
+			return 0;
+		}
+		int minY = map.getWall(0).getY();
+		int maxY = minY;
+		for(int i = 1; i < map.getWallCount(); ++i){
+			int y = map.getWall(i).getY();
+			minY = Math.min(minY, y);
+			maxY = Math.max(maxY, y);
+		}
+		return maxY - minY;
+	}
+
 	private void addConnector(Connector c){
+		Map map = super.map();
 	    if(c.getSectorId() < 0){
 	        throw new RuntimeException("connector has invalid sectorId: " + c.getSectorId());
         }
@@ -61,7 +82,7 @@ public class SectorGroup {
 
 	/** right now this is for debugging */
 	public int getSectorCount(){
-	    return map.getSectorCount();
+	    return super.map().getSectorCount();
     }
 
 
@@ -90,11 +111,12 @@ public class SectorGroup {
     // ...and so on
 
     public boolean isEndGame(){
-	    for(int i = 0; i < map.getSpriteCount(); ++i){
-	        if(map.getSprite(i).getTexture() == TextureList.Switches.NUKE_BUTTON){
+	    for(int i = 0; i < map().getSpriteCount(); ++i){
+	        if(map().getSprite(i).getTexture() == TextureList.Switches.NUKE_BUTTON){
 	            return true;
             }
         }
         return false;
     }
+
 }

@@ -111,8 +111,8 @@ public final class MapBuilder {
             throw new SpriteLogicException("cannot set player start - there are no player start markers");
         }
 
-        System.out.println("filter matches = " + psfilter.matches(sprites.get(0)));
-        System.out.println("sprite is: " + sprites.get(0));
+        //System.out.println("filter matches = " + psfilter.matches(sprites.get(0)));
+        //System.out.println("sprite is: " + sprites.get(0));
 
         if(sprites.size() != 1){
             throw new RuntimeException("wft? sprite count is " + sprites.size());

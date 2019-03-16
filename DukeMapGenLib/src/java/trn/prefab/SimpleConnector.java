@@ -83,12 +83,12 @@ public class SimpleConnector extends RedwallConnector {
         }else if(vector.x == -1){
             this.connectorType = ConnectorType.VERTICAL_SOUTH;
             this.setAnchorPoint(SimpleConnector.getVerticalConnectorAnchor(wall, nextWallInLoop, z));
-        }else if(vector.y == 1){
+        }else if(vector.y == 1){ // y is pointed down
             // vertical wall, horizontal connector
-            this.connectorType = ConnectorType.HORIZONTAL_WEST;
-            this.setAnchorPoint(SimpleConnector.getHorizontalConnectorAnchor(wall, nextWallInLoop, z));
-        }else if(vector.y == -1){
             this.connectorType = ConnectorType.HORIZONTAL_EAST;
+            this.setAnchorPoint(SimpleConnector.getHorizontalConnectorAnchor(wall, nextWallInLoop, z));
+        }else if(vector.y == -1){ // y is pointed up
+            this.connectorType = ConnectorType.HORIZONTAL_WEST;
             this.setAnchorPoint(SimpleConnector.getHorizontalConnectorAnchor(wall, nextWallInLoop, z));
         }else{
             throw new MapErrorException("connector wall must be horizontal or vertical");
@@ -121,8 +121,8 @@ public class SimpleConnector extends RedwallConnector {
 	}
 
 	@Override
-	public short getConnectorType() {
-		return (short)this.connectorType;
+	public int getConnectorType() {
+		return this.connectorType;
 	}
 	
 	public void setAnchorPoint(PointXYZ anchor){

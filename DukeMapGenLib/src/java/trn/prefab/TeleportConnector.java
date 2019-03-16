@@ -33,6 +33,11 @@ public class TeleportConnector extends Connector {
     }
 
     @Override
+    public int getConnectorType() {
+        return ConnectorType.TELEPORTER;
+    }
+
+    @Override
     public TeleportConnector translateIds(IdMap idmap) {
         return new TeleportConnector(
                 this.connectorId,

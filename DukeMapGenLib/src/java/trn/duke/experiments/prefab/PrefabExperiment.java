@@ -123,6 +123,7 @@ public class PrefabExperiment {
 		// next ... find all groups with bounding box of a certain size
 		for(SectorGroup sg : palette.allSectorGroups()){
 			// TODO - add bboxHeight() and bboxWidth() to SectorGroup and print out all bounding box dimensions ...
+			System.out.println("sector group " + sg.getGroupId() + " bounding box: " + sg.bbWidth() + " x " + sg.bbHeight());
 		}
 
 		//palette.getSectorGroup()
