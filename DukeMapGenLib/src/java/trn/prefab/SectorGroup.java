@@ -1,6 +1,7 @@
 package trn.prefab;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -55,6 +56,21 @@ public class SectorGroup extends SectorGroupS {
 			maxY = Math.max(maxY, y);
 		}
 		return maxY - minY;
+	}
+
+	/**
+	 *
+	 * @returns a read only list of all connecters that need the whole sector group to be in a certain place.
+	 */
+	public List<SimpleConnector> connectorsWithXYRequrements(){
+		// TODO - shouldnt be casting
+		List<SimpleConnector> list = new ArrayList(this.connectors.size());
+		for(Connector c : connectors){
+			if(c.hasXYRequirements()){
+				list.add((SimpleConnector)c);
+			}
+		}
+		return Collections.unmodifiableList(list);
 	}
 
 	private void addConnector(Connector c){

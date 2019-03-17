@@ -58,4 +58,8 @@ public class TeleportConnector extends Connector {
         return list.get(0).getHiTag() != 0;
     }
 
+    @Override
+    public boolean hasXYRequirements() {
+        return false;
+    }
 }

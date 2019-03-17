@@ -8,16 +8,77 @@ import scala.collection.JavaConverters._
 
 
 
-case class GridNode(
+trait Node {
+  def gridX: Int
+  def gridY: Int
+  def location: (Int, Int);
+
+  def neighboors: Seq[(Int,Int)] = {
+    Seq((gridX+1, gridY), (gridX-1, gridY), (gridX, gridY+1), (gridX, gridY-1))
+  }
+}
+object GridNode {
+
+  // def apply(
+  //   gridX: Int,
+  //   gridY: Int,
+  //   sg: SectorGroup,
+  //   east: Option[SimpleConnector],
+  //   west: Option[SimpleConnector],
+  //   north: Option[SimpleConnector],
+  //   south: Option[SimpleConnector],
+  // ): GridNode = {
+  //   new GridNode(gridX, gridY, sg, east, west, north, south)
+  // }
+
+  def apply(gridX: Int, gridY: Int, sg: SectorGroup, conns: Map[Int, SimpleConnector]): GridNode = {
+    GridNode(
+      gridX,
+      gridY,
+      sg,
+      conns.get(ConnectorType.HORIZONTAL_EAST),
+      conns.get(ConnectorType.HORIZONTAL_WEST),
+      conns.get(ConnectorType.VERTICAL_NORTH),
+      conns.get(ConnectorType.VERTICAL_SOUTH),
+    )
+  }
+}
+case class GridNode (
   gridX: Int,
   gridY: Int,
+  sg: SectorGroup,
   east: Option[SimpleConnector],
   west: Option[SimpleConnector],
   north: Option[SimpleConnector],
   south: Option[SimpleConnector],
-  psg: PastedSectorGroup
-) {
-  def location: (Int, Int) = (gridX, gridY)
+) extends Node {
+
+  override def location: (Int, Int) = (gridX, gridY)
+
+  def asPasted(psg: PastedSectorGroup): PastedGridNode = {
+    val idmap = psg.copystate.idmap
+    PastedGridNode(
+      gridX,
+      gridY,
+      psg,
+      east.map(_.translateIds(idmap)),
+      west.map(_.translateIds(idmap)),
+      north.map(_.translateIds(idmap)),
+      south.map(_.translateIds(idmap)),
+    )
+  }
+}
+
+case class PastedGridNode(
+  gridX: Int,
+  gridY: Int,
+  psg: PastedSectorGroup,
+  east: Option[SimpleConnector],
+  west: Option[SimpleConnector],
+  north: Option[SimpleConnector],
+  south: Option[SimpleConnector],
+) extends Node {
+  override def location: (Int, Int) = (gridX, gridY)
 }
 
 
@@ -40,29 +101,25 @@ object GridMapBuilder {
 class GridMapBuilder(outMap: DMap) {
   import GridMapBuilder.gridSize
 
-  val grid = scala.collection.mutable.Map[(Int, Int), GridNode]()
+  val grid = scala.collection.mutable.Map[(Int, Int), PastedGridNode]()
 
-  def placeInGrid(sg: SectorGroup, gridX: Int, gridY: Int): Unit = {
 
-    val bb = sg.boundingBox
-    if(! bb.fitsInside(gridSize, gridSize)){
-      throw new IllegalArgumentException("sector group too large for grid")
-    }
+  /** align the sector group so that any connectors are lined up with the edges of the grid cell */
+  def snapToGridCell(sg: SectorGroup, dest: BoundingBox, simpleConns: Map[Int, SimpleConnector]): PointXY = {
 
-    val dest = BoundingBox(gridX * gridSize, gridY * gridSize, (gridX + 1) * gridSize, (gridY + 1) * gridSize)
+    val east = simpleConns.contains(ConnectorType.HORIZONTAL_EAST)
+    val west = simpleConns.contains(ConnectorType.HORIZONTAL_WEST)
+    val north = simpleConns.contains(ConnectorType.VERTICAL_NORTH)
+    val south = simpleConns.contains(ConnectorType.VERTICAL_SOUTH)
+    val size2 = simpleConns.size
 
-    val size1 = sg.connectors.size()
-    val connectors: Map[Int, SimpleConnector] = sg.connectors.asScala.map(c => (c.getConnectorType, c.asInstanceOf[SimpleConnector])).toMap
-    val east = connectors.contains(ConnectorType.HORIZONTAL_EAST)
-    val west = connectors.contains(ConnectorType.HORIZONTAL_WEST)
-    val north = connectors.contains(ConnectorType.VERTICAL_NORTH)
-    val south = connectors.contains(ConnectorType.VERTICAL_SOUTH)
-    val size2 = connectors.size
-    if(size1 != size2){
+    if(simpleConns.size != size2){
       println(s"connector problem with sector group ${sg.getGroupId}")
       println(s"\tthere are ${sg.connectors.size}; they are:")
       sg.connectors.asScala.foreach(c => println(s"\tconnector type: ${c.getConnectorType}"))
     }
+
+    val bb = sg.boundingBox
 
     // Horizontal
     val newX:Int = (east, west) match {
@@ -84,27 +141,41 @@ class GridMapBuilder(outMap: DMap) {
       case (false, true) => dest.yMin + (dest.h - bb.h) // align to bottom
       case (false, false) => (dest.yMin + dest.h/2) - bb.h/2 // center
     }
+    new PointXY(newX, newY)
+  }
 
+
+  def placeInGrid(sg: SectorGroup, gridX: Int, gridY: Int): Unit = {
+
+    val bb = sg.boundingBox
+    if(! bb.fitsInside(gridSize, gridSize)){
+      throw new IllegalArgumentException("sector group too large for grid")
+    }
+
+    val dest = BoundingBox(gridX * gridSize, gridY * gridSize, (gridX + 1) * gridSize, (gridY + 1) * gridSize)
+
+    val redwallConns = sg.connectorsWithXYRequrements()
+    val connectors: Map[Int, SimpleConnector] = redwallConns.asScala.map(c => (c.getConnectorType, c)).toMap
+
+    val newXY = snapToGridCell(sg, dest, connectors)
+
+
+    val unpastedNode = GridNode(gridX, gridY, sg, connectors)
 
     // TODO - next check for existing groups, to make sure connectors line up
 
-    val translate = new PointXYZ(bb.translateTo(new PointXY(newX, newY)), 0)
-    val psg =new PastedSectorGroup( outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
-    // paletteConnector.translateIds(result.copystate.idmap);
-    val idmap = psg.copystate.idmap
-    val node = GridNode(
-      gridX,
-      gridY,
-      connectors.get(ConnectorType.HORIZONTAL_EAST).map(_.translateIds(idmap)),
-      connectors.get(ConnectorType.HORIZONTAL_WEST).map(_.translateIds(idmap)),
-      connectors.get(ConnectorType.VERTICAL_NORTH).map(_.translateIds(idmap)),
-      connectors.get(ConnectorType.VERTICAL_SOUTH).map(_.translateIds(idmap)),
-      psg
-    )
 
+
+
+    val translate = new PointXYZ(bb.translateTo(newXY), 0)
+    val psg = new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
+    val node = unpastedNode.asPasted(psg)
+
+    // TODO - unit test neighboors, and all this code with the grid nodes!!
 
     // TODO - actually we should refuse to place if there is a connector mismatch
-    val neighboors:Seq[(Int,Int)] = Seq((gridX+1, gridY), (gridX-1, gridY), (gridX, gridY+1), (gridX, gridY-1))
+    //val neighboors:Seq[(Int,Int)] = Seq((gridX+1, gridY), (gridX-1, gridY), (gridX, gridY+1), (gridX, gridY-1))
+    val neighboors:Seq[(Int,Int)] = node.neighboors
     neighboors.map(loc => grid.get(loc)).flatten.map { neighboor =>
       join(node, neighboor)
     }
@@ -113,7 +184,7 @@ class GridMapBuilder(outMap: DMap) {
 
   }
 
-  private def join(n1: GridNode, n2: GridNode): Unit = {
+  private def join(n1: PastedGridNode, n2: PastedGridNode): Unit = {
 
     def join2(c1: Option[SimpleConnector], c2: Option[SimpleConnector]): Unit = {
       if(c1.nonEmpty && c2.nonEmpty){
