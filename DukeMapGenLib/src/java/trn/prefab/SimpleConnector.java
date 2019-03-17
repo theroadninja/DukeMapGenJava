@@ -9,6 +9,10 @@ import trn.Sprite;
 import trn.Wall;
 import trn.duke.MapErrorException;
 
+
+
+// TODO - maybe this should turn into the simple orginal (North, South, East, West) abstraction
+// TODO - on top of the redwall connector, which could use a wall of any angle.
 public class SimpleConnector extends RedwallConnector {
 
 	

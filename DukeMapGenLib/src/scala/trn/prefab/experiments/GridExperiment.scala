@@ -13,47 +13,49 @@ trait Node {
   def gridY: Int
   def location: (Int, Int);
 
+  def east: Option[SimpleConnector]
+  def west: Option[SimpleConnector]
+  def north: Option[SimpleConnector]
+  def south: Option[SimpleConnector]
+
   def neighboors: Seq[(Int,Int)] = {
     Seq((gridX+1, gridY), (gridX-1, gridY), (gridX, gridY+1), (gridX, gridY-1))
   }
-}
-object GridNode {
 
-  // def apply(
-  //   gridX: Int,
-  //   gridY: Int,
-  //   sg: SectorGroup,
-  //   east: Option[SimpleConnector],
-  //   west: Option[SimpleConnector],
-  //   north: Option[SimpleConnector],
-  //   south: Option[SimpleConnector],
-  // ): GridNode = {
-  //   new GridNode(gridX, gridY, sg, east, west, north, south)
-  // }
-
-  def apply(gridX: Int, gridY: Int, sg: SectorGroup, conns: Map[Int, SimpleConnector]): GridNode = {
-    GridNode(
-      gridX,
-      gridY,
-      sg,
-      conns.get(ConnectorType.HORIZONTAL_EAST),
-      conns.get(ConnectorType.HORIZONTAL_WEST),
-      conns.get(ConnectorType.VERTICAL_NORTH),
-      conns.get(ConnectorType.VERTICAL_SOUTH),
-    )
+  /**
+    * @param n2
+    * @returns the pair connectors that would be between two adjacent nodes, returning None if the node does
+    *          not have a connector in that direction.
+    */
+  def matchingConnectors(n2: Node): (Option[SimpleConnector], Option[SimpleConnector]) = {
+    val n1 = this
+    if(n2.gridX == n1.gridX - 1){ // n2 is to the west
+      return (n2.east, n1.west)
+    }else if(n2.gridX == n1.gridX + 1){ // n2 is to the right
+      return (n1.east, n2.west)
+    }else if(n2.gridY == n1.gridY - 1){ // n2 is to the north
+      return (n2.south, n1.north)
+    }else if(n2.gridY == n1.gridY + 1){ // n2 is to the south
+      return (n1.south, n2.north)
+    }else{
+      throw new IllegalArgumentException("nodes are not adjacent")
+    }
   }
 }
+
 case class GridNode (
   gridX: Int,
   gridY: Int,
   sg: SectorGroup,
-  east: Option[SimpleConnector],
-  west: Option[SimpleConnector],
-  north: Option[SimpleConnector],
-  south: Option[SimpleConnector],
+  connectors: Map[Int, SimpleConnector]
 ) extends Node {
 
   override def location: (Int, Int) = (gridX, gridY)
+
+  override def east: Option[SimpleConnector] = connectors.get(ConnectorType.HORIZONTAL_EAST)
+  override def west: Option[SimpleConnector] = connectors.get(ConnectorType.HORIZONTAL_WEST)
+  override def north: Option[SimpleConnector] = connectors.get(ConnectorType.VERTICAL_NORTH)
+  override def south: Option[SimpleConnector] = connectors.get(ConnectorType.VERTICAL_SOUTH)
 
   def asPasted(psg: PastedSectorGroup): PastedGridNode = {
     val idmap = psg.copystate.idmap
@@ -145,7 +147,7 @@ class GridMapBuilder(outMap: DMap) {
   }
 
 
-  def placeInGrid(sg: SectorGroup, gridX: Int, gridY: Int): Unit = {
+  def placeInGrid(sg: SectorGroup, gridX: Int, gridY: Int, allowMismatch: Boolean = false): Boolean = {
 
     val bb = sg.boundingBox
     if(! bb.fitsInside(gridSize, gridSize)){
@@ -162,9 +164,14 @@ class GridMapBuilder(outMap: DMap) {
 
     val unpastedNode = GridNode(gridX, gridY, sg, connectors)
 
-    // TODO - next check for existing groups, to make sure connectors line up
-
-
+    if(!allowMismatch){
+      unpastedNode.neighboors.flatMap(grid.get(_)).foreach { neighboor =>
+        val cs = unpastedNode.matchingConnectors(neighboor)
+        if(1 == Seq(cs._1, cs._2).filter(_.nonEmpty).size){
+          return false; // one has a connector, the other doesnt
+        }
+      }
+    }
 
 
     val translate = new PointXYZ(bb.translateTo(newXY), 0)
@@ -182,6 +189,7 @@ class GridMapBuilder(outMap: DMap) {
 
     grid(node.location) = node
 
+    true
   }
 
   private def join(n1: PastedGridNode, n2: PastedGridNode): Unit = {
@@ -190,7 +198,7 @@ class GridMapBuilder(outMap: DMap) {
       if(c1.nonEmpty && c2.nonEmpty){
         PrefabUtils.joinWalls(outMap, c1.get, c2.get)
       }else{
-        println("WARNING: connectors not joined!")
+        println("WARNING: connectors not joined! (can happen if allowMismatch is true")
       }
     }
     if(n2.gridX == n1.gridX - 1){ // n2 is to the west
@@ -268,6 +276,8 @@ object GridExperiment {
     gBuilder.placeInGrid(palette.getSectorGroup(12), 3, 0)
     gBuilder.placeInGrid(palette.getSectorGroup(12), 5, 0)
     gBuilder.placeInGrid(palette.getSectorGroup(12), 4, 0)
+
+    println(gBuilder.placeInGrid(palette.getSectorGroup(10), 3, 1, false))
 
 
     mb.selectPlayerStart()
