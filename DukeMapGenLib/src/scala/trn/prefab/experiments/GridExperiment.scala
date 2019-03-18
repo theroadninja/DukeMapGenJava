@@ -1,5 +1,7 @@
 package trn.prefab.experiments
 
+import java.util.Random
+
 import trn.duke.experiments.prefab.MapBuilder
 import trn.prefab._
 import trn.{Main, MapUtil, PointXY, PointXYZ, Wall, Map => DMap}
@@ -7,6 +9,13 @@ import trn.{Main, MapUtil, PointXY, PointXYZ, Wall, Map => DMap}
 import scala.collection.JavaConverters._
 
 
+object Node {
+
+  def neighboors(gridX: Int, gridY: Int): Seq[(Int,Int)] = {
+    Seq((gridX+1, gridY), (gridX-1, gridY), (gridX, gridY+1), (gridX, gridY-1))
+  }
+  def neighboors(loc: (Int, Int)): Seq[(Int, Int)] = neighboors(loc._1, loc._2)
+}
 
 trait Node {
   def gridX: Int
@@ -18,9 +27,10 @@ trait Node {
   def north: Option[SimpleConnector]
   def south: Option[SimpleConnector]
 
-  def neighboors: Seq[(Int,Int)] = {
-    Seq((gridX+1, gridY), (gridX-1, gridY), (gridX, gridY+1), (gridX, gridY-1))
-  }
+  // def neighboors: Seq[(Int,Int)] = {
+  //   Seq((gridX+1, gridY), (gridX-1, gridY), (gridX, gridY+1), (gridX, gridY-1))
+  // }
+  def neighboors: Seq[(Int, Int)] = Node.neighboors(gridX, gridY)
 
   /**
     * @param n2
@@ -39,6 +49,22 @@ trait Node {
       return (n1.south, n2.north)
     }else{
       throw new IllegalArgumentException("nodes are not adjacent")
+    }
+  }
+
+  def matchingConnector(loc: (Int, Int)): Option[SimpleConnector] = {
+    val x = loc._1
+    val y = loc._2
+    if(x == gridX - 1){
+      return west
+    }else if(x == gridX + 1){
+      return east
+    }else if(y == gridY - 1){
+      return north
+    }else if(y == gridY + 1){
+      return south
+    }else{
+      return None
     }
   }
 }
@@ -100,11 +126,26 @@ object GridMapBuilder {
   }
 }
 
-class GridMapBuilder(outMap: DMap) {
+class GridMapBuilder(outMap: DMap, seed: Long = System.currentTimeMillis()) {
   import GridMapBuilder.gridSize
+
+  // grid coordinates
+  val minX = 0
+  val minY = 0
+  val maxX = 16
+  val maxY = 16
+
+  val topLeftRealX = -61440
+  val topLeftRealY = topLeftRealX
+
+  val random = new Random(seed)
 
   val grid = scala.collection.mutable.Map[(Int, Int), PastedGridNode]()
 
+  def randomElement[E](collection: Iterable[E]): E = {
+    val list = collection.toSeq
+    list(random.nextInt(list.size))
+  }
 
   /** align the sector group so that any connectors are lined up with the edges of the grid cell */
   def snapToGridCell(sg: SectorGroup, dest: BoundingBox, simpleConns: Map[Int, SimpleConnector]): PointXY = {
@@ -146,6 +187,21 @@ class GridMapBuilder(outMap: DMap) {
     new PointXY(newX, newY)
   }
 
+  def findEmptyConnectableNeighboors: Set[((Int, Int))] = {
+    def hasOpenConnector(loc: (Int, Int)): Boolean = {
+      val reverseNeighboors = Node.neighboors(loc).flatMap(n => grid.get(n))
+      reverseNeighboors.filter(_.matchingConnector(loc).nonEmpty).nonEmpty
+    }
+    if(grid.isEmpty) throw new IllegalStateException("grid is empty")
+    val emptyNeighboors = grid.values.flatMap(_.neighboors).toSet.filter(! grid.contains(_))
+    emptyNeighboors.filter(hasOpenConnector)
+  }
+
+  def gridCellBoundingBox(gridX: Int, gridY: Int): BoundingBox = {
+    val dest = BoundingBox(gridX * gridSize, gridY * gridSize, (gridX + 1) * gridSize, (gridY + 1) * gridSize)
+    // this works because they are negative:
+    dest.translate(new PointXY(topLeftRealX, topLeftRealY))
+  }
 
   def placeInGrid(sg: SectorGroup, gridX: Int, gridY: Int, allowMismatch: Boolean = false): Boolean = {
 
@@ -154,13 +210,15 @@ class GridMapBuilder(outMap: DMap) {
       throw new IllegalArgumentException("sector group too large for grid")
     }
 
-    val dest = BoundingBox(gridX * gridSize, gridY * gridSize, (gridX + 1) * gridSize, (gridY + 1) * gridSize)
+    //val dest = BoundingBox(gridX * gridSize, gridY * gridSize, (gridX + 1) * gridSize, (gridY + 1) * gridSize)
+    val dest = gridCellBoundingBox(gridX, gridY)
+    println(s"grid bounding box: ${dest}")
 
     val redwallConns = sg.connectorsWithXYRequrements()
     val connectors: Map[Int, SimpleConnector] = redwallConns.asScala.map(c => (c.getConnectorType, c)).toMap
 
     val newXY = snapToGridCell(sg, dest, connectors)
-
+    println(s"newYX = ${newXY}")
 
     val unpastedNode = GridNode(gridX, gridY, sg, connectors)
 
@@ -173,15 +231,12 @@ class GridMapBuilder(outMap: DMap) {
       }
     }
 
-
-    val translate = new PointXYZ(bb.translateTo(newXY), 0)
+    val translate = new PointXYZ(bb.getTranslateTo(newXY), 0)
     val psg = new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
     val node = unpastedNode.asPasted(psg)
 
     // TODO - unit test neighboors, and all this code with the grid nodes!!
 
-    // TODO - actually we should refuse to place if there is a connector mismatch
-    //val neighboors:Seq[(Int,Int)] = Seq((gridX+1, gridY), (gridX-1, gridY), (gridX, gridY+1), (gridX, gridY-1))
     val neighboors:Seq[(Int,Int)] = node.neighboors
     neighboors.map(loc => grid.get(loc)).flatten.map { neighboor =>
       join(node, neighboor)
@@ -202,16 +257,16 @@ class GridMapBuilder(outMap: DMap) {
       }
     }
     if(n2.gridX == n1.gridX - 1){ // n2 is to the west
-      println("n2 is to the west")
+      // println("n2 is to the west")
       join2(n2.east, n1.west)
     }else if(n2.gridX == n1.gridX + 1){ // n2 is to the right
-      println("n2 is to the east")
+      // println("n2 is to the east")
       join2(n1.east, n2.west)
     }else if(n2.gridY == n1.gridY - 1){ // n2 is to the north
-      println("n2 is to the north")
+      // println("n2 is to the north")
       join2(n2.south, n1.north)
     }else if(n2.gridY == n1.gridY + 1){ // n2 is to the south
-      println("n2 is to the south")
+      // println("n2 is to the south")
       join2(n1.south, n2.north)
     }
   }
@@ -237,48 +292,33 @@ object GridExperiment {
     }
   }
 
-
   def run(mapWithPrefabs: DMap): DMap = {
     val palette: PrefabPalette = PrefabPalette.fromMap(mapWithPrefabs);
     val mb: MapBuilder = new MapBuilder(palette);
-    //palette.fromMap(fromMap);
 
-    // next ... find all groups with bounding box of a certain size
-    // for(SectorGroup sg : palette.allSectorGroups()){
-    //   // TODO - add bboxHeight() and bboxWidth() to SectorGroup and print out all bounding box dimensions ...
-    //   System.out.println("sector group " + sg.getGroupId() + " bounding box: " + sg.bbWidth() + " x " + sg.bbHeight());
-    // }
 
-    // palette.allSectorGroups().forEach()
-    //val groups:Seq[SectorGroup] = palette.allSectorGroups().asScala.filter(_.boundingBox.fitsInside(5 * 1024, 5 * 1024)).toSeq
-    val groups:Seq[SectorGroup] = palette.allSectorGroups().asScala.filter(GridMapBuilder.compatibleSg).toSeq
-    println(s"found ${groups.size} groups")
+    val allGroups:Seq[SectorGroup] = palette.allSectorGroups().asScala.filter(GridMapBuilder.compatibleSg).toSeq
+    println(s"found ${allGroups.size} groups")
 
-    val playerStarts = groups.filter(_.hasPlayerStart)
+    val playerStarts = allGroups.filter(_.hasPlayerStart)
+    val groups = allGroups.filter(! _.hasPlayerStart)
     if(playerStarts.isEmpty){
       throw new SpriteLogicException("no available groups have player starts")
     }
 
-
     val gBuilder = new GridMapBuilder(mb.getOutMap())
 
     val sgStart = playerStarts(0)
-    //palette.pasteSectorGroup(sgStart, mb.getOutMap, new PointXYZ(0, 0, 0))
 
-    gBuilder.placeInGrid(sgStart, 0, 0)
+    // // 10, 16, and 17 are the 4-way areas
 
-    // 10, 16, and 17 are the 4-way areas
-    gBuilder.placeInGrid(palette.getSectorGroup(10), 1, 0)
-    gBuilder.placeInGrid(palette.getSectorGroup(16), 2, 0)
-    gBuilder.placeInGrid(palette.getSectorGroup(17), 1, 1)
-    gBuilder.placeInGrid(palette.getSectorGroup(10), 2, 1)
+    gBuilder.placeInGrid(sgStart, 8, 8)
 
-    gBuilder.placeInGrid(palette.getSectorGroup(12), 3, 0)
-    gBuilder.placeInGrid(palette.getSectorGroup(12), 5, 0)
-    gBuilder.placeInGrid(palette.getSectorGroup(12), 4, 0)
-
-    println(gBuilder.placeInGrid(palette.getSectorGroup(10), 3, 1, false))
-
+    for(_ <- 0 until 32){
+      val nextPlace = gBuilder.randomElement(gBuilder.findEmptyConnectableNeighboors)
+      val nextGroup = gBuilder.randomElement(groups)
+      gBuilder.placeInGrid(nextGroup, nextPlace._1, nextPlace._2)
+    }
 
     mb.selectPlayerStart()
     mb.clearMarkers()

@@ -26,7 +26,23 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
     w <= width && h <= height
   }
 
-  def translateTo(point: PointXY): PointXY = {
+  /**
+    * @param dest coordinate to move bounding box to
+    * @return bounding box with top left at the given coordinate
+    */
+  def translate(translation: PointXY): BoundingBox = {
+    BoundingBox(
+      xMin + translation.x,
+      yMin + translation.y,
+      xMax + translation.x,
+      yMax + translation.y,
+    )
+  }
+
+  /**
+    *  returns the vector that would move the top left of this bounding box to that point
+    */
+  def getTranslateTo(point: PointXY): PointXY = {
     val p1 = new PointXY(xMin, yMin)
     p1.translateTo(point)
   }
