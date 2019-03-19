@@ -17,7 +17,7 @@ public class PrefabExperiment {
         //Map outMap = Map.createNew();
 
 		final PrefabPalette palette = PrefabPalette.fromMap(fromMap);
-		MapBuilder mb = new MapBuilder(palette);
+		MapBuilderOld mb = new MapBuilderOld(palette);
         palette.fromMap(fromMap);
 
 
@@ -117,7 +117,7 @@ public class PrefabExperiment {
 	public static Map copytest4(Map fromMap) throws MapErrorException {
 
 		final PrefabPalette palette = PrefabPalette.fromMap(fromMap);
-		MapBuilder mb = new MapBuilder(palette);
+		MapBuilderOld mb = new MapBuilderOld(palette);
 		//palette.fromMap(fromMap);
 
 		// next ... find all groups with bounding box of a certain size

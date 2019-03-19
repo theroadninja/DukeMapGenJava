@@ -88,7 +88,10 @@ public class Sprite {
 	short xvel;
 	short yvel;
 	short zvel;
-	short lotag;
+
+	// lotag is a short, but there are no unsigned shorts in java ...
+	int lotag;
+
 	short hitag;
 	short extra;
 	
@@ -164,6 +167,10 @@ public class Sprite {
 		this.z += transform.z;
 		return this;
 	}
+
+	public int getAngle() {
+		return this.ang;
+	}
 	
 	public PointXYZ getLocation(){
 		return new PointXYZ(this.x, this.y, this.z);
@@ -189,7 +196,7 @@ public class Sprite {
 		this.pal = pallette;
 	}
 	
-	public short getLotag(){
+	public int getLotag(){
 		return this.lotag;
 	}
 	
@@ -291,7 +298,7 @@ public class Sprite {
 		ByteUtil.writeInt16LE(output, xvel);
 		ByteUtil.writeInt16LE(output, yvel);
 		ByteUtil.writeInt16LE(output, zvel);
-		ByteUtil.writeInt16LE(output, lotag);
+		ByteUtil.writeInt16LE(output, (short)lotag);
 		ByteUtil.writeInt16LE(output, hitag);
 		ByteUtil.writeInt16LE(output, extra);
 	}
@@ -299,6 +306,9 @@ public class Sprite {
 	
 	public static Sprite readSprite(InputStream input) throws IOException {
 		Sprite s = new Sprite();
+
+
+		// TODO - anything that is supposed to be an usigned short is getting fucked up
 		
 		s.x = ByteUtil.readInt32LE(input);
 		s.y = ByteUtil.readInt32LE(input);
@@ -324,7 +334,7 @@ public class Sprite {
 		s.xvel = ByteUtil.readInt16LE(input);
 		s.yvel = ByteUtil.readInt16LE(input);
 		s.zvel = ByteUtil.readInt16LE(input);
-		s.lotag = ByteUtil.readInt16LE(input);
+		s.lotag = ByteUtil.readInt16LEasInt(input);
 		s.hitag = ByteUtil.readInt16LE(input);
 		s.extra = ByteUtil.readInt16LE(input);
 		

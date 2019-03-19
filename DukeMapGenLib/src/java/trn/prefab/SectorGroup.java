@@ -126,7 +126,7 @@ public class SectorGroup extends SectorGroupS {
     // isEnd()
     // ...and so on
 
-    public boolean isEndGame(){
+    public boolean isEndGame(){ // TODO - get rid of this (better one in SectorGroupS)
 	    for(int i = 0; i < map().getSpriteCount(); ++i){
 	        if(map().getSprite(i).getTexture() == TextureList.Switches.NUKE_BUTTON){
 	            return true;

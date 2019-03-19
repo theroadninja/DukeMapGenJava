@@ -96,7 +96,13 @@ public class ByteUtil {
 	public static short readInt16LE(InputStream input) throws IOException {
 		return EndianUtils.readSwappedShort(input);
 	}
-	
+
+	public static int readInt16LEasInt(InputStream input) throws IOException {
+	    short shortVal = EndianUtils.readSwappedShort(input);
+	    return shortVal >= 0 ? shortVal : 0x10000 + shortVal;
+
+	}
+
 	public static void writeInt16LE(OutputStream output, short signedValue) throws IOException {
 		
 		EndianUtils.writeSwappedShort(output, signedValue);

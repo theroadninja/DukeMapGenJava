@@ -33,6 +33,10 @@ public class PlayerStart {
 		this.z = xyz.z;
 		this.angle = angle;
 	}
+
+	public PlayerStart(final Sprite sprite){
+		this(sprite.getLocation(), sprite.getAngle());
+	}
 	
 	public long x(){
 		return this.x;

@@ -45,7 +45,7 @@ public class PastedSectorGroup {
 	}
 
 
-	public boolean isConnectorLinked(Connector c){ // TODO - replace with version in MapBuilder
+	public boolean isConnectorLinked(Connector c){ // TODO - replace with version in MapBuilderOld
 		return c.isLinked(destMap);
 		//// TODO - will not work with teleporer connectors, etc
 		//return this.destMap.getWall(c.wallId).isRedWall();

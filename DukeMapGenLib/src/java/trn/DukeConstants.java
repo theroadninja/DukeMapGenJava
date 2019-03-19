@@ -78,5 +78,8 @@ public class DukeConstants {
 		
 		/** black and yellow striped construction texture */
 		public static int CONSTRUCTION_SPRITE = 355;
+
+
+		public static int NUKE_BUTTON = 142;
 	}
 }

@@ -1,10 +1,7 @@
 package trn.prefab.experiments
 
-import java.util.Random
-
-import trn.duke.experiments.prefab.MapBuilder
 import trn.prefab._
-import trn.{Main, MapUtil, PointXY, PointXYZ, Wall, Map => DMap}
+import trn.{DukeConstants, Main, MapUtil, PointXY, PointXYZ, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -126,7 +123,7 @@ object GridMapBuilder {
   }
 }
 
-class GridMapBuilder(outMap: DMap, seed: Long = System.currentTimeMillis()) {
+class GridMapBuilder(val outMap: DMap, random: RandomX = new RandomX()) extends MapBuilder {
   import GridMapBuilder.gridSize
 
   // grid coordinates
@@ -138,14 +135,9 @@ class GridMapBuilder(outMap: DMap, seed: Long = System.currentTimeMillis()) {
   val topLeftRealX = -61440
   val topLeftRealY = topLeftRealX
 
-  val random = new Random(seed)
-
   val grid = scala.collection.mutable.Map[(Int, Int), PastedGridNode]()
 
-  def randomElement[E](collection: Iterable[E]): E = {
-    val list = collection.toSeq
-    list(random.nextInt(list.size))
-  }
+  def randomElement[E](collection: Iterable[E]): E = random.randomElement(collection)
 
   /** align the sector group so that any connectors are lined up with the edges of the grid cell */
   def snapToGridCell(sg: SectorGroup, dest: BoundingBox, simpleConns: Map[Int, SimpleConnector]): PointXY = {
@@ -194,8 +186,14 @@ class GridMapBuilder(outMap: DMap, seed: Long = System.currentTimeMillis()) {
     }
     if(grid.isEmpty) throw new IllegalStateException("grid is empty")
     val emptyNeighboors = grid.values.flatMap(_.neighboors).toSet.filter(! grid.contains(_))
-    emptyNeighboors.filter(hasOpenConnector)
+    emptyNeighboors.filter(n => inBounds(n._1, n._2)).filter(hasOpenConnector)
   }
+
+  def inBounds(gridX: Int, gridY: Int): Boolean ={
+    0 <= gridX && gridX < maxX && 0 <= gridY && gridY < maxY
+  }
+
+
 
   def gridCellBoundingBox(gridX: Int, gridY: Int): BoundingBox = {
     val dest = BoundingBox(gridX * gridSize, gridY * gridSize, (gridX + 1) * gridSize, (gridY + 1) * gridSize)
@@ -212,13 +210,12 @@ class GridMapBuilder(outMap: DMap, seed: Long = System.currentTimeMillis()) {
 
     //val dest = BoundingBox(gridX * gridSize, gridY * gridSize, (gridX + 1) * gridSize, (gridY + 1) * gridSize)
     val dest = gridCellBoundingBox(gridX, gridY)
-    println(s"grid bounding box: ${dest}")
+    // println(s"grid bounding box: ${dest}")
 
     val redwallConns = sg.connectorsWithXYRequrements()
     val connectors: Map[Int, SimpleConnector] = redwallConns.asScala.map(c => (c.getConnectorType, c)).toMap
 
     val newXY = snapToGridCell(sg, dest, connectors)
-    println(s"newYX = ${newXY}")
 
     val unpastedNode = GridNode(gridX, gridY, sg, connectors)
 
@@ -294,35 +291,63 @@ object GridExperiment {
 
   def run(mapWithPrefabs: DMap): DMap = {
     val palette: PrefabPalette = PrefabPalette.fromMap(mapWithPrefabs);
-    val mb: MapBuilder = new MapBuilder(palette);
-
 
     val allGroups:Seq[SectorGroup] = palette.allSectorGroups().asScala.filter(GridMapBuilder.compatibleSg).toSeq
-    println(s"found ${allGroups.size} groups")
 
-    val playerStarts = allGroups.filter(_.hasPlayerStart)
-    val groups = allGroups.filter(! _.hasPlayerStart)
-    if(playerStarts.isEmpty){
-      throw new SpriteLogicException("no available groups have player starts")
+    println(s"found ${allGroups.size} groups")
+    val startGroups = allGroups.filter(_.hasPlayerStart)
+    val endGroups = allGroups.filter(_.hasEndGame)
+    val groups = allGroups.filter(g => ! (g.hasPlayerStart || g.hasEndGame))
+
+    if(startGroups.isEmpty){
+      throw new SpriteLogicException("missing start groups")
+    }
+    if(endGroups.isEmpty){
+      throw new SpriteLogicException("missing end groups")
     }
 
-    val gBuilder = new GridMapBuilder(mb.getOutMap())
+    val random = new RandomX()
+    val sgStart = random.randomElement(startGroups)
+    require(sgStart.connectors.size() > 0)
 
-    val sgStart = playerStarts(0)
 
     // // 10, 16, and 17 are the 4-way areas
 
-    gBuilder.placeInGrid(sgStart, 8, 8)
+    def generateGrid(sgStart: SectorGroup, sgEnd: SectorGroup, normalGroups: Seq[SectorGroup], rand: RandomX): GridMapBuilder = {
+      val gBuilder = new GridMapBuilder(DMap.createNew(), random)
+      gBuilder.placeInGrid(sgStart, 8, 8)
+      gBuilder.placeInGrid(sgEnd, rand.nextInt(16), rand.nextInt(8) * 2 - 1) // force odd row, so it wont hit start
 
-    for(_ <- 0 until 32){
-      val nextPlace = gBuilder.randomElement(gBuilder.findEmptyConnectableNeighboors)
-      val nextGroup = gBuilder.randomElement(groups)
-      gBuilder.placeInGrid(nextGroup, nextPlace._1, nextPlace._2)
+      var hasEnd = false
+      for(i <- 0 until 64){
+        println(i)
+        val neighboors = gBuilder.findEmptyConnectableNeighboors
+        if(neighboors.size > 0){
+          val nextPlace = gBuilder.randomElement(gBuilder.findEmptyConnectableNeighboors)
+          val nextGroup = gBuilder.randomElement(groups)
+          if(nextGroup.containsSprite{s =>
+            s.getTexture == DukeConstants.TEXTURES.NUKE_BUTTON && s.getLotag == DukeConstants.LOTAGS.NUKE_BUTTON_END_LEVEL
+          }){
+            if(hasEnd){
+              // skip
+              println("skipping endgame sector group")
+            } else {
+              hasEnd = true
+              gBuilder.placeInGrid(nextGroup, nextPlace._1, nextPlace._2)
+            }
+          } else {
+            gBuilder.placeInGrid(nextGroup, nextPlace._1, nextPlace._2)
+          }
+        } else { println("ran out of neighboors") }
+      }
+      return gBuilder
     }
 
-    mb.selectPlayerStart()
-    mb.clearMarkers()
-    mb.getOutMap()
+    val gBuilder = generateGrid(sgStart, endGroups(0), groups, random)
+
+    gBuilder.setPlayerStart()
+    gBuilder.clearMarkers()
+    gBuilder.outMap
   }
 
 }

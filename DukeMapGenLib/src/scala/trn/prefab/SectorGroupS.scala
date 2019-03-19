@@ -1,7 +1,9 @@
 package trn.prefab
 
 import trn.duke.TextureList
-import trn.{Wall, Map => DMap}
+import trn.{DukeConstants, Sprite, Wall, Map => DMap}
+
+import trn.MapImplicits._
 
 class SectorGroupS(val map: DMap) {
 
@@ -56,6 +58,29 @@ class SectorGroupS(val map: DMap) {
     return false
   }
 
+  def containsSprite(f: (Sprite) => Boolean): Boolean = {
+    for(i <- 0 until map.getSpriteCount){
+      if(f(map.getSprite(i))){
+        return true
+      }
+    }
+    return false
+  }
+
+  def sprites: Seq[Sprite] = map.allSprites
+
+  // def sprites: Seq[Sprite] = {  // TODO replace this with the one in map implicits
+  //   val list = new collection.mutable.ArrayBuffer[Sprite](map.getSpriteCount)
+  //   for(i <- 0 until map.getSpriteCount){
+  //     list += map.getSprite(i)
+  //   }
+  //   list
+  // }
+
   def hasPlayerStart: Boolean = hasMarker(PrefabUtils.SpriteLoTags.PLAYER_START)
+
+  def hasEndGame: Boolean = containsSprite{ s =>
+    s.getTexture == DukeConstants.TEXTURES.NUKE_BUTTON && s.getLotag == DukeConstants.LOTAGS.NUKE_BUTTON_END_LEVEL
+  }
 
 }

@@ -7,7 +7,10 @@ import trn.prefab.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class MapBuilder {
+/**
+ * @deprecated use the scala MapBuilder trait instead
+ */
+public final class MapBuilderOld {
 
     final Map outMap;
 
@@ -15,13 +18,13 @@ public final class MapBuilder {
 
     List<PastedSectorGroup> pastedGroups = new ArrayList<PastedSectorGroup>();
 
-    private MapBuilder(Map outMap, PrefabPalette palette){
+    public MapBuilderOld(Map outMap, PrefabPalette palette){
         this.outMap = outMap;
         this.palette = palette;
     }
 
 
-    public MapBuilder(PrefabPalette palette){
+    public MapBuilderOld(PrefabPalette palette){
         this(Map.createNew(), palette);
     }
 
@@ -103,6 +106,7 @@ public final class MapBuilder {
 
     /**
      * pick a "player start" marker sprite and set the actual player start location there
+     *
      */
     public void selectPlayerStart() throws SpriteLogicException {
         ISpriteFilter psfilter = SpriteFilter.playerstart();
@@ -119,7 +123,8 @@ public final class MapBuilder {
         }
         Sprite pstart = outMap.findSprites(psfilter).iterator().next();
 
-        outMap.setPlayerStart(new PlayerStart(pstart.getLocation(),0));
+        // outMap.setPlayerStart(new PlayerStart(pstart.getLocation(),0));
+        outMap.setPlayerStart(new PlayerStart(pstart));
     }
 
     public void clearMarkers(){
