@@ -166,6 +166,14 @@ public class Wall {
 	}
 
 	/**
+	 * @returns the X,Y coordinates of the first point of this wall as a PointXY.  Note this is similar to the
+	 * Sprite.getLocation() method except that it lacks a z coordinate because walls do not have z coordinates.
+	 */
+	public PointXY getLocation(){
+		return new PointXY(getX(), getY());
+	}
+
+	/**
 	 * @param point2
 	 * @return the vector indicating the direction from point 1 (this wall)
 	 * 		to point 2 (the next wall in the wall loop).  According to

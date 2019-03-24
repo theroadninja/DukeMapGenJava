@@ -22,6 +22,10 @@ public class PointXYZ {
 		this.y = xy.y;
 		this.z = z;
 	}
+
+	public PointXY asPointXY(){
+		return new PointXY(this.x, this.y);
+	}
 	
 	public PointXYZ getTransformTo(PointXYZ dest){
 		return new PointXYZ(dest.x - this.x, dest.y - this.y, dest.z - this.z);

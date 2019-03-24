@@ -1,5 +1,7 @@
 package trn;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,9 +11,12 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import trn.duke.MapImageWriter;
 import trn.duke.experiments.E1RandomSprites;
 import trn.duke.experiments.prefab.PrefabExperiment;
 import trn.prefab.experiments.GridExperiment;
+
+import javax.imageio.ImageIO;
 
 public class Main {
 
@@ -46,14 +51,27 @@ public class Main {
 
 		Map fromMap = loadMap(DOSPATH + "cptest3.map");
 		
-		
-
 		//Map outMap = PrefabExperiment.copytest3(fromMap);
 		//Map outMap = PrefabExperiment.copytest4(fromMap);
 		Map outMap = GridExperiment.run(fromMap);
-		deployTest(outMap);
-		//GridExperiment.sanityCheck();
 
+		// writeAndOpenMapPng(outMap);
+		deployTest(outMap);
+
+	}
+
+	public static void writeAndOpenMapPng(Map map) throws IOException {
+		File picfile = writeMapPng("outptu.png", map);
+		System.out.println("writing " + picfile.toString());
+		Desktop.getDesktop().open(picfile);  // note: Runtime.exec() does not work
+	}
+
+
+	public static File writeMapPng(String filename, Map map) throws IOException {
+		BufferedImage image = MapImageWriter.toImage(map);
+		File outputfile = new File(filename);
+		ImageIO.write(image, "png", outputfile);
+		return outputfile;
 	}
 	
 	
