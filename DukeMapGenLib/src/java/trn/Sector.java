@@ -173,7 +173,17 @@ public class Sector {
 	public short getFloorTexture(){
 		return this.floorpicnum;
 	}
-	
+
+	public CFStat getFloorStat(){
+		return new CFStat(this.floorstat);
+	}
+	public int getFloorXPan(){
+		return this.floorxpanning;
+	}
+	public int getFloorYPan(){
+		return this.floorypanning;
+	}
+
 	public short getCeilingShadeAsUnsigned(){
 		return this.ceilingshade;
 	}

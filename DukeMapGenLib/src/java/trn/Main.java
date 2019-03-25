@@ -24,9 +24,6 @@ public class Main {
 	//found this, looks like a good resource for the build map format:
 	// http://www.shikadi.net/moddingwiki/MAP_Format_%28Build%29
 	
-	/** TODO:  remove when I have some real unit tests */
-	public static final String HELLO = "hello world";
-	
 	public static String DOSPATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
 	
 	public static void main(String[] args) throws Exception {
@@ -85,21 +82,6 @@ public class Main {
 		}
 	}
 	
-	/*public static Map loadMap(String folder, String filename) throws IOException{
-		
-		//String fname = "TWOROOMS.MAP";
-		
-		//String mapFile = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + filename;
-		String mapFile = folder + filename;
-		System.out.println("loading mapfile: " + mapFile);
-		
-		FileInputStream bs = new FileInputStream(new File(mapFile));
-		
-		Map map = Map.readMap(bs);
-		
-		return map;
-	}*/
-	
 	public static Map loadMap(File mapfile) throws IOException {
 		FileInputStream bs = new FileInputStream(mapfile);
 		Map map = Map.readMap(bs);
@@ -156,82 +138,25 @@ public class Main {
 		output.close();
 	}
 	
-	public static void printWalls(Map map) throws Exception {
-		/*
-		String fname =  "ONEROOM.MAP";
-		//String fname = "TWOROOMS.MAP";
-		
-		String mapFile = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + fname;
-		
-		FileInputStream bs = new FileInputStream(new File(mapFile));
-		
-		Map map = Map.readMap(bs);
-		*/
-		
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		
-		for(int i = 0; i < map.getWallCount(); ++i){
-			System.out.println(map.getWall(i).toString(i));
-		}
-	}
-	
+
+	/*
 	public static void oldmain(String[] args) throws Exception {
-		
-		
-		//some ideas:
-		//
-		//
-		// X    change a random sprite?
-		//
-		// change set of textures?
-		//
-		// i guess focus on sprites first...
-		//
-		// random texture too?  or maybe a set of textures?
-		//
-		// translate an entire room? (could be super tricky...read walls...)
-		//
-		// copy a room?
-		//
-		// generate a simple room?  (need much better understanding of all fields...
-		//
-		// generate a boring maze
-		
-		
-		
-		
-		
-		
 		String fname =  "ONEROOM.MAP";
 		//String fname = "TWOROOMS.MAP";
-		
 		String filepath = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + fname;
-		
-		
 		File f = new File(filepath);
 		if(f.exists() && f.isFile()){
-		
 			byte[] mapFile = IOUtils.toByteArray(new FileInputStream(f));
 			parseOnTheFly(mapFile);
-			
 		}else{
 			System.err.println(String.format("%s is not a valid file", filepath));
 			System.exit(1);
 		}
-		
 	}
-	
 
 	public static void parseOnTheFly(byte[] mapFile) throws IOException{
-		
 		ByteArrayInputStream bs = new ByteArrayInputStream(mapFile);
-		
 		Map map = Map.readMap(bs);
-		
-
-		
-		
 	}
+	*/
 }

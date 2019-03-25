@@ -7,6 +7,6 @@ public class MainTests {
 
 	@Test
 	public void testPlumbing(){
-		Assert.assertEquals("hello world", trn.Main.HELLO);
+		Assert.assertTrue(Main.DOSPATH != "");
 	}
 }

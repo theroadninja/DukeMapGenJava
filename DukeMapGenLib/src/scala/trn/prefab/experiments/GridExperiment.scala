@@ -294,6 +294,7 @@ object GridExperiment {
 
     val allGroups:Seq[SectorGroup] = palette.allSectorGroups().asScala.filter(GridMapBuilder.compatibleSg).toSeq
 
+
     println(s"found ${allGroups.size} groups")
     val startGroups = allGroups.filter(_.hasPlayerStart)
     val endGroups = allGroups.filter(_.hasEndGame)

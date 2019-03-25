@@ -20,8 +20,9 @@ public class Map {
 	int sectorWithStartPoint;
 	
 	int sectorCount;
-	
-	List<Sector> sectors = new ArrayList<Sector>();
+
+	// TODO - make not public
+	public List<Sector> sectors = new ArrayList<Sector>();
 	
 	//XXX: in theory we could get rid of this and rely on wall.size()
 	int wallCount;
