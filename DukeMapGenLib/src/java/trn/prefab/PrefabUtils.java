@@ -20,6 +20,15 @@ public class PrefabUtils {
 		
 		// is the hitag then a priority to beat out other player starts?
 		public static int PLAYER_START = 2;
+
+
+		/**
+		 * An anchor whose position you can read to help place a sector group on the grid.
+		 * For example, if you want to place the group such that the middle of the room is in
+		 * a certain spot, put an anchor in the middle of the room and use its coordinates for
+		 * translation.
+		 */
+		public static int ANCHOR = 3;
 		
 		/** lotag that marks a construction sprite as connector */
 		public static int HORIZONTAL_CONNECTOR_EAST = 16;

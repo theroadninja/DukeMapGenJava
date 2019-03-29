@@ -12,7 +12,12 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class Map {
-	
+
+	public static final int MAX_X = 65536;
+	public static final int MIN_X = -65536;
+	public static final int MAX_Y = 65536;
+	public static final int MIN_Y = -65536;
+
 	long mapVersion;
 	
 	PlayerStart playerStart;
@@ -447,6 +452,7 @@ public class Map {
 	
 	public void toBytes(OutputStream output) throws IOException {
 		if(sprites.size() != this.spriteCount) throw new IllegalStateException("sprite count messed up");
+		if(this.playerStart == null) throw new IllegalStateException("no player start");
 		
 		ByteUtil.writeUint32LE(output, mapVersion);
 		this.playerStart.toBytes(output);

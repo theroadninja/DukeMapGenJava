@@ -23,6 +23,10 @@ public class PointXYZ {
 		this.z = z;
 	}
 
+	public PointXYZ add(PointXYZ p){
+		return new PointXYZ(x + p.x, y + p.y, z + p.z);
+	}
+
 	public PointXY asPointXY(){
 		return new PointXY(this.x, this.y);
 	}

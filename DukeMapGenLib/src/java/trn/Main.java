@@ -15,6 +15,7 @@ import trn.duke.MapImageWriter;
 import trn.duke.experiments.E1RandomSprites;
 import trn.duke.experiments.prefab.PrefabExperiment;
 import trn.prefab.experiments.GridExperiment;
+import trn.prefab.experiments.Hypercube;
 
 import javax.imageio.ImageIO;
 
@@ -46,11 +47,14 @@ public class Main {
 		}
 
 
-		Map fromMap = loadMap(DOSPATH + "cptest3.map");
-		
-		//Map outMap = PrefabExperiment.copytest3(fromMap);
-		//Map outMap = PrefabExperiment.copytest4(fromMap);
-		Map outMap = GridExperiment.run(fromMap);
+		// Map fromMap = loadMap(DOSPATH + "cptest3.map");
+		// //Map outMap = PrefabExperiment.copytest3(fromMap);
+		// //Map outMap = PrefabExperiment.copytest4(fromMap);
+		// Map outMap = GridExperiment.run(fromMap);
+
+
+
+		Map outMap = Hypercube.run(loadMap(DOSPATH + "hyper1.map"));
 
 		// writeAndOpenMapPng(outMap);
 		deployTest(outMap);
@@ -105,6 +109,8 @@ public class Main {
 	 * @throws IOException
 	 */
 	public static void deployTest(Map map) throws IOException{
+	    if(map == null) throw new IllegalArgumentException("map is null");
+
 		String filename = "output.map";
 		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + filename;
 		Main.writeResult(map, resultsFile);
