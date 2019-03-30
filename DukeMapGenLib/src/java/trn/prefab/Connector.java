@@ -9,6 +9,13 @@ import java.util.List;
 // TODO:  consider making Connector an interface, and RedwallConnector the base class.
 public abstract class Connector {
 
+    /** optional number that identifies the connector within the sector group */
+    protected final int connectorId;
+
+    protected Connector(int connectorId){
+        this.connectorId = connectorId;
+    }
+
     public abstract int getConnectorType();
 
     /** used to get new connector when pasting sector group onto a map */
@@ -19,7 +26,9 @@ public abstract class Connector {
      * in order to let you name that specific connector.
      * @return
      */
-    public abstract int getConnectorId();
+    public final int getConnectorId(){
+        return connectorId;
+    }
 
     public abstract short getSectorId();
 
@@ -60,6 +69,10 @@ public abstract class Connector {
         } // for sprite
 
         return results;
+    }
+
+    public static final int idOf(Sprite markerSprite){
+        return (markerSprite != null && markerSprite.getHiTag() > 0) ? markerSprite.getHiTag() : -1;
     }
 
 }

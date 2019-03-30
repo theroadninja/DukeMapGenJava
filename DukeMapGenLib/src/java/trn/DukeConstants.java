@@ -47,8 +47,11 @@ public class DukeConstants {
 	
 	
 
+	@Deprecated // use trn.duke.Lotags.SE instead
 	public static final class SE_LOTAGS {
 		public static final int TELEPORT = 7;
+
+		//public static final int ELEVATOR = 17;
 	}
 	public static final class LOTAGS {
 		
@@ -72,7 +75,9 @@ public class DukeConstants {
 		
 		public static final int DOOR_OPERATE1 = 74;
 	}
-	
+
+
+	@Deprecated // use trn.duke.TextureList instead
 	public static final class TEXTURES {
 		public static int SECTOR_EFFECTOR = 1;
 		

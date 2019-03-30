@@ -18,7 +18,7 @@ import trn.duke.MapErrorException;
  * @author Dave
  *
  */
-public class PastedSectorGroup {
+public class PastedSectorGroup implements ISectorGroup {
 	
 	/** map the sectors were pasted to */
 	public final Map destMap;
@@ -44,6 +44,11 @@ public class PastedSectorGroup {
 		this.connectors.addAll(SimpleConnector.findConnectors(map, cf));
 	}
 
+	@Override
+	public Map getMap(){
+		return destMap;
+	}
+
 
 	public boolean isConnectorLinked(Connector c){ // TODO - replace with version in MapBuilderOld
 		return c.isLinked(destMap);
@@ -61,6 +66,15 @@ public class PastedSectorGroup {
 		}
 		
 		throw new IllegalArgumentException();
+	}
+
+	public ElevatorConnector getFirstElevatorConnector(){
+		for(Connector c: connectors){
+			if(c.getConnectorType() == ConnectorType.ELEVATOR){
+				return (ElevatorConnector)c;
+			}
+		}
+		throw new NoSuchElementException();
 	}
 	
 	public Connector findFirstConnector(ConnectorFilter cf){

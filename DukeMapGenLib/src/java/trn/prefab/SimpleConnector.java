@@ -30,7 +30,6 @@ public class SimpleConnector extends RedwallConnector {
 			PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST);
 
 
-	int connectorId = -1;
 	final int sectorId;
 	final int wallId;
 	final int connectorType;
@@ -47,20 +46,15 @@ public class SimpleConnector extends RedwallConnector {
 	PointXYZ anchorPoint = null;
 	int z;
 
-	@Override
-	public int getConnectorId(){
-		return connectorId;
-	}
-
 
 	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall){
+		super(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
 		if(markerSprite == null){
 			throw new IllegalArgumentException("markerSprite is null");
 		}
 		if(markerSprite.getTexture() != PrefabUtils.MARKER_SPRITE_TEX){
 			throw new IllegalArgumentException();
 		}
-		this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
         this.connectorType = markerSprite.getLotag();
 		this.sectorId = markerSprite.getSectorId();
 		if(this.sectorId < 0){
@@ -75,7 +69,7 @@ public class SimpleConnector extends RedwallConnector {
 	}
 
 	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall, Wall nextWallInLoop, int z) throws MapErrorException {
-        this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
+        super(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
         this.wallId = wallId;
         this.sectorId = markerSprite.getSectorId();
 
@@ -101,8 +95,8 @@ public class SimpleConnector extends RedwallConnector {
     }
 
 	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType){
+	    super(connectorId);
 		//TODO add more fields ...
-        this.connectorId = connectorId;
         this.sectorId = sectorId;
         this.wallId = wallId;
         this.connectorType = connectorType;

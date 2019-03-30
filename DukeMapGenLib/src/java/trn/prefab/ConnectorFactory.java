@@ -41,10 +41,11 @@ public class ConnectorFactory {
 
 		}else if(s.getLotag() == PrefabUtils.SpriteLoTags.SIMPLE_CONNECTOR){
 
-			// see if it has a transporter ( SE with lotag 7 )
-            if(map.findSprites(null, DukeConstants.SE_LOTAGS.TELEPORT, (int)s.getSectorId()).size() > 0){
-            	//its a teleporter
+            if(map.findSprites(null, DukeConstants.SE_LOTAGS.TELEPORT, (int)s.getSectorId()).size() > 0) {
+				//its a teleporter
 				return new TeleportConnector(s);
+			} else if(ElevatorConnector.isElevatorMarker(map, s)){
+            	return new ElevatorConnector(s);
 			} else {
 				int wallId = getLinkWallId(map, sector);
 				Wall w1 = map.getWall(wallId);

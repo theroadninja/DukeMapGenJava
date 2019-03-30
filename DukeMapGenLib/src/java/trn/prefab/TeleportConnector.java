@@ -6,30 +6,25 @@ import java.util.List;
 
 public class TeleportConnector extends Connector {
 
-    private final int connectorId;
     private final int sectorId;
 
-
     private TeleportConnector(int connectorId, int sectorId){
-        this.connectorId = connectorId;
+        super(connectorId);
         this.sectorId = sectorId;
     }
 
     public TeleportConnector(Sprite markerSprite) {
+        super(markerSprite != null && markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
         if(markerSprite == null) throw new IllegalArgumentException("null params");
 
         this.sectorId = markerSprite.getSectorId();
-        this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
+        //this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
 
     }
 
     @Override
     public short getSectorId() {
         return (short)this.sectorId;
-    }
-    @Override
-    public int getConnectorId() {
-        return this.connectorId;
     }
 
     @Override

@@ -9,7 +9,9 @@ import trn.Map;
 import trn.duke.MapErrorException;
 import trn.duke.TextureList;
 
-public class SectorGroup extends SectorGroupS {
+public class SectorGroup extends SectorGroupS
+	implements ISectorGroup
+{
 
 	/** optional id that can be added to group by user to manually identify it
 	 * -1 means no id
@@ -35,6 +37,11 @@ public class SectorGroup extends SectorGroupS {
 
 	public SectorGroup(Map map) throws MapErrorException {
 		this(map, -1);
+	}
+
+	@Override
+	public Map getMap(){
+		return super.map();
 	}
 
 	public int getGroupId(){

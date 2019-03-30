@@ -215,6 +215,14 @@ public class Sector {
 	public void setLotag(int lotag){
 		this.lotag = (short)lotag;
 	}
+
+	public void setHitag(int hitag){
+		this.hitag = (short)hitag;
+	}
+
+	public int getLotag(){
+		return this.lotag;
+	}
 	
 	public void toBytes(OutputStream output) throws IOException {
 		ByteUtil.writeInt16LE(output, firstWall);

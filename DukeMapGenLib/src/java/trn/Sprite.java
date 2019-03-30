@@ -191,6 +191,11 @@ public class Sprite {
 	public void setTexture(int i){
 		this.picnum = (short)i;
 	}
+
+	public void setShade(int i){
+	    // TODO - throw exception if i is out of range
+		this.shade = (short)i;
+	}
 	
 	public void setPal(short pallette){
 		this.pal = pallette;
@@ -203,6 +208,11 @@ public class Sprite {
 	public short getHiTag(){
 		return this.hitag;
 	}
+
+	public void setHiTag(short s){
+		this.hitag = s;
+	}
+	public void setHiTag(int i){ setHiTag((short)i); }
 	
 	public void setLotag(short s){
 		this.lotag = s;

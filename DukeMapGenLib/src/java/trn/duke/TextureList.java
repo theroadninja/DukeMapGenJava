@@ -12,6 +12,9 @@ package trn.duke;
 public class TextureList {
 
 	public static final int SECTOR_EFFECTOR = 1;
+	public static final int SE = 1; // shorter version
+
+
 	public static final int ACTIVATOR = 2;
 	public static final int TOUCHPLATE = 3;
 	public static final int ACTIVATOR_LOCKED = 4; //a big L

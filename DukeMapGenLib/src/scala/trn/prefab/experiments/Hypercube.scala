@@ -36,8 +36,10 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
 
     val xx = x * cellDist
     val yy = y * cellDist + z * ((maxGridY + 1) * cellDist)
+    val zz = -1 * (z << 4) * cellDist + 1024 // raise it, so elevators work
+    //val zz = z * + 1024 // raise it, so elevators work
 
-    val tr = anchor.getLocation.getTransformTo(origin.add(new PointXYZ(xx, yy, 0)))
+    val tr = anchor.getLocation.getTransformTo(origin.add(new PointXYZ(xx, yy, zz)))
 
     val psg = pasteSectorGroup(sg, tr)
     //val psg = new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, tr));
@@ -87,13 +89,67 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
       }
     }
   }
+
+  def placeElevators(z1: Int, z2: Int, connectorId: Int): Unit ={
+    grid.foreach{
+      case ((x, y, z, w), psg) if (z == z1) =>
+        grid.get((x, y, z + 1, w)).foreach { _ =>
+          linkElevators(
+            (x, y, z, w),
+            (x, y, z + 1, w),
+            connectorId,
+            true
+          )
+        }
+      case _ => {}
+    }
+  }
+
+  def linkElevators(
+    lower: (Int, Int, Int, Int),
+    higher: (Int, Int, Int, Int),
+    connectorId: Int,
+    elevatorStartsLower: Boolean = true
+  ): Unit = {
+    val lowerRoom = grid.get(lower).get
+    val higherRoom = grid.get(higher).get
+
+    // TODO - get rid of this
+    try {
+      val lowerElevator = lowerRoom.getConnector(1701).asInstanceOf[ElevatorConnector]
+    } catch {
+      case _: Exception => return // TODO: not all sectors have elevators ...
+    }
+
+    val lowerElevator = lowerRoom.getConnector(1701).asInstanceOf[ElevatorConnector]
+    val higherElevator = higherRoom.getConnector(1701).asInstanceOf[ElevatorConnector]
+
+    ElevatorConnector.linkElevators(
+      lowerElevator,
+      lowerRoom,
+      higherElevator, higherRoom, nextUniqueHiTag(), elevatorStartsLower)
+  }
 }
 
 object Hypercube {
 
+  def run1(sourceMap: DMap): DMap = {
+    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
+    val builder = new HyperMapBuilder(DMap.createNew(), palette)
+    val mainRoom: SectorGroup = palette.getSectorGroup(100)
+    //val mainRoomForCenter: SectorGroup = palette.getSectorGroup(101)
+
+    builder.placeRoom(mainRoom, 0, 0, 0, 0)
+    builder.placeRoom(mainRoom, 0, 0, 1, 0)
+    builder.linkElevators((0, 0, 0, 0), (0, 0, 1, 0), 1701, true)
+
+    builder.setAnyPlayerStart()
+    builder.clearMarkers()
+    builder.outMap
+  }
+
   def run(sourceMap: DMap): DMap = {
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
-
     val builder = new HyperMapBuilder(DMap.createNew(), palette)
     val mainRoom: SectorGroup = palette.getSectorGroup(100)
     val mainRoomForCenter: SectorGroup = palette.getSectorGroup(101)
@@ -110,6 +166,10 @@ object Hypercube {
     }
 
     builder.placeHallways()
+    builder.placeElevators(0, 1, 1701)
+    // def placeElevators(z1: Int, z2: Int, connectorId: Int): Unit ={
+
+    // TODO - add floor numbers
 
     builder.setAnyPlayerStart()
     builder.clearMarkers()

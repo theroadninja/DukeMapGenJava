@@ -6,6 +6,10 @@ import trn.PointXYZ;
 // TODO - or should the main feature of this class be that it matters where the sector is?
 public abstract class RedwallConnector extends Connector {
 
+    protected RedwallConnector(int connectorId){
+        super(connectorId);
+    }
+
     public abstract PointXYZ getTransformTo(Connector c2);
 
     public abstract RedwallConnector translateIds(final IdMap idmap);

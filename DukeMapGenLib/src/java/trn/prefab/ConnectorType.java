@@ -4,6 +4,8 @@ public class ConnectorType {
 
     public static int TELEPORTER = 7;
 
+    public static int ELEVATOR = 17;
+
     /**
      * -+               +--------+
      *  |               |        |

@@ -6,6 +6,15 @@ import trn.{MapUtil, PlayerStart, PointXYZ, Sprite, SpriteFilter, Map => DMap}
 trait MapBuilder {
   val outMap: DMap
 
+  //var hiTagCounter = 1 + Math.max(0, outMap.allSprites.map(_.getHiTag).max)
+  var hiTagCounter = 1
+
+  def nextUniqueHiTag(): Int = {
+    val i = hiTagCounter
+    hiTagCounter += 1
+    i
+  }
+
   def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = {
     new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
   }
