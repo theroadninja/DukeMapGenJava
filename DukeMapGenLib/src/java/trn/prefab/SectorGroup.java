@@ -39,6 +39,10 @@ public class SectorGroup extends SectorGroupS
 		this(map, -1);
 	}
 
+	public SectorGroup copy() throws MapErrorException {
+		return new SectorGroup(map().copy(), this.sectorGroupId);
+	}
+
 	@Override
 	public Map getMap(){
 		return super.map();
@@ -101,6 +105,16 @@ public class SectorGroup extends SectorGroupS
 		}
 		
 		throw new IllegalArgumentException();
+	}
+
+	public boolean hasConnector(int connectorId){
+		if(connectorId < 0) throw new IllegalArgumentException();
+		for(Connector c: connectors){
+			if(c.getConnectorId() == connectorId){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** right now this is for debugging */

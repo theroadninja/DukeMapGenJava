@@ -132,7 +132,10 @@ public class Sprite {
 		this.extra = -1;
 		
 	}
-	
+	public Sprite copy(){
+		return copy(this.getSectorId());
+	}
+
 	public Sprite copy(short newSectorId){
 		Sprite sprite = new Sprite();
 		sprite.x = this.x;

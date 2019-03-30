@@ -1,6 +1,8 @@
 package trn.prefab;
 
 import trn.*;
+import trn.duke.Lotags;
+import trn.duke.TextureList;
 
 import java.util.List;
 
@@ -56,5 +58,30 @@ public class TeleportConnector extends Connector {
     @Override
     public boolean hasXYRequirements() {
         return false;
+    }
+
+
+    /**
+     * @return the actual SE 17 sprite used to make the elevator work
+     */
+    public Sprite getSESprite(ISectorGroup sg){
+        List<Sprite> list = getSESprites(sg.getMap());
+        if(list.size() != 1) throw new SpriteLogicException("too many elevator sprites in sector");
+        return list.get(0);
+    }
+
+    private List<Sprite> getSESprites(Map map) {
+        return map.findSprites(TextureList.SE, Lotags.SE.TELEPORT, sectorId);
+    }
+
+    public static void linkTeleporters(
+            TeleportConnector conn1,
+            ISectorGroup group1,
+            TeleportConnector conn2,
+            ISectorGroup group2,
+            int hitag
+    ){
+        conn1.getSESprite(group1).setHiTag(hitag);
+        conn2.getSESprite(group2).setHiTag(hitag);
     }
 }

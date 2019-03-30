@@ -68,6 +68,17 @@ public class PastedSectorGroup implements ISectorGroup {
 		throw new IllegalArgumentException();
 	}
 
+	// TODO - these functions are duplicated in SectorGroup
+	public boolean hasConnector(int connectorId){
+		if(connectorId < 0) throw new IllegalArgumentException();
+		for(Connector c: connectors){
+			if(c.getConnectorId() == connectorId){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public ElevatorConnector getFirstElevatorConnector(){
 		for(Connector c: connectors){
 			if(c.getConnectorType() == ConnectorType.ELEVATOR){

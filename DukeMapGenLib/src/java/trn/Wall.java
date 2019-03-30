@@ -239,6 +239,11 @@ public class Wall {
 		this.cstat |= flag;
 		return this;
 	}
+
+	public void setPal(int i){
+		// TODO - throw if i is out of range
+		this.pal = (short)i;
+	}
 	
 	public void setXRepeat(short s){
 		this.xrepeat = s;

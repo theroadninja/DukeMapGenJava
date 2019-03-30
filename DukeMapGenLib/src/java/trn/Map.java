@@ -38,13 +38,38 @@ public class Map {
 	
 	List<Sprite> sprites = new ArrayList<Sprite>();
 	
+	private Map(long mapVersion){
+		this.mapVersion = mapVersion;
+	}
 	private Map(){
-		
+		this(7);
+	}
+
+	public Map copy(){
+	    Map map = new Map(this.mapVersion);
+	    map.playerStart = this.playerStart;
+	    map.sectorWithStartPoint = this.sectorWithStartPoint;
+	    map.sectorCount = this.sectorCount;
+	    map.wallCount = this.wallCount;
+	    map.spriteCount = this.spriteCount;
+
+	    map.sectors = new ArrayList<>();
+	    for(Sector s : this.sectors){
+	    	map.sectors.add(s.copy());
+		}
+	    map.walls = new ArrayList<>();
+	    for(Wall w : this.walls){
+	    	map.walls.add(w.copy());
+		}
+	    map.sprites = new ArrayList<>();
+	    for(Sprite s : this.sprites){
+	    	map.sprites.add(s.copy());
+		}
+	    return map;
 	}
 	
 	public static Map createNew(){
-		Map map = new Map();
-		map.mapVersion = 7; //duke.  not sure if it includes atomic or not.
+		Map map = new Map(7); //7 is duke.  not sure if it includes atomic or not.
 		return map;
 	}
 	

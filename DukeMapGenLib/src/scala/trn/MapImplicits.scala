@@ -14,6 +14,14 @@ object MapImplicits {
       list
     }
 
+    def allWalls: Seq[Wall] = {
+      val list = new collection.mutable.ArrayBuffer[Wall](map.getWallCount)
+      for(i <- 0 until map.getWallCount){
+        list += map.getWall(i)
+      }
+      list
+    }
+
   }
   implicit def mapExtended(map: DMap) = new MapExtended(map)
 }
