@@ -54,7 +54,7 @@ public class PrefabPalette {
 			
 			processedSectorIds.addAll(cpstate.sourceSectorIds());
 			
-			List<Sprite> idSprite = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.SpriteLoTags.GROUP_ID, null);
+			List<Sprite> idSprite = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
 			if(idSprite.size() > 1){
 				throw new SpriteLogicException("too many group id sprites in sector group");
 			}else if(idSprite.size() == 1){

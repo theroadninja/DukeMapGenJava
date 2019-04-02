@@ -190,7 +190,10 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
   }
 }
 
-object Hypercube {
+/**
+  * A 3x3x3x2 hypercube that uses hyper1.map
+  */
+object Hypercube1 {
 
   def run1(sourceMap: DMap): DMap = {
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);

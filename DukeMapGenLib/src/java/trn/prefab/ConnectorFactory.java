@@ -11,8 +11,8 @@ public class ConnectorFactory {
 		Sector sector = map.getSector(s.getSectorId());
 		
 		
-		if(s.getLotag() == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST
-				|| s.getLotag() == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST){
+		if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_EAST
+				|| s.getLotag() == PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_WEST){
 			
 			
 
@@ -25,8 +25,8 @@ public class ConnectorFactory {
 			return connector;
 
 
-		}else if(s.getLotag() == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH
-				|| s.getLotag() == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_SOUTH) {
+		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_NORTH
+				|| s.getLotag() == PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_SOUTH) {
 
 			int wallId = getLinkWallId(map, sector);
 
@@ -39,7 +39,7 @@ public class ConnectorFactory {
 			connector.setAnchorPoint(anchor);
 			return connector;
 
-		}else if(s.getLotag() == PrefabUtils.SpriteLoTags.SIMPLE_CONNECTOR){
+		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.SIMPLE_CONNECTOR){
 
             if(map.findSprites(null, DukeConstants.SE_LOTAGS.TELEPORT, (int)s.getSectorId()).size() > 0) {
 				//its a teleporter

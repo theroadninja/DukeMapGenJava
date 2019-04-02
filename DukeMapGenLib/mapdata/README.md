@@ -1,0 +1,1 @@
+This directory holds `.map` files that are used for specific experiments.

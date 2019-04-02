@@ -2,20 +2,17 @@ package trn;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import trn.duke.MapImageWriter;
 import trn.duke.experiments.E1RandomSprites;
-import trn.duke.experiments.prefab.PrefabExperiment;
-import trn.prefab.experiments.GridExperiment;
-import trn.prefab.experiments.Hypercube;
+import trn.prefab.experiments.Hypercube1;
+import trn.prefab.experiments.Hypercube2;
 
 import javax.imageio.ImageIO;
 
@@ -54,7 +51,8 @@ public class Main {
 
 
 
-		Map outMap = Hypercube.run(loadMap(DOSPATH + "hyper1.map"));
+		//Map outMap = Hypercube1.run(loadMap(DOSPATH + "hyper1.map"));
+		Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
 
 		// writeAndOpenMapPng(outMap);
 		deployTest(outMap);
@@ -76,22 +74,7 @@ public class Main {
 	}
 	
 	
-	public static Map loadMap(String filename) throws IOException{
-		File path = new File(filename);
-		if(path.isAbsolute()){
-			// C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/
-			return loadMap(path);
-		}else{
-			return loadMap(new File(System.getProperty("user.dir") + File.separator + "testdata" + File.separator, filename));
-		}
-	}
-	
-	public static Map loadMap(File mapfile) throws IOException {
-		FileInputStream bs = new FileInputStream(mapfile);
-		Map map = Map.readMap(bs);
-		return map;
-	}
-	
+
 	public static void writeResult(Map map) throws IOException{
 		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + "output.map";
 		writeResult(map, resultsFile);

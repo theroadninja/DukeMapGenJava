@@ -36,7 +36,7 @@ public class SpriteFilter implements ISpriteFilter {
 		return new ISpriteFilter(){
 			public boolean matches(Sprite sprite){
 				return sprite.picnum == PrefabUtils.MARKER_SPRITE_TEX
-						&& sprite.lotag == PrefabUtils.SpriteLoTags.PLAYER_START;
+						&& sprite.lotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START;
 			}
 		};
 	}

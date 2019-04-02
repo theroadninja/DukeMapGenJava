@@ -5,7 +5,23 @@ import trn.{DukeConstants, Sprite, Wall, Map => DMap}
 
 import trn.MapImplicits._
 
-class SectorGroupS(val map: DMap) {
+class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
+
+  def copy(): SectorGroup = {
+    new SectorGroup(map.copy, this.sectorGroupId);
+  }
+  /**
+    * @return a copy of this sector group, flipped about the X axis
+    */
+  def flippedX(x: Int): SectorGroupS = {
+    val sg = this.copy.asInstanceOf[SectorGroupS]
+
+    sg.wallSeq.foreach{ w =>
+      //w.x =
+    }
+    if(1==1) throw new RuntimeException("not implemented yet")
+    sg
+  }
 
   //mapprotected def getMap(): DMap = map
 
@@ -77,7 +93,7 @@ class SectorGroupS(val map: DMap) {
   //   list
   // }
 
-  def hasPlayerStart: Boolean = hasMarker(PrefabUtils.SpriteLoTags.PLAYER_START)
+  def hasPlayerStart: Boolean = hasMarker(PrefabUtils.MarkerSpriteLoTags.PLAYER_START)
 
   def hasEndGame: Boolean = containsSprite{ s =>
     s.getTexture == DukeConstants.TEXTURES.NUKE_BUTTON && s.getLotag == DukeConstants.LOTAGS.NUKE_BUTTON_END_LEVEL

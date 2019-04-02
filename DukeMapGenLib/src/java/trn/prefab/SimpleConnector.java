@@ -18,16 +18,16 @@ public class SimpleConnector extends RedwallConnector {
 	
 	
 	public static ConnectorFilter SouthConnector = new ConnectorTypeFilter(
-			PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_SOUTH);
+			PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_SOUTH);
 	
 	public static ConnectorFilter NorthConnector = new ConnectorTypeFilter(
-			PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH);
+			PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_NORTH);
 
 	public static ConnectorFilter EastConnector = new ConnectorTypeFilter(
-			PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST);
+			PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_EAST);
 	
 	public static ConnectorFilter WestConnector = new ConnectorTypeFilter(
-			PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST);
+			PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_WEST);
 
 
 	final int sectorId;
@@ -153,10 +153,10 @@ public class SimpleConnector extends RedwallConnector {
 	// 	int y = Math.max(this.sprite.getLotag(), c.sprite.getLotag());
 
 	// 	// TODO ...
-	// 	if(x == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_EAST && y == PrefabUtils.SpriteLoTags.HORIZONTAL_CONNECTOR_WEST){
+	// 	if(x == PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_EAST && y == PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_WEST){
 	// 		return true;
 	// 	}
-	// 	if(x == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_SOUTH && y == PrefabUtils.SpriteLoTags.VERTICAL_CONNECTOR_NORTH){
+	// 	if(x == PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_SOUTH && y == PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_NORTH){
 	// 		return true;
 	// 	}
 	// 	return false;

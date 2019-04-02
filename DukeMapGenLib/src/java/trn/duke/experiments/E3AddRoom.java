@@ -2,10 +2,7 @@ package trn.duke.experiments;
 
 import java.io.IOException;
 
-import trn.Main;
-import trn.Map;
-import trn.Sector;
-import trn.Wall;
+import trn.*;
 
 
 /**
@@ -18,7 +15,7 @@ public class E3AddRoom {
 	
 	public static void main(String[] args) throws IOException{
 		
-		Map m = Main.loadMap("RT3.MAP");
+		Map m = MapLoader.loadMap("RT3.MAP");
 		go(m);
 		Main.writeResult(m);
 		

@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{DukeConstants, Main, MapUtil, PointXY, PointXYZ, Map => DMap}
+import trn.{DukeConstants, Main, MapLoader, MapUtil, PointXY, PointXYZ, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -279,7 +279,7 @@ class GridMapBuilder(val outMap: DMap, random: RandomX = new RandomX()) extends 
 object GridExperiment {
 
   def sanityCheck(): Unit = {
-    val fromMap: DMap = Main.loadMap(Main.DOSPATH + "test1.map");
+    val fromMap: DMap = MapLoader.loadMap(Main.DOSPATH + "test1.map");
     //
 
     val palette = PrefabPalette.fromMap(fromMap)

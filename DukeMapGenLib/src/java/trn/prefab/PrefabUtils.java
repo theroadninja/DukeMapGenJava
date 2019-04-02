@@ -13,7 +13,7 @@ public class PrefabUtils {
 	}
 	*/
 	
-	public static class SpriteLoTags {
+	public static class MarkerSpriteLoTags {
 		
 		/** lotag of construction sprite whose hitag serves as an id for the group */
 		public static int GROUP_ID = 1;
@@ -63,7 +63,7 @@ public class PrefabUtils {
 	public static int MARKER_SPRITE_TEX = DukeConstants.TEXTURES.CONSTRUCTION_SPRITE;
 	
 	public static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
-	//public static ISpriteFilter CONNECTOR_SPRITE = SpriteFilter.loTag(SpriteLoTags.HORIZONTAL_CONNECTOR);
+	//public static ISpriteFilter CONNECTOR_SPRITE = SpriteFilter.loTag(MarkerSpriteLoTags.HORIZONTAL_CONNECTOR);
 	
 	
 	

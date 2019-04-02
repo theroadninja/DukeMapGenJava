@@ -2,6 +2,7 @@ package trn;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import scala.Tuple2;
 
 /**
  * for xy coordinates
@@ -18,10 +19,22 @@ public class PointXY {
 		this.x = x;
 		this.y = y;
 	}
-	
+
 	public PointXY(Wall w){
 		this.x = w.getX();
 		this.y = w.getY();
+	}
+
+	// indexed access, so that matrix functions make more sense
+    // NOTE: if we were doing this in scala could just have `def apply(Int)` for index syntax
+	public int get(int i){
+		if(i == 0){
+			return x;
+		}else if(i == 1){
+			return y;
+		}else{
+			throw new IndexOutOfBoundsException();
+		}
 	}
 
 	@Override

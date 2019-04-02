@@ -26,7 +26,7 @@ public class SectorGroup extends SectorGroupS
 	public List<Connector> connectors = new ArrayList<Connector>();
 	
 	public SectorGroup(Map map, int sectorGroupId) throws MapErrorException {
-	    super(map);
+	    super(map, sectorGroupId);
 		this.sectorGroupId = sectorGroupId;
 		//this.map = map;
 		//this.connectors.addAll(SimpleConnector.findConnectors(map));
@@ -39,9 +39,9 @@ public class SectorGroup extends SectorGroupS
 		this(map, -1);
 	}
 
-	public SectorGroup copy() throws MapErrorException {
+	/*public SectorGroup copy() throws MapErrorException {
 		return new SectorGroup(map().copy(), this.sectorGroupId);
-	}
+	}*/
 
 	@Override
 	public Map getMap(){
