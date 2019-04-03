@@ -17,6 +17,10 @@ object PointXYImplicits {
     def toMatrix(): IntMatrix = {
       IntMatrix.toColumn(this.toSeq :+ 1)
     }
+
+    def +(t: (Int, Int)): PointXY = new PointXY(point.x + t._1, point.y + t._2)
+
+    def toTuple: (Int, Int) = (point.x, point.y)
   }
 
   implicit def pointXYExtended(point: PointXY) = new PointXYExtended(point)

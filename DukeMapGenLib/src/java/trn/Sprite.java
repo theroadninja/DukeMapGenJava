@@ -5,6 +5,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Sprite {
+
+	/**
+	 *
+	 * @param angle the angle, in weird duke angle units (0 to 2047, clockwise)
+	 * @return
+	 */
+	public static int rotateAngleCW(int angle){
+		angle -= 512;
+		if(angle < 0){
+			angle += 2048;
+		}
+		return angle;
+	}
 	
 	public static final short DEFAULT_X_REPEAT = 64;
 	public static final short DEFAULT_Y_REPEAT = 64;
@@ -81,7 +94,7 @@ public class Sprite {
 	
 	short sectnum; //INT16LE sector of sprite's location
 	short statnum; //INT16LE.  status or sprite
-	short ang; //INT16LE - angle
+	short ang; //INT16LE - angle  (angles are 0-2047 clockwise?) - so 90 degrees = 512 ?
 	
 	//the rest are INT16LE.  are some of these only used at runtime?
 	short owner;
@@ -173,6 +186,10 @@ public class Sprite {
 
 	public int getAngle() {
 		return this.ang;
+	}
+
+	public void setAng(int a){
+		this.ang = (short)a;
 	}
 	
 	public PointXYZ getLocation(){

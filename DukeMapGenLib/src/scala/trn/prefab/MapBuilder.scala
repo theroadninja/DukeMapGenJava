@@ -3,6 +3,15 @@ package trn.prefab
 import trn.MapImplicits._
 import trn.{MapUtil, PlayerStart, PointXYZ, Sprite, SpriteFilter, Map => DMap}
 
+
+object MapBuilder {
+  def isMarkerSprite(s: Sprite, lotag: Int): Boolean = {
+    s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
+  }
+  def isAnchorSprite(s: Sprite): Boolean = isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
+
+}
+
 trait MapBuilder {
   val outMap: DMap
 
@@ -22,8 +31,9 @@ trait MapBuilder {
     * @param location
     * @return
     */
-  def pasteSectorGroupAt(sg: SectorGroup, location: PointXYZ): PastedSectorGroup = {
+  def pasteSectorGroupAt(sg: SectorGroup, location: PointXYZ, anchorOnly: Boolean = false): PastedSectorGroup = {
     val anchor = sg.sprites.find(isAnchor).map(_.getLocation).getOrElse{
+      if(anchorOnly){ throw new SpriteLogicException(("no anchor sprite"))}
       new PointXYZ(sg.boundingBox.xMin, sg.boundingBox.yMin, 0) // TODO - bounding box doesnt do z ...
     }
     pasteSectorGroup(sg, anchor.getTransformTo(location))
@@ -67,10 +77,11 @@ trait MapBuilder {
     * @returns true if the given sprite is a marker sprite that also has a matching lotag
     */
   def isMarker(s: Sprite, lotag: Int): Boolean = {
-    s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
+    //s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
+    MapBuilder.isMarkerSprite(s, lotag)
   }
 
   // TODO - add optional hitag param
-  def isAnchor(s: Sprite): Boolean = isMarker(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
+  def isAnchor(s: Sprite): Boolean = MapBuilder.isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
 
 }

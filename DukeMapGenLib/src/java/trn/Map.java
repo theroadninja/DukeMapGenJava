@@ -1,5 +1,7 @@
 package trn;
 
+import trn.duke.MapErrorException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,7 +39,8 @@ public class Map {
 	int spriteCount;
 	
 	List<Sprite> sprites = new ArrayList<Sprite>();
-	
+
+
 	private Map(long mapVersion){
 		this.mapVersion = mapVersion;
 	}
@@ -206,6 +209,18 @@ public class Map {
 		}
 		
 		return list;
+	}
+
+	public int getPreviousWall(int wallIndex) throws MapErrorException {
+		if(wallIndex < 0) throw new IllegalArgumentException();
+		List<Integer> loop = getWallLoop(wallIndex);
+		for(int i = 0; i < loop.size(); ++i){
+			Wall pw = getWall(i);
+			if(wallIndex == pw.point2){
+				return wallIndex;
+			}
+		}
+		throw new MapErrorException("unable to find previous wall for wall " + wallIndex);
 	}
 	
 	/**

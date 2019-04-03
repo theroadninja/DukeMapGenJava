@@ -3,6 +3,15 @@ package trn.prefab
 
 object IntMatrix {
 
+  private def trig(map: Map[Int, Int])(degrees: Int): Int = {
+    map.get(degrees % 360).getOrElse{
+      throw new IllegalArgumentException("only right angles are supported")
+    }
+  }
+  def sin:Int => Int = trig(Map((0, 0), (90, 1), (180, 0), (270, -1)))
+  def cos:Int => Int = trig(Map((0, 1), (90, 0), (180, -1), (270, 0)))
+
+
   def apply(rows: Seq[Seq[Int]]): IntMatrix = {
     new IntMatrix(rows)
   }

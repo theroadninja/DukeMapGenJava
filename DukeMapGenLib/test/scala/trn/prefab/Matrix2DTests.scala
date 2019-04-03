@@ -3,6 +3,7 @@ package trn.prefab
 import org.junit.Assert
 import org.junit.Test
 import trn.PointXY
+import trn.PointXYImplicits._
 
 class Matrix2DTests {
 
@@ -205,11 +206,39 @@ class Matrix2DTests {
       ((16, 16), (16, -16)),
       ((17, 1), (1, -17))
     )
+    val anchor = new PointXY(5, 5)
     points.foreach { case (p1: (Int, Int), p2: (Int, Int)) =>
       Assert.assertEquals(p2, m * p1)
       Assert.assertEquals(p2, Matrix2D.rotateCCW * Matrix2D.rotate(180) * p1)
       Assert.assertEquals(p2, m * m * m * m * m * p1)
+      Assert.assertEquals(p2, Matrix2D.rotateAroundCW(new PointXY(0, 0)) * p1)
+      Assert.assertEquals(p1, Matrix2D.rotateAroundCCW(new PointXY(0, 0)) * p2)
+
+      // BONUS: also  check rotate around ...
+      Assert.assertEquals(anchor + p2, Matrix2D.rotateAroundCW(anchor) * (anchor +p1))
+      Assert.assertEquals(anchor + p1, Matrix2D.rotateAroundCCW(anchor) * (anchor + p2))
     }
   }
+
+  @Test
+  def rotateAroundCWTest(): Unit = {
+    val m = Matrix2D.rotateAroundCW(new PointXY(6, 5))
+
+    Assert.assertEquals(new PointXY(7, 4), m * new PointXY(7, 6))
+    Assert.assertEquals(new PointXY(5, 4), m * new PointXY(7, 4))
+    Assert.assertEquals(new PointXY(5, 6), m * new PointXY(5, 4))
+    Assert.assertEquals(new PointXY(7, 6), m * new PointXY(5, 6))
+
+    Assert.assertEquals(new PointXY(11, 0), m * new PointXY(11, 10))
+    Assert.assertEquals(new PointXY(1, 0), m * new PointXY(11, 0))
+    Assert.assertEquals(new PointXY(1, 10), m * new PointXY(1, 0))
+    Assert.assertEquals(new PointXY(11, 10), m * new PointXY(1, 10))
+
+    Assert.assertEquals(new PointXY(16, -5), m * new PointXY(16, 15))
+    Assert.assertEquals(new PointXY(-4, -5), m * new PointXY(16, -5))
+    Assert.assertEquals(new PointXY(-4, 15), m * new PointXY(-4, -5))
+    Assert.assertEquals(new PointXY(16, 15), m * new PointXY(-4, 15))
+  }
+
 
 }

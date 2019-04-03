@@ -1,8 +1,7 @@
 package trn.prefab
 
 import trn.duke.TextureList
-import trn.{DukeConstants, Sprite, Wall, Map => DMap}
-
+import trn.{DukeConstants, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
 
 class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
@@ -13,14 +12,17 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
   /**
     * @return a copy of this sector group, flipped about the X axis
     */
-  def flippedX(x: Int): SectorGroupS = {
-    val sg = this.copy.asInstanceOf[SectorGroupS]
+  def flippedX(x: Int): SectorGroup = {
+    new SectorGroup(map.flippedX(x), this.sectorGroupId)
 
-    sg.wallSeq.foreach{ w =>
-      //w.x =
-    }
-    if(1==1) throw new RuntimeException("not implemented yet")
-    sg
+    // this doesnt work, because you can't just flip:  have to fix the wall loops to be CW or CCW or whatever
+
+    //new SectorGroup(map.copy.transformedXY(Matrix2D.flipXat(x)), this.sectorGroupId)
+  }
+
+  def rotateAroundCW(anchor: PointXY): SectorGroupS = {
+    new SectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
+
   }
 
   //mapprotected def getMap(): DMap = map
@@ -98,5 +100,11 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
   def hasEndGame: Boolean = containsSprite{ s =>
     s.getTexture == DukeConstants.TEXTURES.NUKE_BUTTON && s.getLotag == DukeConstants.LOTAGS.NUKE_BUTTON_END_LEVEL
   }
+
+  //def isAnchor(s: Sprite): Boolean = isMarker(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
+
+  def getAnchor: PointXYZ = sprites.find(MapBuilder.isAnchorSprite).getOrElse(
+    throw new SpriteLogicException("no anchor sprite")
+  ).getLocation
 
 }

@@ -32,6 +32,16 @@ public class Wall {
 	public short nextSector; //INT16LE ... -1 means no sector on other side of wall
 	
 	short cstat; //INT16LE
+	// bit 0: B (blocking wall)
+	// bit 1: 2
+	// bit 2: O
+	// bit 3: F
+	// bit 4: M (masked wall)
+	// bit 5: 1 (1-way wall)
+	// bit 6: H  (another blocking wall)
+	// bit 7: T
+	// bit 8: F
+	//bit 9: T
 	
 	short picnum; //INT16LE --- why the fuck is this signed?
 	
@@ -171,6 +181,12 @@ public class Wall {
 	 */
 	public PointXY getLocation(){
 		return new PointXY(getX(), getY());
+	}
+
+	public void setLocation(PointXY p){
+		if(p == null) throw new IllegalArgumentException();
+		this.x = p.x;
+		this.y = p.y;
 	}
 
 	/**
