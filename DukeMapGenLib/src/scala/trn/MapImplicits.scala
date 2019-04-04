@@ -56,22 +56,18 @@ object MapImplicits {
       }
       copy.sprites.asScala.foreach{ s =>
         val translated = transform * s.getLocation.asPointXY()
-        s.x = translated.x
-        s.y = translated.y
+        s.setLocation(translated)
         s.setAng(Sprite.rotateAngleCW(s.ang))
       }
-
-
-      // TODO - do angles
-      // (convert to unit-ish vector?)
       copy
-      // TODO - the problem is: this fucks up the wall loops!!!!
     }
 
 
-
-    def flippedX(anchorX: Int): DMap = {
-      val transform = Matrix2D.flipXat(anchorX)
+    private def applyTransforms(
+      transform: Matrix2D,
+      angleTransform: Matrix2D,
+      mustReverseWalls: Boolean
+    ): DMap = {
       val copy = map.copy()
       copy.walls.asScala.foreach{ w =>
         val translated = transform * w.getLocation
@@ -79,15 +75,29 @@ object MapImplicits {
       }
       copy.sprites.asScala.foreach{ s =>
         val translated = transform * s.getLocation.asPointXY()
-        s.x = translated.x
-        s.y = translated.y
-        // TODO - s.setAng(Sprite.rotateAngleCW(s.ang))
+        s.setLocation(translated)
+
+        val vector: PointXY = angleTransform * AngleUtil.unitVector(s.ang)
+        s.setAngle(AngleUtil.angleOf(vector))
       }
 
       // NOW we need to reverse the walls, because flipping fucked up the clockwise pattern
-      reverseWalls(copy)
-
+      if(mustReverseWalls){
+        reverseWalls(copy)
+      }
       copy
+    }
+
+    def flippedX(anchorX: Int): DMap = {
+      val transform = Matrix2D.flipXat(anchorX)
+      val angleTransform = Matrix2D.flipX
+      applyTransforms(transform, angleTransform, true)
+    }
+
+    def flippedY(anchorY: Int): DMap = {
+      val transform = Matrix2D.flipYat(anchorY)
+      val angleTransform = Matrix2D.flipY
+      applyTransforms(transform, angleTransform, true)
     }
 
 

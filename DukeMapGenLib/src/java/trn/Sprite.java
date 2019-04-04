@@ -191,9 +191,23 @@ public class Sprite {
 	public void setAng(int a){
 		this.ang = (short)a;
 	}
-	
+	public void setAngle(short angle){
+		this.ang = angle;
+	}
+	public void setAngle(int i){ setAngle((short)i); }
+
 	public PointXYZ getLocation(){
 		return new PointXYZ(this.x, this.y, this.z);
+	}
+	public void setLocation(PointXY point){
+		this.x = point.x;
+		this.y = point.y;
+	}
+
+	public void setLocation(PointXYZ point){
+		this.x = point.x;
+		this.y = point.y;
+		this.z = point.z;
 	}
 	
 	public short getSectorId(){
@@ -258,11 +272,7 @@ public class Sprite {
 	}
 	public void setYRepeat(int i){ setYRepeat((short)i); }
 	
-	public void setAngle(short angle){
-		this.ang = angle;
-	}
-	public void setAngle(int i){ setAngle((short)ang); }
-	
+
 	@Override
 	public String toString(){
 		

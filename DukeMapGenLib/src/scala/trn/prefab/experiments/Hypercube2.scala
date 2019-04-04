@@ -20,17 +20,6 @@ class Hyper2MapBuilder(val outMap: DMap) extends MapBuilder {
   val MAXGRID = 2
 
 
-  // From hypercube1:
-  //
-  // def placeHorizontalHallway(left: PastedSectorGroup, right: PastedSectorGroup, hallway: SectorGroup): Unit = {
-  //   val leftConn = left.findFirstConnector(SimpleConnector.EastConnector)
-  //   val rightConn = right.findFirstConnector(SimpleConnector.WestConnector)
-  //   val cdelta: PointXYZ = westConnector(hallway).getTransformTo(leftConn)
-  //   val pastedHallway = pasteSectorGroup(hallway, cdelta)
-  //   joinWalls(pastedHallway.findFirstConnector(SimpleConnector.WestConnector), leftConn)
-  //   joinWalls(pastedHallway.findFirstConnector(SimpleConnector.EastConnector), rightConn)
-  // }
-
   def joinWalls(c1: Connector, c2: Connector): Unit = {
     PrefabUtils.joinWalls(outMap, c1.asInstanceOf[RedwallConnector], c2.asInstanceOf[RedwallConnector])
   }
@@ -92,6 +81,22 @@ class Hyper2MapBuilder(val outMap: DMap) extends MapBuilder {
     pastedHallway
   }
 
+  def placeHallwayNS(hallway: SectorGroup, top: (Int, Int, Int, Int), bottom: (Int, Int, Int, Int)): PastedSectorGroup = {
+
+    val topRoom = grid(top)
+    val bottomRoom = grid(bottom)
+
+    def northConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.NorthConnector).asInstanceOf[RedwallConnector]
+
+    val topConn = topRoom.findFirstConnector(SimpleConnector.SouthConnector)
+    val bottomConn = bottomRoom.findFirstConnector(SimpleConnector.NorthConnector)
+    val cdelta: PointXYZ = northConnector(hallway).getTransformTo(topConn)
+    val pastedHallway = pasteSectorGroup(hallway, cdelta)
+    joinWalls(pastedHallway.findFirstConnector(SimpleConnector.NorthConnector), topConn)
+    joinWalls(pastedHallway.findFirstConnector(SimpleConnector.SouthConnector), bottomConn)
+    pastedHallway
+  }
+
 
 
 }
@@ -106,28 +111,19 @@ object Hypercube2 {
 
     val basicRoom = palette.getSectorGroup(100)
     val eastWestHallway = palette.getSectorGroup(200)
-    val northSouthWallway = palette.getSectorGroup(201)
-
-    val pastedRoom1 = builder.addRoom(basicRoom, (1, 0, 0, 0))
-    //builder.pasteSectorGroupAt(basicRoom, new PointXYZ(0, 0, 0))
-
-    val bigRoomWidth = 6 * 1024
-    val hallwayWidth = 1 * 1024
+    val northSouthHallway = palette.getSectorGroup(201)
 
     val a = basicRoom.getAnchor.asPointXY
-    // val basicRoom2 = basicRoom.rotateAroundCW(a).rotateAroundCW(a)
-    // builder.pasteSectorGroupAt(basicRoom2.asInstanceOf[SectorGroup], new PointXYZ(1024 * 10, 0, 0))
+    builder.addRoom(basicRoom, (1, 1, 0, 0))
+    builder.addRoom(basicRoom.flippedX(a.x), (0, 1, 0, 0))
+    builder.addRoom(basicRoom.flippedY(a.y).flippedX(a.x), (0, 0, 0, 0))
 
-    // val basicRoom3 = basicRoom.flippedX(a.x)
-    // builder.pasteSectorGroupAt(basicRoom3.asInstanceOf[SectorGroup], new PointXYZ(1024 * -7, 0, 0))
-    val pastedRoom2 = builder.addRoom(basicRoom.flippedX(a.x), (0, 0, 0, 0))
+    builder.placeHallwayEW(eastWestHallway, (0, 1, 0, 0), (1, 1, 0, 0))
+    builder.placeHallwayNS(northSouthHallway, (0, 0, 0, 0), (0, 1, 0, 0))
 
-
+    builder.addRoom(basicRoom.flippedY(a.x), (1, 0, 0, 0))
     builder.placeHallwayEW(eastWestHallway, (0, 0, 0, 0), (1, 0, 0, 0))
-    //builder.pasteSectorGroupAt(eastWestHallway, new PointXYZ(1024 * -7/2, 0, 0))
-    //builder.pasteSectorGroupAt(eastWestHallway, builder.origin)
-
-
+    builder.placeHallwayNS(northSouthHallway, (1, 0, 0, 0), (1, 1, 0, 0))
 
     builder.setAnyPlayerStart()
     builder.clearMarkers()

@@ -14,10 +14,10 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
     */
   def flippedX(x: Int): SectorGroup = {
     new SectorGroup(map.flippedX(x), this.sectorGroupId)
+  }
 
-    // this doesnt work, because you can't just flip:  have to fix the wall loops to be CW or CCW or whatever
-
-    //new SectorGroup(map.copy.transformedXY(Matrix2D.flipXat(x)), this.sectorGroupId)
+  def flippedY(y: Int): SectorGroup = {
+    new SectorGroup(map.flippedY(y), this.sectorGroupId)
   }
 
   def rotateAroundCW(anchor: PointXY): SectorGroupS = {
