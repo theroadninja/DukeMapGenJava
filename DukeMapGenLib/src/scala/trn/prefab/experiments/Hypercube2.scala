@@ -4,6 +4,7 @@ import trn.prefab._
 import trn.{DukeConstants, Main, MapUtil, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.PaletteList
+import scala.collection.JavaConverters._
 
 
 class Hyper2MapBuilder(val outMap: DMap) extends MapBuilder {
@@ -19,6 +20,17 @@ class Hyper2MapBuilder(val outMap: DMap) extends MapBuilder {
   val hallwayWidth = 1024
   val MAXGRID = 2
 
+  // tracks locations for placing "floating" sectors that can go anywhere, like underwater areas.
+  val sgPacker: SectorGroupPacker = new SimpleSectorGroupPacker(
+    new PointXY(DMap.MIN_X, 0),
+    new PointXY(DMap.MAX_X, DMap.MAX_Y),
+    512)
+
+  def placeAnywhere(sg: SectorGroup): PastedSectorGroup = {
+    val topLeft = sgPacker.reserveArea(sg)
+    val tr = sg.boundingBox.getTranslateTo(topLeft).withZ(0)
+    pasteSectorGroup(sg, tr)
+  }
 
   def joinWalls(c1: Connector, c2: Connector): Unit = {
     PrefabUtils.joinWalls(outMap, c1.asInstanceOf[RedwallConnector], c2.asInstanceOf[RedwallConnector])
@@ -27,7 +39,7 @@ class Hyper2MapBuilder(val outMap: DMap) extends MapBuilder {
 
   def addRoom(room: SectorGroup, gridCell: (Int, Int, Int, Int)): PastedSectorGroup = {
 
-    val anchor: PointXYZ = room.getAnchor
+    val anchor: PointXYZ = room.getAnchor.withZ(0)
 
 
     // offsets must shift the max width of the grid for each value
@@ -103,6 +115,22 @@ class Hyper2MapBuilder(val outMap: DMap) extends MapBuilder {
 object Hypercube2 {
 
 
+  //
+  // Room Prefabs (room id is marker w/ lotag 1)
+  //
+  // 100 - basic room
+  // 101 - pool room top
+  // 102 - pool room bottom
+
+  //
+  // Connection Groups
+  //
+  // 200 - east-west hallway
+  // 201 - north-south hallway
+  //
+  // 202 - east-west simple elevator, with east=high part
+
+
   // note:  6 large squares ( 1042 ) seem like a good size.
 
   def run(sourceMap: DMap): DMap = {
@@ -110,20 +138,53 @@ object Hypercube2 {
     val builder = new Hyper2MapBuilder(DMap.createNew())
 
     val basicRoom = palette.getSectorGroup(100)
+    val poolRoomTop = palette.getSectorGroup(101)
+    val poolRoomBottom = palette.getSectorGroup(102)
+
     val eastWestHallway = palette.getSectorGroup(200)
     val northSouthHallway = palette.getSectorGroup(201)
+    val eastWestElevator = palette.getSectorGroup(202)
 
     val a = basicRoom.getAnchor.asPointXY
-    builder.addRoom(basicRoom, (1, 1, 0, 0))
-    builder.addRoom(basicRoom.flippedX(a.x), (0, 1, 0, 0))
-    builder.addRoom(basicRoom.flippedY(a.y).flippedX(a.x), (0, 0, 0, 0))
 
-    builder.placeHallwayEW(eastWestHallway, (0, 1, 0, 0), (1, 1, 0, 0))
-    builder.placeHallwayNS(northSouthHallway, (0, 0, 0, 0), (0, 1, 0, 0))
 
-    builder.addRoom(basicRoom.flippedY(a.x), (1, 0, 0, 0))
-    builder.placeHallwayEW(eastWestHallway, (0, 0, 0, 0), (1, 0, 0, 0))
+    //builder.addRoom(basicRoom.flippedY(a.y).flippedX(a.x), (0, 0, 0, 0))
+    builder.addRoom(basicRoom.flippedX(a.x), (0, 0, 0, 0))
+    val topPsg = builder.addRoom(poolRoomTop, (1, 0, 0, 0))
+    builder.placeHallwayEW(eastWestElevator, (0, 0, 0, 0), (1, 0, 0, 0))
+
+    val bottomPsg = builder.placeAnywhere(poolRoomBottom)
+    // val topConn = topPsg.findConnectorsByType(TeleportConnector.CONNECTOR_TYPE).asScala.head
+    // val bottomConn = bottomPsg.findConnectorsByType(TeleportConnector.CONNECTOR_TYPE).asScala.head
+    // TeleportConnector.linkTeleporters(
+    //   topConn,
+    //   topPsg,
+    //   bottomConn,
+    //   bottomPsg,
+    //   builder.nextUniqueHiTag()
+    // )
+
+    builder.linkAllWater(topPsg, bottomPsg)
+
+    builder.addRoom(poolRoomTop, (1, 1, 0, 0))
     builder.placeHallwayNS(northSouthHallway, (1, 0, 0, 0), (1, 1, 0, 0))
+
+    // TODO - NEXT - connect two underwater rooms together
+
+
+
+
+    // builder.addRoom(basicRoom, (1, 1, 0, 0))
+    // builder.addRoom(basicRoom.flippedX(a.x), (0, 1, 0, 0))
+    // builder.addRoom(basicRoom.flippedY(a.y).flippedX(a.x), (0, 0, 0, 0))
+
+    // builder.placeHallwayEW(eastWestHallway, (0, 1, 0, 0), (1, 1, 0, 0))
+    // builder.placeHallwayNS(northSouthHallway, (0, 0, 0, 0), (0, 1, 0, 0))
+
+    // builder.addRoom(basicRoom.flippedY(a.x), (1, 0, 0, 0))
+    // builder.placeHallwayEW(eastWestHallway, (0, 0, 0, 0), (1, 0, 0, 0))
+    // builder.placeHallwayNS(northSouthHallway, (1, 0, 0, 0), (1, 1, 0, 0))
+
 
     builder.setAnyPlayerStart()
     builder.clearMarkers()

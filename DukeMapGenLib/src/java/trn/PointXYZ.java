@@ -30,6 +30,13 @@ public class PointXYZ {
 	public PointXY asPointXY(){
 		return new PointXY(this.x, this.y);
 	}
+
+	/**
+	 * @returns a copy of this object, but with z set to the given value.
+	 */
+	public PointXYZ withZ(int z){
+		return new PointXYZ(this.x, this.y, z);
+	}
 	
 	public PointXYZ getTransformTo(PointXYZ dest){
 		return new PointXYZ(dest.x - this.x, dest.y - this.y, dest.z - this.z);

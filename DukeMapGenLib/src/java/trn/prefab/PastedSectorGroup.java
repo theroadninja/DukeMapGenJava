@@ -79,6 +79,7 @@ public class PastedSectorGroup implements ISectorGroup {
 		return false;
 	}
 
+
 	public ElevatorConnector getFirstElevatorConnector(){
 		for(Connector c: connectors){
 			if(c.getConnectorType() == ConnectorType.ELEVATOR){
@@ -86,6 +87,16 @@ public class PastedSectorGroup implements ISectorGroup {
 			}
 		}
 		throw new NoSuchElementException();
+	}
+
+	public List<Connector> findConnectorsByType(int connectorType){
+		List<Connector> results = new ArrayList<>(connectors.size());
+		for(Connector c : connectors){
+			if(c.getConnectorType() == connectorType){
+				results.add(c);
+			}
+		}
+		return results;
 	}
 	
 	public Connector findFirstConnector(ConnectorFilter cf){

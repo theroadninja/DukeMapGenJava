@@ -39,4 +39,5 @@ public class ConnectorType {
 
     /** vertical connector on the north side of the sector */
     public static int VERTICAL_NORTH = 19;
+
 }

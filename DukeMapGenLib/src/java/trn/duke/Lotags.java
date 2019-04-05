@@ -8,6 +8,8 @@ public class Lotags {
     }
 
     public static final class ST {
+        public static final int WATER_ABOVE = 1;
+        public static final int WATER_BELOW = 2;
         public static final int ELEVATOR = 15; // matches with SE 17
     }
 }

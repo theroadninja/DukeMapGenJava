@@ -51,7 +51,7 @@ public class Main {
 
 
 
-		//Map outMap = Hypercube1.run(loadMap(DOSPATH + "hyper1.map"));
+		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
 		Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
 
 		// writeAndOpenMapPng(outMap);

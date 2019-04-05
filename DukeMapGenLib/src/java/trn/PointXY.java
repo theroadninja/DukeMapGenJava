@@ -25,6 +25,10 @@ public class PointXY {
 		this.y = w.getY();
 	}
 
+	public PointXYZ withZ(int z){
+		return new PointXYZ(this.x, this.y, z);
+	}
+
 	// indexed access, so that matrix functions make more sense
     // NOTE: if we were doing this in scala could just have `def apply(Int)` for index syntax
 	public int get(int i){

@@ -39,13 +39,13 @@ public class ConnectorFactory {
 			connector.setAnchorPoint(anchor);
 			return connector;
 
-		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.SIMPLE_CONNECTOR){
+		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.SIMPLE_CONNECTOR) {
 
-            if(map.findSprites(null, DukeConstants.SE_LOTAGS.TELEPORT, (int)s.getSectorId()).size() > 0) {
+			if (map.findSprites(null, DukeConstants.SE_LOTAGS.TELEPORT, (int) s.getSectorId()).size() > 0) {
 				//its a teleporter
-				return new TeleportConnector(s);
-			} else if(ElevatorConnector.isElevatorMarker(map, s)){
-            	return new ElevatorConnector(s);
+				return new TeleportConnector(s, sector.getLotag());
+			} else if (ElevatorConnector.isElevatorMarker(map, s)) {
+				return new ElevatorConnector(s);
 			} else {
 				int wallId = getLinkWallId(map, sector);
 				Wall w1 = map.getWall(wallId);
@@ -54,7 +54,8 @@ public class ConnectorFactory {
 				return new SimpleConnector(s, wallId, w1, w2, z);
 			}
 
-
+		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR){
+			return new TeleportConnector(s, sector.getLotag());
 		}else{
 			//throw new SpriteLogicException("sprite lotag=" + s.getLotag())
 			return null;

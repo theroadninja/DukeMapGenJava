@@ -43,6 +43,18 @@ public class PrefabUtils {
 
 		/** marks the sector as a east,west,south or north connector */
 		public static int SIMPLE_CONNECTOR = 20;
+
+		/**
+		 * A connector sprite that becomes a normal or water teleporter.
+		 * (but not a silent teleporter).
+		 * When done this way, you don't need an SE sprite because this sprite
+		 * becomes an SE sprite.
+		 *
+		 * You can also make a teleporter connector by putting a simple connector
+		 * in a sector group with a teleporter.
+		 */
+		public static int TELEPORT_CONNECTOR = 27;
+
 	}
 	
 	public static class WallLoTags {

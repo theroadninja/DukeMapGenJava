@@ -6,22 +6,45 @@ import trn.duke.TextureList;
 
 import java.util.List;
 
+
+/**
+ * NOTE:  apparently the difference between a normal teleporter and water teleporters
+ * is simply the lotags of the sector!
+ *
+ * lotag 0 = teleporter
+ * lotag 1 = above water
+ * lotag 2 = below water
+ */
 public class TeleportConnector extends Connector {
+
+    public static final int CONNECTOR_TYPE = ConnectorType.TELEPORTER;
 
     private final int sectorId;
 
-    private TeleportConnector(int connectorId, int sectorId){
+    private final boolean mustReplaceMarkerSprite;
+
+    private final boolean water;
+
+    private TeleportConnector(int connectorId, int sectorId, boolean replaceMarkerSprite, boolean water){
         super(connectorId);
         this.sectorId = sectorId;
+        this.mustReplaceMarkerSprite = replaceMarkerSprite;
+        this.water = water;
     }
 
-    public TeleportConnector(Sprite markerSprite) {
+    public TeleportConnector(Sprite markerSprite, int sectorLotag) {
         super(markerSprite != null && markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
         if(markerSprite == null) throw new IllegalArgumentException("null params");
 
         this.sectorId = markerSprite.getSectorId();
         //this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
 
+        this.mustReplaceMarkerSprite = markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR;
+        this.water = (sectorLotag == Lotags.ST.WATER_ABOVE || sectorLotag == Lotags.ST.WATER_BELOW);
+    }
+
+    public boolean isWater(){
+        return this.water;
     }
 
     @Override
@@ -38,21 +61,28 @@ public class TeleportConnector extends Connector {
     public TeleportConnector translateIds(IdMap idmap) {
         return new TeleportConnector(
                 this.connectorId,
-                idmap.sector(this.sectorId)
+                idmap.sector(this.sectorId),
+                this.mustReplaceMarkerSprite,
+                this.water
         );
     }
 
     @Override
     public boolean isLinked(Map map) {
-        List<Sprite> list = map.findSprites(DukeConstants.TEXTURES.SECTOR_EFFECTOR, DukeConstants.SE_LOTAGS.TELEPORT, this.sectorId);
-        if(list.size() != 1){
-            // TODO - this is actually b.s. -- you are allowed to have more than one SE 7 sprite,
-            // for the falling type of teleports.
-            throw new SpriteLogicException("wrong number of SE 7 sprites in teleporter sector.");
-        }
+        if(this.mustReplaceMarkerSprite){
+            throw new RuntimeException("not implemented yet");
+        }else{
+            // TODO - use this.getSESprite()
+            List<Sprite> list = map.findSprites(TextureList.SE, Lotags.SE.TELEPORT, this.sectorId);
+            if(list.size() != 1){
+                // TODO - this is actually b.s. -- you are allowed to have more than one SE 7 sprite,
+                // for the falling type of teleports.
+                throw new SpriteLogicException("wrong number of SE 7 sprites in teleporter sector.");
+            }
 
-        // if it has a hitag, assume it is linked
-        return list.get(0).getHiTag() != 0;
+            // if it has a hitag, assume it is linked
+            return list.get(0).getHiTag() != 0;
+        }
     }
 
     @Override
@@ -62,16 +92,71 @@ public class TeleportConnector extends Connector {
 
 
     /**
-     * @return the actual SE 17 sprite used to make the elevator work
+     * NOTE:  should not be public, in case we dont have an SE sprite until the connection is made.
+     *
+     * @return the actual SE 7 sprite used to make the elevator work
      */
-    public Sprite getSESprite(ISectorGroup sg){
+    Sprite getSESprite(ISectorGroup sg){
         List<Sprite> list = getSESprites(sg.getMap());
-        if(list.size() != 1) throw new SpriteLogicException("too many elevator sprites in sector");
+        if(list.size() != 1) throw new SpriteLogicException("too many teleporter sprites in sector");
         return list.get(0);
     }
 
     private List<Sprite> getSESprites(Map map) {
-        return map.findSprites(TextureList.SE, Lotags.SE.TELEPORT, sectorId);
+        //return map.findSprites(TextureList.SE, Lotags.SE.TELEPORT, sectorId);
+        //return map.findSprites(new ISpriteFilter() {
+        //    @Override
+        //    public boolean matches(Sprite sprite) {
+        //        return false;
+        //    }
+        //});
+        Sector sector = map.getSector(sectorId);
+
+        return map.findSprites(
+                (Sprite s) -> s.getTexture() == TextureList.SE
+                && s.getLotag() == Lotags.SE.TELEPORT
+                && s.getSectorId() == sectorId
+                && s.getLocation().z == sector.getFloorZ()
+        );
+    }
+
+
+    /**
+     * Returns the marker sprite, but only in the case where we are replacing the marker sprite
+     * with the SE sprite.
+     * @param sg
+     * @return
+     */
+    private Sprite getMarker27Sprite(ISectorGroup sg){
+        if(!mustReplaceMarkerSprite) throw new IllegalStateException();
+
+        List<Sprite> list = sg.getMap().findSprites(
+                (Sprite s) -> s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
+                        && s.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR
+                        && s.getSectorId() == sectorId
+        );
+        if(list.size() > 1) throw new SpriteLogicException("wrong number of teleporter marker sprites in sector");
+        return list.size() > 0 ? list.get(0) : null;
+    }
+
+    private void replaceMarkerSprite(ISectorGroup sg){
+       if(!mustReplaceMarkerSprite) throw new IllegalStateException();
+       Sprite markerSprite = getMarker27Sprite(sg);
+       if(markerSprite == null) throw new SpriteLogicException("no teleporter marker sprites to replace");
+       markerSprite.setTexture(TextureList.SE);
+       markerSprite.setLotag(Lotags.SE.TELEPORT);
+    }
+
+    public PointXYZ getSELocation(ISectorGroup sg){
+        if(mustReplaceMarkerSprite){
+            Sprite marker = getMarker27Sprite(sg);
+            if(marker != null){
+                return marker.getLocation();
+            }
+        }
+
+        return getSESprite(sg).getLocation();
+
     }
 
     public static void linkTeleporters(
@@ -81,7 +166,27 @@ public class TeleportConnector extends Connector {
             ISectorGroup group2,
             int hitag
     ){
+        if(conn1.mustReplaceMarkerSprite){
+            conn1.replaceMarkerSprite(group1);
+        }
+        if(conn2.mustReplaceMarkerSprite){
+            conn2.replaceMarkerSprite(group2);
+        }
         conn1.getSESprite(group1).setHiTag(hitag);
         conn2.getSESprite(group2).setHiTag(hitag);
     }
+    public static void linkTeleporters(
+            Connector conn1,
+            ISectorGroup group1,
+            Connector conn2,
+            ISectorGroup group2,
+            int hitag){
+        linkTeleporters(
+                (TeleportConnector)conn1,
+                group1,
+                (TeleportConnector)conn2,
+                group2,
+                hitag);
+    }
+
 }
