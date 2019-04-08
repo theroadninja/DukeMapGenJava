@@ -159,6 +159,8 @@ public class TeleportConnector extends Connector {
 
     }
 
+    // TODO - the groups are only needed because they contain the map.  We actually only need
+    // one ISectorGroup ...
     public static void linkTeleporters(
             TeleportConnector conn1,
             ISectorGroup group1,

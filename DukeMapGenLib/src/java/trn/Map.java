@@ -334,7 +334,7 @@ public class Map {
 	public int getSpriteCount(){
 		return this.spriteCount;
 	}
-	
+
 	public int spriteCount(){ return getSpriteCount(); }
 	
 	public Sprite getSprite(int i){
@@ -358,17 +358,25 @@ public class Map {
 		}
 		return results;
 	}
-	
-	public void deleteSprites(ISpriteFilter... filters){
+
+	/**
+	 * Deletes all sprites matching a filter.
+	 * @param filters
+	 * @return the number of sprites deleted.
+	 */
+	public int deleteSprites(ISpriteFilter... filters){
 		Iterator<Sprite> it = sprites.iterator();
+		int count = 0;
 		while(it.hasNext()){
 			if(SpriteFilter.matchAll(it.next(), filters)){
 				it.remove();
+				count += 1;
 			}
 		}
 		this.spriteCount = this.sprites.size();
+		return count;
 	}
-	
+
 	public List<Sprite> findSprites(ISpriteFilter... filters){
 		List<Sprite> results = new ArrayList<Sprite>(sprites.size());
 		for(Sprite s : sprites){

@@ -1,21 +1,28 @@
 package trn.prefab;
 
-import trn.IdMap;
-import trn.Map;
-import trn.PointXY;
-import trn.PointXYZ;
-import trn.Sector;
-import trn.Sprite;
-import trn.Wall;
+import trn.*;
 import trn.duke.MapErrorException;
+import trn.duke.TextureList;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 // TODO - maybe this should turn into the simple orginal (North, South, East, West) abstraction
 // TODO - on top of the redwall connector, which could use a wall of any angle.
 public class SimpleConnector extends RedwallConnector {
 
-	
+    @Deprecated // use Heading instead
+	public static class Direction {
+		public static int EAST = 0;
+		public static int SOUTH = 1;
+		public static int WEST = 2;
+		public static int NORTH = 3;
+
+		public static List<Integer> all = Arrays.asList(EAST, SOUTH, WEST, NORTH);
+	}
+
 	
 	public static ConnectorFilter SouthConnector = new ConnectorTypeFilter(
 			PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_SOUTH);
@@ -33,6 +40,9 @@ public class SimpleConnector extends RedwallConnector {
 	final int sectorId;
 	final int wallId;
 	final int connectorType;
+
+	// could be 20, or the specific type
+	final int markerSpriteLotag;
 
 	@Override
 	public int getWallId(){
@@ -61,6 +71,7 @@ public class SimpleConnector extends RedwallConnector {
 			throw new RuntimeException("SimpleConnector sectorId cannot be < 0");
 		}
 		this.wallId = wallId;
+		this.markerSpriteLotag = markerSprite.getLotag();
 	}
 	
 	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall, Sector sector){
@@ -92,14 +103,17 @@ public class SimpleConnector extends RedwallConnector {
             throw new MapErrorException("connector wall must be horizontal or vertical");
         }
 
+        this.markerSpriteLotag = markerSprite.getLotag();
+
     }
 
-	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType){
+	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType, int markerSpriteLotag){
 	    super(connectorId);
 		//TODO add more fields ...
         this.sectorId = sectorId;
         this.wallId = wallId;
         this.connectorType = connectorType;
+        this.markerSpriteLotag = markerSpriteLotag;
 	}
 
 	public SimpleConnector translateIds(final IdMap idmap){
@@ -109,7 +123,28 @@ public class SimpleConnector extends RedwallConnector {
 		return new SimpleConnector(this.connectorId,
 				idmap.sector(this.sectorId),
 				idmap.wall(this.wallId),
-                this.connectorType);
+                this.connectorType,
+				this.markerSpriteLotag);
+	}
+
+	/**
+	 * Remove this connector: delete the marker sprite and clear the wall lotag
+	 * @param map
+	 */
+	@Override
+	public void removeConnector(Map map) {
+	    // clear the wall
+	    Wall w = map.getWall(this.wallId);
+	    if(w.getLotag() != 1) throw new SpriteLogicException();
+	    w.setLotag(0);
+
+	    // remove the marker sprite
+		int d = map.deleteSprites((Sprite s) ->
+			s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
+					&& s.getSectorId() == sectorId
+					&& s.getLotag() == markerSpriteLotag
+		);
+		if(d != 1) throw new SpriteLogicException();
 	}
 
 
@@ -125,6 +160,12 @@ public class SimpleConnector extends RedwallConnector {
 	
 	public void setAnchorPoint(PointXYZ anchor){
 		this.anchorPoint = anchor;
+	}
+
+	@Override
+	public PointXYZ getAnchorPoint(){
+		if(this.anchorPoint == null) throw new SpriteLogicException();
+		return this.anchorPoint;
 	}
 	
 	public void setAnchorPoint(PointXY anchor){
@@ -192,15 +233,6 @@ public class SimpleConnector extends RedwallConnector {
 			return this.anchorPoint.getTransformTo(c2.anchorPoint); 
 		}else{
 		    throw new RuntimeException("deprecated");
-			//return new PointXYZ(
-			//		c2.x - this.x,
-			//		c2.ymin - this.ymin,
-			//		c2.z - this.z);
-
-
-			//this code is even older:
-					//c2.sector.getFloorZ() - this.sector.getFloorZ());
-			//return new PointXYZ(-1024*5, c2.ymin - this.ymin, c2.sector.getFloorZ() - this.sector.getFloorZ());	
 		}
 	}
 

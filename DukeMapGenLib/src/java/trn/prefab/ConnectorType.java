@@ -2,6 +2,13 @@ package trn.prefab;
 
 public class ConnectorType {
 
+    public static boolean isRedwallType(int connectorType){
+        return connectorType == HORIZONTAL_EAST
+                || connectorType == HORIZONTAL_WEST
+                || connectorType == VERTICAL_NORTH
+                || connectorType == VERTICAL_SOUTH;
+    }
+
     public static int TELEPORTER = 7;
 
     public static int ELEVATOR = 17;
@@ -39,5 +46,6 @@ public class ConnectorType {
 
     /** vertical connector on the north side of the sector */
     public static int VERTICAL_NORTH = 19;
+
 
 }

@@ -116,19 +116,13 @@ public class MapUtil {
 	
 	
 	/**
-	 * Copy a sector, and everything it touches to another map.
+	 * Copy a sector, and every sector connected by a redwall.
 	 * 
-	 * In a normal map with no elevators, this would copy pretty much everything.
-	 * 
+	 *
 	 * @param sourceMap
 	 * @param destMap
 	 */
 	public static CopyState copySectorGroup(final Map sourceMap, Map destMap, int sourceSectorId, PointXYZ transform){
-		
-		//maps from ids in the old map, to ids in the new map
-		//java.util.Map<Short, Short> idmap = new HashMap<Short, Short>();
-		
-		
 		CopyState cpstate = new CopyState();
 		
 		Set<Integer> sectorsToCopy = new TreeSet<Integer>();
@@ -146,17 +140,17 @@ public class MapUtil {
 				}
 			}
 		}
-		
-
-		boolean ignoreOtherSectors = false;
-		if(ignoreOtherSectors){
-			for(Wall w: destMap.walls){
-				w.nextSector = -1;
-				w.nextWall = -1;
-						
-			}
-		}
+		// boolean ignoreOtherSectors = false;
+		// if(ignoreOtherSectors){
+		// 	for(Wall w: destMap.walls){
+		// 		w.nextSector = -1;
+		// 		w.nextWall = -1;
+		// 	}
+		// }
 		updateIds(destMap, cpstate);
+
+		// I think i forgot to update the sprite count ...
+		if(destMap.sprites.size() != destMap.getSpriteCount()) throw new RuntimeException("logic error");
 		
 		return cpstate;
 		

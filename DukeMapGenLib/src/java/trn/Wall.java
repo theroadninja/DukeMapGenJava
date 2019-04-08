@@ -284,6 +284,10 @@ public class Wall {
 	public short getLotag(){
 		return this.lotag;
 	}
+
+	public void setLotag(int i){
+		this.lotag = (short)i;
+	}
 	
 	
 	

@@ -18,30 +18,40 @@ public class SectorGroup extends SectorGroupS
 	 */
 	final int sectorGroupId;
 	
-	/** map object used to store all the sectors, walls and sprites */
-	//final Map map;
 
 
 	// TODO - make this not public (need iterator for scala code?)
-	public List<Connector> connectors = new ArrayList<Connector>();
+	//public List<Connector> connectors = new ArrayList<Connector>();
 	
 	public SectorGroup(Map map, int sectorGroupId) throws MapErrorException {
 	    super(map, sectorGroupId);
 		this.sectorGroupId = sectorGroupId;
 		//this.map = map;
 		//this.connectors.addAll(SimpleConnector.findConnectors(map));
-		for(Connector c : Connector.findConnectors(map)){
-		    addConnector(c);
-        }
+        try{
+			for(Connector c : Connector.findConnectors(map)){
+				addConnector(c);
+			}
+		}catch(SpriteLogicException ex){
+        	throw new SpriteLogicException("exception while scanning connectors in sector group.  id=" + sectorGroupId, ex);
+		}
 	}
 
 	public SectorGroup(Map map) throws MapErrorException {
 		this(map, -1);
 	}
 
-	/*public SectorGroup copy() throws MapErrorException {
-		return new SectorGroup(map().copy(), this.sectorGroupId);
-	}*/
+	private List<Connector> connectors_(){
+		return super.connectors();
+	}
+
+	@Override
+	public void updateConnectors() throws MapErrorException {
+	    super.connectors().clear();
+		for(Connector c : Connector.findConnectors(super.map())){
+			addConnector(c);
+		}
+	}
 
 	@Override
 	public Map getMap(){
@@ -52,31 +62,14 @@ public class SectorGroup extends SectorGroupS
 		return this.sectorGroupId;
 	}
 
-	public int bbHeight(){
-
-
-	    Map map = super.map();
-		if(map.getWallCount() < 1){
-			return 0;
-		}
-		int minY = map.getWall(0).getY();
-		int maxY = minY;
-		for(int i = 1; i < map.getWallCount(); ++i){
-			int y = map.getWall(i).getY();
-			minY = Math.min(minY, y);
-			maxY = Math.max(maxY, y);
-		}
-		return maxY - minY;
-	}
-
 	/**
 	 *
 	 * @returns a read only list of all connecters that need the whole sector group to be in a certain place.
 	 */
 	public List<SimpleConnector> connectorsWithXYRequrements(){
 		// TODO - shouldnt be casting
-		List<SimpleConnector> list = new ArrayList(this.connectors.size());
-		for(Connector c : connectors){
+		List<SimpleConnector> list = new ArrayList(this.connectors_().size());
+		for(Connector c : connectors_()){
 			if(c.hasXYRequirements()){
 				list.add((SimpleConnector)c);
 			}
@@ -92,13 +85,13 @@ public class SectorGroup extends SectorGroupS
         if(c.getSectorId() >= map.getSectorCount()){
 	        throw new RuntimeException("connector has sectorId " + c.getSectorId() + " but there are only " + map.getSectorCount() + " sectors in group");
         }
-	    this.connectors.add(c);
+	    this.connectors_().add(c);
     }
 	
 	public Connector getConnector(int connectorId){
 		if(connectorId < 0) throw new IllegalArgumentException();
 		
-		for(Connector c: connectors){
+		for(Connector c: connectors_()){
 			if(c.getConnectorId() == connectorId){
 				return c;
 			}
@@ -109,7 +102,7 @@ public class SectorGroup extends SectorGroupS
 
 	public boolean hasConnector(int connectorId){
 		if(connectorId < 0) throw new IllegalArgumentException();
-		for(Connector c: connectors){
+		for(Connector c: connectors_()){
 			if(c.getConnectorId() == connectorId){
 				return true;
 			}
@@ -124,36 +117,10 @@ public class SectorGroup extends SectorGroupS
 
 
 	public Connector findFirstConnector(ConnectorFilter cf){
-		Iterator<Connector> it = Connector.findConnectors(this.connectors, cf).iterator();
+		Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
 		return it.hasNext() ? it.next() : null;
 	}
 
-    // **
-    //  * @param otherConnector
-    //  * @returns the first connect in this group that could match with the given connector
-    //  */
-	// public Connector findFirstMate(Connector otherConnector){
-    //     if(1==1) throw new RuntimeException("TODO - this doesnt work");
-	//     for(Connector c : connectors){
-	//         if(c.canMate(otherConnector)){
-	//             return c;
-    //         }
-    //     }
-    //     return null;
-    // }
 
-	// TODO - add:
-    // isPlayerStart()
-    // isEnd()
-    // ...and so on
-
-    public boolean isEndGame(){ // TODO - get rid of this (better one in SectorGroupS)
-	    for(int i = 0; i < map().getSpriteCount(); ++i){
-	        if(map().getSprite(i).getTexture() == TextureList.Switches.NUKE_BUTTON){
-	            return true;
-            }
-        }
-        return false;
-    }
 
 }

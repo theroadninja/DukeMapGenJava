@@ -1,10 +1,18 @@
 package trn.prefab
 
-import trn.duke.TextureList
-import trn.{DukeConstants, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
+import trn.duke.{MapErrorException, TextureList}
+import trn.{DukeConstants, ISpriteFilter, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
 
+import scala.collection.JavaConverters._ // this is the good one
+
+
+class CopyPasteMapBuilder(val outMap: DMap) extends MapBuilder {
+
+}
+
 class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
+  val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
 
   def copy(): SectorGroup = {
     new SectorGroup(map.copy, this.sectorGroupId);
@@ -16,16 +24,91 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
     new SectorGroup(map.flippedX(x), this.sectorGroupId)
   }
 
+  def flippedX(): SectorGroup = flippedX(getAnchor.x)
+
+
+
   def flippedY(y: Int): SectorGroup = {
     new SectorGroup(map.flippedY(y), this.sectorGroupId)
   }
+
+  def flippedY(): SectorGroup = flippedY(getAnchor.y)
 
   def rotateAroundCW(anchor: PointXY): SectorGroupS = {
     new SectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
 
   }
 
-  //mapprotected def getMap(): DMap = map
+  @throws(classOf[MapErrorException])
+  protected def updateConnectors(): Unit = ???
+
+
+
+  def getRedwallConnector(connectorType: Int, allowMoreThanOne: Boolean = false): RedwallConnector = {
+    if(! ConnectorType.isRedwallType(connectorType)){
+      throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
+    }
+    val matching = connectors.asScala.filter(c => c.getConnectorType == connectorType)
+    matching.size match {
+      case i: Int if i < 1 => throw new NoSuchElementException(s"no connector with type ${connectorType} exists")
+      case i: Int if i == 1 || allowMoreThanOne => matching.head.asInstanceOf[RedwallConnector]
+      case _ => throw new SpriteLogicException(s"more than one connector with type ${connectorType} found")
+    }
+  }
+
+  def connectedTo(joinType: RedwallJoinType, group2: SectorGroup): SectorGroup = {
+    val conn1 = getRedwallConnector(joinType.connectorType1)
+    val conn2 = group2.getRedwallConnector(joinType.connectorType2, false)
+    connectedTo(conn1, group2, conn2)
+  }
+
+  // Merging
+  //  - what do we do about two anchors?
+  //  - can we remove the redwall connectors?
+  // TODO - right now, the sector copy code ONLY copies sectors linked with red walls.  Two unconnected
+  // sectors will not both be copied (the bug isnt here, but in the main copy code ...
+  def connectedTo(conn1: RedwallConnector, group2: SectorGroup, conn2: RedwallConnector): SectorGroup = {
+    val result = this.copy()
+
+    val anchorSprite = result.getAnchorSprite
+    val removeSecondAnchor = anchorSprite.nonEmpty && group2.getAnchorSprite.nonEmpty
+
+    val tmpBuilder = new CopyPasteMapBuilder(result.map)
+    val cdelta = conn2.getTransformTo(conn1)
+    val (_, idmap) = tmpBuilder.pasteSectorGroup2(group2, cdelta)
+    val pastedConn2 = conn2.translateIds(idmap)
+
+    // TODO - link redwalls  ( TODO - make this a member of the builder? )
+    PrefabUtils.joinWalls(result.map, conn1, pastedConn2)
+
+    // CLEANUP:  remove any other anchor sprite
+    if(removeSecondAnchor){
+      tmpBuilder.outMap.deleteSprites(new ISpriteFilter {
+        override def matches(s: Sprite): Boolean = {
+          tmpBuilder.isAnchor(s) && s.getLocation != anchorSprite.get
+        }
+      })
+      // for(i <- 0 until tmpBuilder.outMap.getSpriteCount){
+      //   val s: Sprite = tmpBuilder.outMap.getSprite(i)
+      //   if(tmpBuilder.isAnchor(s) && s.getLocation != anchorSprite.get){
+      //     tmpBuilder.outMap.deleteSprite(i) // it is the other anchor, delete it
+      //   }
+      // }
+    }
+
+    // DELETE USED CONNECTORS
+    conn1.removeConnector(tmpBuilder.outMap)
+    pastedConn2.removeConnector(tmpBuilder.outMap)
+
+
+    if(result.getSectorCount != this.map.getSectorCount + group2.getSectorCount){
+      throw new SpriteLogicException()
+    }
+
+    result.updateConnectors()
+    result
+  }
+
 
   private def wallSeq(): Seq[Wall] = {
     val walls = Seq.newBuilder[Wall]
@@ -65,7 +148,6 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
     }
   }
 
-  // TODO - should this be here?  it is specific to my sprite logic prefab stuff...
   def hasMarker(lotag: Int): Boolean = {
     for(i <- 0 until map.getSpriteCount){
       val sprite = map.getSprite(i)
@@ -87,24 +169,16 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
 
   def sprites: Seq[Sprite] = map.allSprites
 
-  // def sprites: Seq[Sprite] = {  // TODO replace this with the one in map implicits
-  //   val list = new collection.mutable.ArrayBuffer[Sprite](map.getSpriteCount)
-  //   for(i <- 0 until map.getSpriteCount){
-  //     list += map.getSprite(i)
-  //   }
-  //   list
-  // }
-
   def hasPlayerStart: Boolean = hasMarker(PrefabUtils.MarkerSpriteLoTags.PLAYER_START)
 
   def hasEndGame: Boolean = containsSprite{ s =>
     s.getTexture == DukeConstants.TEXTURES.NUKE_BUTTON && s.getLotag == DukeConstants.LOTAGS.NUKE_BUTTON_END_LEVEL
   }
 
-  //def isAnchor(s: Sprite): Boolean = isMarker(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
-
-  def getAnchor: PointXYZ = sprites.find(MapBuilder.isAnchorSprite).getOrElse(
+  def getAnchor: PointXYZ = getAnchorSprite.getOrElse(
     throw new SpriteLogicException("no anchor sprite")
   ).getLocation
+
+  def getAnchorSprite: Option[Sprite] = sprites.find(MapBuilder.isAnchorSprite)
 
 }

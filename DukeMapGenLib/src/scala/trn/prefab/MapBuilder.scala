@@ -1,7 +1,8 @@
 package trn.prefab
 
 import trn.MapImplicits._
-import trn.{MapUtil, PlayerStart, PointXYZ, Sprite, SpriteFilter, Map => DMap}
+import trn.{IdMap, MapUtil, PlayerStart, PointXYZ, Sprite, SpriteFilter, Map => DMap}
+
 import scala.collection.JavaConverters._
 
 
@@ -13,7 +14,7 @@ object MapBuilder {
 
 }
 
-trait MapBuilder {
+trait MapBuilder extends ISectorGroup {
   val outMap: DMap
 
   //var hiTagCounter = 1 + Math.max(0, outMap.allSprites.map(_.getHiTag).max)
@@ -24,6 +25,8 @@ trait MapBuilder {
     hiTagCounter += 1
     i
   }
+
+  override def getMap(): DMap = outMap
 
   /**
     * paste the sector group so that it's anchor is at the given location.  If no anchor,
@@ -42,6 +45,11 @@ trait MapBuilder {
 
   def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = {
     new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
+  }
+
+  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap)  = {
+    val copyState = MapUtil.copySectorGroup(sg.map, outMap, 0, translate);
+    (new PastedSectorGroup(outMap, copyState), copyState.idmap)
   }
 
   /** sets the player start of the map to the location of the first player start marker sprite it finds */
@@ -86,6 +94,22 @@ trait MapBuilder {
   def isAnchor(s: Sprite): Boolean = MapBuilder.isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
 
 
+  private def waterSortKey(p: PointXYZ): Long = {
+    val x = (p.x + 65535L) << 4
+    val y = (p.y + 65535L) << 2
+    val z = p.z + 65535L
+    x + y + z
+  }
+
+  // gets all of the water connections from the pasted sector group, in sorted order
+  def getWaterConns(psg: PastedSectorGroup): Seq[TeleportConnector] = {
+    val conns = psg.findConnectorsByType(ConnectorType.TELEPORTER).asScala.map(_.asInstanceOf[TeleportConnector])
+    val waterConns = conns.filter(_.isWater).map(w => (w, w.getSELocation(psg))).sortBy(t => waterSortKey(t._2))
+    waterConns.unzip._1
+  }
+
+
+
   //
   // Connector Linking Features
   //
@@ -94,27 +118,33 @@ trait MapBuilder {
     // TODO - for now this assumes that all water connectors in both sector groups are part of the same
     // connection (and dont go to some third sector group)
 
-    def sortKey(p: PointXYZ): Long = {
-      val x = (p.x + 65535L) << 4
-      //val y = (p.y + 65535L) << 2  // removing y: concerned that has collisions will put them out of order
-      val z = p.z + 65535L
-      x + z
-    }
-
-    def getWaterConns(psg: PastedSectorGroup): Seq[TeleportConnector] = {
-      val conns = psg.findConnectorsByType(ConnectorType.TELEPORTER).asScala.map(_.asInstanceOf[TeleportConnector])
-      val waterConns = conns.filter(_.isWater).map(w => (w, w.getSELocation(psg))).sortBy(t => sortKey(t._2))
-      waterConns.unzip._1
-    }
-
     val waterConns1 = getWaterConns(psg1)
     val waterConns2 = getWaterConns(psg2)
     if(waterConns1.size != waterConns2.size) throw new SpriteLogicException()
     // TODO - we could also check the relative distances bewteen all of them
 
     waterConns1.zip(waterConns2).foreach { case (c1: TeleportConnector, c2: TeleportConnector) =>
-        TeleportConnector.linkTeleporters(c1, psg1, c2, psg2, nextUniqueHiTag())
+        //TeleportConnector.linkTeleporters(c1, psg1, c2, psg2, nextUniqueHiTag())
+        TeleportConnector.linkTeleporters(c1, this, c2, this, nextUniqueHiTag())
     }
+  }
+
+
+  def getWaterConns2(groups: Seq[PastedSectorGroup]): Seq[TeleportConnector] = {
+    val conns = groups.flatMap { psg => psg.findConnectorsByType(ConnectorType.TELEPORTER).asScala.map(_.asInstanceOf[TeleportConnector]) }
+    val waterConns = conns.filter(_.isWater).map(w => (w, w.getSELocation(this))).sortBy(t => waterSortKey(t._2))
+    waterConns.unzip._1
+  }
+
+  def linkAllWater2(aboveWater: Seq[PastedSectorGroup], belowWater: Seq[PastedSectorGroup]): Unit = {
+
+    val aboveWaterConns = getWaterConns2(aboveWater)
+    val belowWaterConns = getWaterConns2(belowWater)
+
+    aboveWaterConns.zip(belowWaterConns).foreach { case (aboveC: TeleportConnector, belowC: TeleportConnector) =>
+        TeleportConnector.linkTeleporters(aboveC, this, belowC, this, nextUniqueHiTag())
+    }
+
   }
 
 }

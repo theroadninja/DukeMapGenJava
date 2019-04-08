@@ -12,6 +12,10 @@ public class SpriteLogicException extends RuntimeException {
 	public SpriteLogicException(String message){
 		super(message);
 	}
+
+	public SpriteLogicException(String message, Exception cause){
+		super(message, cause);
+	}
 	
 	public SpriteLogicException(){
 		super();

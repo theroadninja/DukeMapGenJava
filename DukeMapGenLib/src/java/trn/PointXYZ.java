@@ -41,4 +41,10 @@ public class PointXYZ {
 	public PointXYZ getTransformTo(PointXYZ dest){
 		return new PointXYZ(dest.x - this.x, dest.y - this.y, dest.z - this.z);
 	}
+
+	@Override
+	public String toString(){
+		return "{ PointXY x=" + this.x + " y=" + y + " z=" + z + " }";
+	}
+
 }
