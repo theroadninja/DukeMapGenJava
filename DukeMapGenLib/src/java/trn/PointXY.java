@@ -53,7 +53,7 @@ public class PointXY {
 		PointXY p2 = (PointXY)other;
 		return x == p2.x && y == p2.y;
 	}
-	
+
 	@Override
 	public String toString(){
 		return "{ PointXY x=" + this.x + " y=" + y + " }";
@@ -67,4 +67,20 @@ public class PointXY {
 	public PointXY translateTo(PointXY dest){
 		return new PointXY(dest.x - this.x, dest.y - this.y);
 	}
+
+	public PointXY add(PointXY p){
+		return new PointXY(x + p.x, y + p.y);
+	}
+
+	/**
+	 * subtract THIS by the given point.
+	 */
+	public PointXY subtractedBy(PointXY other){
+		return new PointXY(this.x - other.x, this.y - other.y);
+	}
+
+	public PointXY subtractedBy(PointXYZ other){
+		return subtractedBy(other.asXY());
+	}
+
 }

@@ -11,7 +11,7 @@ public class ConnectorType {
 
     public static int TELEPORTER = 7;
 
-    public static int ELEVATOR = 17;
+    public static int ELEVATOR = 8; // TODO - actually this one should be 17
 
     /**
      * -+               +--------+
@@ -47,5 +47,8 @@ public class ConnectorType {
     /** vertical connector on the north side of the sector */
     public static int VERTICAL_NORTH = 19;
 
+    // leave 20 for the auto marker
+
+    public static int MULTI_REDWALL = 21;
 
 }

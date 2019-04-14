@@ -236,6 +236,10 @@ public class Wall {
 	public int getPoint2Id(){
 		return this.point2;
 	}
+
+	public int getNextWallInLoop(){
+		return getPoint2Id();
+	}
 	
 	public void setOtherSide(int nextWall, int nextSector){
 		this.nextWall = (short)nextWall;

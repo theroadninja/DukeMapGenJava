@@ -44,7 +44,6 @@ public class SimpleConnector extends RedwallConnector {
 	// could be 20, or the specific type
 	final int markerSpriteLotag;
 
-	@Override
 	public int getWallId(){
 		return this.wallId;
 	}
@@ -58,7 +57,8 @@ public class SimpleConnector extends RedwallConnector {
 
 
 	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall){
-		super(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
+		super(markerSprite);
+		//super(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
 		if(markerSprite == null){
 			throw new IllegalArgumentException("markerSprite is null");
 		}
@@ -116,10 +116,8 @@ public class SimpleConnector extends RedwallConnector {
         this.markerSpriteLotag = markerSpriteLotag;
 	}
 
-	public SimpleConnector translateIds(final IdMap idmap){
-		//TODO:  also do sprite ...
-		//this.sectorId = idmap.sector(this.sectorId);
-		//this.wallId = idmap.wall(this.wallId);
+	@Override
+	public SimpleConnector translateIds(final IdMap idmap, PointXYZ delta){
 		return new SimpleConnector(this.connectorId,
 				idmap.sector(this.sectorId),
 				idmap.wall(this.wallId),
@@ -222,8 +220,8 @@ public class SimpleConnector extends RedwallConnector {
 	}
 
 	@Override
-	public PointXYZ getTransformTo(Connector FIXME){
-	    SimpleConnector c2 = (SimpleConnector)FIXME; // TODO
+	public PointXYZ getTransformTo(RedwallConnector other){
+	    SimpleConnector c2 = (SimpleConnector)other;
 		if(c2 == null){
 			throw new IllegalArgumentException("c2 is null");
 		}
@@ -265,5 +263,11 @@ public class SimpleConnector extends RedwallConnector {
                 p1.y,
                 z);
     }
+
+	@Override
+	public void linkConnectors(Map map, RedwallConnector other) {
+	    SimpleConnector c2 = (SimpleConnector)other;
+		map.linkRedWalls(this.getSectorId(), this.getWallId(), c2.getSectorId(), c2.getWallId());
+	}
 
 }

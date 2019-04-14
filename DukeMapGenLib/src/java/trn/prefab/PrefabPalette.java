@@ -35,6 +35,9 @@ public class PrefabPalette {
 	}
 
 	public static PrefabPalette fromMap(Map map) throws MapErrorException {
+		return fromMap(map, false);
+	}
+	public static PrefabPalette fromMap(Map map, boolean strict) throws MapErrorException {
 		final java.util.Map<Integer, SectorGroup> numberedSectorGroups = new java.util.TreeMap<>();
 		final List<SectorGroup> anonymousSectorGroups = new ArrayList<>();
 
@@ -67,6 +70,13 @@ public class PrefabPalette {
 			}else{
 				anonymousSectorGroups.add(new SectorGroup(clipboard));
 			}
+
+			if(strict){
+				List<Sprite> anchorSprites = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.ANCHOR, null);
+				if(anchorSprites.size() > 1){
+					throw new SpriteLogicException("more than one anchor sprite in group");
+				}
+			}
 			
 			sector++;
 		} // while
@@ -98,10 +108,11 @@ public class PrefabPalette {
 		PastedSectorGroup result = this.pasteSectorGroup(sectorGroupId, destMap, cdelta);
 		
 		//paletteConnector = result.getConnector(paletteConnectorId);
-		paletteConnector.translateIds(result.copystate.idmap);
+		paletteConnector.translateIds(result.copystate.idmap, cdelta);
 		//destMap.linkRedWalls(sectorIndex, wallIndex, sectorIndex2, wallIndex2)
 		
-		PrefabUtils.joinWalls(destMap, paletteConnector, destConnector);
+		//PrefabUtils.joinWalls(destMap, paletteConnector, destConnector);
+		paletteConnector.linkConnectors(destMap, destConnector);
 		
 		return result;
 	}
@@ -141,12 +152,13 @@ public class PrefabPalette {
 		PastedSectorGroup result = this.pasteSectorGroup(sg, destMap, cdelta);
 		
 		
-		RedwallConnector pastedConnector = paletteConnector.translateIds(result.copystate.idmap);
+		RedwallConnector pastedConnector = paletteConnector.translateIds(result.copystate.idmap, cdelta);
 		//paletteConnector = result.getConnector(paletteConnectorId);
 		//destMap.linkRedWalls(sectorIndex, wallIndex, sectorIndex2, wallIndex2)
 		
-		PrefabUtils.joinWalls(destMap, pastedConnector, destConnector);
-		
+		//PrefabUtils.joinWalls(destMap, pastedConnector, destConnector);
+		pastedConnector.linkConnectors(destMap, destConnector);
+
 		return result;
 		
 	}

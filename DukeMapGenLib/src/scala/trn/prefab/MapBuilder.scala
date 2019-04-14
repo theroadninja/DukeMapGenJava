@@ -63,6 +63,25 @@ trait MapBuilder extends ISectorGroup {
     outMap.setPlayerStart(new PlayerStart(playerStarts(0)))
   }
 
+  /**
+    * Sets the player start to one of the player start markers in the group.
+    * @param psg
+    */
+  def setPlayerStart(psg: PastedSectorGroup): Unit = {
+    //
+    val sectorIds = psg.copystate.destSectorIds().asScala
+
+    val playerStarts = psg.getMap.allSprites.filter(s =>
+      s.getTexture == PrefabUtils.MARKER_SPRITE_TEX
+        && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
+        && sectorIds.contains(s.getSectorId)
+    )
+    if(playerStarts.size < 1) {
+      throw new SpriteLogicException(s"no player start markers in sector group")
+    }
+    outMap.setPlayerStart(new PlayerStart(playerStarts(0)))
+  }
+
   /** sets the player start but bitches at you if there is more than one */
   def setPlayerStart(): Unit = {
     val playerStarts = outMap.allSprites.filter(s =>

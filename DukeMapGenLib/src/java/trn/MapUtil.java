@@ -1,11 +1,6 @@
 package trn;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * See also GridUtils
@@ -252,6 +247,50 @@ public class MapUtil {
 		for(Sprite sp: sprites){
 			//System.out.println("copying sprite!v picnum=" + sp.picnum);
 			destMap.addSprite(sp.copy(destSectorId).translate(transform));
+		}
+	}
+
+	/**
+	 *
+	 * @param wallIds ids of walls in the same sector that are connected
+	 * @param map the map containing the walls
+	 * @return the wallIds sorted in order (so that Wall(i).getPoint2() == Wall(i+1)
+	 */
+	public static List<Integer> sortWallSection(List<Integer> wallIds, Map map){
+	    // TODO - this is a classic topological, so optimize this enough to not be embarassing
+		if(wallIds == null || wallIds.size() < 2) throw new IllegalArgumentException();
+	    java.util.Map<Integer, Integer> walls = new TreeMap<>();
+		java.util.Map<Integer, Integer> wallsReversed = new TreeMap<>();
+	    for(Integer wallId : wallIds) {
+	    	Wall w = map.getWall(wallId);
+			if (walls.containsKey(wallId)) {
+				throw new IllegalArgumentException("list of wall ids contains duplicate");
+			} else {
+				walls.put(wallId, w.getPoint2Id());
+				wallsReversed.put(w.getPoint2Id(), wallId);
+			}
+		}
+	    // pick a random item, build onto the front, then onto the back
+		LinkedList<Integer> results = new LinkedList<>();
+	    results.add(walls.keySet().iterator().next());
+	    while(wallsReversed.containsKey(results.getFirst())){
+	        results.addFirst(wallsReversed.get(results.getFirst()));
+		}
+	    while(walls.containsKey(results.getLast())){
+	    	results.addLast(walls.get(results.getLast()));
+		}
+	    results.removeLast(); // the last element is not part of the list
+		if(results.size() != wallIds.size()) throw new RuntimeException("" + results.size() + " != " + wallIds.size());
+		checkLoopSection(results, map); // sanity check
+		return results;
+	}
+
+	private static void checkLoopSection(List<Integer> wallIds, Map map){
+		for(int i = 0; i < wallIds.size() - 1; ++i){
+			int wallId = wallIds.get(i);
+			int nextWallId = wallIds.get(i + 1);
+			Wall w = map.getWall(wallId);
+			if(w.getNextWallInLoop() != nextWallId) throw new IllegalArgumentException("walls are not in a sequential loop");
 		}
 	}
 }

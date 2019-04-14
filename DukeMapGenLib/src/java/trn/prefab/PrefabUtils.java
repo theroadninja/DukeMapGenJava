@@ -2,7 +2,6 @@ package trn.prefab;
 
 import trn.DukeConstants;
 import trn.ISpriteFilter;
-import trn.Map;
 import trn.SpriteFilter;
 
 public class PrefabUtils {
@@ -44,6 +43,8 @@ public class PrefabUtils {
 		/** marks the sector as a east,west,south or north connector */
 		public static int SIMPLE_CONNECTOR = 20;
 
+		public static int TWO_WALL_CONNECTOR = ConnectorType.MULTI_REDWALL;
+
 		/**
 		 * A connector sprite that becomes a normal or water teleporter.
 		 * (but not a silent teleporter).
@@ -77,69 +78,11 @@ public class PrefabUtils {
 	public static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
 	//public static ISpriteFilter CONNECTOR_SPRITE = SpriteFilter.loTag(MarkerSpriteLoTags.HORIZONTAL_CONNECTOR);
 	
-	
-	
-	
-	
-	//public static int SPRITE_LO_CONNECTOR = 2;
-	
 
-	
 
-	
-	public void go(){
-		
-	}
-	
-	
-	/*
-	public static SimpleConnector findConnector(Map map, int wallLotag){
-		
-		// TODO - there is another findConnector() method on PrefabPalette
-		
-		
-		//List<Sprite> sprites = new LinkedList<Sprite>();
-		
-		
-		//for(Sprite s: map.findSprites(MARKER_SPRITE, connectorType, null)){
-		for(Sprite s: map.findSprites(
-				MARKER_SPRITE, 
-				CONNECTOR_SPRITE)){
-			
-			Sector sector = map.getSector(s.getSectorId());
-			List<Integer> walls = map.getAllSectorWallIds(sector);
-			for(int i: walls){
-				Wall w = map.getWall(i); 
-				if(wallLotag == w.getLotag()){
-					SimpleConnector connector = new SimpleConnector();
-					connector.sprite = s;
-					connector.sectorId = s.getSectorId();
-					//connector.sector = sector;
-					connector.wall = w;
-					connector.wallId = i;
-					connector.z = sector.getFloorZ();
-					
-					//connector.p1 = new PointXY(w);
-					//connector.p2 = new PointXY(map.getWall(w.getPoint2Id()));
-					connector.setVerticalLinePoints(new PointXY(w), new PointXY(map.getWall(w.getPoint2Id())));
-					
-					return connector;
-				}
-			}
-		}
-		
-		throw new RuntimeException("cant find connector");
-	}*/
-	
-	
-	public static void joinWalls(Map map, RedwallConnector c1, RedwallConnector c2){
-		//Wall w1 = map.getWall(c1.wallId)
-		//Wall w2 = map.getWall(c2.wallId);
-		
-		map.linkRedWalls(c1.getSectorId(), c1.getWallId(), c2.getSectorId(), c2.getWallId());
-		
-		
-	}
+	// public static void joinWalls(Map map, RedwallConnector c1, RedwallConnector c2){
+	// 	c1.linkConnectors(map, c2);
+	// }
 	
 	
 	

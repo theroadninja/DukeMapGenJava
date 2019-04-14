@@ -61,11 +61,12 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
 
 
   def joinWalls(c1: Connector, c2: Connector): Unit = {
-    PrefabUtils.joinWalls(outMap, c1.asInstanceOf[RedwallConnector], c2.asInstanceOf[RedwallConnector])
+    //PrefabUtils.joinWalls(outMap, c1.asInstanceOf[RedwallConnector], c2.asInstanceOf[RedwallConnector])
+    c1.asInstanceOf[RedwallConnector].linkConnectors(outMap, c2.asInstanceOf[RedwallConnector])
   }
 
   def placeHorizontalHallway(left: PastedSectorGroup, right: PastedSectorGroup, hallway: SectorGroup): Unit = {
-    val leftConn = left.findFirstConnector(SimpleConnector.EastConnector)
+    val leftConn = left.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[RedwallConnector]
     val rightConn = right.findFirstConnector(SimpleConnector.WestConnector)
 
     val cdelta: PointXYZ = westConnector(hallway).getTransformTo(leftConn)
@@ -76,7 +77,7 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
   }
 
   def placeVerticalHallway(top: PastedSectorGroup, bottom: PastedSectorGroup): Unit = {
-    val topConn = top.findFirstConnector(SimpleConnector.SouthConnector)
+    val topConn = top.findFirstConnector(SimpleConnector.SouthConnector).asInstanceOf[RedwallConnector]
     val bottomConn = bottom.findFirstConnector(SimpleConnector.NorthConnector)
 
     val cdelta: PointXYZ = northConnector(vertHallway).getTransformTo(topConn)

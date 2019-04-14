@@ -31,6 +31,10 @@ public class PointXYZ {
 		return new PointXY(this.x, this.y);
 	}
 
+	public PointXY asXY(){
+		return asPointXY();
+	}
+
 	/**
 	 * @returns a copy of this object, but with z set to the given value.
 	 */

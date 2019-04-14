@@ -9,6 +9,15 @@ public class PaletteList {
 
     public static int NORMAL = 0;
 
+    /**
+     * no palette change - recommended for the big orbit texture,
+     * because you need a texture in order to not kill the player.
+     *
+     * TODO - add a note to big orbit in texture list about needing to set a palette
+     * (any palette) if you want to avoid killing the player
+     */
+    public static int ALSO_NORMAL = 3;
+
     public static int BLUE_TO_RED = 21;
 
 

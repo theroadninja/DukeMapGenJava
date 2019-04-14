@@ -90,14 +90,22 @@ public class SectorGroup extends SectorGroupS
 	
 	public Connector getConnector(int connectorId){
 		if(connectorId < 0) throw new IllegalArgumentException();
-		
 		for(Connector c: connectors_()){
 			if(c.getConnectorId() == connectorId){
 				return c;
 			}
 		}
-		
 		throw new IllegalArgumentException();
+	}
+
+	public SectorGroup connectedTo(int connectorId, SectorGroup sg){
+		RedwallConnector c1 = getRedwallConnector(connectorId);
+		RedwallConnector c2 = sg.getRedwallConnector(connectorId);
+		return super.connectedTo(c1, sg, c2);
+	}
+
+	public RedwallConnector getRedwallConnector(int connectorId){
+		return (RedwallConnector)getConnector(connectorId);
 	}
 
 	public boolean hasConnector(int connectorId){

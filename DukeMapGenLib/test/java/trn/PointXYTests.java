@@ -16,4 +16,9 @@ public class PointXYTests {
 
         Assert.assertEquals(new PointXY(2, 2), new PointXY(1,2).translateTo(new PointXY(3,4)));
     }
+
+    @Test
+    public void testEquals(){
+        Assert.assertEquals(new PointXY(0, 2048), new PointXY(0, 2048));
+    }
 }

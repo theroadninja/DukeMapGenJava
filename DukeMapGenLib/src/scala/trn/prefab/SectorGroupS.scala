@@ -62,12 +62,16 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
     connectedTo(conn1, group2, conn2)
   }
 
+
+
   // Merging
   //  - what do we do about two anchors?
   //  - can we remove the redwall connectors?
   // TODO - right now, the sector copy code ONLY copies sectors linked with red walls.  Two unconnected
   // sectors will not both be copied (the bug isnt here, but in the main copy code ...
   def connectedTo(conn1: RedwallConnector, group2: SectorGroup, conn2: RedwallConnector): SectorGroup = {
+    if(conn1 == conn2) throw new IllegalArgumentException("same connection object passed") // sanity check
+
     val result = this.copy()
 
     val anchorSprite = result.getAnchorSprite
@@ -76,16 +80,17 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
     val tmpBuilder = new CopyPasteMapBuilder(result.map)
     val cdelta = conn2.getTransformTo(conn1)
     val (_, idmap) = tmpBuilder.pasteSectorGroup2(group2, cdelta)
-    val pastedConn2 = conn2.translateIds(idmap)
+    val pastedConn2 = conn2.translateIds(idmap, cdelta)
 
     // TODO - link redwalls  ( TODO - make this a member of the builder? )
-    PrefabUtils.joinWalls(result.map, conn1, pastedConn2)
+    //PrefabUtils.joinWalls(result.map, conn1, pastedConn2)
+    conn1.linkConnectors(result.map, pastedConn2)
 
     // CLEANUP:  remove any other anchor sprite
     if(removeSecondAnchor){
       tmpBuilder.outMap.deleteSprites(new ISpriteFilter {
         override def matches(s: Sprite): Boolean = {
-          tmpBuilder.isAnchor(s) && s.getLocation != anchorSprite.get
+          tmpBuilder.isAnchor(s) && s.getLocation != anchorSprite.get.getLocation
         }
       })
       // for(i <- 0 until tmpBuilder.outMap.getSpriteCount){

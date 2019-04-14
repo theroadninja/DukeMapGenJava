@@ -80,16 +80,16 @@ case class GridNode (
   override def north: Option[SimpleConnector] = connectors.get(ConnectorType.VERTICAL_NORTH)
   override def south: Option[SimpleConnector] = connectors.get(ConnectorType.VERTICAL_SOUTH)
 
-  def asPasted(psg: PastedSectorGroup): PastedGridNode = {
+  def asPasted(psg: PastedSectorGroup, delta: PointXYZ): PastedGridNode = {
     val idmap = psg.copystate.idmap
     PastedGridNode(
       gridX,
       gridY,
       psg,
-      east.map(_.translateIds(idmap)),
-      west.map(_.translateIds(idmap)),
-      north.map(_.translateIds(idmap)),
-      south.map(_.translateIds(idmap)),
+      east.map(_.translateIds(idmap, delta)),
+      west.map(_.translateIds(idmap, delta)),
+      north.map(_.translateIds(idmap, delta)),
+      south.map(_.translateIds(idmap, delta)),
     )
   }
 }
@@ -230,7 +230,7 @@ class GridMapBuilder(val outMap: DMap, random: RandomX = new RandomX()) extends 
 
     val translate = new PointXYZ(bb.getTranslateTo(newXY), 0)
     val psg = new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
-    val node = unpastedNode.asPasted(psg)
+    val node = unpastedNode.asPasted(psg, translate)
 
     // TODO - unit test neighboors, and all this code with the grid nodes!!
 
@@ -248,7 +248,8 @@ class GridMapBuilder(val outMap: DMap, random: RandomX = new RandomX()) extends 
 
     def join2(c1: Option[SimpleConnector], c2: Option[SimpleConnector]): Unit = {
       if(c1.nonEmpty && c2.nonEmpty){
-        PrefabUtils.joinWalls(outMap, c1.get, c2.get)
+        //PrefabUtils.joinWalls(outMap, c1.get, c2.get)
+        c1.get.linkConnectors(outMap, c2.get)
       }else{
         println("WARNING: connectors not joined! (can happen if allowMismatch is true")
       }

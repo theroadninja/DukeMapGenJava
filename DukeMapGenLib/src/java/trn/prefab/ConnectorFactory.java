@@ -3,6 +3,9 @@ package trn.prefab;
 import trn.*;
 import trn.duke.MapErrorException;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class ConnectorFactory {
 		
 	public static Connector create(Map map, Sprite markerSprite) throws MapErrorException {
@@ -47,11 +50,21 @@ public class ConnectorFactory {
 			} else if (ElevatorConnector.isElevatorMarker(map, s)) {
 				return new ElevatorConnector(s);
 			} else {
-				int wallId = getLinkWallId(map, sector);
-				Wall w1 = map.getWall(wallId);
-				Wall w2 = map.getWall(w1.getPoint2Id());
-				int z = map.getSector(s.getSectorId()).getFloorZ();
-				return new SimpleConnector(s, wallId, w1, w2, z);
+				List<Integer> linkWallIds = getLinkWallIds(map, sector);
+
+				if(linkWallIds.size() == 0){
+					throw new SpriteLogicException("missing link wall for marker sprite at " + s.getLocation().toString());
+				}else if(linkWallIds.size() == 1) {
+					int wallId = linkWallIds.get(0);
+					//int wallId = getLinkWallId(map, sector); // TODO - get rid of getLinkWallId
+					Wall w1 = map.getWall(wallId);
+					Wall w2 = map.getWall(w1.getPoint2Id());
+					int z = map.getSector(s.getSectorId()).getFloorZ();
+					return new SimpleConnector(s, wallId, w1, w2, z);
+				}else{
+					return new MultiWallConnector(s, sector, linkWallIds, map);
+				}
+
 			}
 
 		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR){
@@ -86,6 +99,19 @@ public class ConnectorFactory {
 			throw new SpriteLogicException(String.format("cannot find link wall for sector at %s, %s ", x, y));
 		}
 		return wallId;
+	}
+
+	private static List<Integer> getLinkWallIds(Map map, Sector sector){
+		final int linkLotag = 1;
+		Iterable<Integer> wallIds = map.getAllSectorWallIds(sector);
+		List<Integer> results = new LinkedList<>();
+		for(int i: wallIds){
+			Wall w = map.getWall(i);
+			if(w.getLotag() == linkLotag){
+				results.add(i);
+			}
+		}
+		return results;
 	}
 
 }

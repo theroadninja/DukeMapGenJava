@@ -212,6 +212,16 @@ public class TextureList {
 		public static final int BOSS4 = 4740;
 		public static final int BOSS4_STAYPUT = 4741;
 	}
+
+	public static class ForceFields {
+		/** this is the visible one */
+		public static int W_FORCEFIELD = 663;
+
+		/** the invisible one that shouldn't hurt the player */
+		public static int BIGFORCE = 230;
+
+		// TODO - which is the invisible one?
+	}
 	
 	//TODO:  add door tiles, see 150
 	

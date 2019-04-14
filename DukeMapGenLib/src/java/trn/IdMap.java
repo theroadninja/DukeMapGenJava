@@ -1,6 +1,8 @@
 package trn;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Maps old->new ids for copy operations.
@@ -24,6 +26,14 @@ public class IdMap {
 	}
 	public short wall(int oldId){
 		return wallIdMap.get((short)oldId);
+	}
+
+	public List<Integer> wallIds(List<Integer> wallIds){
+		List<Integer> results = new ArrayList<>(wallIds.size());
+		for(Integer wallId: wallIds){
+			results.add((int)this.wall(wallId));
+		}
+		return results;
 	}
 	
 	
