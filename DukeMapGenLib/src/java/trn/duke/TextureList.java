@@ -26,7 +26,18 @@ public class TextureList {
 	 * http://wiki.eduke32.com/wiki/Category:Editing_Music_and_Sound_Effects
 	 * 
 	 * http://forums.duke4.net/topic/2454-exploring-duke-nukem-3ds-sounds/
-	 * 
+     *
+	 * Activation Sounds
+	 * 		lotag = number of the starting sound to play
+	 * 		hitag = number of the ending sound to play
+	 *
+	 * 	Ambient Sound
+	 * 		lotag = number of the sound to play
+	 *
+	 * 	Echo Effect
+	 * 		lotag = 1000 + amount of echo (0 to 255, 0 is the least amount)
+	 *
+	 *  NOTE: you can also set the hitag of a switch to play a sound effect when pressed
 	 * 
 	 */
 	public static final int MUSIC_AND_SFX = 5;  //a big M
@@ -34,6 +45,15 @@ public class TextureList {
 	public static final int CYCLER = 7; // a big C
 	public static final int MASTER_SWITCH = 8; //a big D
 	public static final int RESPAWN = 9; //a big R
+
+	/**
+	 * Controls the speed of effects.
+	 *
+	 * No hitag.
+	 * Lotag sets the speed.  Smaller number means slower.
+     *
+	 * However 0 is pretty fast.
+	 */
 	public static final int GPSSPEED = 10; //this is the one thats not a big letter
 	
 	//11 and/or 12 might be the cam

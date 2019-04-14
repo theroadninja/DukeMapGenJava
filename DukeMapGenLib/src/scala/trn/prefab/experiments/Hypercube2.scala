@@ -118,9 +118,9 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
         grid2.get(neighboorCell).foreach { n =>
 
           if(x + 1 == neighboorCell._1){
-            tryAutoLinkWestToEast(gridCell, neighboorCell, palette.getSectorGroup(200))
+            tryAutoLinkWestToEast(gridCell, neighboorCell)
           } else if(y + 1 == neighboorCell._2){
-            tryAutoLinkNorthToSouth(gridCell, neighboorCell, palette.getSectorGroup(201))
+            tryAutoLinkNorthToSouth(gridCell, neighboorCell)
           } else if(z + 1 == neighboorCell._3){
             tryAutoLinkElevator(gridCell, neighboorCell)
           }
@@ -149,7 +149,7 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
     }
   }
 
-  def tryAutoLinkWestToEast(westCell: Cell, eastCell: Cell, hallway: SectorGroup): Boolean ={
+  def tryAutoLinkWestToEast(westCell: Cell, eastCell: Cell): Boolean ={
     val westRoomOpt = grid2.get(westCell)
     val eastRoomOpt = grid2.get(eastCell)
     if(westRoomOpt.isEmpty || eastRoomOpt.isEmpty) return false;
@@ -162,22 +162,31 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
       || (westRoom.hasHighDoor(E) && eastRoom.hasHighDoor(W)) )){
 
       //val eastWestHallway = palette.getSectorGroup(200)
+      val hallway = palette.getSectorGroup(200)
       placeHallwayEW(grid(westCell), hallway, grid(eastCell))
+      return true
+    }else if(westRoom.hasLowDoor(E) && eastRoom.hasHighDoor(W)){
+      placeHallwayEW(grid(westCell), palette.getSectorGroup(202), grid(eastCell))
       return true
     }
 
     return false
   }
 
-  def tryAutoLinkNorthToSouth(northCell: Cell, southCell: Cell, hallway: SectorGroup): Boolean = {
-    if(hallway == null) throw new IllegalArgumentException
+  def tryAutoLinkNorthToSouth(northCell: Cell, southCell: Cell): Boolean = {
     (grid2.get(northCell), grid2.get(southCell)) match {
       case (Some(northRoom), Some(southRoom)) => {
         if((northRoom.hasLowDoor(Heading.S) && southRoom.hasLowDoor(Heading.N))
-        || (northRoom.hasHighDoor(Heading.S) && southRoom.hasHighDoor(Heading.N))){
+        || (northRoom.hasHighDoor(Heading.S) && southRoom.hasHighDoor(Heading.N))) {
 
           //val northSouthHallway = palette.getSectorGroup(201)
+          val hallway: SectorGroup = palette.getSectorGroup(201)
           placeHallwayNS(grid(northCell), hallway, grid(southCell))
+          true
+        } else if(northRoom.hasHighDoor(Heading.S) && southRoom.hasLowDoor(Heading.N)) {
+
+          val elevator: SectorGroup = palette.getSectorGroup(203)
+          placeHallwayNS(grid(northCell), elevator, grid(southCell))
           true
         } else {
           false
@@ -255,7 +264,6 @@ object Room {
     new Room(sectorGroup, highDoors, lowDoors, elevator)
   }
 
-
   def apply(
   sectorGroup: SectorGroup,
   highDoors: Seq[Int],
@@ -264,7 +272,19 @@ object Room {
     new Room(sectorGroup, highDoors.map(d => (d, true)).toMap, lowDoors.map(d => (d, true)).toMap, elevator)
   }
 
+  def flipY(doors: Map[Int, Boolean]): Map[Int, Boolean] = {
+    doors.map{ d =>
+      if(d._1 == Heading.S){
+        (Heading.N, d._2)
+      }else if(d._1 == Heading.N){
+        (Heading.S, d._2)
+      }else{
+        d
+      }
+    }
+  }
 }
+
 case class Room(
   sectorGroup: SectorGroup,
   highDoors: Map[Int, Boolean],
@@ -274,6 +294,15 @@ case class Room(
 
   def hasLowDoor(direction: Int): Boolean = lowDoors.get(direction).getOrElse(false)
   def hasHighDoor(direction: Int): Boolean = highDoors.get(direction).getOrElse(false)
+
+  def flipY: Room = {
+    Room(
+      sectorGroup.flippedY(),
+      Room.flipY(highDoors),
+      Room.flipY(lowDoors),
+      elevator
+    )
+  }
 }
 
 object Hypercube2 {
@@ -300,6 +329,10 @@ object Hypercube2 {
   // 1101 - basic room assembly - elevator
   // 1102 - basic room assembly - empty
 
+  // 111 - roof antenna
+  // 11101 - connector for roof antenna
+  // 112 - roof antenna bottom
+
   //
   // Connection Groups
   //
@@ -307,6 +340,7 @@ object Hypercube2 {
   // 201 - north-south hallway
   //
   // 202 - east-west simple elevator, with east=high part
+  // 203 - low south to night north elevator
   //
   // 204 - hallway for troubleshooting
 
@@ -316,6 +350,9 @@ object Hypercube2 {
   // 301 - underwater connector
   //
   // 303 - reactor underwater
+
+  // Connectors
+  // 123 - ELEVATOR
 
 
   // note:  6 large squares ( 1042 ) seem like a good size.
@@ -386,8 +423,7 @@ object Hypercube2 {
     val modularRoom = palette.getSectorGroup(110).flippedX().flippedY()
     // val emptySg = palette.getSectorGroup(1102).flippedY(0)
     // val modularRoom = palette.getSectorGroup(110).flippedY()
-    builder.placeAnywhere(emptySg)
-    builder.placeAnywhere(modularRoom)
+
     //val roomTopLeftNoElevator = modularRoom
     val roomTopLeftNoElevator = Room(
       modularRoom.connectedTo(123, emptySg),
@@ -440,6 +476,17 @@ object Hypercube2 {
       Heading.EAST, Heading.SOUTH
     ), false)
 
+
+    val ELEVATOR_GROUP = 1101
+    val dishRoof = Room(
+      palette.getSectorGroup(111).connectedTo(11101, palette.getSectorGroup(112)).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP)),
+      Seq(Heading.S, Heading.W),
+      Seq(),
+      true) // TODO - add an elevator to a lower level
+
+
+    // TODO - anchor sprite removal with connectedTo() is not working
+
     // val eastWestHallway = palette.getSectorGroup(200)
     // def westConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[RedwallConnector]
     // println(s"hallway anchor point: ${westConnector(eastWestHallway).getAnchorPoint}")
@@ -449,15 +496,20 @@ object Hypercube2 {
     //builder.addRoom(roomTopLeft, (0, 0, 0, 0))
     builder.addRoom(trainStop, (0, 0, 0, 0))
     builder.addRoom(habitat, (1, 0, 0, 0))
-    builder.addRoom(circleRoom, (0, 1, 0, 0))
+    //builder.addRoom(circleRoom, (0, 1, 0, 0))
+    builder.addRoom(roomBottomLeft, (0, 1, 0, 0))
     builder.addRoom(poolRoom, (1, 1, 0, 0))
 
     // TOP FLOOR
-    builder.addRoom(roomTopLeftNoElevator, (0, 0, 1, 0))
+    //builder.addRoom(roomTopLeftNoElevator, (0, 0, 1, 0))
     //builder.addRoom(roomTopLeft, (0, 0, 1, 0))
-    builder.addRoom(roomTopRight, (1, 0, 1, 0))
-    builder.addRoom(commandCenter, (0, 1, 1, 0))
-    builder.addRoom(roomWithView, (1, 1, 1, 0))
+    builder.addRoom(commandCenter.flipY, (0, 0, 1, 0))
+    //builder.addRoom(roomTopRight, (1, 0, 1, 0))  // TOP RIGHT
+    builder.addRoom(dishRoof, (1, 0, 1, 0)) // TOP RIGHT
+
+    //builder.addRoom(commandCenter, (0, 1, 1, 0))  // BOTTOM LEFT
+    builder.addRoom(roomBottomLeft, (0, 1, 1, 0))
+    builder.addRoom(roomWithView, (1, 1, 1, 0))   // BOTTOM RIGHT
 
 
     builder.autoLinkRooms()
