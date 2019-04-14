@@ -16,19 +16,14 @@ object Hyper2MapBuilder {
 
 class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
 
-  val grid = scala.collection.mutable.Map[(Int, Int, Int, Int), PastedSectorGroup]()
-
-  val grid2 = scala.collection.mutable.Map[(Int, Int, Int, Int), Room]()
-
+  val grid = scala.collection.mutable.Map[Cell, PastedSectorGroup]()
+  val grid2 = scala.collection.mutable.Map[Cell, Room]()
   val margin: Int = 10 * 1024
 
   // Main hypercube stuff goes here
   val origin: PointXYZ = new PointXYZ(
     DMap.MIN_X + margin + (14 * 1024),  // extra for the train
     DMap.MIN_Y + margin, 0)
-
-
-  //val waterOrigin: PointXYZ = new PointXYZ(DMap.MIN_X + margin, DMap.MIN_Y + margin + 20 * 1024, 0)
 
   // tracks locations for placing "floating" sectors that can go anywhere, like underwater areas.
   val sgPacker: SectorGroupPacker = new SimpleSectorGroupPacker(
@@ -42,7 +37,6 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
   val hallwayWidth = 1024
   val MAXGRID = 2
 
-
   def placeAnywhere(sg: SectorGroup): PastedSectorGroup = {
     val topLeft = sgPacker.reserveArea(sg)
     val tr = sg.boundingBox.getTranslateTo(topLeft).withZ(0)
@@ -51,7 +45,6 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
 
   def joinWalls(c1: Connector, c2: Connector): Unit = {
     if(c1 == null || c2 == null) throw new IllegalArgumentException
-    //PrefabUtils.joinWalls(outMap, c1.asInstanceOf[RedwallConnector], c2.asInstanceOf[RedwallConnector])
     c1.asInstanceOf[RedwallConnector].linkConnectors(outMap, c2.asInstanceOf[RedwallConnector])
   }
 
@@ -71,16 +64,12 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
   /** sets the player start of the map to the location of the first player start marker sprite it finds */
   def setPlayerStart(cell: Cell): Unit = setPlayerStart(grid(cell))
 
-  // old version
+  @deprecated // old version
   def addRoom(room: SectorGroup, gridCell: (Int, Int, Int, Int)): PastedSectorGroup = {
-
     val anchor: PointXYZ = room.getAnchor.withZ(0)
     val p = toCoordinates(gridCell)
-
-    //val tr = anchor.getTransformTo(origin.add(new PointXYZ(x, y, z)))
     val tr = anchor.getTransformTo(origin.add(p))
     val psg = pasteSectorGroup(room, tr)
-
     grid(gridCell) = psg
     psg
   }
@@ -103,9 +92,7 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
   }
 
   def autoLinkRooms(): Unit = {
-
     grid2.foreach { case (gridCell, room) =>
-
         val (x, y, z, w) = gridCell
 
         // if we only check +1, no risk of repeating
@@ -123,12 +110,28 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
             tryAutoLinkNorthToSouth(gridCell, neighboorCell)
           } else if(z + 1 == neighboorCell._3){
             tryAutoLinkElevator(gridCell, neighboorCell)
+          } else if(w + 1 == neighboorCell._4){
+            tryAutoLinkTeleporer(gridCell, neighboorCell)
           }
         }
       }
     }
   }
 
+  def tryAutoLinkTeleporer(cell1: Cell, cell2: Cell): Boolean = {
+    (grid2.get(cell1), grid2.get(cell2)) match {
+      case (Some(_), Some(_)) =>
+        val teleporters1 = grid(cell1).findConnectorsByType(ConnectorType.TELEPORTER)
+        val teleporters2 = grid(cell2).findConnectorsByType(ConnectorType.TELEPORTER)
+        if(teleporters1.size() == 1 && teleporters2.size() == 1){
+          TeleportConnector.linkTeleporters(teleporters1.get(0), grid(cell1), teleporters2.get(0), grid(cell2), nextUniqueHiTag())
+          true
+        } else {
+        false
+        }
+      case _ => false
+    }
+  }
 
   def tryAutoLinkElevator(bottomCell: Cell, topCell: Cell, elevatorStartsLower: Boolean = true): Boolean = {
     (grid2.get(bottomCell), grid2.get(topCell)) match {
@@ -230,7 +233,6 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
   }
 
   def placeHallwayNS(topRoom: PastedSectorGroup, hallway: SectorGroup, bottomRoom: PastedSectorGroup): PastedSectorGroup = {
-
     def northConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.NorthConnector).asInstanceOf[RedwallConnector]
     def southConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.SouthConnector).asInstanceOf[RedwallConnector]
 
@@ -259,17 +261,39 @@ object Room {
     sectorGroup: SectorGroup,
     highDoors: Map[Int, Boolean],
     lowDoors: Map[Int, Boolean],
-    elevator: Boolean = false
+    elevator: Boolean = false,
+    teleporter: Boolean = false
   ): Room = {
     new Room(sectorGroup, highDoors, lowDoors, elevator)
   }
 
   def apply(
-  sectorGroup: SectorGroup,
-  highDoors: Seq[Int],
-  lowDoors: Seq[Int],
-  elevator: Boolean): Room = {
+    sectorGroup: SectorGroup,
+    highDoors: Seq[Int],
+    lowDoors: Seq[Int],
+    elevator: Boolean,
+    teleporter: Boolean): Room = {
     new Room(sectorGroup, highDoors.map(d => (d, true)).toMap, lowDoors.map(d => (d, true)).toMap, elevator)
+  }
+
+  // TODO - how do we detect low doors vs high?
+  def autoDoors(sectorGroup: SectorGroup): Seq[Int] = {
+    val standardDoorLength = 2048
+    def hasHeading(h: Int): Boolean  = sectorGroup.getRedwallConnectors(SimpleConnector.connectorTypeForHeading(h)) match {
+      case x: Seq[RedwallConnector] => {
+        x.find(_.totalManhattanLength(sectorGroup.getMap) == standardDoorLength).nonEmpty
+      }
+      case _ => false
+    }
+    val headings: Seq[Int] = Heading.all.asScala.flatMap(h => if(hasHeading(h)){ Some(h.toInt)}else{ None })
+    headings
+  }
+
+  def auto(sectorGroup: SectorGroup, highDoors: Seq[Int], lowDoors: Seq[Int]): Room = {
+    // TODO - maybe the best thing is for the rooms to not even understand high vs low and do it at a lower level...
+    val hasTeleport: Boolean = sectorGroup.getTeleportConnectors().filter(t => !t.isWater).size > 0
+    val hasElevator: Boolean = sectorGroup.getElevatorConnectors().size > 0
+    Room(sectorGroup, highDoors, lowDoors, hasElevator, hasTeleport)
   }
 
   def flipY(doors: Map[Int, Boolean]): Map[Int, Boolean] = {
@@ -283,31 +307,39 @@ object Room {
       }
     }
   }
+
+  def flipX(doors: Map[Int, Boolean]): Map[Int, Boolean] = {
+    doors.map{ d =>
+      if(d._1 == Heading.W){
+        (Heading.E, d._2)
+      }else if(d._1 == Heading.E){
+        (Heading.W, d._2)
+      }else{
+        d
+      }
+    }
+  }
+
 }
 
 case class Room(
   sectorGroup: SectorGroup,
   highDoors: Map[Int, Boolean],
   lowDoors: Map[Int, Boolean],
-  elevator: Boolean = false
+  elevator: Boolean = false,
+  teleporter: Boolean = false
 ) {
-
   def hasLowDoor(direction: Int): Boolean = lowDoors.get(direction).getOrElse(false)
   def hasHighDoor(direction: Int): Boolean = highDoors.get(direction).getOrElse(false)
-
   def flipY: Room = {
-    Room(
-      sectorGroup.flippedY(),
-      Room.flipY(highDoors),
-      Room.flipY(lowDoors),
-      elevator
-    )
+    Room(sectorGroup.flippedY(), Room.flipY(highDoors), Room.flipY(lowDoors), elevator, teleporter)
+  }
+  def flipX: Room = {
+    Room(sectorGroup.flippedX(), Room.flipX(highDoors), Room.flipX(lowDoors), elevator, teleporter)
   }
 }
 
 object Hypercube2 {
-
-
   //
   // Room Prefabs (room id is marker w/ lotag 1)
   //
@@ -328,6 +360,13 @@ object Hypercube2 {
   // 110 - basic room that can be assembled
   // 1101 - basic room assembly - elevator
   // 1102 - basic room assembly - empty
+  // 1103 - basic room assembly - teleporter
+  // 1104 - basic room assembly - teleporter empty
+
+  // Modular Connectors
+  // 123 - ELEVATOR
+  // 124 - (test connector for multi redwall)
+  // 125 - TELEPORTER
 
   // 111 - roof antenna
   // 11101 - connector for roof antenna
@@ -351,11 +390,98 @@ object Hypercube2 {
   //
   // 303 - reactor underwater
 
-  // Connectors
-  // 123 - ELEVATOR
-
 
   // note:  6 large squares ( 1042 ) seem like a good size.
+
+
+  def run(sourceMap: DMap): DMap = {
+    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
+    val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
+
+    def modularRoom(x: Int, y: Int, elevator: Boolean, teleporter: Boolean, w: Int = 0): Room = {
+      val lowDoors = Seq(Heading.W, Heading.N)
+      val teleportId = if(teleporter){ 1103 }else{ 1104 } // 1104 is teleporter empty
+      val elevatorId = if(elevator){ 1101 }else{ 1102 }
+      val sg = palette.getSectorGroup(110).connectedTo(125, palette.getSectorGroup(teleportId))
+      val sg2 = sg.connectedTo(123, palette.getSectorGroup(elevatorId))
+      val sg3 = w match {
+        case 0 => sg2
+        case 1 => {
+          val g = sg2.copy()
+          g.getMap.allWalls.foreach(_.setPal(PaletteList.BLUE_TO_RED))
+          g
+        }
+      }
+      val modularRoomBR = Room(sg3, Seq(), lowDoors, elevator, teleporter)
+      (x, y) match {
+        case (0, 0) => modularRoomBR.flipX.flipY
+        case (1, 0) => modularRoomBR.flipY
+        case (0, 1) => modularRoomBR.flipX
+        case (1, 1) => modularRoomBR
+        case _ => throw new IllegalArgumentException
+      }
+    }
+
+    val allDoors: Seq[Int] = Heading.all.asScala.map(_.toInt)
+    val circleRoom = Room.auto(palette.getSectorGroup(104), allDoors, allDoors)
+
+    val roomWithView = Room(palette.getSectorGroup(105), Seq(), Seq(Heading.W, Heading.N), false, false)
+
+    val poolRoom = Room.auto(palette.getSectorGroup(101), allDoors, Seq())
+
+    val commandCenter = Room.auto(palette.getSectorGroup(106), Seq(), Room.autoDoors(palette.getSectorGroup(106)))
+
+    val habitat = Room.auto(palette.getSectorGroup(107), Seq(), Seq(Heading.W))
+
+    val trainStop = Room(palette.getSectorGroup(108), Seq(), Seq( Heading.EAST, Heading.SOUTH ), false, false)
+
+    val ELEVATOR_GROUP = 1101
+    val dishSg = palette.getSectorGroup(111).connectedTo(11101, palette.getSectorGroup(112)).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
+    val dishRoof = Room.auto(dishSg, Seq(Heading.S, Heading.W), Seq())
+
+    // TODO - anchor sprite removal with connectedTo() is not working
+
+
+    // BOTTOM FLOOR
+    builder.addRoom(trainStop, (0, 0, 0, 0))
+    builder.addRoom(habitat, (1, 0, 0, 0))
+    builder.addRoom(modularRoom(0, 1, true, true), (0, 1, 0, 0))
+    builder.addRoom(poolRoom, (1, 1, 0, 0))
+
+    // TOP FLOOR
+    builder.addRoom(commandCenter.flipY, (0, 0, 1, 0))
+    builder.addRoom(dishRoof, (1, 0, 1, 0)) // TOP RIGHT
+    builder.addRoom(modularRoom(0, 1, true, true), (0, 1, 1, 0)) // BOTTOM LEFT
+    builder.addRoom(roomWithView, (1, 1, 1, 0))   // BOTTOM RIGHT
+
+    // W+ ------------------------------------
+
+    // BOTTOM FLOOR
+    builder.addRoom(modularRoom(0, 0, true, false, w=1), (0, 0, 0, 1))  // TOP LEFT
+    builder.addRoom(modularRoom(1, 0, false, false, w=1), (1, 0, 0, 1))
+    builder.addRoom(modularRoom(0, 1, true, true, w=1), (0, 1, 0, 1))
+    builder.addRoom(modularRoom(1, 1, true, false, w=1), (1, 1, 0, 1))
+
+    // TOP FLOOR
+    builder.addRoom(modularRoom(0, 0, true, false, w=1), (0, 0, 1, 1))  // TOP LEFT
+    builder.addRoom(modularRoom(1, 0, false, false, w=1), (1, 0, 1, 1))
+    builder.addRoom(modularRoom(0, 1, true, true, w=1), (0, 1, 1, 1))
+    builder.addRoom(modularRoom(1, 1, true, false, w=1), (1, 1, 1, 1))
+
+    builder.autoLinkRooms()
+
+    builder.setPlayerStart((0, 0, 0, 0))
+    builder.clearMarkers()
+    builder.outMap
+  }
+
+
+
+
+
+
+
+
 
   def run2(sourceMap: DMap): DMap = {
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
@@ -365,156 +491,14 @@ object Hypercube2 {
     val sg2 = palette.getSectorGroup(1091)
 
     val basicElevator = palette.getSectorGroup(1101)
-    // val basicEmpty = palette.getSectorGroup(1102).flippedY(0)
-    // val basicRoom = palette.getSectorGroup(110).flippedY()
-    // val basicEmpty = palette.getSectorGroup(1102).flippedX(0)
-    // val basicRoom = palette.getSectorGroup(110).flippedX()
     val basicEmpty = palette.getSectorGroup(1102).flippedY(0).flippedX(0)
     val basicRoom = palette.getSectorGroup(110).flippedY().flippedX()
-
-    // val room = basicRoom.connectedTo(
-    //   basicRoom.getRedwallConnector(123),
-    //   basicEmpty, //basicElevator,
-    //   //basicElevator.getRedwallConnector(123));
-    //   basicEmpty.getRedwallConnector(123));
 
     val room = basicRoom.connectedTo(123, basicEmpty)
     builder.placeAnywhere(room);
 
-    //val sg3 = sg.connectedTo(
-    //  sg.getConnector(123).asInstanceOf[RedwallConnector],
-    //  sg2,
-    //  sg2.getConnector(124).asInstanceOf[RedwallConnector])
-    //builder.placeAnywhere(sg3)
-
-
     builder.setAnyPlayerStart()
-
     //builder.setPlayerStart((0, 0, 0, 0))
-    builder.clearMarkers()
-    builder.outMap
-  }
-
-
-  def run(sourceMap: DMap): DMap = {
-    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
-    val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
-
-    val roomBottomRight = Room(
-      palette.getSectorGroup(100),
-      Map[Int, Boolean](),
-      Map((SimpleConnector.Direction.WEST -> true), (SimpleConnector.Direction.NORTH -> true)),
-      true
-    )
-    val roomBottomLeft = Room(
-      palette.getSectorGroup(100).flippedX(),
-      Map[Int, Boolean](),
-      Map((SimpleConnector.Direction.EAST -> true), (SimpleConnector.Direction.NORTH -> true)),
-      true
-    )
-    val roomTopLeft = Room(
-      palette.getSectorGroup(100).flippedX().flippedY(),
-      Seq(),
-      Seq(Heading.E, Heading.S),
-      true
-    )
-
-    val emptySg = palette.getSectorGroup(1102).flippedX(0).flippedY(0)
-    val modularRoom = palette.getSectorGroup(110).flippedX().flippedY()
-    // val emptySg = palette.getSectorGroup(1102).flippedY(0)
-    // val modularRoom = palette.getSectorGroup(110).flippedY()
-
-    //val roomTopLeftNoElevator = modularRoom
-    val roomTopLeftNoElevator = Room(
-      modularRoom.connectedTo(123, emptySg),
-      Seq(),
-      Seq(Heading.E, Heading.S),
-      false
-    )
-
-
-    val roomTopRight = Room(
-      palette.getSectorGroup(100).flippedY(),
-      Seq(),
-      Seq(Heading.W, Heading.S),
-      true
-    )
-
-    val circleRoom = Room(
-      palette.getSectorGroup(104),
-      SimpleConnector.Direction.all.asScala.map(d => (d.toInt, true)).toMap,
-      SimpleConnector.Direction.all.asScala.map(d => (d.toInt, true)).toMap
-    )
-
-    val roomWithView = Room(
-      palette.getSectorGroup(105),
-      Map[Int, Boolean](),
-      Map((SimpleConnector.Direction.WEST, true), (SimpleConnector.Direction.NORTH, true))
-    )
-
-    val poolRoom = Room(
-      palette.getSectorGroup(101),
-      Heading.all.asScala.map(d => (d.toInt, true)).toMap,
-      Map[Int, Boolean]()
-    )
-
-    val commandCenter = Room(
-      palette.getSectorGroup(106),
-      Seq(),
-      Seq(Heading.E, Heading.W, Heading.N),
-      false
-    )
-
-    val habitat = Room(
-      palette.getSectorGroup(107),
-      Seq(),
-      Seq(Heading.W),
-      true
-    )
-
-    val trainStop = Room(palette.getSectorGroup(108), Seq(), Seq(
-      Heading.EAST, Heading.SOUTH
-    ), false)
-
-
-    val ELEVATOR_GROUP = 1101
-    val dishRoof = Room(
-      palette.getSectorGroup(111).connectedTo(11101, palette.getSectorGroup(112)).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP)),
-      Seq(Heading.S, Heading.W),
-      Seq(),
-      true) // TODO - add an elevator to a lower level
-
-
-    // TODO - anchor sprite removal with connectedTo() is not working
-
-    // val eastWestHallway = palette.getSectorGroup(200)
-    // def westConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[RedwallConnector]
-    // println(s"hallway anchor point: ${westConnector(eastWestHallway).getAnchorPoint}")
-    // println(s"room anchor point: ${westConnector(palette.getSectorGroup(100)).getAnchorPoint}")
-
-    // BOTTOM FLOOR
-    //builder.addRoom(roomTopLeft, (0, 0, 0, 0))
-    builder.addRoom(trainStop, (0, 0, 0, 0))
-    builder.addRoom(habitat, (1, 0, 0, 0))
-    //builder.addRoom(circleRoom, (0, 1, 0, 0))
-    builder.addRoom(roomBottomLeft, (0, 1, 0, 0))
-    builder.addRoom(poolRoom, (1, 1, 0, 0))
-
-    // TOP FLOOR
-    //builder.addRoom(roomTopLeftNoElevator, (0, 0, 1, 0))
-    //builder.addRoom(roomTopLeft, (0, 0, 1, 0))
-    builder.addRoom(commandCenter.flipY, (0, 0, 1, 0))
-    //builder.addRoom(roomTopRight, (1, 0, 1, 0))  // TOP RIGHT
-    builder.addRoom(dishRoof, (1, 0, 1, 0)) // TOP RIGHT
-
-    //builder.addRoom(commandCenter, (0, 1, 1, 0))  // BOTTOM LEFT
-    builder.addRoom(roomBottomLeft, (0, 1, 1, 0))
-    builder.addRoom(roomWithView, (1, 1, 1, 0))   // BOTTOM RIGHT
-
-
-    builder.autoLinkRooms()
-
-    builder.setPlayerStart((0, 0, 0, 0))
     builder.clearMarkers()
     builder.outMap
   }
@@ -538,11 +522,7 @@ object Hypercube2 {
 
     val a = basicRoom.getAnchor.asPointXY
 
-
-
-    //val topPsg = builder.addRoom(poolRoomTop, (1, 0, 0, 0))
     val topPsg = builder.addRoom(reactorRoomTop, (1, 0, 0, 0))
-
 
     //val tmpPoolBottom = poolRoomBottom.connectedTo(RedwallJoinType.NorthToSouth, underWaterPassage1)
     val tmpPoolBottom = poolRoomBottom.connectedTo(RedwallJoinType.NorthToSouth, underWaterPassage1)
@@ -550,7 +530,6 @@ object Hypercube2 {
       .connectedTo(RedwallJoinType.NorthToSouth, reactorUnderwaterRoom)
 
     val bottomPsg = builder.placeAnywhere(tmpPoolBottom)
-
 
     val top2Psg = builder.addRoom(poolRoomTop, (1, 1, 0, 0))
 
@@ -560,9 +539,7 @@ object Hypercube2 {
 
     // TODO - the hallway connectors should all be automatic ...
 
-
     // TODO - redwall connectors should check distance and throw if wall length not equal
-
 
     // TODO copy code should warn if there are sectors in the map that it didnt copy
 
@@ -570,7 +547,6 @@ object Hypercube2 {
 
     builder.addRoom(basicRoom.flippedX(a.x), (0, 1, 0, 0))
     builder.placeHallwayEW(eastWestElevator, (0, 1, 0, 0), (1, 1, 0, 0))
-
 
     // builder.addRoom(basicRoom, (1, 1, 0, 0))
     // builder.addRoom(basicRoom.flippedX(a.x), (0, 1, 0, 0))
@@ -582,7 +558,6 @@ object Hypercube2 {
     // builder.addRoom(basicRoom.flippedY(a.x), (1, 0, 0, 0))
     // builder.placeHallwayEW(eastWestHallway, (0, 0, 0, 0), (1, 0, 0, 0))
     // builder.placeHallwayNS(northSouthHallway, (1, 0, 0, 0), (1, 1, 0, 0))
-
 
     builder.setAnyPlayerStart()
     builder.clearMarkers()

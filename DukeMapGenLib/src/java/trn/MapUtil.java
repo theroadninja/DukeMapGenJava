@@ -293,4 +293,14 @@ public class MapUtil {
 			if(w.getNextWallInLoop() != nextWallId) throw new IllegalArgumentException("walls are not in a sequential loop");
 		}
 	}
+
+	/**
+	 * Most sprites have angles that don't matter.
+	 * @param s
+	 * @return true if a sprite angle does not have a special up-or-down meaning.
+	 */
+	public static boolean shouldRotate(Sprite s){
+	    throw new RuntimeException("not implemented yet");
+
+	}
 }

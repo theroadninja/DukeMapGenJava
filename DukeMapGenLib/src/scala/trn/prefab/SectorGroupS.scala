@@ -56,6 +56,21 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
     }
   }
 
+  def getRedwallConnectors(connectorType: Int): Seq[RedwallConnector] = {
+    if(! ConnectorType.isRedwallType(connectorType)){
+      throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
+    }
+    connectors.asScala.filter(c => c.getConnectorType == connectorType).map(_.asInstanceOf[RedwallConnector])
+  }
+
+  def getTeleportConnectors(): Seq[TeleportConnector] = {
+    connectors.asScala.filter(c => c.getConnectorType == ConnectorType.TELEPORTER).map(_.asInstanceOf[TeleportConnector])
+  }
+
+  def getElevatorConnectors(): Seq[ElevatorConnector] = {
+    connectors.asScala.filter(c => c.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector])
+  }
+
   def connectedTo(joinType: RedwallJoinType, group2: SectorGroup): SectorGroup = {
     val conn1 = getRedwallConnector(joinType.connectorType1)
     val conn2 = group2.getRedwallConnector(joinType.connectorType2, false)

@@ -20,7 +20,10 @@ public abstract class RedwallConnector extends Connector {
     @Override
     public abstract RedwallConnector translateIds(final IdMap idmap, PointXYZ delta);
 
-    //public abstract int getWallId();
+    /**
+     * @returns the sum of the manhattan-distance length of each wall in the group
+     */
+    public abstract long totalManhattanLength(Map map);
 
     @Override
     public abstract int getConnectorType();

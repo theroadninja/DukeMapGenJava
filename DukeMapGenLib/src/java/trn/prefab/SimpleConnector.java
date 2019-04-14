@@ -23,6 +23,20 @@ public class SimpleConnector extends RedwallConnector {
 		public static List<Integer> all = Arrays.asList(EAST, SOUTH, WEST, NORTH);
 	}
 
+	public static int connectorTypeForHeading(int heading){
+    	if(Heading.E == heading){
+    		return ConnectorType.HORIZONTAL_EAST;
+		}else if(Heading.W == heading){
+    		return ConnectorType.HORIZONTAL_WEST;
+		}else if(Heading.N == heading){
+    		return ConnectorType.VERTICAL_NORTH;
+		}else if(Heading.S == heading){
+    		return ConnectorType.VERTICAL_SOUTH;
+		}else{
+    		throw new IllegalArgumentException();
+		}
+	}
+
 	
 	public static ConnectorFilter SouthConnector = new ConnectorTypeFilter(
 			PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_SOUTH);
@@ -123,6 +137,13 @@ public class SimpleConnector extends RedwallConnector {
 				idmap.wall(this.wallId),
                 this.connectorType,
 				this.markerSpriteLotag);
+	}
+
+	@Override
+	public long totalManhattanLength(Map map){
+	    Wall w1 = map.getWall(this.wallId);
+	    Wall w2 = map.getWall(w1.getNextWallInLoop());
+	    return w1.getLocation().manhattanDistanceTo(w2.getLocation());
 	}
 
 	/**

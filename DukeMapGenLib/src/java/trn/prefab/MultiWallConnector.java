@@ -155,6 +155,17 @@ public class MultiWallConnector extends RedwallConnector {
     }
 
     @Override
+    public long totalManhattanLength(Map map){
+        long sum = 0;
+        for(int wallId: this.wallIds){
+            Wall w1 = map.getWall(wallId);
+            Wall w2 = map.getWall(w1.getNextWallInLoop());
+            sum += w1.getLocation().manhattanDistanceTo(w2.getLocation());
+        }
+        return sum;
+    }
+
+    @Override
     public void removeConnector(Map map) {
         //TODO - merge this with the one in SimpleConnector
 

@@ -64,6 +64,13 @@ public class PointXY {
 		return new ImmutablePair<Integer, Integer>(x,y);
 	}*/
 
+
+	public long manhattanDistanceTo(PointXY dest) {
+		long dx = Math.abs(dest.x - this.x);
+		long dy = Math.abs(dest.y - this.y);
+		return dx  + dy;
+	}
+
 	public PointXY translateTo(PointXY dest){
 		return new PointXY(dest.x - this.x, dest.y - this.y);
 	}

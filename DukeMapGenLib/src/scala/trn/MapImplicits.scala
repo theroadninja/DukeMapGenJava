@@ -77,6 +77,7 @@ object MapImplicits {
         val translated = transform * s.getLocation.asPointXY()
         s.setLocation(translated)
 
+        // TODO - check MapUtil.shouldRotate() first ...
         val vector: PointXY = angleTransform * AngleUtil.unitVector(s.ang)
         s.setAngle(AngleUtil.angleOf(vector))
       }
