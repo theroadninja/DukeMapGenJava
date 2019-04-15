@@ -16,8 +16,9 @@ import trn.javax.MultiIterable;
  *
  */
 public class PrefabPalette {
-	
-	private final java.util.Map<Integer, SectorGroup> numberedSectorGroups;
+
+	// TODO - make private again
+	public final java.util.Map<Integer, SectorGroup> numberedSectorGroups;
 	
 	/** sector groups that dont have ids */
 	private final List<SectorGroup> anonymousSectorGroups;
@@ -164,6 +165,7 @@ public class PrefabPalette {
 	}
 	
 	public SectorGroup getSectorGroup(int sectorGroupId){
+	    if(!this.numberedSectorGroups.containsKey(sectorGroupId)) throw new NoSuchElementException();
 		return this.numberedSectorGroups.get(sectorGroupId);
 	}
 

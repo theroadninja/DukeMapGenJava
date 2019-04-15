@@ -213,6 +213,17 @@ public class MultiWallConnector extends RedwallConnector {
 
         // check each point
         if(map != null){
+
+            // 1. are any of the walls redwalls?
+            List<Integer> tmp = new ArrayList<>(this.wallIds);
+            tmp.addAll(other.wallIds);
+            for(int id: tmp){
+                if(map.getWall(id).isRedWall()){
+                    throw new SpriteLogicException("wall " + id + " is already a red wall");
+                }
+            }
+
+            // 2. are the walls lined up correclty?
             List<PointXY> list1 = allRelativeConnPoints(map);
             List<PointXY> list2 = other.allRelativeConnPoints(map);
             // System.out.println("list1");

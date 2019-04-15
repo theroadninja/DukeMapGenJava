@@ -372,6 +372,13 @@ object Hypercube2 {
   // 11101 - connector for roof antenna
   // 112 - roof antenna bottom
 
+  // 113 - medical bay
+  // 11301 - medical bay upper floor
+  // 11302 - redwall connection to upper floor
+
+  // Intra-sector connectors
+  // 150 - elevator sector
+
   //
   // Connection Groups
   //
@@ -439,6 +446,17 @@ object Hypercube2 {
     val dishSg = palette.getSectorGroup(111).connectedTo(11101, palette.getSectorGroup(112)).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
     val dishRoof = Room.auto(dishSg, Seq(Heading.S, Heading.W), Seq())
 
+
+    // 113 - medical bay
+    // 11301 - medical bay upper floor
+    // 11302 - redwall connection to upper floor
+    //val medicalSg = palette.getSectorGroup(113).connectedTo(11302, palette.getSectorGroup(11302))
+    println(palette.numberedSectorGroups.keySet().asScala.mkString(","))
+    val medicalSg = palette.getSectorGroup(113).connectedTo(11302, palette.getSectorGroup(11301))
+    builder.linkAllWater(medicalSg)
+    builder.linkTwoElevators(medicalSg, 150)
+    val medicalBay = Room(medicalSg, Seq(), Seq(Heading.S), false, false)
+
     // TODO - anchor sprite removal with connectedTo() is not working
 
 
@@ -457,7 +475,8 @@ object Hypercube2 {
     // W+ ------------------------------------
 
     // BOTTOM FLOOR
-    builder.addRoom(modularRoom(0, 0, true, false, w=1), (0, 0, 0, 1))  // TOP LEFT
+    // builder.addRoom(modularRoom(0, 0, true, false, w=1), (0, 0, 0, 1))  // TOP LEFT
+    builder.addRoom(medicalBay, (0, 0, 0, 1))  // TOP LEFT
     builder.addRoom(modularRoom(1, 0, false, false, w=1), (1, 0, 0, 1))
     builder.addRoom(modularRoom(0, 1, true, true, w=1), (0, 1, 0, 1))
     builder.addRoom(modularRoom(1, 1, true, false, w=1), (1, 1, 0, 1))
@@ -483,25 +502,24 @@ object Hypercube2 {
 
 
 
-  def run2(sourceMap: DMap): DMap = {
-    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
-    val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
+  // def run2(sourceMap: DMap): DMap = {
+  //   val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
+  //   val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
 
-    val sg = palette.getSectorGroup(109)
-    val sg2 = palette.getSectorGroup(1091)
+  //   val sg = palette.getSectorGroup(109)
+  //   val sg2 = palette.getSectorGroup(1091)
 
-    val basicElevator = palette.getSectorGroup(1101)
-    val basicEmpty = palette.getSectorGroup(1102).flippedY(0).flippedX(0)
-    val basicRoom = palette.getSectorGroup(110).flippedY().flippedX()
+  //   val basicElevator = palette.getSectorGroup(1101)
+  //   val basicEmpty = palette.getSectorGroup(1102).flippedY(0).flippedX(0)
+  //   val basicRoom = palette.getSectorGroup(110).flippedY().flippedX()
 
-    val room = basicRoom.connectedTo(123, basicEmpty)
-    builder.placeAnywhere(room);
+  //   val room = basicRoom.connectedTo(123, basicEmpty)
+  //   builder.placeAnywhere(room);
 
-    builder.setAnyPlayerStart()
-    //builder.setPlayerStart((0, 0, 0, 0))
-    builder.clearMarkers()
-    builder.outMap
-  }
+  //   builder.setAnyPlayerStart()
+  //   builder.clearMarkers()
+  //   builder.outMap
+  // }
 
   def runUnderwaterTest(sourceMap: DMap): DMap = {
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);

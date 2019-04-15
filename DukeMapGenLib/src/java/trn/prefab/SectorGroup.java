@@ -99,6 +99,7 @@ public class SectorGroup extends SectorGroupS
 	}
 
 	public SectorGroup connectedTo(int connectorId, SectorGroup sg){
+		if(sg == null) throw new IllegalArgumentException();
 		RedwallConnector c1 = getRedwallConnector(connectorId);
 		RedwallConnector c2 = sg.getRedwallConnector(connectorId);
 		return super.connectedTo(c1, sg, c2);

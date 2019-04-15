@@ -166,4 +166,37 @@ trait MapBuilder extends ISectorGroup {
 
   }
 
+  /**
+    * search through a single sector group, and assume that all of the above water connectors should match all of the
+    * below water connectors
+    *
+    * TODO - unlike the others, this doenst necessarily opreate on the map this builder points to.  Should this code
+    * be in SectorGroupS ?
+    * @param singleGroup
+    */
+  def linkAllWater(singleGroup: SectorGroup): Unit = {
+    val map = singleGroup.getMap
+    val conns = singleGroup.getTeleportConnectors().filter(c => c.isWater && !c.isLinked(map))
+    //val (aboveWater, belowWater) = conns.partition(c => map.getSector(c.getSectorId).getLotag == 1
+    val aboveWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 1).sortBy(t => waterSortKey(t.getSELocation(singleGroup)))
+    val belowWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 2).sortBy(t => waterSortKey(t.getSELocation(singleGroup)))
+    if(aboveWater.size != belowWater.size){
+      throw new SpriteLogicException(s"There are ${aboveWater.size} above water vs ${belowWater.size} below.")
+    }
+    println(s"above water size=${aboveWater.size}")
+
+    // TODO - verify the locations have the same relative positions
+    aboveWater.zip(belowWater).foreach { case (above, below) => TeleportConnector.linkTeleporters(above, singleGroup, below, singleGroup, nextUniqueHiTag()) }
+
+  }
+
+  def linkTwoElevators(group: SectorGroup, connectorId: Int): Unit = {
+    if(connectorId < 1) throw new IllegalArgumentException
+    val elevators: Seq[ElevatorConnector] = group.getElevatorConnectors.filter(c => c.getConnectorId == connectorId && !c.isLinked(group.getMap))
+    if(elevators.size != 2) throw new SpriteLogicException(s"Number of teleporters with connectorId ${connectorId}")
+    // TODO - why does this would?  physically lower sectors should have a HIGHER z
+    elevators.sortBy(c => group.map.getSector(c.getSectorId).getFloorZ) // lower z should be higher
+    ElevatorConnector.linkElevators(elevators(0), group, elevators(1), group, nextUniqueHiTag(), false)
+  }
+
 }

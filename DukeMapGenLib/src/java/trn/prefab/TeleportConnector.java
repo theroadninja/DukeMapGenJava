@@ -70,7 +70,8 @@ public class TeleportConnector extends Connector {
     @Override
     public boolean isLinked(Map map) {
         if(this.mustReplaceMarkerSprite){
-            throw new RuntimeException("not implemented yet");
+            List<Sprite> list = map.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR, this.sectorId);
+            return list.size() < 1;
         }else{
             // TODO - use this.getSESprite()
             List<Sprite> list = map.findSprites(TextureList.SE, Lotags.SE.TELEPORT, this.sectorId);
