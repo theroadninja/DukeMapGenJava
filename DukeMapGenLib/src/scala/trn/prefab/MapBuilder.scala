@@ -96,6 +96,9 @@ trait MapBuilder extends ISectorGroup {
   }
 
   def clearMarkers(): Unit = {
+    if(!outMap.hasPlayerStart){
+      throw new IllegalStateException("Cannot delete marker sprites - there is no player start set")
+    }
     outMap.deleteSprites(SpriteFilter.texture(PrefabUtils.MARKER_SPRITE_TEX))
   }
 

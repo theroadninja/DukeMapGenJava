@@ -2,10 +2,8 @@ package trn.prefab;
 
 import java.util.*;
 
+import trn.*;
 import trn.Map;
-import trn.MapUtil;
-import trn.PointXYZ;
-import trn.Sprite;
 import trn.duke.MapErrorException;
 import trn.javax.MultiIterable;
 
@@ -40,6 +38,7 @@ public class PrefabPalette {
 	}
 	public static PrefabPalette fromMap(Map map, boolean strict) throws MapErrorException {
 		final java.util.Map<Integer, SectorGroup> numberedSectorGroups = new java.util.TreeMap<>();
+		final java.util.Map<Integer, List<SectorGroup>> redwallChildren = new java.util.TreeMap<>();
 		final List<SectorGroup> anonymousSectorGroups = new ArrayList<>();
 
 		Set<Short> processedSectorIds = new TreeSet<Short>();
@@ -59,30 +58,68 @@ public class PrefabPalette {
 			processedSectorIds.addAll(cpstate.sourceSectorIds());
 			
 			List<Sprite> idSprite = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
-			if(idSprite.size() > 1){
+			List<Sprite> childPointer = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.REDWALL_CHILD, null);
+			if(idSprite.size() + childPointer.size() > 1){
 				throw new SpriteLogicException("too many group id sprites in sector group");
-			}else if(idSprite.size() == 1){
+			}else if(idSprite.size() == 1) {
 				int groupId = idSprite.get(0).getHiTag();
-				if(numberedSectorGroups.containsKey(groupId)){
+				if (numberedSectorGroups.containsKey(groupId)) {
 					throw new SpriteLogicException("more than one sector group with id " + groupId);
 				}
 				numberedSectorGroups.put(groupId, new SectorGroup(clipboard, groupId));
-				
+
+			}else if(childPointer.size() == 1){
+
+				SectorGroup childGroup = new SectorGroup(clipboard);
+				int groupId = childPointer.get(0).getHiTag();
+				// make sure the sector with the child Id sprite also has a redwall connector marker
+                // Connector conn = childGroup.findFirstConnector(c -> c.getSectorId() == childPointer.get(0).getSectorId()
+				// 		&& ConnectorType.isRedwallType(c.getConnectorType()));
+				Connector conn = childGroup.getChildPointerConnector(childPointer.get(0).getSectorId());
+                if(conn == null){
+                	throw new SpriteLogicException("child id marker (for parent " + groupId + " is not in the same sector as a redwall connector");
+				}else if(conn.getConnectorId() == 0){
+                	throw new SpriteLogicException("child pointer connector must have a connector ID");
+				}
+
+				redwallChildren.putIfAbsent(groupId, new LinkedList<>());
+				redwallChildren.get(groupId).add(childGroup);
 			}else{
+				List<Sprite> mistakes = clipboard.findSprites(0, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
+				if(mistakes.size() > 0){
+					throw new SpriteLogicException("Sector group has no ID marker sprite but it DOES have a sprite with texture 0");
+				}
 				anonymousSectorGroups.add(new SectorGroup(clipboard));
 			}
 
-			if(strict){
+			if(strict){ // TODO - get rid of this strict thing
 				List<Sprite> anchorSprites = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.ANCHOR, null);
 				if(anchorSprites.size() > 1){
 					throw new SpriteLogicException("more than one anchor sprite in group");
+				}
+			}
+			// make sure all children have parents
+			for(Integer parentId: redwallChildren.keySet()){
+				if(! numberedSectorGroups.containsKey(parentId)){
+					int count = redwallChildren.get(parentId).size();
+					throw new SpriteLogicException("There is no sector group with ID " + parentId + ", referenced by " + count + " child sectors");
 				}
 			}
 			
 			sector++;
 		} // while
 
-		return new PrefabPalette(numberedSectorGroups, anonymousSectorGroups);
+		// now process the children
+		final java.util.Map<Integer, SectorGroup> numberedGroups2 = new java.util.TreeMap<>();
+		for(Integer groupId : numberedSectorGroups.keySet()){
+			SectorGroup sg = numberedSectorGroups.get(groupId);
+			if(redwallChildren.containsKey(groupId)){
+			    numberedGroups2.put(groupId, sg.connectedToChildren(redwallChildren.get(groupId)));
+			}else{
+				numberedGroups2.put(groupId, sg);
+			}
+		}
+		return new PrefabPalette(numberedGroups2, anonymousSectorGroups);
 
 	}
 

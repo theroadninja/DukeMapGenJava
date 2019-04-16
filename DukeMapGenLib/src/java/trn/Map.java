@@ -87,6 +87,9 @@ public class Map {
 	public void setPlayerStart(PlayerStart ps){
 		this.playerStart = ps;
 	}
+	public boolean hasPlayerStart(){
+		return this.playerStart != null;
+	}
 	
 	/**
 	 * @return the sector that contains the start point
