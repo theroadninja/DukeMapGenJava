@@ -12,15 +12,42 @@ object MapBuilder {
   }
   def isAnchorSprite(s: Sprite): Boolean = isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
 
+  def waterSortKey(p: PointXYZ): Long = {
+    val x = (p.x + 65535L) << 4
+    val y = (p.y + 65535L) << 2
+    val z = p.z + 65535L
+    x + y + z
+  }
+
+  def linkAllWater(singleGroup: SectorGroup, conns: Seq[TeleportConnector], tagGenerator: TagGenerator): Unit = {
+    val map = singleGroup.getMap
+    val aboveWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 1).sortBy(t => MapBuilder.waterSortKey(t.getSELocation(singleGroup)))
+    val belowWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 2).sortBy(t => MapBuilder.waterSortKey(t.getSELocation(singleGroup)))
+    if(aboveWater.size != belowWater.size){
+      throw new SpriteLogicException(s"There are ${aboveWater.size} above water vs ${belowWater.size} below.")
+    }
+    //println(s"above water size=${aboveWater.size}")
+
+    // TODO - verify the locations have the same relative positions
+    aboveWater.zip(belowWater).foreach { case (above, below) => TeleportConnector.linkTeleporters(above, singleGroup, below, singleGroup, tagGenerator.nextUniqueHiTag()) }
+  }
+
+  def linkTwoElevators(group: SectorGroup, elevators: Seq[ElevatorConnector], tagGenerator: TagGenerator, startLower: Boolean): Unit = {
+    if(elevators.size != 2) throw new IllegalArgumentException
+    // TODO - why does this work?  physically lower sectors should have a HIGHER z
+    elevators.sortBy(c => group.map.getSector(c.getSectorId).getFloorZ) // lower z should be higher
+    ElevatorConnector.linkElevators(elevators(0), group, elevators(1), group, tagGenerator.nextUniqueHiTag(), startLower)
+  }
+
 }
 
-trait MapBuilder extends ISectorGroup {
+trait MapBuilder extends ISectorGroup with TagGenerator {
   val outMap: DMap
 
   //var hiTagCounter = 1 + Math.max(0, outMap.allSprites.map(_.getHiTag).max)
   var hiTagCounter = 1
 
-  def nextUniqueHiTag(): Int = {
+  override def nextUniqueHiTag(): Int = {
     val i = hiTagCounter
     hiTagCounter += 1
     i
@@ -116,17 +143,10 @@ trait MapBuilder extends ISectorGroup {
   def isAnchor(s: Sprite): Boolean = MapBuilder.isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
 
 
-  private def waterSortKey(p: PointXYZ): Long = {
-    val x = (p.x + 65535L) << 4
-    val y = (p.y + 65535L) << 2
-    val z = p.z + 65535L
-    x + y + z
-  }
-
   // gets all of the water connections from the pasted sector group, in sorted order
   def getWaterConns(psg: PastedSectorGroup): Seq[TeleportConnector] = {
     val conns = psg.findConnectorsByType(ConnectorType.TELEPORTER).asScala.map(_.asInstanceOf[TeleportConnector])
-    val waterConns = conns.filter(_.isWater).map(w => (w, w.getSELocation(psg))).sortBy(t => waterSortKey(t._2))
+    val waterConns = conns.filter(_.isWater).map(w => (w, w.getSELocation(psg))).sortBy(t => MapBuilder.waterSortKey(t._2))
     waterConns.unzip._1
   }
 
@@ -154,7 +174,7 @@ trait MapBuilder extends ISectorGroup {
 
   def getWaterConns2(groups: Seq[PastedSectorGroup]): Seq[TeleportConnector] = {
     val conns = groups.flatMap { psg => psg.findConnectorsByType(ConnectorType.TELEPORTER).asScala.map(_.asInstanceOf[TeleportConnector]) }
-    val waterConns = conns.filter(_.isWater).map(w => (w, w.getSELocation(this))).sortBy(t => waterSortKey(t._2))
+    val waterConns = conns.filter(_.isWater).map(w => (w, w.getSELocation(this))).sortBy(t => MapBuilder.waterSortKey(t._2))
     waterConns.unzip._1
   }
 
@@ -170,36 +190,41 @@ trait MapBuilder extends ISectorGroup {
   }
 
   /**
+    * NOTE:  the reason this is a method on the Builder object is because of the need to call nextUniqueHitag
+    *
+    * TODO - 1) verity locations of SE sprites have the same relative positions  2) make nextUniqueHitag scan the map...
+    *
     * search through a single sector group, and assume that all of the above water connectors should match all of the
     * below water connectors
     *
-    * TODO - unlike the others, this doenst necessarily opreate on the map this builder points to.  Should this code
-    * be in SectorGroupS ?
     * @param singleGroup
     */
   def linkAllWater(singleGroup: SectorGroup): Unit = {
-    val map = singleGroup.getMap
-    val conns = singleGroup.getTeleportConnectors().filter(c => c.isWater && !c.isLinked(map))
-    //val (aboveWater, belowWater) = conns.partition(c => map.getSector(c.getSectorId).getLotag == 1
-    val aboveWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 1).sortBy(t => waterSortKey(t.getSELocation(singleGroup)))
-    val belowWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 2).sortBy(t => waterSortKey(t.getSELocation(singleGroup)))
-    if(aboveWater.size != belowWater.size){
-      throw new SpriteLogicException(s"There are ${aboveWater.size} above water vs ${belowWater.size} below.")
-    }
-    println(s"above water size=${aboveWater.size}")
+    val conns = singleGroup.getTeleportConnectors().filter(c => c.isWater && !c.isLinked(singleGroup.map))
+    MapBuilder.linkAllWater(singleGroup, conns, this)
+    // val map = singleGroup.getMap
+    // val conns = singleGroup.getTeleportConnectors().filter(c => c.isWater && !c.isLinked(map))
+    // val aboveWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 1).sortBy(t => MapBuilder.waterSortKey(t.getSELocation(singleGroup)))
+    // val belowWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 2).sortBy(t => MapBuilder.waterSortKey(t.getSELocation(singleGroup)))
+    // if(aboveWater.size != belowWater.size){
+    //   throw new SpriteLogicException(s"There are ${aboveWater.size} above water vs ${belowWater.size} below.")
+    // }
+    // println(s"above water size=${aboveWater.size}")
 
-    // TODO - verify the locations have the same relative positions
-    aboveWater.zip(belowWater).foreach { case (above, below) => TeleportConnector.linkTeleporters(above, singleGroup, below, singleGroup, nextUniqueHiTag()) }
+    // // TODO - verify the locations have the same relative positions
+    // aboveWater.zip(belowWater).foreach { case (above, below) => TeleportConnector.linkTeleporters(above, singleGroup, below, singleGroup, nextUniqueHiTag()) }
 
   }
 
   def linkTwoElevators(group: SectorGroup, connectorId: Int): Unit = {
     if(connectorId < 1) throw new IllegalArgumentException
     val elevators: Seq[ElevatorConnector] = group.getElevatorConnectors.filter(c => c.getConnectorId == connectorId && !c.isLinked(group.getMap))
-    if(elevators.size != 2) throw new SpriteLogicException(s"Number of teleporters with connectorId ${connectorId}")
-    // TODO - why does this would?  physically lower sectors should have a HIGHER z
-    elevators.sortBy(c => group.map.getSector(c.getSectorId).getFloorZ) // lower z should be higher
-    ElevatorConnector.linkElevators(elevators(0), group, elevators(1), group, nextUniqueHiTag(), false)
+    val startLower = false // TODO - pass in
+    MapBuilder.linkTwoElevators(group, elevators, this, startLower)
+    // if(elevators.size != 2) throw new SpriteLogicException(s"Number of teleporters with connectorId ${connectorId}")
+    // // TODO - why does this work?  physically lower sectors should have a HIGHER z
+    // elevators.sortBy(c => group.map.getSector(c.getSectorId).getFloorZ) // lower z should be higher
+    // ElevatorConnector.linkElevators(elevators(0), group, elevators(1), group, nextUniqueHiTag(), false)
   }
 
 }

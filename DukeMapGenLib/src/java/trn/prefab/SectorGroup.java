@@ -86,16 +86,6 @@ public class SectorGroup extends SectorGroupS
 	    this.connectors_().add(c);
     }
 	
-	public Connector getConnector(int connectorId){
-		if(connectorId < 0) throw new IllegalArgumentException();
-		for(Connector c: connectors_()){
-			if(c.getConnectorId() == connectorId){
-				return c;
-			}
-		}
-		throw new IllegalArgumentException();
-	}
-
 	public SectorGroup connectedTo(int connectorId, SectorGroup sg){
 		if(sg == null) throw new IllegalArgumentException();
 		RedwallConnector c1 = getRedwallConnector(connectorId);
@@ -104,41 +94,15 @@ public class SectorGroup extends SectorGroupS
 	}
 
 	/**
-	 * For child nodes to return their parent id
-	 * @return the sector group id of the parent sector group to this child, or null if this is not a child sector group
-	 */
-	public Sprite getChildPointer(){
-		List<Sprite> childPointer = map().findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.REDWALL_CHILD, null);
-		if(childPointer.size() < 1){
-			return null;
-		}else if(childPointer.size() == 1){
-			return childPointer.get(0);
-		}else{
-			throw new SpriteLogicException("more than one child pointer marker in sector group");
-		}
-	}
-
-	/**
-	 * @return the Connector used to connect this child group to its parent group (or null if this is not a child group)
-	 */
-	RedwallConnector getChildPointerConnector(int sectorId){
-		Iterable<Connector> conns = Connector.findConnectors(this.connectors_(), c -> c.getSectorId() == sectorId
-				&& ConnectorType.isRedwallType(c.getConnectorType()));
-		List<Connector> list = new LinkedList<>();
-		for(Connector c: conns){ list.add(c); } // WTF java
-		if(list.size() == 0){
-			return null;
-		}else if(list.size() == 1){
-			return (RedwallConnector)list.get(0);
-		}else{
-			throw new SpriteLogicException("More than one connector for child pointer");
-		}
-	}
-
-	/**
 	 * Called by the palette loading code to attach sector group children to their parent.
+	 * THIS object is the parent.
+     *
+	 * 1. the child sector's marker must match THIS parent's sector group ID.
+     * 2. more than one child cannot use the same connector id
+	 * 3. the connectorId the child uses to connect must match the parent's in quantity
+	 * 		(e.g. if a child has two redwall connectors with ID 123, the parent must have exactly two)
 	 */
-	public SectorGroup connectedToChildren(List<SectorGroup> children){
+	public SectorGroup connectedToChildren(List<SectorGroup> children, TagGenerator tagGenerator){
 		SectorGroup result = this.copy();
 		if(children == null || children.size() < 1){
 			return result;
@@ -149,37 +113,46 @@ public class SectorGroup extends SectorGroupS
 
         Set<Integer> seenConnectorIds = new HashSet<>(children.size());
         for(SectorGroup child : children){
-            Sprite childPtr = child.getChildPointer();
-            int parentId = (childPtr != null) ? (int)childPtr.getHiTag() : -1;
-            // make sure child pointer matches this sector group's ID
-            if(parentId == -1 || parentId != this.getGroupId()){
-                throw new IllegalArgumentException("child pointer has wrong group id: " + parentId);
-            }
+			// 1. make sure child pointer matches this sector group's ID
+            trn.prefab.ChildPointer childPtr = child.getChildPointer();
+            if(this.getGroupId() != childPtr.childMarker().getHiTag()){
+				throw new IllegalArgumentException("child pointer has wrong group id");
+			}
 
-            // make sure no children share connector Ids
-            RedwallConnector conn = child.getChildPointerConnector(childPtr.getSectorId());
-            int connId = conn.getConnectorId();
-            if(connId == 0){
-            	throw new SpriteLogicException("connector for child pointer has ID 0");
-			}else if(seenConnectorIds.contains(connId)){
-            	throw new SpriteLogicException("Too many child pointer connectors with ConnectorID " + connId);
+            // 2. make sure no children share connector Ids
+            if(seenConnectorIds.contains(childPtr.connectorId())){
+            	throw new SpriteLogicException("more than one child sector group is trying to use connector " + childPtr.connectorId());
 			}else{
-            	seenConnectorIds.add(connId);
+            	seenConnectorIds.add(childPtr.connectorId());
+            	seenConnectorIds.addAll(child.allConnectorIds());
 			}
 
-            // TODO - allow child sector groups to connect to other child sector groups with same parent (need to
+            // 3. parent and child must have the same number of connectors
+            if(this.getRedwallConnectorsById(childPtr.connectorId()).size() != childPtr.connectorsJava().size()){
+            	throw new SpriteLogicException("parent and child sector groups have different count of connectors with ID " + childPtr.connectorId());
+			}
+
+			// TODO - allow child sector groups to connect to other child sector groups with same parent (need to
 			//     sort them first, and dedupe all connector IDs, to ensure deterministic behavior)
-            if(null == this.findFirstConnector(c -> c.getConnectorId() == connId)){
-            	throw new SpriteLogicException("parent sector group is missing connector " + connId);
+
+            if(childPtr.connectorsJava().size() != 1){
+            	throw new RuntimeException("more than one child connector not implemented yet");
+			}else{
+            	//result = result.connectedTo(childPtr.connectorId(), child);
+				result = result.connectedToChild(childPtr, child, tagGenerator);
+
+				// TODO - sort children by connector id first! (so that at least results are deterministic)
+
+            	// TODO - connect elevators and water
+
+				// TODO - a good unit test (integration test?) with everything
+				//		create a map file called "SectorGroupTest1.map" ?
 			}
-
-            result = result.connectedTo(connId, child);
         }
-
 		return result;
 	}
 
-	public RedwallConnector getRedwallConnector(int connectorId){
+	public RedwallConnector getRedwallConnector(int connectorId){ // TODO - move to scala
 		return (RedwallConnector)getConnector(connectorId);
 	}
 

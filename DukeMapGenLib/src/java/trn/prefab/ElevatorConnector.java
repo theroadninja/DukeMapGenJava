@@ -79,6 +79,18 @@ public class ElevatorConnector extends Connector {
     }
 
 
+    /**
+     * Provides a sort function
+     *
+     * @param conn
+     * @param map
+     * @returns a number that will be lower for elevators that are physically lower
+     */
+    public static int sortKey(ElevatorConnector conn, Map map){
+        // we need to multiple by -1 because positive z goes down (i.e. z is higher when you go lower)
+        return map.getSector(conn.getSectorId()).getFloorZ() * -1;
+    }
+
     public static void linkElevators(
             ElevatorConnector lowerConn,
             ISectorGroup lowerConnGroup,

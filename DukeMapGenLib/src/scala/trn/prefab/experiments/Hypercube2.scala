@@ -370,10 +370,10 @@ object Hypercube2 {
 
   // 111 - roof antenna
   // 11101 - connector for roof antenna
-  // 112 - roof antenna bottom
+  // 112 - roof antenna bottom (no longer used -- now its a child sector)
 
   // 113 - medical bay
-  // 11301 - medical bay upper floor
+  // 11301 - medical bay upper floor (no longer used -- now its a child sector)
   // 11302 - redwall connection to upper floor
 
   // Intra-sector connectors
@@ -402,6 +402,7 @@ object Hypercube2 {
 
 
   def run(sourceMap: DMap): DMap = {
+
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
     val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
 
@@ -443,19 +444,11 @@ object Hypercube2 {
     val trainStop = Room(palette.getSectorGroup(108), Seq(), Seq( Heading.EAST, Heading.SOUTH ), false, false)
 
     val ELEVATOR_GROUP = 1101
-    val dishSg = palette.getSectorGroup(111).connectedTo(11101, palette.getSectorGroup(112)).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
+    val dishSg = palette.getSectorGroup(111).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
     val dishRoof = Room.auto(dishSg, Seq(Heading.S, Heading.W), Seq())
 
-
     // 113 - medical bay
-    // 11301 - medical bay upper floor
-    // 11302 - redwall connection to upper floor
-    //val medicalSg = palette.getSectorGroup(113).connectedTo(11302, palette.getSectorGroup(11302))
-    println(palette.numberedSectorGroups.keySet().asScala.mkString(","))
-    val medicalSg = palette.getSectorGroup(113).connectedTo(11302, palette.getSectorGroup(11301))
-    builder.linkAllWater(medicalSg)
-    builder.linkTwoElevators(medicalSg, 150)
-    val medicalBay = Room(medicalSg, Seq(), Seq(Heading.S), false, false)
+    val medicalBay = Room(palette.getSectorGroup(113), Seq(), Seq(Heading.S), false, false)
 
     // TODO - anchor sprite removal with connectedTo() is not working
 
@@ -477,12 +470,16 @@ object Hypercube2 {
     // BOTTOM FLOOR
     // builder.addRoom(modularRoom(0, 0, true, false, w=1), (0, 0, 0, 1))  // TOP LEFT
     builder.addRoom(medicalBay, (0, 0, 0, 1))  // TOP LEFT
-    builder.addRoom(modularRoom(1, 0, false, false, w=1), (1, 0, 0, 1))
+
+    //builder.addRoom(modularRoom(1, 0, false, false, w=1), (1, 0, 0, 1))
+
+    // TODO - need to shift the hitags/lotags!
+    builder.addRoom(trainStop.flipX, (1, 0, 0, 1))
     builder.addRoom(modularRoom(0, 1, true, true, w=1), (0, 1, 0, 1))
     builder.addRoom(modularRoom(1, 1, true, false, w=1), (1, 1, 0, 1))
 
     // TOP FLOOR
-    builder.addRoom(modularRoom(0, 0, true, false, w=1), (0, 0, 1, 1))  // TOP LEFT
+    builder.addRoom(modularRoom(0, 0, false, false, w=1), (0, 0, 1, 1))  // TOP LEFT
     builder.addRoom(modularRoom(1, 0, false, false, w=1), (1, 0, 1, 1))
     builder.addRoom(modularRoom(0, 1, true, true, w=1), (0, 1, 1, 1))
     builder.addRoom(modularRoom(1, 1, true, false, w=1), (1, 1, 1, 1))

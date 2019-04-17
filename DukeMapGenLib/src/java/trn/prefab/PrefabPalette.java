@@ -75,13 +75,10 @@ public class PrefabPalette {
 				// make sure the sector with the child Id sprite also has a redwall connector marker
                 // Connector conn = childGroup.findFirstConnector(c -> c.getSectorId() == childPointer.get(0).getSectorId()
 				// 		&& ConnectorType.isRedwallType(c.getConnectorType()));
-				Connector conn = childGroup.getChildPointerConnector(childPointer.get(0).getSectorId());
-                if(conn == null){
-                	throw new SpriteLogicException("child id marker (for parent " + groupId + " is not in the same sector as a redwall connector");
-				}else if(conn.getConnectorId() == 0){
+				ChildPointer childPtr = childGroup.getChildPointer();
+				if(childPtr.connectorId() == 0){
                 	throw new SpriteLogicException("child pointer connector must have a connector ID");
 				}
-
 				redwallChildren.putIfAbsent(groupId, new LinkedList<>());
 				redwallChildren.get(groupId).add(childGroup);
 			}else{
@@ -109,12 +106,13 @@ public class PrefabPalette {
 			sector++;
 		} // while
 
+		TagGenerator tagGenerator = new SimpleTagGenerator(500);
 		// now process the children
 		final java.util.Map<Integer, SectorGroup> numberedGroups2 = new java.util.TreeMap<>();
 		for(Integer groupId : numberedSectorGroups.keySet()){
 			SectorGroup sg = numberedSectorGroups.get(groupId);
 			if(redwallChildren.containsKey(groupId)){
-			    numberedGroups2.put(groupId, sg.connectedToChildren(redwallChildren.get(groupId)));
+			    numberedGroups2.put(groupId, sg.connectedToChildren(redwallChildren.get(groupId), tagGenerator));
 			}else{
 				numberedGroups2.put(groupId, sg);
 			}

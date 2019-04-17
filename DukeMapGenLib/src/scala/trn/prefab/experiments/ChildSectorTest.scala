@@ -8,7 +8,10 @@ import scala.collection.JavaConverters._
 class TestBuilder(val outMap: DMap) extends MapBuilder {
 }
 
+@deprecated // see SectorGroupTests
 object ChildSectorTest {
+
+  val FILENAME = "childtst.map"
 
   def run(sourceMap: DMap): DMap = {
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);

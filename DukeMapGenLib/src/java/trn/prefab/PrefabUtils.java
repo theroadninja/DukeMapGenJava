@@ -48,7 +48,8 @@ public class PrefabUtils {
 		 * hitag:  ID of parent sector group  (if parent doesnt exist yet, dont add this marker yet)
          * sector placed in:   same sector as the redwall connector to use
 		 * 		the redwall connector must have a connectorID that matches a connector in the parent group
-		 * 		the parent group can only have one connector with that connectorID
+		 * 		the parent group can only have one connector with that connectorID (TODO - update)
+		 * 		the child connector id must be > 0
 		 */
 		public static int REDWALL_CHILD = 4;
 
@@ -65,7 +66,16 @@ public class PrefabUtils {
 		/** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the north edge of the sector */
 		public static int VERTICAL_CONNECTOR_NORTH = 19;
 
-		/** marks the sector as a east,west,south or north connector */
+		/**
+		 *  AUTO CONNECTOR
+		 *
+		 *  To make an elevator:
+		 *  	marker sprite lotag 20
+		 *  	sector lotag 15
+		 *  	SE sprite lotag 17
+		 *
+		 *
+		 */
 		public static int SIMPLE_CONNECTOR = 20;
 
 		// unused because you can still use 20

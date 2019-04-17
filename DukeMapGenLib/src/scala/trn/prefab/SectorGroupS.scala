@@ -11,7 +11,96 @@ class CopyPasteMapBuilder(val outMap: DMap) extends MapBuilder {
 
 }
 
-class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
+/**
+  * Set of marker + connectors used to connect a "child" sector group to a "parent" sector group.
+  * @param childMarker
+  * @param childConnectors
+  */
+case class ChildPointer(
+  val childMarker: Sprite,
+  val connectorId: Int,
+  val childConnectors: Seq[RedwallConnector],
+
+  // NOTE: these references becone invalid after the sector merge
+  //val waterConnectors: Seq[TeleportConnector],
+  //val elevatorConnectors: Seq[ElevatorConnector]
+)
+{
+  def sectorId: Int = childMarker.getSectorId
+  def parentGroupId: Int = childMarker.getHiTag
+
+  def connectorsJava: java.util.List[RedwallConnector] = childConnectors.asJava
+}
+
+
+trait ConnectorCollection {
+  def connectors: java.util.List[Connector]
+  def map: DMap
+
+  final def allConnectorIds(): java.util.Set[Integer] = {
+    connectors.asScala.map(_.connectorId).filter(_ > 0).map(_.asInstanceOf[Integer]).toSet.asJava
+  }
+
+  final def getConnector(connectorId: Int): Connector = {
+    if(connectorId < 0) throw new IllegalArgumentException
+    connectors.asScala.find(_.connectorId == connectorId) match {
+      case Some(conn) => conn
+      case None => throw new NoSuchElementException
+    }
+  }
+
+  final def getRedwallConnectorsById(connectorId: Int): Seq[RedwallConnector] = {
+    if(connectorId < 0) throw new IllegalArgumentException
+    val c = connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType) && c.connectorId == connectorId)
+    c.map(_.asInstanceOf[RedwallConnector])
+  }
+
+  final def getElevatorConnectorsById(connectorId: Int): Seq[ElevatorConnector] = {
+    if(connectorId < 0) throw new IllegalArgumentException
+    connectors.asScala.filter(_.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector])
+  }
+
+  final def getChildPointer(): ChildPointer = {
+    val sprites: Seq[Sprite] = map.allSprites.filter(s => s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.REDWALL_CHILD)
+    if(sprites.size != 1) throw new SpriteLogicException(s"Wrong number of child marker sprites (${sprites.size})")
+    val marker: Sprite = sprites(0)
+
+    val conns = connectors.asScala.filter(c => c.getSectorId == marker.getSectorId && ConnectorType.isRedwallType(c.getConnectorType))
+    if(conns.size != 1) throw new SpriteLogicException(s"There must be exactly 1 redwall connector in sector with child marker, but there are ${conns.size}")
+    val mainConn = conns(0)
+    if(mainConn.connectorId < 1) throw new SpriteLogicException(s"Connector for child pointer must have ID > 0")
+
+    val allConns = connectors.asScala.filter(c => c.connectorId == mainConn.getConnectorId)
+
+    val groupedConns = allConns.groupBy(c => {
+      if(ConnectorType.isRedwallType(c.getConnectorType)){
+        20
+      }else if(c.getConnectorType == ConnectorType.ELEVATOR){
+        ConnectorType.ELEVATOR
+      }else if(c.getConnectorType == ConnectorType.TELEPORTER && (c.asInstanceOf[TeleportConnector]).isWater){
+        ConnectorType.TELEPORTER
+      }else{
+        throw new SpriteLogicException(s"invalid child connector (type ${c.getConnectorType}) in child sector group")
+      }
+    })
+    ChildPointer(
+      marker,
+      mainConn.connectorId,
+      groupedConns.getOrElse(20, Seq()).map(_.asInstanceOf[RedwallConnector]),
+      //groupedConns.getOrElse(ConnectorType.TELEPORTER, Seq()).map(_.asInstanceOf[TeleportConnector]),
+      //groupedConns.getOrElse(ConnectorType.ELEVATOR, Seq()).map(_.asInstanceOf[ElevatorConnector])
+    )
+
+    // if(allConns.find(c => !ConnectorType.isRedwallType(c.getConnectorType)).nonEmpty){
+    //   throw new SpriteLogicException(s"child sector cannot connect with non redwall connector (id=${mainConn.getConnectorId}")
+    // }else{
+    //   ChildPointer(marker, mainConn.connectorId, allConns.map(_.asInstanceOf[RedwallConnector]))
+    // }
+  }
+}
+
+
+class SectorGroupS(val map: DMap, val sectorGroupId: Int) extends ConnectorCollection {
   val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
 
   def copy(): SectorGroup = {
@@ -44,6 +133,7 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
 
 
 
+  // TODO - move to trait
   def getRedwallConnector(connectorType: Int, allowMoreThanOne: Boolean = false): RedwallConnector = {
     if(! ConnectorType.isRedwallType(connectorType)){
       throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
@@ -56,6 +146,7 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
     }
   }
 
+  // TODO - move to trait
   def getRedwallConnectors(connectorType: Int): Seq[RedwallConnector] = {
     if(! ConnectorType.isRedwallType(connectorType)){
       throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
@@ -76,8 +167,6 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
     val conn2 = group2.getRedwallConnector(joinType.connectorType2, false)
     connectedTo(conn1, group2, conn2)
   }
-
-
 
   // Merging
   //  - what do we do about two anchors?
@@ -128,6 +217,33 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) {
     result.updateConnectors()
     result
   }
+
+  def connectedToChild(childPtr: ChildPointer, child: SectorGroup, tagGenerator: TagGenerator): SectorGroup = {
+    val c1 = getRedwallConnectorsById(childPtr.connectorId)
+    val c2 = child.getRedwallConnectorsById(childPtr.connectorId)
+    if(this.sectorGroupId != childPtr.parentGroupId || c1.size != c2.size) throw new IllegalArgumentException
+
+    if(c1.size > 1) throw new RuntimeException("not implemented yet")
+
+    val result = connectedTo(c1(0), child, c2(0))
+
+    // TODO - but now all the connectors are fucked up...
+
+    val conns = result.getTeleportConnectors().filter(c => c.isWater && !c.isLinked(result.map) && c.getConnectorId == childPtr.connectorId)
+    MapBuilder.linkAllWater(result, conns, tagGenerator)
+
+    // find elevators with matching connector Ids
+    val elevatorConns = result.getElevatorConnectorsById(childPtr.connectorId)
+    if(elevatorConns.size == 2){
+      val sorted = elevatorConns.sortBy(ElevatorConnector.sortKey(_, result.map))
+      ElevatorConnector.linkElevators(sorted(0), result, sorted(1), result, tagGenerator.nextUniqueHiTag(), false)
+    }else if(elevatorConns.size != 0){
+      throw new RuntimeException("not implemented yet") // need to auto detect which elevators match ...
+    }
+
+    result
+  }
+
 
 
   private def wallSeq(): Seq[Wall] = {

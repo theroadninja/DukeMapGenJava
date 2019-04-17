@@ -15,7 +15,7 @@ public class ParseOneRoomTests {
 	
 	public static String oneRoomFilename(){
 		String fname =  "ONEROOM.MAP";
-		String filepath = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + fname;
+		String filepath = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata" + File.separator + fname;
 		return filepath;
 	}
 	
