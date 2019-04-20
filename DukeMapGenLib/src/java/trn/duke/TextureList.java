@@ -14,15 +14,6 @@ public class TextureList {
 	public static final int SECTOR_EFFECTOR = 1;
 	public static final int SE = 1; // shorter version
 
-	/**
-	 * Activates a sector lotag or SE sprite, like a switch, but after a time delay.
-	 *
-	 * BUILDHLP says it can only be activated by a touchplate sprite.
-     *
-	 * Lotag - same lotag as touchplate sprite
-	 * Hitag - set for time delay
-	 */
-	public static final int MASTERSWITCH = 8;
 
 
 	public static final int ACTIVATOR = 2;
@@ -56,7 +47,21 @@ public class TextureList {
 	public static final int MUSIC_AND_SFX = 5;  //a big M
 	public static final int LOCATORS = 6; //a big L with a little plus sign
 	public static final int CYCLER = 7; // a big C
-	public static final int MASTER_SWITCH = 8; //a big D
+
+	/**
+	 * Activates a sector lotag or SE sprite, like a switch, but after a time delay.
+	 *
+	 * BUILDHLP says it can only be activated by a touchplate sprite. (I dont thnink this is true)
+	 *
+	 * Lotag - same lotag as touchplate sprite
+	 * Hitag - set for time delay
+	 */
+	public static final int MASTERSWITCH = 8;
+
+	/**
+	 * Lotag - set to touchplate lotag
+	 * Hitag - set to sprite number
+	 */
 	public static final int RESPAWN = 9; //a big R
 
 	/**

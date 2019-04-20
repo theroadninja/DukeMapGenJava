@@ -113,7 +113,26 @@ public class PastedSectorGroup implements ISectorGroup {
 		}
 		return list;
 	}
-	
+
+	public List<RedwallConnector> getRedwallConnectorsById(int connectorId){
+		List<RedwallConnector> results = new ArrayList<>();
+		for(Connector c: this.connectors){
+			if(c.getConnectorId() == connectorId){
+				if(ConnectorType.isRedwallType(c.getConnectorType())){
+					results.add((RedwallConnector)c);
+				}else{
+					throw new IllegalArgumentException("connector with id " + connectorId + " is not a redwall connector");
+				}
+			}
+		}
+		return results;
+	}
+	// iinal def getRedwallConnectorsById(connectorId: Int): Seq[RedwallConnector] = {
+	// 	if(connectorId < 0) throw new IllegalArgumentException
+	// 	val c = connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType) && c.connectorId == connectorId)
+	// 	c.map(_.asInstanceOf[RedwallConnector])
+	// }
+
 
 	/*
 	public Iterable<SimpleConnector> findConnectors(ConnectorFilter filter){

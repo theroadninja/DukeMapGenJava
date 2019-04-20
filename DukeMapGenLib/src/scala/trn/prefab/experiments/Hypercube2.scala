@@ -374,6 +374,26 @@ case class Room(
   }
 
   def rotateCCW: Room = this.rotateCW.rotateCW.rotateCW
+
+  def paintedRed: Room = {
+    val redGroup = sectorGroup.copy()
+    redGroup.getMap.allWalls.foreach { w =>
+      if (w.getTexture != 225 && w.getTexture != 229) {
+        w.setPal(PaletteList.BLUE_TO_RED)
+      }
+    }
+    Room(redGroup, highDoors, lowDoors, elevator, teleporter)
+  }
+
+  def withCarpet: Room = {
+    val sg = sectorGroup.copy()
+    sg.getMap.sectors.asScala.foreach { s =>
+      if(s.getFloorTexture == 181){
+        s.setFloorTexture(898)
+      }
+    }
+    Room(sg, highDoors, lowDoors, elevator, teleporter)
+  }
 }
 
 object Hypercube2 {
@@ -469,7 +489,11 @@ object Hypercube2 {
         case 0 => sg2
         case 1 => {
           val g = sg2.copy()
-          g.getMap.allWalls.foreach(_.setPal(PaletteList.BLUE_TO_RED))
+          g.getMap.allWalls.foreach{ w =>
+            if(w.getTexture != 225 && w.getTexture != 229){
+              w.setPal(PaletteList.BLUE_TO_RED)
+            }
+          }
           g
         }
       }
@@ -532,23 +556,23 @@ object Hypercube2 {
     builder.addRoom(commandCenter, (1, 1, 0, 0))
 
     // TOP FLOOR
-    builder.addRoom(roomWithView.rotateCW.rotateCW, (0, 0, 1, 0))
-    builder.addRoom(modularRoom(1, 0, true, false), (1, 0, 1, 0)) // TOP RIGHT  -- TODO - will be armory
-    builder.addRoom(modularRoom(0, 1, true, true), (0, 1, 1, 0)) // BOTTOM LEFT
+    builder.addRoom(roomWithView.rotateCW.rotateCW.withCarpet, (0, 0, 1, 0))
+    builder.addRoom(modularRoom(1, 0, true, false).withCarpet, (1, 0, 1, 0)) // TOP RIGHT  -- TODO - will be armory
+    builder.addRoom(modularRoom(0, 1, true, true).withCarpet, (0, 1, 1, 0)) // BOTTOM LEFT
     builder.addRoom(medicalBay.rotateCW, (1, 1, 1, 0))   // BOTTOM RIGHT
 
     // W+ ------------------------------------
 
     // BOTTOM FLOOR
-    builder.addRoom(computerRoom.rotateCCW, (0, 0, 0, 1))  // TOP LEFT
-    builder.addRoom(modularRoom(1, 0, false, true).withoutLowDoor(Heading.S), (1, 0, 0, 1))
+    builder.addRoom(computerRoom.rotateCCW.paintedRed, (0, 0, 0, 1))  // TOP LEFT
+    builder.addRoom(modularRoom(1, 0, false, true, w=1).withoutLowDoor(Heading.S), (1, 0, 0, 1))
     builder.addRoom(plantRoom.rotateCW.rotateCW, (0, 1, 0, 1))
     builder.addRoom(modularRoomHigh(1, 1, true, false, w=1), (1, 1, 0, 1))
 
     // TOP FLOOR
     builder.addRoom(dishRoof.rotateCCW, (0, 0, 1, 1))  // TOP LEFT
     builder.addRoom(endTrain, (1, 0, 1, 1))
-    builder.addRoom(highViewRoom, (0, 1, 1, 1))
+    builder.addRoom(highViewRoom.paintedRed.withCarpet, (0, 1, 1, 1))
     builder.addRoom(modularRoom(1, 1, true, false, w=1), (1, 1, 1, 1))
 
     builder.autoLinkRooms()

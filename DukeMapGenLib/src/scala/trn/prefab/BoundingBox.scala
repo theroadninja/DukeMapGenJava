@@ -39,11 +39,15 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
     )
   }
 
+  def topLeft: PointXY = {
+    new PointXY(xMin, yMin)
+  }
+
   /**
     *  returns the vector that would move the top left of this bounding box to that point
     */
   def getTranslateTo(point: PointXY): PointXY = {
-    val p1 = new PointXY(xMin, yMin)
+    val p1 = topLeft
     p1.translateTo(point)
   }
 

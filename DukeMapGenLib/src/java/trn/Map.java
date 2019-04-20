@@ -19,6 +19,7 @@ public class Map {
 	public static final int MIN_X = -65536;
 	public static final int MAX_Y = 65536;
 	public static final int MIN_Y = -65536;
+	public static final PointXY TOP_LEFT = new PointXY(MIN_X, MIN_Y);
 
 	long mapVersion;
 	
