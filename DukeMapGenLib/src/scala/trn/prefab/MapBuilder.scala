@@ -227,4 +227,21 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
     // ElevatorConnector.linkElevators(elevators(0), group, elevators(1), group, nextUniqueHiTag(), false)
   }
 
+  def applyPaletteToAll(textureId: Int, palette: Int): Unit = {
+    if(textureId < 0 || palette < 0) throw new IllegalArgumentException
+    this.outMap.allWalls.foreach { w =>
+      if(w.getTexture == textureId){
+        w.setPal(palette)
+      }
+    }
+    this.outMap.sectors.asScala.foreach { s =>
+      if(s.getFloorTexture == textureId){
+        s.setFloorPalette(palette)
+      }
+      if(s.getCeilingTexture == textureId){
+        s.setCeilingPalette(palette)
+      }
+    }
+  }
+
 }

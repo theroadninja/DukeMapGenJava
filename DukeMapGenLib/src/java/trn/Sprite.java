@@ -7,6 +7,7 @@ import java.io.OutputStream;
 public class Sprite {
 
 	/**
+	 * TODO - is this correct??
 	 *
 	 * @param angle the angle, in weird duke angle units (0 to 2047, clockwise)
 	 * @return
@@ -16,6 +17,12 @@ public class Sprite {
 		if(angle < 0){
 			angle += 2048;
 		}
+		return angle;
+	}
+
+	public static int rotateAngleCCW(int angle){
+		angle += 512;
+		angle = angle % 2048;
 		return angle;
 	}
 	

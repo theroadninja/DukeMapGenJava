@@ -1,7 +1,9 @@
 package trn
 
+import trn.duke.GameLogic
 import trn.prefab.Matrix2D
 import trn.{Map => DMap}
+
 import scala.collection.JavaConverters._
 
 /** extending the Map class with scala stuff */
@@ -48,7 +50,7 @@ object MapImplicits {
     }
 
     def rotatedCW(anchor: PointXY): DMap = {
-      val transform = Matrix2D.rotateAroundCW(anchor)
+      val transform = Matrix2D.rotateAroundCCW(anchor) // CW to CCW translation on purpose
       val copy = map.copy()
       copy.walls.asScala.foreach{ w =>
         val translated = transform * w.getLocation
@@ -57,7 +59,9 @@ object MapImplicits {
       copy.sprites.asScala.foreach{ s =>
         val translated = transform * s.getLocation.asPointXY()
         s.setLocation(translated)
-        s.setAng(Sprite.rotateAngleCW(s.ang))
+        if(GameLogic.shouldRotate(s)){
+          s.setAng(Sprite.rotateAngleCCW(s.ang)) // TODO - this one seems completely wrong
+        }
       }
       copy
     }
@@ -78,8 +82,10 @@ object MapImplicits {
         s.setLocation(translated)
 
         // TODO - check MapUtil.shouldRotate() first ...
-        val vector: PointXY = angleTransform * AngleUtil.unitVector(s.ang)
-        s.setAngle(AngleUtil.angleOf(vector))
+        if(GameLogic.shouldRotate(s)){
+          val vector: PointXY = angleTransform * AngleUtil.unitVector(s.ang)
+          s.setAngle(AngleUtil.angleOf(vector))
+        }
       }
 
       // NOW we need to reverse the walls, because flipping fucked up the clockwise pattern

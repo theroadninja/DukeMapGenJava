@@ -74,10 +74,24 @@ object Matrix2D {
   def flipXY: Matrix2D = ??? // do we need this?
   def flipXYat(anchor: PointXY): Matrix2D = ???
 
+  /** WARNING: for build engine need to flip CW and CCW */
   def rotateCCW: Matrix2D = rotate(90)
+
+  /** WARNING: for build engine need to flip CW and CCW */
   def rotateCW: Matrix2D = rotate(270)
+
+  /** WARNING: for build engine need to flip CW and CCW */
   def rotateAround(angleDeg: Int, anchor: PointXY): Matrix2D = at(rotate(angleDeg), anchor.toTuple)
+
+  /** WARNING: for build engine need to flip CW and CCW */
   def rotateAroundCCW(anchor: PointXY): Matrix2D = rotateAround(90, anchor)
+
+  /**
+    * WARNING:  this is a "clockwise" rotation from classic a point of view where X+ goes to the right and Y+ goes
+    * up.   Since the build engine has Y+ doing down, it is effectively flipped and you need to call CCW for CW
+    * @param anchor
+    * @return
+    */
   def rotateAroundCW(anchor: PointXY): Matrix2D = rotateAround(270, anchor)
 
   def apply(row1: Seq[Int], row2: Seq[Int], row3: Seq[Int]): Matrix2D = {

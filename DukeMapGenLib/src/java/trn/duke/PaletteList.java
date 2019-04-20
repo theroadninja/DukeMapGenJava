@@ -13,8 +13,11 @@ public class PaletteList {
      * no palette change - recommended for the big orbit texture,
      * because you need a texture in order to not kill the player.
      *
+     * Do we also apply to BOSS1 to turn it into a battlelord sentry?
+     *
      * TODO - add a note to big orbit in texture list about needing to set a palette
      * (any palette) if you want to avoid killing the player
+     *
      */
     public static int ALSO_NORMAL = 3;
 

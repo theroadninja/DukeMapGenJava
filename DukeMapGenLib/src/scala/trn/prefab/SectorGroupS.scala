@@ -123,10 +123,11 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) extends ConnectorColle
 
   def flippedY(): SectorGroup = flippedY(getAnchor.y)
 
-  def rotateAroundCW(anchor: PointXY): SectorGroupS = {
+  def rotateAroundCW(anchor: PointXY): SectorGroup = {
     new SectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
-
   }
+
+  def rotateAroundCW(anchor: PointXYZ): SectorGroup = rotateAroundCW(anchor.asXY)
 
   @throws(classOf[MapErrorException])
   protected def updateConnectors(): Unit = ???

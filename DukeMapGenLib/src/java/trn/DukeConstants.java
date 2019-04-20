@@ -25,12 +25,12 @@ public class DukeConstants {
 		public static final int SMALLEST = 32;
 	}
 	
-	public static final class CARD_COLORS {
-		public static final short BLUE = 0;
-		public static final short RED = 21;
-		public static final short YELLOW = 23;
-		
-	}
+	// public static final class CARD_COLORS {
+	// 	public static final short BLUE = 0;
+	// 	public static final short RED = 21;
+	// 	public static final short YELLOW = 23;
+	//
+	// }
 	
 	
 	/** facing "up" when looking at the map in build */

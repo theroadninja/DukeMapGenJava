@@ -14,6 +14,16 @@ public class TextureList {
 	public static final int SECTOR_EFFECTOR = 1;
 	public static final int SE = 1; // shorter version
 
+	/**
+	 * Activates a sector lotag or SE sprite, like a switch, but after a time delay.
+	 *
+	 * BUILDHLP says it can only be activated by a touchplate sprite.
+     *
+	 * Lotag - same lotag as touchplate sprite
+	 * Hitag - set for time delay
+	 */
+	public static final int MASTERSWITCH = 8;
+
 
 	public static final int ACTIVATOR = 2;
 	public static final int TOUCHPLATE = 3;
@@ -38,6 +48,9 @@ public class TextureList {
 	 * 		lotag = 1000 + amount of echo (0 to 255, 0 is the least amount)
 	 *
 	 *  NOTE: you can also set the hitag of a switch to play a sound effect when pressed
+	 *
+	 *  Some Sounds:
+	 *  74 - a door
 	 * 
 	 */
 	public static final int MUSIC_AND_SFX = 5;  //a big M
@@ -115,7 +128,7 @@ public class TextureList {
 	}
 	
 	//NOTE: there are some lights here (120) that I'm skipping
-	
+
 	
 	public static final class Switches {
 		public static final int ACCESS_SWITCH = 130; //for keycards
@@ -259,7 +272,8 @@ public class TextureList {
 	public static final int VIEWSCREEN_SPACE = 449; //a.k.a. viewscreen2
 	
 	public static final int VIEWSCREEN = 502;
-	
+
+	// Note:  198 doesnt seem to work
 	public static final int GLASS = 503;
 	
 	public static final int GLASS_2 = 504;
@@ -274,7 +288,18 @@ public class TextureList {
 	
 	/** the big grate with holes in it, often used as a sprite to be a floor or wall */
 	public static final int MASK_WALL_12 = 609;
-	
+
+	/**
+	 * Used with VIEWSCREEN, sprite 502
+     * The VIEWSCREEN sprite's hitag is set equal to CAMERA1 Lotag
+	 *
+	 *  CAMERA1
+	 *  Lotag:  set waual to VIEWSCREEN hitag
+	 *  Hitag:  set to amount of turning radius (0 for none)
+	 *  Shade:  set to angle of facing down?
+	 *  Angle:  set to direction to point
+	 *
+	 */
 	public static final int CAMERA1 = 621;
 	
 	public static final int TELEPORTER = 626; //labeled "brick" in build

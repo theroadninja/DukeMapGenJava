@@ -199,9 +199,16 @@ public class Sector {
 	public void setFloorShade(short unsigned){
 		this.floorshade = unsigned;
 	}
-	
+
 	public short getCeilingPallette(){
 		return this.ceilingpal;
+	}
+	public void setCeilingPalette(int i){
+		this.ceilingpal = (short)i;
+	}
+
+	public void setFloorPalette(int i){
+		this.floorpal = (short)i;
 	}
 	
 	public short getFirstWall(){
