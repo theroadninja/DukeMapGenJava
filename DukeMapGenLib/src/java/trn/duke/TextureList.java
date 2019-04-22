@@ -149,9 +149,15 @@ public class TextureList {
 		/** looks like a big breaker switch */
 		public static final int FRANKENSTINE_SWITCH = 140;
 		
-		/** end of level switch.
-		 * needs a lotag of 65535 to work
-		 *  */
+		/**
+		 * End of level switch.
+		 * needs a lotag of 65535 to work (according to a site i found, any non-zero lotag will work, and the
+		 * lotag is the episode to go to?)
+		 *
+		 * Setting the palette to greater than zero makes it a secret level button.  Usually palette 14 is used.
+		 *
+		 * See http://infosuite.duke4.net/index.php?page=references_special_textures
+		 */
 		public static final int NUKE_BUTTON = 142; //TODO:  document the pallete to make it a special level
 		
 		/** switch with 4 positions, like in the death row level */
