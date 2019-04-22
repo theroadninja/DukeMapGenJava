@@ -5,7 +5,7 @@ import trn.{DukeConstants, Main, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite
 
 import scala.collection.JavaConverters._
 import trn.MapImplicits._
-import trn.duke.TextureList
+import trn.duke.{MusicSFXList, TextureList}
 
 
 object SoundMapBuilder {
@@ -106,6 +106,10 @@ object SoundListMap {
       tex >= 2930 && tex < 2966
     }
 
+    val DUKE_VOCALS: Set[Int] = MusicSFXList.DUKE_VOCALS.ALL.asScala.map(_.toInt).toSet
+    val DOORS: Set[Int] = MusicSFXList.DOOR_SOUNDS.ALL.asScala.map(_.toInt).toSet
+
+
     def makeRoom(sound: Int): SectorGroup ={
       if(sound < 0) throw new IllegalArgumentException
       val room = palette.getSectorGroup(3).copy()
@@ -126,6 +130,14 @@ object SoundListMap {
           //  s.setTexture(zero + sound)
           //}
         }
+      }
+      val wall = room.getMap.allWalls.filter(_.getLotag == 2).head
+      if(DUKE_VOCALS.contains(sound)){
+        wall.setTexture(1405)
+        wall.setXRepeat(5)
+        wall.setYRepeat(4)
+      }else if(DOORS.contains(sound)){
+        wall.setTexture(1173)
       }
       room
     }
@@ -155,7 +167,7 @@ object SoundListMap {
     // TODO - make a list of sounds that are duke quotes, and change texture to be his face
     // (optionally omit them entirely)
 
-    val allSounds = soundGroup1 ++ soundGroup2 ++ soundGroup3 ++ soundGroup4
+    val allSounds = soundGroup1 ++ soundGroup2 ++ soundGroup3 ++ soundGroup4 -- DUKE_VOCALS
     for(i <- allSounds.toSeq.sorted){
       println(s"${i}")
       builder.addRoom(makeRoom(i))
