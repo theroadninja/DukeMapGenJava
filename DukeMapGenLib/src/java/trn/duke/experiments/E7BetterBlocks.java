@@ -18,13 +18,6 @@ import trn.maze.Heading;
 
 public class E7BetterBlocks {
 	
-	
-	
-	/**
-	 * 
-	 * TODO:  instead of tilesets, we need an array of block prefabs, which create blocks.
-	 */
-
 	static LegacyGrid.SimpleTileset Block0 = new LegacyGrid.SimpleTileset(E5CreateMaze.MAZE_WALL_TEX, 0, 0);
 	
 	static LegacyGrid.SimpleTileset Block1 = new LegacyGrid.SimpleTileset(781, 782, 781);
@@ -33,12 +26,9 @@ public class E7BetterBlocks {
 	
 	static LegacyGrid.SimpleTileset BLOCKS[] = new LegacyGrid.SimpleTileset[]{ Block0, Block1, Block2 };
 	
-	
 	public static void main(String[] args) throws IOException{
 		
 		//System.out.println(DfsMazeGen.createGridMaze(5, 5));
-		
-		
 		int width = 9;
 		int height = 9;
 		
@@ -64,21 +54,8 @@ public class E7BetterBlocks {
 		//3. block construction is here
 		//node types selected here; think they are the 'connector' blocks
 		Grid grid = new Grid(graph);
-		
-		//LegacyGrid grid = new LegacyGrid(graph);
-		
-		
-		
-		
-		
-		
-
-		
 		trn.Map map = createMap(grid);
-		
-		//Main.writeResult(map);
 		Main.deployTest(map);
-		
 	}
 	
 	public static trn.Map createMap(Grid grid 
@@ -125,43 +102,7 @@ public class E7BetterBlocks {
 	
 	
 	public static int createSector(Map map, Pair<Integer, Integer> gc, Block block){
-		
-		/*
-		int wallTex = MAZE_WALL_TEX;
-		if(blockInfo != null && blockInfo.tileset != null){
-			wallTex = blockInfo.tileset.wallTexture;
-		}
-		
-		
-		int west = gc.getLeft() * WALL_LENGTH;
-		int east = (gc.getLeft() + 1) * WALL_LENGTH;
-		int north = gc.getRight() * WALL_LENGTH;
-		int south = (gc.getRight() + 1) * WALL_LENGTH;
-		
-		Wall nw = new Wall(west, north, wallTex, 16, 8); //first wall; also matches the grid coordinate
-		Wall ne = new Wall(east, north, wallTex, 16, 8);
-		Wall se = new Wall(east, south, wallTex, 16, 8);
-		Wall sw = new Wall(west, south, wallTex, 16, 8);
-		
-		int sectorIndex =  map.createSectorFromLoop(nw, ne, se, sw);
-		
-		if(blockInfo != null){
-			
-			if(blockInfo.tileset != null){
-				blockInfo.tileset.applyToCeilAndFloor(map.getSector(sectorIndex));
-				//System.out.println("applying tileset: " + blockInfo.tileset);
-			}
-			
-			if(blockInfo.floorZ != null){
-				map.getSector(sectorIndex).setFloorZ(blockInfo.floorZ);
-			}
-			
-			
-			
-		}*/
-		
 		int sectorIndex = block.draw(map);
-		
 		return sectorIndex;
 	}
 	

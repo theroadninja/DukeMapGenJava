@@ -272,7 +272,8 @@ class GridMapBuilder(val outMap: DMap, random: RandomX = new RandomX()) extends 
 }
 
 /**
-  * based on copy test three in java/trn.duke.experiments.prefab.PrefabExperiment
+  * Sequel to FristPrefabExperiment (which was formerly copy test three in
+  * java/trn.duke.experiments.prefab.PrefabExperiment)
   *
   * Uses the prefabs in cptest3.map which are mostly designed to fit inside a 5x5 (*1024) grid, which
   * redwall connectors 1(*1024) wide on the outer edges.

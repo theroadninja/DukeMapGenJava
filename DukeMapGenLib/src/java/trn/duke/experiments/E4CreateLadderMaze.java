@@ -25,11 +25,8 @@ public class E4CreateLadderMaze {
 		E4CreateLadderMaze e = new E4CreateLadderMaze(WLENGTH, MAZE_WALL_TEX);
 		//Main.writeResult(e.createMaze());
 		Main.deployTest(e.createMaze());
-		
-		
 	}
-	
-	
+
 	int wallLength;
 	int mazeWallTex;
 	
@@ -37,7 +34,6 @@ public class E4CreateLadderMaze {
 		this.wallLength = wallLength;
 		this.mazeWallTex = mazeWallTex;
 	}
-	
 	
 	int createFirstSector(Map map){
 		int firstWall = -1;
@@ -62,12 +58,7 @@ public class E4CreateLadderMaze {
 		
 		return map.addSector(startSector);
 	}
-	
-	
-	
 
-	
-	
 	int createRoomToEast(Map map, int lastSectorIndex){
 		
 		Integer[] eastWall = getEastPoints(map, map.getSector(lastSectorIndex).getFirstWall());
@@ -141,26 +132,16 @@ public class E4CreateLadderMaze {
 	}
 	
 	public Map createMaze(){
-		
-		
-		
 		Random random = new Random();
-		
 		Map map = Map.createNew();
-		
 		map.setPlayerStart(new PlayerStart(512, -512, 0, PlayerStart.NORTH));
-		
-		
 		
 		//
 		//  create start room
 		//
 
 		int lastSectorIndex = createFirstSector(map); // map.addSector(startSector, WLENGTH);
-
-		
 		int roomCount = 10;
-		
 		for(int i = 0; i < roomCount; ++i){
 			
 			//
@@ -183,7 +164,6 @@ public class E4CreateLadderMaze {
 			}
 		}
 
-		
 		return map;
 	}
 	
@@ -278,7 +258,6 @@ public class E4CreateLadderMaze {
 		
 		Util.orderWalls(map, walls);
 		return walls;
-		
 	}
 	
 

@@ -47,18 +47,14 @@ public class LegacyGrid {
 	}
 
 	public static class BlockInfo {
-		
-		//integer that identifies a 
 		SimpleTileset tileset;
-		
-		
+
 		//default floor is 8192
 		//one "level" down is 8192 + 16*1024 = 24576
 		
 		public Integer floorZ = null;
 		
 		public BlockInfo(){
-			
 		}
 		
 		public BlockInfo(SimpleTileset s){
@@ -76,11 +72,7 @@ public class LegacyGrid {
 	
 	
 	private final java.util.Map<Pair<Integer, Integer>, BlockInfo> gridData = new HashMap<Pair<Integer, Integer>, BlockInfo>();
-	
-	public LegacyGrid(){
-		
-	}
-	
+
 	public LegacyGrid(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
 		this.copyFromGraphAndExpand(maze);
 	}
@@ -110,7 +102,6 @@ public class LegacyGrid {
 	}
 	
 
-	
 	/**
 	 * turns the maze, specified by an adjacency list, into a grid implementation, where each edge
 	 * between nodes gets its own square in the grid.
@@ -128,12 +119,7 @@ public class LegacyGrid {
 	 * @return
 	 */
 	public void copyFromGraphAndExpand(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
-	
-		
-		
 		for(Pair<Integer, Integer> node : maze.getAdjacencyList().keySet()){
-			
-			
 			BlockInfo ni = maze.getBlockInfo(node);
 			if(ni == null || ni.tileset == null){
 				add(toGridNode(node));
@@ -141,26 +127,21 @@ public class LegacyGrid {
 				//put(toGridNode(node), new BlockInfo(maze.getBlockInfo(node).tileset));
 				put(toGridNode(node), maze.getBlockInfo(node));
 			}
-			
-			
+
 			for(Pair<Integer, Integer> n2 : maze.getAdjacencyList().get(node)){
 				add(toGridEdge(node, n2));
 			}
-			
 		}
-		
-		
 	}
 	
 	
 	static Pair<Integer, Integer> toGridNode(Pair<Integer, Integer> node){
-		return new ImmutablePair<Integer, Integer>(
-				node.getLeft() * 2, node.getRight() * 2);
+		return new ImmutablePair<>(node.getLeft() * 2, node.getRight() * 2);
 	}
 	
 	static Pair<Integer, Integer> toGridEdge(Pair<Integer, Integer> node, Pair<Integer, Integer> node2){
 		//super lazy way of doing it
-		return new ImmutablePair<Integer, Integer>(
+		return new ImmutablePair<>(
 				(node.getLeft() + node2.getLeft()),
 				(node.getRight() + node2.getRight()));
 	}

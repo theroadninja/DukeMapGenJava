@@ -41,6 +41,24 @@ object MapBuilder {
 
 }
 
+/**
+  * Providers extra functionality for placing sectors whose locations are not important (underwater sectors, etc).
+  * Automatically separates them, so you don't have to bother hardcoding locations.
+  */
+trait AnywhereBuilder {
+
+  def sgPacker: SectorGroupPacker
+
+  // this is a method on MapBuilder trait
+  def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup
+
+  final def placeAnywhere(sg: SectorGroup): PastedSectorGroup = {
+    val topLeft = sgPacker.reserveArea(sg)
+    val tr = sg.boundingBox.getTranslateTo(topLeft).withZ(0)
+    pasteSectorGroup(sg, tr)
+  }
+}
+
 trait MapBuilder extends ISectorGroup with TagGenerator {
   val outMap: DMap
 

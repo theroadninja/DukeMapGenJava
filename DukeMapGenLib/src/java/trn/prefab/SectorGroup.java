@@ -171,12 +171,9 @@ public class SectorGroup extends SectorGroupS
 	    return super.map().getSectorCount();
     }
 
-
 	public Connector findFirstConnector(ConnectorFilter cf){
 		Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
 		return it.hasNext() ? it.next() : null;
 	}
-
-
 
 }

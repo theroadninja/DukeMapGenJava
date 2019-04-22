@@ -25,9 +25,7 @@ public class PastedSectorGroup implements ISectorGroup {
 	
 	public final List<Connector> connectors = new ArrayList<Connector>();
 	
-	//should this be here?
 	public final MapUtil.CopyState copystate;
-	
 
 	public PastedSectorGroup(Map map, MapUtil.CopyState copystate) throws MapErrorException {
 		this.destMap = map;

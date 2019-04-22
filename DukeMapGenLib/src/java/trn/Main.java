@@ -11,10 +11,7 @@ import org.apache.commons.io.FileUtils;
 
 import trn.duke.MapImageWriter;
 import trn.duke.experiments.E1RandomSprites;
-import trn.prefab.experiments.ChildSectorTest;
-import trn.prefab.experiments.Hypercube1;
-import trn.prefab.experiments.Hypercube2;
-import trn.prefab.experiments.SoundListMap;
+import trn.prefab.experiments.*;
 
 import javax.imageio.ImageIO;
 
@@ -27,18 +24,12 @@ public class Main {
 	public static String DOSPATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
 	
 	public static void main(String[] args) throws Exception {
-		
 
-		
 		//Map fromMap = loadMap(DOSPATH + "cptest2.map");
 		
 		// cptest4.map - space joins
 		
 		// cptest3.map
-		//  group 10 is the plus sign hallway intersection
-		//		connector on left:  connector id 123 and wall lotag 2
-		//		connector on right: connector id 456 and wall lotag 1
-		//
 
 		File f = new File(DOSPATH);
 		if(!(f.exists() && f.isDirectory())){
@@ -47,16 +38,15 @@ public class Main {
 
 
 		// Map fromMap = loadMap(DOSPATH + "cptest3.map");
-		// //Map outMap = PrefabExperiment.copytest3(fromMap);
+		//Map outMap = PrefabExperiment.copytest3(MapLoader.loadMap(DOSPATH + "cptest3.map"));
 		// //Map outMap = PrefabExperiment.copytest4(fromMap);
-		// Map outMap = GridExperiment.run(fromMap);
-
-
+		//Map outMap = GridExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
 
 		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
-		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
-        Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
+		Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
+        //Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
+		//Map outMap = FirstPrefabExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
 
 		// writeAndOpenMapPng(outMap);
 		deployTest(outMap);
@@ -79,10 +69,10 @@ public class Main {
 	
 	
 
-	public static void writeResult(Map map) throws IOException{
-		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + "output.map";
-		writeResult(map, resultsFile);
-	}
+	// public static void writeResult(Map map) throws IOException{
+	// 	String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + "output.map";
+	// 	writeResult(map, resultsFile);
+	// }
 	public static void writeResult(Map map, String resultsFile) throws IOException{
 		
 		FileOutputStream output = new FileOutputStream(new File(resultsFile)); 
@@ -109,26 +99,6 @@ public class Main {
 		System.out.println("map generated: " + filename);
 		
 		//TODO:  can we put build times in the map somewhere?
-		
-	}
-	
-	public static void runExperiment1() throws Exception {
-		FileInputStream bs = new FileInputStream(E1RandomSprites.intputFile());
-		
-		Map map = Map.readMap(bs);
-		
-		
-		E1RandomSprites.randomSprites(map);
-		
-		//ByteArrayOutputStream bs2 = new ByteArrayOutputStream();
-		
-		//TODO:  dukeoutput is ignored by git; need to create folder if its not there
-		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + "output.map";
-		
-		
-		FileOutputStream output = new FileOutputStream(new File(resultsFile)); 
-		map.toBytes(output);
-		output.close();
 	}
 	
 
@@ -147,9 +117,5 @@ public class Main {
 		}
 	}
 
-	public static void parseOnTheFly(byte[] mapFile) throws IOException{
-		ByteArrayInputStream bs = new ByteArrayInputStream(mapFile);
-		Map map = Map.readMap(bs);
-	}
 	*/
 }

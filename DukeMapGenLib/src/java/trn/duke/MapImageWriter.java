@@ -16,6 +16,8 @@ import java.awt.image.BufferedImage;
 /**
  * A special graphics object with some public methods that operate in the coordinate system of the map.
  *
+ * (For writing maps to PNGs, etc)
+ *
  */
 final class MapGraphics {
     static final Color BACKGROUND = new Color(240, 240, 240);

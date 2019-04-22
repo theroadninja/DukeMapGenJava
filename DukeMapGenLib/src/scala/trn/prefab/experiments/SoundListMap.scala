@@ -135,6 +135,8 @@ object SoundListMap {
 
     // TODO - incorporate this info into the MusicSFXList ...
 
+    // TODO - useful:  http://infosuite.duke4.net/index.php?page=references_sound_list
+
     val missingSounds1: Set[Int] = Set[Int](23, 24, 31, 32, 44, 45, 46, 47, 52, 53, 54, 55)
     val soundGroup1: Set[Int] = (1 to 56).toSet -- missingSounds1
 

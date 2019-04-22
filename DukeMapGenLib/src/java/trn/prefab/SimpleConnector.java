@@ -291,4 +291,8 @@ public class SimpleConnector extends RedwallConnector {
 		map.linkRedWalls(this.getSectorId(), this.getWallId(), c2.getSectorId(), c2.getWallId());
 	}
 
+	public static void linkConnectors(SimpleConnector c1, SimpleConnector c2, Map map){
+		map.linkRedWallsStrict(c1.getSectorId(), c1.getWallId(), c2.getSectorId(), c2.getWallId());
+	}
+
 }

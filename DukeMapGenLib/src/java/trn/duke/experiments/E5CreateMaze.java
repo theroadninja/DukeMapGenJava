@@ -44,7 +44,8 @@ public class E5CreateMaze {
 		
 		trn.Map map = createMap(grid, width, height);
 		
-		Main.writeResult(map);
+		//Main.writeResult(map);
+		Main.deployTest(map);
 		
 	}
 	

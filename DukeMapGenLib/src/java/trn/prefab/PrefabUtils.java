@@ -5,13 +5,7 @@ import trn.ISpriteFilter;
 import trn.SpriteFilter;
 
 public class PrefabUtils {
-	/*
-	public static class JoinType {
-		// hitag of constructions sprite - marking it as simple vertical join 
-		public static int VERTICAL_JOIN = 1;
-	}
-	*/
-	
+
 	public static class MarkerSpriteLoTags {
 		
 		/**
@@ -74,12 +68,18 @@ public class PrefabUtils {
 		 *  	sector lotag 15
 		 *  	SE sprite lotag 17
 		 *
+         *
+		 * Can become:
+		 * 	- simple connectors
+		 * 	- multi wall connectors
+		 * 	- teleporters / water
+		 * 	- elevators
 		 *
 		 */
 		public static int SIMPLE_CONNECTOR = 20;
 
 		// unused because you can still use 20
-		public static int TWO_WALL_CONNECTOR = ConnectorType.MULTI_REDWALL; // 31
+		public static int TWO_WALL_CONNECTOR = ConnectorType.MULTI_REDWALL; // 21
 
 		/**
 		 * A connector sprite that becomes a normal or water teleporter.
@@ -94,34 +94,9 @@ public class PrefabUtils {
 
 	}
 	
-	public static class WallLoTags {
-		
-		/** connect wall on the left side of the group on the right */
-		// NOTE:  pretty sure I'm not using this
-		public static int LEFT_WALL = 2;
-		
-		/** the connector wall on the right side of the left group */
-		public static int RIGHT_WALL = 1;
-	}
-	
-	// simple join
-	// - construction sprite with lotag 1
-	// - walls with lotag 1 and 2
-	//   - 2 is on the left side of a group, and 1 is on the right
-	
+
 	public static int MARKER_SPRITE_TEX = DukeConstants.TEXTURES.CONSTRUCTION_SPRITE;
 	
 	public static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
-	//public static ISpriteFilter CONNECTOR_SPRITE = SpriteFilter.loTag(MarkerSpriteLoTags.HORIZONTAL_CONNECTOR);
-	
-
-
-	// public static void joinWalls(Map map, RedwallConnector c1, RedwallConnector c2){
-	// 	c1.linkConnectors(map, c2);
-	// }
-	
-	
-	
-
 
 }

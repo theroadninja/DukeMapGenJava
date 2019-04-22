@@ -37,7 +37,6 @@ public abstract class Connector {
     /** @returns true if the whole sector group must be moved for this connector to work (e.g. redwall connectors) */
     public abstract boolean hasXYRequirements();
 
-
     public static List<Connector> findConnectors(Map map) throws MapErrorException {
         return findConnectors(map, null);
     }
@@ -52,11 +51,7 @@ public abstract class Connector {
         return results;
     }
     public static List<Connector> findConnectors(Map map, ConnectorFilter ... cf) throws MapErrorException {
-        //PrefabUtils.findConnector(outMap, PrefabUtils.JoinType.VERTICAL_JOIN, 1);
-        //Map map = numberedSectorGroups.get(sectorGroupId);
-
         List<Connector> results = new ArrayList<Connector>();
-
         for(Sprite s: map.findSprites(
                 PrefabUtils.MARKER_SPRITE)){
 
