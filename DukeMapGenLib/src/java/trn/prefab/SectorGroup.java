@@ -2,6 +2,7 @@ package trn.prefab;
 
 import java.util.*;
 
+import scala.Int;
 import trn.Map;
 import trn.Sprite;
 import trn.duke.MapErrorException;
@@ -10,22 +11,18 @@ import trn.duke.TextureList;
 public class SectorGroup extends SectorGroupS
 	implements ISectorGroup
 {
-
-	/** optional id that can be added to group by user to manually identify it
-	 * -1 means no id
-	 */
+	/** Optional id that can be added to group by user to manually identify it. -1 means no id */
 	final int sectorGroupId;
 	
-
-
-	// TODO - make this not public (need iterator for scala code?)
-	//public List<Connector> connectors = new ArrayList<Connector>();
-	
-	public SectorGroup(Map map, int sectorGroupId) throws MapErrorException {
+	/**
+	 * Creates an instance of this object.  To parse a sector group from a map, use: SectorGroupBuilder
+	 * @param map
+	 * @param sectorGroupId
+	 * @throws MapErrorException
+	 */
+	SectorGroup(Map map, int sectorGroupId) throws MapErrorException {
 	    super(map, sectorGroupId);
 		this.sectorGroupId = sectorGroupId;
-		//this.map = map;
-		//this.connectors.addAll(SimpleConnector.findConnectors(map));
         try{
 			for(Connector c : Connector.findConnectors(map)){
 				addConnector(c);
@@ -33,10 +30,6 @@ public class SectorGroup extends SectorGroupS
 		}catch(SpriteLogicException ex){
         	throw new SpriteLogicException("exception while scanning connectors in sector group.  id=" + sectorGroupId, ex);
 		}
-	}
-
-	public SectorGroup(Map map) throws MapErrorException {
-		this(map, -1);
 	}
 
 	private List<Connector> connectors_(){

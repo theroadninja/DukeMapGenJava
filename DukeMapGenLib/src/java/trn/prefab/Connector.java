@@ -67,7 +67,8 @@ public abstract class Connector {
     }
 
     public static final int idOf(Sprite markerSprite){
-        return (markerSprite != null && markerSprite.getHiTag() > 0) ? markerSprite.getHiTag() : -1;
+        //return (markerSprite != null && markerSprite.getHiTag() > 0) ? markerSprite.getHiTag() : -1;
+        return PrefabUtils.hitagToId(markerSprite);
     }
 
 }

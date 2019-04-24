@@ -66,11 +66,12 @@ public class PrefabPalette {
 				if (numberedSectorGroups.containsKey(groupId)) {
 					throw new SpriteLogicException("more than one sector group with id " + groupId);
 				}
-				numberedSectorGroups.put(groupId, new SectorGroup(clipboard, groupId));
+				//numberedSectorGroups.put(groupId, new SectorGroup(clipboard, groupId));
+				numberedSectorGroups.put(groupId, SectorGroupBuilder.createSectorGroup(clipboard, groupId));
 
 			}else if(childPointer.size() == 1){
 
-				SectorGroup childGroup = new SectorGroup(clipboard);
+				SectorGroup childGroup = SectorGroupBuilder.createSectorGroup(clipboard); // new SectorGroup(clipboard);
 				int groupId = childPointer.get(0).getHiTag();
 				// make sure the sector with the child Id sprite also has a redwall connector marker
                 // Connector conn = childGroup.findFirstConnector(c -> c.getSectorId() == childPointer.get(0).getSectorId()
@@ -86,7 +87,7 @@ public class PrefabPalette {
 				if(mistakes.size() > 0){
 					throw new SpriteLogicException("Sector group has no ID marker sprite but it DOES have a sprite with texture 0");
 				}
-				anonymousSectorGroups.add(new SectorGroup(clipboard));
+				anonymousSectorGroups.add(SectorGroupBuilder.createSectorGroup(clipboard)); //new SectorGroup(clipboard));
 			}
 
 			if(strict){ // TODO - get rid of this strict thing

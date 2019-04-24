@@ -100,17 +100,21 @@ trait ConnectorCollection {
 }
 
 
-class SectorGroupS(val map: DMap, val sectorGroupId: Int) extends ConnectorCollection {
+class SectorGroupS(val map: DMap, val sectorGroupId: Int)
+  extends ConnectorCollection {
   val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
+  val autoTexts: java.util.List[AutoText] = new java.util.ArrayList[AutoText]
 
   def copy(): SectorGroup = {
-    new SectorGroup(map.copy, this.sectorGroupId);
+    SectorGroupBuilder.createSectorGroup(map.copy, this.sectorGroupId)
+    //new SectorGroup(map.copy, this.sectorGroupId);
   }
   /**
     * @return a copy of this sector group, flipped about the X axis
     */
   def flippedX(x: Int): SectorGroup = {
-    new SectorGroup(map.flippedX(x), this.sectorGroupId)
+    //new SectorGroup(map.flippedX(x), this.sectorGroupId)
+    SectorGroupBuilder.createSectorGroup(map.flippedX(x), this.sectorGroupId)
   }
 
   def flippedX(): SectorGroup = flippedX(getAnchor.x)
@@ -118,16 +122,32 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int) extends ConnectorColle
 
 
   def flippedY(y: Int): SectorGroup = {
-    new SectorGroup(map.flippedY(y), this.sectorGroupId)
+    //new SectorGroup(map.flippedY(y), this.sectorGroupId)
+    SectorGroupBuilder.createSectorGroup(map.flippedY(y), this.sectorGroupId)
   }
 
   def flippedY(): SectorGroup = flippedY(getAnchor.y)
 
   def rotateAroundCW(anchor: PointXY): SectorGroup = {
-    new SectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
+    //new SectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
+    SectorGroupBuilder.createSectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
   }
 
   def rotateAroundCW(anchor: PointXYZ): SectorGroup = rotateAroundCW(anchor.asXY)
+
+  // TODO - mutable; get rid of this is we move all java stuff to scala
+  def addAutoText(at: AutoText): Unit ={
+    this.autoTexts.add(at)
+  }
+
+  def getAutoTextById(autoTextId: Int): AutoText = {
+    val results: Seq[AutoText] = this.autoTexts.asScala.filter(_.autoTextId == autoTextId)
+    results.size match {
+      case 0 => throw new SpriteLogicException(s"No auto text with id ${autoTextId}")
+      case 1 => results.head
+      case 2 => throw new SpriteLogicException(s"More than one auto text with id ${autoTextId} - shouldnt be possible")
+    }
+  }
 
   @throws(classOf[MapErrorException])
   protected def updateConnectors(): Unit = ???

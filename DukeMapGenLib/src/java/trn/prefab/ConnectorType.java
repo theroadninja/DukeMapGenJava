@@ -6,7 +6,8 @@ public class ConnectorType {
         return connectorType == HORIZONTAL_EAST
                 || connectorType == HORIZONTAL_WEST
                 || connectorType == VERTICAL_NORTH
-                || connectorType == VERTICAL_SOUTH;
+                || connectorType == VERTICAL_SOUTH
+                || connectorType == MULTI_REDWALL;
     }
 
     public static int TELEPORTER = 7;

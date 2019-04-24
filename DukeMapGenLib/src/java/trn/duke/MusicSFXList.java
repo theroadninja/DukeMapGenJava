@@ -3,14 +3,24 @@ package trn.duke;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
+/**
+ *
+ * TODO - useful:  http://infosuite.duke4.net/index.php?page=references_sound_list
+ */
 public class MusicSFXList {
 
     public static<T> List<T> concat(List<T>... lists){
         // TODO - make a MultiList data structure
         List<T> result = new ArrayList<>();
         for(List<T> list : lists){
+            result.addAll(list);
+        }
+        return result;
+    }
+    public static<T> List<T> concat(List<List<T>> lists){
+        List<T> result = new ArrayList<>();
+        for(List<T> list: lists){
             result.addAll(list);
         }
         return result;
@@ -108,7 +118,42 @@ public class MusicSFXList {
         });
     }
 
-    public static int DOOR_OPERATE4 = 167;
+    public static class MISC {
+        public static List<Integer> ALL = Arrays.asList(new Integer[]{
+                158, 183, 241, 242, 164, 254, 291, 292, 293,
+                288, 295, 296, 297, 298, 299, 300, 301, 30 // "end of episode sounds" ?
+        });
+    }
+
+    public static class MISC_INTERACTIVE {
+        public static List<Integer> ALL = Arrays.asList(new Integer[]{
+                8, 18, 19, 20, 22, 35, 71, 73, 70, 76, 79, 83, 148, 174, 212, 243, 248, 261, 272
+        });
+    }
+
+    public static class AMBIENCE {
+        public static List<Integer> ALL = Arrays.asList(new Integer[]{
+                21, 69, 75, 81, 82, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 95, 168, 170, 171, 172, 173, 175, 178, 179,
+                184, 185, 186, 187, 188, 194, 220, 231, 232, 233, 234, 244, 247, 249, 277, 279, 281, 282, 308
+        });
+
+    }
+
+    public static List<List<Integer>> ALL_LISTS = new ArrayList<List<Integer>>(){{
+        add(DUKE_VOCALS.ALL);
+        add(DUKE_NOISES.ALL);
+        add(DOOR_SOUNDS.ALL);
+        add(ENEMIES.ALL);
+        add(WEAPON_SOUNDS.ALL);
+        add(INVENTORY.ALL);
+        add(MISC.ALL);
+        add(MISC_INTERACTIVE.ALL);
+        add(AMBIENCE.ALL);
+    }};
+
+    public static List<Integer> ALL = concat(ALL_LISTS);
+
+    // TODO - unit test that ensures none of these overlap
 
     public static int SECRET_LEVEL = 183;
 }

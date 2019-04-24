@@ -1,5 +1,7 @@
 package trn.duke;
 
+import java.util.HashMap;
+
 /**
  * 
  * 
@@ -10,6 +12,7 @@ package trn.duke;
  *
  */
 public class TextureList {
+
 
 	public static final int SECTOR_EFFECTOR = 1;
 	public static final int SE = 1; // shorter version
@@ -325,6 +328,42 @@ public class TextureList {
 	
 	public static final int FLOOR_PLASMA = 1082;
 	public static final int LAVA = FLOOR_PLASMA;
-	
-	
+
+	// TODO - double check these, some of them appear to simply be in the order of the standard ascii charset
+
+	/** this is just numbers, thick and stylized */
+	public static final TextureFont FONT1 = new TextureFont(640, "1234567890");
+
+	/** looks like a digital clock */
+	public static final TextureFont FONT_DIGITALNUM = new TextureFont(2472, "0123456789");
+
+	/** small blue */
+	public static final TextureFont FONT_STARTALPHANUM = new TextureFont(2822, "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvyxwz{|}~");
+
+	/** big red */
+	public static final TextureFont FONT_BIGRED = new TextureFont(2930, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+			.addedTo(new TextureFont(3002, ".,!?;:/%"))
+			.addedTo(new TextureFont(3022, "'"));
+
+	/** big gray */
+	public static final TextureFont FONT_BIGGRAY = new TextureFont(2965, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+
+	/** tiny yellow */
+	public static final TextureFont FONT_TINYYELLOW = new TextureFont(3010, "0123456789:/");
+
+	/** minifont - very small blue (almost ascii but not quite) */
+	public static final TextureFont FONT_MINIFONT = new TextureFont(3072, "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`")
+			.addedTo(new TextureFont(3162, "{|}~"));
+
+
+	private static final TextureFontManager textureToFont = new TextureFontManager(
+			FONT1, FONT_DIGITALNUM, FONT_STARTALPHANUM, FONT_BIGRED, FONT_BIGGRAY, FONT_TINYYELLOW, FONT_MINIFONT
+	);
+
+	public static final TextureFont getFont(int textureId){
+		return textureToFont.get(textureId);
+	}
+	public static final boolean isFontTex(int textureId){
+		return textureToFont.isFontTexture(textureId);
+	}
 }

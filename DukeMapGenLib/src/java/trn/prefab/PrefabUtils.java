@@ -2,6 +2,7 @@ package trn.prefab;
 
 import trn.DukeConstants;
 import trn.ISpriteFilter;
+import trn.Sprite;
 import trn.SpriteFilter;
 
 public class PrefabUtils {
@@ -46,6 +47,21 @@ public class PrefabUtils {
 		 * 		the child connector id must be > 0
 		 */
 		public static int REDWALL_CHILD = 4;
+
+
+
+		/**
+		 * Marks a sector with existing text sprites meant to spell out words.
+		 *
+		 * Marker sprite:
+		 * 	lotag: 5
+		 * 	hitag: 0 OR some ID
+		 *
+		 * Text Sprites:
+		 *   lotag:  non zero, value indicates order (smaller numbers to the left)
+		 *
+		 */
+		public static int AUTO_TEXT = 5;
 
 
 		
@@ -99,4 +115,7 @@ public class PrefabUtils {
 	
 	public static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
 
+	public static final int hitagToId(Sprite s){
+		return (s != null && s.getHiTag() > 0) ? s.getHiTag() : -1;
+	}
 }
