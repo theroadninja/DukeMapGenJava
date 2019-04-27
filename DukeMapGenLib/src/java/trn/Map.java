@@ -322,24 +322,12 @@ public class Map {
 	 * creating two-sided walls (which appear red in build); 
 	 */
 	public void linkRedWalls(int sectorIndex, int wallIndex, int sectorIndex2, int wallIndex2){
+
+		linkRedWallsStrict(sectorIndex, wallIndex, sectorIndex2, wallIndex2);
+
 	    // old implementation
-		getWall(wallIndex).setOtherSide(wallIndex2, sectorIndex2);
-		getWall(wallIndex2).setOtherSide(wallIndex, sectorIndex);
-		// TODO - replace this function with linkRedWallsStrict after getting hyper cube 2 working ...
-
-		// Wall w1 = getWall(wallIndex);
-		// Wall w1End = getWall(w1.getPoint2Id());
-		// Wall w2 = getWall(wallIndex2);
-		// Wall w2End = getWall(w2.getPoint2Id());
-		// if(w1.isRedWall()) throw new IllegalArgumentException("wall " + wallIndex + " is already a red wall");
-		// if(w2.isRedWall()) throw new IllegalArgumentException("wall " + wallIndex2 + " is already a red wall");
-
-		// if(!(w1.getLocation().equals(w2End.getLocation()) && w2.getLocation().equals(w1End.getLocation()))){
-		//     String message = String.format("%s->%s vs %s<-%s", w1.getLocation().toString(), w1End.getLocation().toString(), w2End.getLocation().toString(), w2.getLocation().toString());
-		// 	throw new IllegalArgumentException(message);
-		// }
-		// w1.setOtherSide(wallIndex2, sectorIndex2);
-		// w2.setOtherSide(wallIndex, sectorIndex);
+		// getWall(wallIndex).setOtherSide(wallIndex2, sectorIndex2);
+		// getWall(wallIndex2).setOtherSide(wallIndex, sectorIndex);
 	}
 
 	public void linkRedWallsStrict(int sectorIndex, int wallIndex, int sectorIndex2, int wallIndex2){

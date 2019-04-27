@@ -15,7 +15,7 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
   val maxGridX = 4
 
   val horizHallway = palette.getSectorGroup(200)
-  val horizHallway2 = palette.getSectorGroup(201)
+  //val horizHallway2 = palette.getSectorGroup(201)
   val vertHallway = palette.getSectorGroup(250)
 
   val grid = scala.collection.mutable.Map[(Int, Int, Int, Int), PastedSectorGroup]()

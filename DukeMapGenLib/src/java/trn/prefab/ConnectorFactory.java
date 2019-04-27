@@ -14,40 +14,13 @@ public class ConnectorFactory {
 		Sector sector = map.getSector(s.getSectorId());
 		
 		
-		if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_EAST
-				|| s.getLotag() == PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_WEST){
-			
-			
-
-			int wallId = getLinkWallId(map, sector);
-			Wall w = map.getWall(wallId);
-			
-			SimpleConnector connector = new SimpleConnector(s, wallId, w, sector);
-			PointXYZ anchor = SimpleConnector.getHorizontalConnectorAnchor(w, map.getWall(w.getPoint2Id()), sector.getFloorZ());
-			connector.setAnchorPoint(anchor);
-			return connector;
-
-
-		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_NORTH
-				|| s.getLotag() == PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_SOUTH) {
-
-			int wallId = getLinkWallId(map, sector);
-
-			Wall w = map.getWall(wallId);
-			SimpleConnector connector = new SimpleConnector(s, wallId, w, sector);
-
-			int z = map.getSector(s.getSectorId()).getFloorZ();
-
-			PointXYZ anchor = SimpleConnector.getVerticalConnectorAnchor(w, map.getWall(w.getPoint2Id()), z);
-			connector.setAnchorPoint(anchor);
-			return connector;
-
-		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.SIMPLE_CONNECTOR) {
+		if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.SIMPLE_CONNECTOR) {
 
 			if (map.findSprites(null, DukeConstants.SE_LOTAGS.TELEPORT, (int) s.getSectorId()).size() > 0) {
 				//its a teleporter
 				return new TeleportConnector(s, sector.getLotag());
 			} else if (ElevatorConnector.isElevatorMarker(map, s)) {
+				System.out.println("WARNING: auto connector used to create elevator (DEPRECATED - See ConnectorFactory.java");
 				return new ElevatorConnector(s);
 			} else {
 				List<Integer> linkWallIds = getLinkWallIds(map, sector);
@@ -67,8 +40,13 @@ public class ConnectorFactory {
 
 			}
 
-		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR){
+		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR) {
 			return new TeleportConnector(s, sector.getLotag());
+		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR){
+			if(sector.getLotag() != 15){
+				throw new SpriteLogicException("elevector connector in sector id with lotag != 15");
+			}
+			return new ElevatorConnector(s);
 		}else{
 			//throw new SpriteLogicException("sprite lotag=" + s.getLotag())
 			return null;

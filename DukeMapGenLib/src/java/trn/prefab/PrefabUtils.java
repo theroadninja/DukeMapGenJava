@@ -64,17 +64,27 @@ public class PrefabUtils {
 		public static int AUTO_TEXT = 5;
 
 
+		// TODO - reserve 7 to possible use for teleporter connectors
 		
-		/** lotag that marks a construction sprite as connector */
-		public static int HORIZONTAL_CONNECTOR_EAST = 16;
-		
-		public static int HORIZONTAL_CONNECTOR_WEST = 17;
-		
-		/** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the south edge of the sector */
-		public static int VERTICAL_CONNECTOR_SOUTH = 18;
-		
-		/** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the north edge of the sector */
-		public static int VERTICAL_CONNECTOR_NORTH = 19;
+		// /** lotag that marks a construction sprite as connector */
+		// public static int HORIZONTAL_CONNECTOR_EAST = 16;
+		//
+		// public static int HORIZONTAL_CONNECTOR_WEST = 17;
+		//
+		// /** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the south edge of the sector */
+		// public static int VERTICAL_CONNECTOR_SOUTH = 18;
+		//
+		// /** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the north edge of the sector */
+		// public static int VERTICAL_CONNECTOR_NORTH = 19;
+
+		/**
+		 * Elevator Connector
+		 *
+		 * To make an elevator with this:
+		 * 		marker sprite lotag 17
+		 * 		sector lotag 15
+		 */
+		public static int ELEVATOR_CONNECTOR = 17;
 
 		/**
 		 *  AUTO CONNECTOR

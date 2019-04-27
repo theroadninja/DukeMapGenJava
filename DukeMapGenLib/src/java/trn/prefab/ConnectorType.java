@@ -10,7 +10,7 @@ public class ConnectorType {
                 || connectorType == MULTI_REDWALL;
     }
 
-    public static int TELEPORTER = 7;
+    public static int TELEPORTER = 7; // TODO - maybe this should be 27 to match the prefab... (or that one should be 7)
 
     public static int ELEVATOR = 8; // TODO - actually this one should be 17
 

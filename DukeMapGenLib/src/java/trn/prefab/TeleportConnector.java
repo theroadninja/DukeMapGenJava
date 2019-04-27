@@ -21,6 +21,7 @@ public class TeleportConnector extends Connector {
 
     private final int sectorId;
 
+    // this tracks whether we are using the "replace" behavior -- it does not track whether the replacement has happened
     private final boolean mustReplaceMarkerSprite;
 
     private final boolean water;

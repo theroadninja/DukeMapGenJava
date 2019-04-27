@@ -15,14 +15,19 @@ public class ElevatorConnector extends Connector {
 
     private final int sectorId;
 
+    // this tracks whether we are using the "replace" behavior -- it does not track whether the replacement has happened
+    private final boolean mustReplaceMarkerSprite;
+
     public ElevatorConnector(Sprite markerSprite){
         super(Connector.idOf(markerSprite));
         sectorId = markerSprite.getSectorId();
+        this.mustReplaceMarkerSprite = markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR;
     }
 
-    private ElevatorConnector(int connectorId, int sectorId){
+    private ElevatorConnector(int connectorId, int sectorId, boolean mustReplaceMarkerSprite){
         super(connectorId);
         this.sectorId = sectorId;
+        this.mustReplaceMarkerSprite = mustReplaceMarkerSprite;
     }
 
     @Override
@@ -37,7 +42,7 @@ public class ElevatorConnector extends Connector {
 
     @Override
     public ElevatorConnector translateIds(IdMap idmap, PointXYZ delta) {
-        return new ElevatorConnector(connectorId, idmap.sector(this.sectorId));
+        return new ElevatorConnector(connectorId, idmap.sector(this.sectorId), this.mustReplaceMarkerSprite);
     }
 
     /**
@@ -45,11 +50,16 @@ public class ElevatorConnector extends Connector {
      */
     @Override
     public boolean isLinked(Map map) {
-        List<Sprite> list = getSESprites(map);
-        if(list.size() != 1){
-            throw new SpriteLogicException("wrong number of SE 17 sprites in teleporter sector.");
+        if(this.mustReplaceMarkerSprite){
+            List<Sprite> list = map.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR, this.sectorId);
+            return list.size() < 1;
+        }else{
+            List<Sprite> list = getSESprites(map);
+            if(list.size() != 1){
+                throw new SpriteLogicException("wrong number of SE 17 sprites in teleporter sector.");
+            }
+            return list.get(0).getHiTag() != 0;
         }
-        return list.get(0).getHiTag() != 0;
     }
 
     @Override
@@ -70,6 +80,8 @@ public class ElevatorConnector extends Connector {
         return map.findSprites(TextureList.SE, Lotags.SE.ELEVATOR, sectorId);
     }
 
+    // for auto marker 20, to distinguish between other uses of the auto marker
+    @Deprecated
     public static boolean isElevatorMarker(Map map, Sprite markerSprite){
         int sectorId = markerSprite.getSectorId();
         if(map.getSector(sectorId).getLotag() != Lotags.ST.ELEVATOR){
@@ -91,6 +103,20 @@ public class ElevatorConnector extends Connector {
         return map.getSector(conn.getSectorId()).getFloorZ() * -1;
     }
 
+
+    private void replaceMarkerSprite(ISectorGroup sg){
+        if(!this.mustReplaceMarkerSprite) throw new IllegalStateException();
+        List<Sprite> list = sg.getMap().findSprites(
+                (Sprite s) -> s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
+                        && s.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR
+                        && s.getSectorId() == sectorId
+        );
+        if(list.size() != 1) throw new SpriteLogicException("wrong number of elevator marker sprites in sector");
+        Sprite markerSprite = list.get(0);
+        markerSprite.setTexture(TextureList.SE);
+        markerSprite.setLotag(Lotags.SE.ELEVATOR);
+    }
+
     public static void linkElevators(
             ElevatorConnector lowerConn,
             ISectorGroup lowerConnGroup,
@@ -99,7 +125,13 @@ public class ElevatorConnector extends Connector {
             int hitag,
             boolean startLower
     ){
+        if(lowerConn.mustReplaceMarkerSprite){
+            lowerConn.replaceMarkerSprite(lowerConnGroup);
+        }
         Sprite lowerSE = lowerConn.getSESprite(lowerConnGroup);
+        if(higherConn.mustReplaceMarkerSprite){
+            higherConn.replaceMarkerSprite(higherConnGroup);
+        }
         Sprite higherSE = higherConn.getSESprite(higherConnGroup);
 
         if(startLower){

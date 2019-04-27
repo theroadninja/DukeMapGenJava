@@ -25,21 +25,18 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 
-		//Map fromMap = loadMap(DOSPATH + "cptest2.map");
-		
-		// cptest4.map - space joins
-		
-		// cptest3.map
-
 		File f = new File(DOSPATH);
 		if(!(f.exists() && f.isDirectory())){
 			throw new Exception(DOSPATH + " does not exist");
 		}
 
+		// Reference Styles
+		// 1. copy test 3
+		// 2. hyper 1
+		// 3. hyper 2
+		// 4. sound test
 
-		// Map fromMap = loadMap(DOSPATH + "cptest3.map");
-		//Map outMap = PrefabExperiment.copytest3(MapLoader.loadMap(DOSPATH + "cptest3.map"));
-		// //Map outMap = PrefabExperiment.copytest4(fromMap);
+		//Map outMap = FirstPrefabExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
 		//Map outMap = GridExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
 
 		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));

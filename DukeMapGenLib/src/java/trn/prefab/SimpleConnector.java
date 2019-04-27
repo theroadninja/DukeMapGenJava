@@ -38,17 +38,13 @@ public class SimpleConnector extends RedwallConnector {
 	}
 
 	
-	public static ConnectorFilter SouthConnector = new ConnectorTypeFilter(
-			PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_SOUTH);
+	public static ConnectorFilter SouthConnector = new ConnectorTypeFilter(ConnectorType.VERTICAL_SOUTH);
 	
-	public static ConnectorFilter NorthConnector = new ConnectorTypeFilter(
-			PrefabUtils.MarkerSpriteLoTags.VERTICAL_CONNECTOR_NORTH);
+	public static ConnectorFilter NorthConnector = new ConnectorTypeFilter(ConnectorType.VERTICAL_NORTH);
 
-	public static ConnectorFilter EastConnector = new ConnectorTypeFilter(
-			PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_EAST);
+	public static ConnectorFilter EastConnector = new ConnectorTypeFilter(ConnectorType.HORIZONTAL_EAST);
 	
-	public static ConnectorFilter WestConnector = new ConnectorTypeFilter(
-			PrefabUtils.MarkerSpriteLoTags.HORIZONTAL_CONNECTOR_WEST);
+	public static ConnectorFilter WestConnector = new ConnectorTypeFilter(ConnectorType.HORIZONTAL_WEST);
 
 
 	final int sectorId;
