@@ -6,6 +6,16 @@ import java.io.IOException;
 
 public class MapLoader {
 
+    private final String path;
+
+    public MapLoader(String path){
+        this.path = path;
+    }
+
+    public Map load(String filename) throws IOException {
+        return loadMap(this.path + filename);
+    }
+
     // TODO - better name for this
     public static Map loadLocalMap(String filename) throws IOException {
         // TODO - try to load from project first

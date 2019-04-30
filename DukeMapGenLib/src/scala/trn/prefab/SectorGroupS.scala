@@ -41,6 +41,10 @@ trait ConnectorCollection {
     connectors.asScala.map(_.connectorId).filter(_ > 0).map(_.asInstanceOf[Integer]).toSet.asJava
   }
 
+  final def allRedwallConnectors: Seq[RedwallConnector] = {
+    connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType)).map(_.asInstanceOf[RedwallConnector])
+  }
+
   final def getConnector(connectorId: Int): Connector = {
     if(connectorId < 0) throw new IllegalArgumentException
     connectors.asScala.find(_.connectorId == connectorId) match {
@@ -132,6 +136,9 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int)
     //new SectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
     SectorGroupBuilder.createSectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
   }
+
+  def rotateCW: SectorGroup = rotateAroundCW(this.getAnchor)
+
 
   def rotateAroundCW(anchor: PointXYZ): SectorGroup = rotateAroundCW(anchor.asXY)
 

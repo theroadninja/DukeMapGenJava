@@ -35,15 +35,15 @@ public class Main {
 		// 2. hyper 1
 		// 3. hyper 2
 		// 4. sound test
+		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));
 
 		//Map outMap = FirstPrefabExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
 		//Map outMap = GridExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
 
-		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
 		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
-        Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
-		//Map outMap = FirstPrefabExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
+        //Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
+		Map outMap = ReferenceTestExperiment.run(new MapLoader(DOSPATH));
 
 		// writeAndOpenMapPng(outMap);
 		deployTest(outMap);

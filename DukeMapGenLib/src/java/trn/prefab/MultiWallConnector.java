@@ -48,7 +48,7 @@ public class MultiWallConnector extends RedwallConnector {
         super(markerSprite);
         this.markerSpriteLotag = markerSprite.getLotag();
         if(markerSprite == null || sector == null) throw new IllegalArgumentException();
-        if(wallIds == null || wallIds.size() < 2) throw new IllegalArgumentException();
+        // if(wallIds == null || wallIds.size() < 2) throw new IllegalArgumentException();
         this.sectorId = markerSprite.getSectorId();
         //this.wallIds = new ArrayList<>(wallIds.size());
         wallIds = MapUtil.sortWallSection(wallIds, map);
@@ -89,7 +89,7 @@ public class MultiWallConnector extends RedwallConnector {
         this.wallAnchor2 = map.getWall(endWallId).getLocation();
 
         this.wallIds = Collections.unmodifiableList(wallIds);
-        if(this.wallIds.size() < 2) throw new RuntimeException();
+        if(this.wallIds.size() < 1) throw new RuntimeException();
     }
 
 

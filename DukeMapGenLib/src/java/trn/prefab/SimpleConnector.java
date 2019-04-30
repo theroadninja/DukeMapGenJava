@@ -89,10 +89,14 @@ public class SimpleConnector extends RedwallConnector {
 		this.z = sector.getFloorZ();
 	}
 
-	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall, Wall nextWallInLoop, int z) throws MapErrorException {
+	public SimpleConnector(Sprite markerSprite, Sector sector, int wallId, Map map)
+			throws MapErrorException {
         super(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
+		int z = sector.getFloorZ();
         this.wallId = wallId;
         this.sectorId = markerSprite.getSectorId();
+		Wall wall = map.getWall(wallId);
+		Wall nextWallInLoop = map.getWall(wall.getPoint2Id());
 
         PointXY vector = wall.getUnitVector(nextWallInLoop);
         if(vector.x == 1) {
@@ -116,6 +120,19 @@ public class SimpleConnector extends RedwallConnector {
         this.markerSpriteLotag = markerSprite.getLotag();
 
     }
+
+    public static boolean isSimpleConnector(List<Integer> linkWallIds, Map map){
+	    if(linkWallIds.size() != 1){
+	    	return false;
+		}
+		int wallId = linkWallIds.get(0);
+		Wall wall = map.getWall(wallId);
+		Wall nextWallInLoop = map.getWall(wall.getPoint2Id());
+		PointXY vector = wall.getUnitVector(nextWallInLoop);
+		return Math.abs(vector.x) == 1 || Math.abs(vector.y) == 1;
+	}
+
+
 
 	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType, int markerSpriteLotag){
 	    super(connectorId);

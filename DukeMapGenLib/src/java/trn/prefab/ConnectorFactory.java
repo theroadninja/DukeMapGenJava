@@ -27,13 +27,9 @@ public class ConnectorFactory {
 
 				if(linkWallIds.size() == 0){
 					throw new SpriteLogicException("missing link wall for marker sprite at " + s.getLocation().toString());
-				}else if(linkWallIds.size() == 1) {
+				}else if(SimpleConnector.isSimpleConnector(linkWallIds, map)) {
 					int wallId = linkWallIds.get(0);
-					//int wallId = getLinkWallId(map, sector); // TODO - get rid of getLinkWallId
-					Wall w1 = map.getWall(wallId);
-					Wall w2 = map.getWall(w1.getPoint2Id());
-					int z = map.getSector(s.getSectorId()).getFloorZ();
-					return new SimpleConnector(s, wallId, w1, w2, z);
+					return new SimpleConnector(s, sector, wallId, map);
 				}else{
 					return new MultiWallConnector(s, sector, linkWallIds, map);
 				}

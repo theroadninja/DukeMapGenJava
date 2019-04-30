@@ -258,7 +258,7 @@ public class MapUtil {
 	 */
 	public static List<Integer> sortWallSection(List<Integer> wallIds, Map map){
 	    // TODO - this is a classic topological, so optimize this enough to not be embarassing
-		if(wallIds == null || wallIds.size() < 2) throw new IllegalArgumentException();
+		if(wallIds == null) throw new IllegalArgumentException();
 	    java.util.Map<Integer, Integer> walls = new TreeMap<>();
 		java.util.Map<Integer, Integer> wallsReversed = new TreeMap<>();
 	    for(Integer wallId : wallIds) {
