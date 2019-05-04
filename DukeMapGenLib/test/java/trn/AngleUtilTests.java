@@ -20,20 +20,20 @@ public class AngleUtilTests {
         Assert.assertEquals(new PointXY(R, 0), unit(2048));
         Assert.assertEquals(new PointXY(R, 0), unit(AngleUtil.ANGLE_RIGHT));
 
-        Assert.assertEquals(new PointXY(0, -R), unit(512));
-        Assert.assertEquals(new PointXY(0, -R), unit(512-2048));
-        Assert.assertEquals(new PointXY(0, -R), unit(512+2048));
-        Assert.assertEquals(new PointXY(0, -R), unit(AngleUtil.ANGLE_DOWN));
+        Assert.assertEquals(new PointXY(0, R), unit(512));
+        Assert.assertEquals(new PointXY(0, R), unit(512-2048));
+        Assert.assertEquals(new PointXY(0, R), unit(512+2048));
+        Assert.assertEquals(new PointXY(0, R), unit(AngleUtil.ANGLE_DOWN));
 
         Assert.assertEquals(new PointXY(-R, 0), unit(1024));
         Assert.assertEquals(new PointXY(-R, 0), unit(1024-2048));
         Assert.assertEquals(new PointXY(-R, 0), unit(1024+2048));
         Assert.assertEquals(new PointXY(-R, 0), unit(AngleUtil.ANGLE_LEFT));
 
-        Assert.assertEquals(new PointXY(0, R), unit(1536));
-        Assert.assertEquals(new PointXY(0, R), unit(1536-2048));
-        Assert.assertEquals(new PointXY(0, R), unit(1536+2048));
-        Assert.assertEquals(new PointXY(0, R), unit(AngleUtil.ANGLE_UP));
+        Assert.assertEquals(new PointXY(0, -R), unit(1536));
+        Assert.assertEquals(new PointXY(0, -R), unit(1536-2048));
+        Assert.assertEquals(new PointXY(0, -R), unit(1536+2048));
+        Assert.assertEquals(new PointXY(0, -R), unit(AngleUtil.ANGLE_UP));
     }
 
     @Test

@@ -3,6 +3,11 @@ package trn;
 /**
  * Low level representation of ceiling/floor flags.
  *
+ * https://wiki.eduke32.com/wiki/Floorstat
+ *
+ * See also:
+ * https://wiki.eduke32.com/wiki/Cstat(wall)
+ *
  * Useful reference to map this to the editor keys:
  *     http://infosuite.duke4.net/index.php?page=references_build_keys
  *     https://wiki.eduke32.com/wiki/Build/Mapster32_Keyboard_Commands

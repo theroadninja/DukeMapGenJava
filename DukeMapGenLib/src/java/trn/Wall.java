@@ -166,7 +166,11 @@ public class Wall {
 		this.y += delta.y;
 		return this;
 	}
-	
+
+	public WallStat getStat(){
+		return new WallStat(this.cstat);
+	}
+
 	public int getX(){
 		return x;
 	}

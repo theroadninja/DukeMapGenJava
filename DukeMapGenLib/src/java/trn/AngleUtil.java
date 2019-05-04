@@ -68,10 +68,10 @@ public class AngleUtil {
         //         (int)(Math.sin(toRadians(ang)) * RANGE)
         // );
 
-        // this is a unit vector in a world where Y+ is down
+        // TODO - something wrong here?  this shouldn't work...
         return new PointXY(
                 (int)(Math.cos(toRadians(ang)) * RANGE),
-                -(int)(Math.sin(toRadians(ang)) * RANGE)
+                (int)(Math.sin(toRadians(ang)) * RANGE)
         );
 
     }

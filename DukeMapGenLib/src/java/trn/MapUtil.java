@@ -51,10 +51,6 @@ public class MapUtil {
 	 * has more than one wall loop, the walls in the wall loop must be specified.
 	 * 
 	 * 
-	 * @param sectorA 
-	 * @param wallA
-	 * @param sectorB
-	 * @param wallB
 	 */
 	public static void linkAllWalls(Map map, int sectorA, int wallAindex, int sectorB, int wallBindex){
 		
@@ -250,6 +246,34 @@ public class MapUtil {
 		}
 	}
 
+
+	/**
+	 * Determines if a sprite is "pointing at" a wall.
+	 *
+	 * The sprites position and angle is used to define a ray (half-line), and the walls position + the position of
+	 * the next wall in the loop, is used to define a line segment.  This method returns true if the ray from the
+	 * sprite intersects with a wall segment.
+	 *
+	 * @param s
+	 * @param wallId
+	 * @param m
+	 * @returns true if the sprite is pointed at the wall.
+	 */
+	public static boolean isSpritePointedAtWall(Sprite s, int wallId, Map m) {
+		Wall w1 = m.getWall(wallId);
+		Wall w2 = m.getWall(w1.getPoint2Id());
+		return isSpritePointedAtWall(s, w1, w2);
+	}
+
+	// this is just split out for unit testing
+	static boolean isSpritePointedAtWall(Sprite s, Wall w1, Wall w2){
+		PointXY sv = AngleUtil.unitVector(s.getAngle());
+		// System.out.println("\tunit vector: " + sv);
+		PointXY p1 = w1.getLocation();
+		// System.out.println("\twall segment: " + p1 + ", " + w2.getLocation() + " delta: " + w2.getLocation().subtractedBy(p1));
+		return PointXY.raySegmentIntersect(s.getLocation().asXY(), sv, p1, w2.getLocation().subtractedBy(p1));
+	}
+
 	/**
 	 *
 	 * @param wallIds ids of walls in the same sector that are connected
@@ -280,11 +304,14 @@ public class MapUtil {
 	    	results.addLast(walls.get(results.getLast()));
 		}
 	    results.removeLast(); // the last element is not part of the list
+
+
 		if(results.size() != wallIds.size()) throw new RuntimeException("" + results.size() + " != " + wallIds.size());
 		checkLoopSection(results, map); // sanity check
 		return results;
 	}
 
+	/** throws an exception if the walls are not adjacent and in order */
 	private static void checkLoopSection(List<Integer> wallIds, Map map){
 		for(int i = 0; i < wallIds.size() - 1; ++i){
 			int wallId = wallIds.get(i);

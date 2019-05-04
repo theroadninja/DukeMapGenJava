@@ -203,13 +203,13 @@ public class MultiWallConnector extends RedwallConnector {
         PointXY otherP2 = other.wallAnchor2.subtractedBy(other.anchor);
 
 
-        // System.out.println("p1=" + this.wallAnchor1 + ", anchor=" + this.anchor);
-        // System.out.println("p2=" + this.wallAnchor2);
-        // System.out.println("-----");
-        // System.out.println("p1=" + p1.toString());
-        // System.out.println("p2=" + p2.toString());
-        // System.out.println("otherP1=" + otherP1.toString());
-        // System.out.println("otherP2=" + otherP2.toString());
+        System.out.println("p1=" + this.wallAnchor1 + ", anchor=" + this.anchor);
+        System.out.println("p2=" + this.wallAnchor2);
+        System.out.println("-----");
+        System.out.println("p1=" + p1.toString());
+        System.out.println("p2=" + p2.toString());
+        System.out.println("otherP1=" + otherP1.toString());
+        System.out.println("otherP2=" + otherP2.toString());
 
         // check each point
         if(map != null){
@@ -269,7 +269,8 @@ public class MultiWallConnector extends RedwallConnector {
 
     @Override
     public void linkConnectors(Map map, RedwallConnector otherConn) {
-        if(map == null || otherConn == null || otherConn.getConnectorType() != this.getConnectorType()) throw new IllegalArgumentException();
+        if(map == null || otherConn == null) throw new IllegalArgumentException("argument is null");
+        if(otherConn.getConnectorType() != this.getConnectorType()) throw new IllegalArgumentException("connector type mismatch");
         MultiWallConnector c2 = (MultiWallConnector)otherConn;
         if(! canLink(c2, map)) throw new SpriteLogicException("cannot link connector (other=" + c2.getConnectorId() + ")");
 

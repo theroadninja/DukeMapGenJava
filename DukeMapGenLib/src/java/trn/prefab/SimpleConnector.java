@@ -300,6 +300,8 @@ public class SimpleConnector extends RedwallConnector {
 
 	@Override
 	public void linkConnectors(Map map, RedwallConnector other) {
+		if(other.isLinked(map)) throw new IllegalArgumentException("connector is already linked");
+		if(this.isLinked(map)) throw new IllegalStateException("already linked");
 	    SimpleConnector c2 = (SimpleConnector)other;
 		map.linkRedWalls(this.getSectorId(), this.getWallId(), c2.getSectorId(), c2.getWallId());
 	}

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class Map {
+public class Map implements WallContainer {
 
 	public static final int MAX_X = 65536;
 	public static final int MIN_X = -65536;
@@ -112,7 +112,7 @@ public class Map {
 		this.sectorCount++;
 		return this.sectorCount -1;
 	}
-	
+
 	public int getWallCount(){
 		return this.wallCount;
 	}
@@ -332,8 +332,11 @@ public class Map {
 
 	public void linkRedWallsStrict(int sectorIndex, int wallIndex, int sectorIndex2, int wallIndex2){
 		Wall w1 = getWall(wallIndex);
+		// TODO - instead of throwing, just disable...
+		if(w1.getStat().blockPlayer()) throw new RuntimeException("wall has blocking enabled");
 		Wall w1End = getWall(w1.getPoint2Id());
 		Wall w2 = getWall(wallIndex2);
+		if(w2.getStat().blockPlayer()) throw new RuntimeException("wall has blocking enabled");
 		Wall w2End = getWall(w2.getPoint2Id());
 		if(w1.isRedWall()) throw new IllegalArgumentException("wall " + wallIndex + " is already a red wall");
 		if(w2.isRedWall()) throw new IllegalArgumentException("wall " + wallIndex2 + " is already a red wall");
