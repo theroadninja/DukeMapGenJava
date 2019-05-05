@@ -163,12 +163,12 @@ object SoundListMap {
     val labels = Seq(dukeVocals, dukeNoises, doors, slimer, octabrain, trooper, pigcop, pigcopRecon, enforcer, drone,
       fatCommander, bossEp1, bossEp2, bossEp3, secretLevel, weapons, inventory)
 
-    // TODO - add DUKE_VOCALS back in
     val allSounds = MusicSFXList.ALL.asScala.map(_.toInt).toSet
     val ITEMS = (weapons.sounds ++ inventory.sounds).toSeq.sorted
 
-    val rightSounds = allSounds -- DUKE_VOCALS -- ENEMIES -- DUKE_NOISES -- ITEMS
-    for(i <- rightSounds.toSeq.sorted){
+    val rightSoundsA = allSounds -- DUKE_VOCALS -- ENEMIES -- DUKE_NOISES -- ITEMS
+    val rightSounds = rightSoundsA.toSeq.sorted ++ DUKE_VOCALS.toSeq.sorted
+    for(i <- rightSounds){
       builder.addRoom(makeRoom(i, palette, labels))
     }
 

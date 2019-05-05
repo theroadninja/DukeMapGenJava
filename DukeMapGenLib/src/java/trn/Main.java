@@ -3,21 +3,15 @@ package trn;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
-
 import trn.duke.MapImageWriter;
-import trn.duke.experiments.E1RandomSprites;
 import trn.prefab.experiments.*;
-
 import javax.imageio.ImageIO;
 
 public class Main {
 
-	
 	//found this, looks like a good resource for the build map format:
 	// http://www.shikadi.net/moddingwiki/MAP_Format_%28Build%29
 	
@@ -42,8 +36,8 @@ public class Main {
 
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
 		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
-        //Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
-		Map outMap = ReferenceTestExperiment.run(new MapLoader(DOSPATH));
+        Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
+		//Map outMap = ReferenceTestExperiment.run(new MapLoader(DOSPATH));
 
 		// writeAndOpenMapPng(outMap);
 		deployTest(outMap);
@@ -56,23 +50,15 @@ public class Main {
 		Desktop.getDesktop().open(picfile);  // note: Runtime.exec() does not work
 	}
 
-
 	public static File writeMapPng(String filename, Map map) throws IOException {
 		BufferedImage image = MapImageWriter.toImage(map);
 		File outputfile = new File(filename);
 		ImageIO.write(image, "png", outputfile);
 		return outputfile;
 	}
-	
-	
 
-	// public static void writeResult(Map map) throws IOException{
-	// 	String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + "output.map";
-	// 	writeResult(map, resultsFile);
-	// }
 	public static void writeResult(Map map, String resultsFile) throws IOException{
-		
-		FileOutputStream output = new FileOutputStream(new File(resultsFile)); 
+		FileOutputStream output = new FileOutputStream(new File(resultsFile));
 		map.toBytes(output);
 		output.close();
 	}
@@ -97,22 +83,5 @@ public class Main {
 		
 		//TODO:  can we put build times in the map somewhere?
 	}
-	
 
-	/*
-	public static void oldmain(String[] args) throws Exception {
-		String fname =  "ONEROOM.MAP";
-		//String fname = "TWOROOMS.MAP";
-		String filepath = System.getProperty("user.dir") + File.separator + "testdata" + File.separator + fname;
-		File f = new File(filepath);
-		if(f.exists() && f.isFile()){
-			byte[] mapFile = IOUtils.toByteArray(new FileInputStream(f));
-			parseOnTheFly(mapFile);
-		}else{
-			System.err.println(String.format("%s is not a valid file", filepath));
-			System.exit(1);
-		}
-	}
-
-	*/
 }
