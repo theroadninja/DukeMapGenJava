@@ -24,7 +24,10 @@ public class PrefabPalette {
 	private Random random = new Random();
 
 
-	public PrefabPalette(java.util.Map<Integer, SectorGroup> numberedSectorGroups, List<SectorGroup> anonymousSectorGroups){
+	public PrefabPalette(
+			java.util.Map<Integer, SectorGroup> numberedSectorGroups,
+			List<SectorGroup> anonymousSectorGroups
+	){
 		this.numberedSectorGroups = numberedSectorGroups;
 		this.anonymousSectorGroups = anonymousSectorGroups;
 	}
@@ -37,6 +40,7 @@ public class PrefabPalette {
 		return fromMap(map, false);
 	}
 	public static PrefabPalette fromMap(Map map, boolean strict) throws MapErrorException {
+	    final List<SectorGroup> sectorGroupsThatStay = new ArrayList<>();
 		final java.util.Map<Integer, SectorGroup> numberedSectorGroups = new java.util.TreeMap<>();
 		final java.util.Map<Integer, List<SectorGroup>> redwallChildren = new java.util.TreeMap<>();
 		final List<SectorGroup> anonymousSectorGroups = new ArrayList<>();
@@ -54,7 +58,8 @@ public class PrefabPalette {
 			
 			Map clipboard = Map.createNew();
 			MapUtil.CopyState cpstate = MapUtil.copySectorGroup(map, clipboard, sector, new PointXYZ(0, 0, 0));
-			
+			SectorGroupProperties props = SectorGroupProperties.scanMap(clipboard);
+
 			processedSectorIds.addAll(cpstate.sourceSectorIds());
 			
 			List<Sprite> idSprite = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
@@ -67,11 +72,13 @@ public class PrefabPalette {
 					throw new SpriteLogicException("more than one sector group with id " + groupId);
 				}
 				//numberedSectorGroups.put(groupId, new SectorGroup(clipboard, groupId));
-				numberedSectorGroups.put(groupId, SectorGroupBuilder.createSectorGroup(clipboard, groupId));
+				SectorGroup sg = SectorGroupBuilder.createSectorGroup(clipboard, groupId, props);
+				//numberedSectorGroups.put(groupId, SectorGroupBuilder.createSectorGroup(clipboard, groupId));
+				numberedSectorGroups.put(groupId, sg);
 
 			}else if(childPointer.size() == 1){
 
-				SectorGroup childGroup = SectorGroupBuilder.createSectorGroup(clipboard); // new SectorGroup(clipboard);
+				SectorGroup childGroup = SectorGroupBuilder.createSectorGroup(clipboard, props); // new SectorGroup(clipboard);
 				int groupId = childPointer.get(0).getHiTag();
 				// make sure the sector with the child Id sprite also has a redwall connector marker
                 // Connector conn = childGroup.findFirstConnector(c -> c.getSectorId() == childPointer.get(0).getSectorId()
@@ -87,7 +94,7 @@ public class PrefabPalette {
 				if(mistakes.size() > 0){
 					throw new SpriteLogicException("Sector group has no ID marker sprite but it DOES have a sprite with texture 0");
 				}
-				anonymousSectorGroups.add(SectorGroupBuilder.createSectorGroup(clipboard)); //new SectorGroup(clipboard));
+				anonymousSectorGroups.add(SectorGroupBuilder.createSectorGroup(clipboard, props)); //new SectorGroup(clipboard));
 			}
 
 			if(strict){ // TODO - get rid of this strict thing
@@ -203,6 +210,22 @@ public class PrefabPalette {
 	public SectorGroup getSectorGroup(int sectorGroupId){
 	    if(!this.numberedSectorGroups.containsKey(sectorGroupId)) throw new NoSuchElementException();
 		return this.numberedSectorGroups.get(sectorGroupId);
+	}
+
+	public List<SectorGroup> getStaySectorGroups(){
+		List<SectorGroup> results = new ArrayList<>();
+		for(SectorGroup sg : this.numberedSectorGroups.values()){
+			if(sg.props().stayFlag()){
+				results.add(sg);
+			}
+		}
+		for(SectorGroup sg : this.anonymousSectorGroups){
+			if(sg.props().stayFlag()){
+				results.add(sg);
+			}
+		}
+		return results;
+
 	}
 
 	public List<SectorGroup> getAllGroupsWith(ConnectorFilter cf){

@@ -16,7 +16,7 @@ object SectorGroupBuilder {
     sprite.getTexture == PrefabUtils.MARKER_SPRITE_TEX && sprite.getLotag == lotag
   }
 
-  def createSectorGroup(map: DMap, sectorGroupId: Int): SectorGroup = {
+  def createSectorGroup(map: DMap, sectorGroupId: Int, props: SectorGroupProperties): SectorGroup = {
     val autoTexts = scala.collection.mutable.Map[Int, AutoText]()
     map.allSprites.filter(isMarker(PrefabUtils.MarkerSpriteLoTags.AUTO_TEXT, _)).foreach { sprite =>
       val autoText = AutoText(sprite, map)
@@ -25,13 +25,13 @@ object SectorGroupBuilder {
     }
 
     // autoTexts.values.asJava
-    val sg = new SectorGroup(map, sectorGroupId)
+    val sg = new SectorGroup(map, sectorGroupId, props)
     autoTexts.values.foreach(sg.addAutoText(_))
 
     sg
   }
-  def createSectorGroup(map: DMap): SectorGroup = {
-    createSectorGroup(map, -1)
+  def createSectorGroup(map: DMap, props: SectorGroupProperties): SectorGroup = {
+    createSectorGroup(map, -1, props)
   }
 
 }

@@ -64,6 +64,16 @@ public class PrefabUtils {
 		public static int AUTO_TEXT = 5;
 
 
+		/**
+		 * The sector group should stay right where it is.  If it has an ID ( GROUP_ID set ) then it will be scanned
+		 * and can be pasted again, but the original copy will stay where it is.
+		 *
+		 * TODO - open question:  if there is no sector id, should it be included with the anonymous gropus?
+		 * 		I am thinking no, because it someone wanted it included they can add an ID to it.  The opposite
+		 * 		is not currently possible.
+		 */
+		public static int STAY = 6;
+
 		// TODO - reserve 7 to possible use for teleporter connectors
 		
 		// /** lotag that marks a construction sprite as connector */

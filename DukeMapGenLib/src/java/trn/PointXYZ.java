@@ -7,6 +7,8 @@ package trn;
  *
  */
 public class PointXYZ {
+	public static PointXYZ ZERO = new PointXYZ(0, 0, 0);
+
 	public final int x;
 	public final int y;
 	public final int z;

@@ -13,15 +13,15 @@ public class SectorGroup extends SectorGroupS
 {
 	/** Optional id that can be added to group by user to manually identify it. -1 means no id */
 	final int sectorGroupId;
-	
+
 	/**
 	 * Creates an instance of this object.  To parse a sector group from a map, use: SectorGroupBuilder
 	 * @param map
 	 * @param sectorGroupId
 	 * @throws MapErrorException
 	 */
-	SectorGroup(Map map, int sectorGroupId) throws MapErrorException {
-	    super(map, sectorGroupId);
+	SectorGroup(Map map, int sectorGroupId, SectorGroupProperties props) throws MapErrorException {
+	    super(map, sectorGroupId, props);
 		this.sectorGroupId = sectorGroupId;
         try{
 			for(Connector c : Connector.findConnectors(map)){

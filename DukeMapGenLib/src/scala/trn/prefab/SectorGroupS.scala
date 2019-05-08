@@ -104,13 +104,13 @@ trait ConnectorCollection {
 }
 
 
-class SectorGroupS(val map: DMap, val sectorGroupId: Int)
+class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroupProperties)
   extends ConnectorCollection {
   val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
   val autoTexts: java.util.List[AutoText] = new java.util.ArrayList[AutoText]
 
   def copy(): SectorGroup = {
-    SectorGroupBuilder.createSectorGroup(map.copy, this.sectorGroupId)
+    SectorGroupBuilder.createSectorGroup(map.copy, this.sectorGroupId, this.props)
     //new SectorGroup(map.copy, this.sectorGroupId);
   }
   /**
@@ -118,7 +118,7 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int)
     */
   def flippedX(x: Int): SectorGroup = {
     //new SectorGroup(map.flippedX(x), this.sectorGroupId)
-    SectorGroupBuilder.createSectorGroup(map.flippedX(x), this.sectorGroupId)
+    SectorGroupBuilder.createSectorGroup(map.flippedX(x), this.sectorGroupId, this.props)
   }
 
   def flippedX(): SectorGroup = flippedX(getAnchor.x)
@@ -127,14 +127,14 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int)
 
   def flippedY(y: Int): SectorGroup = {
     //new SectorGroup(map.flippedY(y), this.sectorGroupId)
-    SectorGroupBuilder.createSectorGroup(map.flippedY(y), this.sectorGroupId)
+    SectorGroupBuilder.createSectorGroup(map.flippedY(y), this.sectorGroupId, this.props)
   }
 
   def flippedY(): SectorGroup = flippedY(getAnchor.y)
 
   def rotateAroundCW(anchor: PointXY): SectorGroup = {
     //new SectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
-    SectorGroupBuilder.createSectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
+    SectorGroupBuilder.createSectorGroup(map.rotatedCW(anchor), this.sectorGroupId, this.props)
   }
 
   def rotateCW: SectorGroup = rotateAroundCW(this.getAnchor)
