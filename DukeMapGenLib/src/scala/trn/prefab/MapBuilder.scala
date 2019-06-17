@@ -4,9 +4,16 @@ import trn.MapImplicits._
 import trn.{IdMap, MapUtil, PlayerStart, PointXYZ, Sprite, SpriteFilter, Map => DMap}
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 
 object MapBuilder {
+  def mapBounds = BoundingBox(DMap.MIN_X, DMap.MIN_Y, DMap.MAX_X, DMap.MAX_Y)
+
+  /** The build editor will crash if a map has more than 1024 sectors */
+  def MAX_SECTOR_GROUPS: Int = 1024
+
   def isMarkerSprite(s: Sprite, lotag: Int): Boolean = {
     s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
   }
@@ -62,6 +69,8 @@ trait AnywhereBuilder {
 trait MapBuilder extends ISectorGroup with TagGenerator {
   val outMap: DMap
 
+  val pastedSectorGroups: mutable.Buffer[PastedSectorGroup] = new ListBuffer()
+
   //var hiTagCounter = 1 + Math.max(0, outMap.allSprites.map(_.getHiTag).max)
   var hiTagCounter = 1
 
@@ -89,12 +98,16 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
   }
 
   def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = {
-    new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
+    val psg = new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
+    pastedSectorGroups.append(psg)
+    psg
   }
 
   def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap)  = {
     val copyState = MapUtil.copySectorGroup(sg.map, outMap, 0, translate);
-    (new PastedSectorGroup(outMap, copyState), copyState.idmap)
+    val tp = (new PastedSectorGroup(outMap, copyState), copyState.idmap)
+    pastedSectorGroups.append(tp._1)
+    tp
   }
 
   /** sets the player start of the map to the location of the first player start marker sprite it finds */

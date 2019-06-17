@@ -2,6 +2,7 @@ package trn;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import scala.Int;
 import scala.Tuple2;
 
 /**
@@ -127,6 +128,7 @@ public class PointXY {
 	}
 
 	/**
+	 * TODO - how should we handle two identical line segments?
 	 *
 	 * Tests intersect between a ray (or half line, a line starting from a point and going infinitely in one direction)
 	 * and a segment.

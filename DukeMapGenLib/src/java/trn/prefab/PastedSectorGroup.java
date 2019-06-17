@@ -18,16 +18,20 @@ import trn.duke.MapErrorException;
  * @author Dave
  *
  */
-public class PastedSectorGroup implements ISectorGroup {
+public class PastedSectorGroup extends PastedSectorGroupS implements ISectorGroup {
 	
 	/** map the sectors were pasted to */
 	public final Map destMap;
 	
-	public final List<Connector> connectors = new ArrayList<Connector>();
-	
+	//public final List<Connector> connectors = new ArrayList<Connector>();
+	private List<Connector> connectors_(){
+		return super.connectors();
+	}
+
 	public final MapUtil.CopyState copystate;
 
 	public PastedSectorGroup(Map map, MapUtil.CopyState copystate) throws MapErrorException {
+	    super(map, copystate.destSectorIds());
 		this.destMap = map;
 		this.copystate = copystate;
 		final Set<Short> destSectorIds = this.copystate.destSectorIds();
@@ -39,7 +43,7 @@ public class PastedSectorGroup implements ISectorGroup {
 			}
 		};
 		
-		this.connectors.addAll(SimpleConnector.findConnectors(map, cf));
+		this.connectors_().addAll(SimpleConnector.findConnectors(map, cf));
 	}
 
 	@Override
@@ -48,28 +52,28 @@ public class PastedSectorGroup implements ISectorGroup {
 	}
 
 
-	public boolean isConnectorLinked(Connector c){ // TODO - replace with version in MapBuilderOld
-		return c.isLinked(destMap);
-		//// TODO - will not work with teleporer connectors, etc
-		//return this.destMap.getWall(c.wallId).isRedWall();
-	}
+	// public boolean isConnectorLinked(Connector c){ // TODO - replace with version in MapBuilderOld
+	// 	return c.isLinked(destMap);
+	// 	//// TODO - will not work with teleporer connectors, etc
+	// 	//return this.destMap.getWall(c.wallId).isRedWall();
+	// }
 
-	public Connector getConnector(int connectorId){
-		if(connectorId < 0) throw new IllegalArgumentException();
-		
-		for(Connector c: connectors){
-			if(c.getConnectorId() == connectorId){
-				return c;
-			}
-		}
-		
-		throw new IllegalArgumentException();
-	}
+	// public Connector getConnector(int connectorId){
+	// 	if(connectorId < 0) throw new IllegalArgumentException();
+	//
+	// 	for(Connector c: connectors_()){
+	// 		if(c.getConnectorId() == connectorId){
+	// 			return c;
+	// 		}
+	// 	}
+	//
+	// 	throw new IllegalArgumentException();
+	// }
 
 	// TODO - these functions are duplicated in SectorGroup
 	public boolean hasConnector(int connectorId){
 		if(connectorId < 0) throw new IllegalArgumentException();
-		for(Connector c: connectors){
+		for(Connector c: connectors_()){
 			if(c.getConnectorId() == connectorId){
 				return true;
 			}
@@ -79,7 +83,7 @@ public class PastedSectorGroup implements ISectorGroup {
 
 
 	public ElevatorConnector getFirstElevatorConnector(){
-		for(Connector c: connectors){
+		for(Connector c: connectors_()){
 			if(c.getConnectorType() == ConnectorType.ELEVATOR){
 				return (ElevatorConnector)c;
 			}
@@ -88,8 +92,8 @@ public class PastedSectorGroup implements ISectorGroup {
 	}
 
 	public List<Connector> findConnectorsByType(int connectorType){
-		List<Connector> results = new ArrayList<>(connectors.size());
-		for(Connector c : connectors){
+		List<Connector> results = new ArrayList<>(connectors_().size());
+		for(Connector c : connectors_()){
 			if(c.getConnectorType() == connectorType){
 				results.add(c);
 			}
@@ -98,23 +102,23 @@ public class PastedSectorGroup implements ISectorGroup {
 	}
 	
 	public Connector findFirstConnector(ConnectorFilter cf){
-		Iterator<Connector> it = Connector.findConnectors(this.connectors, cf).iterator();
+		Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
 		return it.hasNext() ? it.next() : null;
 	}
 
-	public List<Connector> unlinkedConnectors(){
-		LinkedList<Connector> list = new LinkedList<Connector>();
-		for(Connector c : this.connectors){
-			if(! isConnectorLinked(c)){
-				list.add(c);
-			}
-		}
-		return list;
-	}
+	// public List<Connector> unlinkedConnectors(){
+	// 	LinkedList<Connector> list = new LinkedList<Connector>();
+	// 	for(Connector c : this.connectors_()){
+	// 		if(! isConnectorLinked(c)){
+	// 			list.add(c);
+	// 		}
+	// 	}
+	// 	return list;
+	// }
 
 	public List<RedwallConnector> getRedwallConnectorsById(int connectorId){
 		List<RedwallConnector> results = new ArrayList<>();
-		for(Connector c: this.connectors){
+		for(Connector c: this.connectors_()){
 			if(c.getConnectorId() == connectorId){
 				if(ConnectorType.isRedwallType(c.getConnectorType())){
 					results.add((RedwallConnector)c);
@@ -125,23 +129,7 @@ public class PastedSectorGroup implements ISectorGroup {
 		}
 		return results;
 	}
-	// iinal def getRedwallConnectorsById(connectorId: Int): Seq[RedwallConnector] = {
-	// 	if(connectorId < 0) throw new IllegalArgumentException
-	// 	val c = connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType) && c.connectorId == connectorId)
-	// 	c.map(_.asInstanceOf[RedwallConnector])
-	// }
 
 
-	/*
-	public Iterable<SimpleConnector> findConnectors(ConnectorFilter filter){
-		return SimpleConnector.findConnectors(destMap, new ConnectorFilter() {
-			@Override
-			public boolean matches(SimpleConnector c) {
-				// TODO Auto-generated method stub
-				return copystate.sourceSectorIds().contains(c.getSectorId());
-			}
-		}, filter);
-		//return SimpleConnector.findConnectors(destMap, copystate.sourceSectorIds());
-	}*/
 
 }

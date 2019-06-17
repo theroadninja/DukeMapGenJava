@@ -4,7 +4,6 @@ import trn.prefab._
 import trn.{DukeConstants, Main, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.{PaletteList, TextureList}
-import trn.prefab.SimpleConnector.Direction
 import trn.prefab.experiments.Hyper2MapBuilder.Cell
 
 import scala.collection.JavaConverters._

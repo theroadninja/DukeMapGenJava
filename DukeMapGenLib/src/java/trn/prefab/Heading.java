@@ -2,7 +2,10 @@ package trn.prefab;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
+// TODO - i guess this should be a full enum
 public class Heading {
     public static int EAST = 0;
     public static int SOUTH = 1;
@@ -15,6 +18,18 @@ public class Heading {
     public static int N = NORTH;
 
     public static List<Integer> all = Arrays.asList(EAST, SOUTH, WEST, NORTH);
+
+    private static Map<Integer, Integer> opposites = new TreeMap<Integer, Integer>(){{
+        put(E, W);
+        put(W, E);
+        put(N, S);
+        put(S, N);
+    }};
+
+    public static int opposite(int heading){
+        return opposites.get(heading);
+    }
+
 
     public static int rotateCW(int heading){
         if(heading < 0 || heading > 3) throw new IllegalArgumentException();

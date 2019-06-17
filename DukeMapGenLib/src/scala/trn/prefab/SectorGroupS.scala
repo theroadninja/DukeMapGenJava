@@ -33,81 +33,20 @@ case class ChildPointer(
 }
 
 
-trait ConnectorCollection {
-  def connectors: java.util.List[Connector]
-  def map: DMap
-
-  final def allConnectorIds(): java.util.Set[Integer] = {
-    connectors.asScala.map(_.connectorId).filter(_ > 0).map(_.asInstanceOf[Integer]).toSet.asJava
-  }
-
-  final def allRedwallConnectors: Seq[RedwallConnector] = {
-    connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType)).map(_.asInstanceOf[RedwallConnector])
-  }
-
-  final def getConnector(connectorId: Int): Connector = {
-    if(connectorId < 0) throw new IllegalArgumentException
-    connectors.asScala.find(_.connectorId == connectorId) match {
-      case Some(conn) => conn
-      case None => throw new NoSuchElementException
-    }
-  }
-
-  final def getRedwallConnectorsById(connectorId: Int): Seq[RedwallConnector] = {
-    if(connectorId < 0) throw new IllegalArgumentException
-    val c = connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType) && c.connectorId == connectorId)
-    c.map(_.asInstanceOf[RedwallConnector])
-  }
-
-  final def getElevatorConnectorsById(connectorId: Int): Seq[ElevatorConnector] = {
-    if(connectorId < 0) throw new IllegalArgumentException
-    connectors.asScala.filter(_.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector])
-  }
-
-  final def getChildPointer(): ChildPointer = {
-    val sprites: Seq[Sprite] = map.allSprites.filter(s => s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.REDWALL_CHILD)
-    if(sprites.size != 1) throw new SpriteLogicException(s"Wrong number of child marker sprites (${sprites.size})")
-    val marker: Sprite = sprites(0)
-
-    val conns = connectors.asScala.filter(c => c.getSectorId == marker.getSectorId && ConnectorType.isRedwallType(c.getConnectorType))
-    if(conns.size != 1) throw new SpriteLogicException(s"There must be exactly 1 redwall connector in sector with child marker, but there are ${conns.size}")
-    val mainConn = conns(0)
-    if(mainConn.connectorId < 1) throw new SpriteLogicException(s"Connector for child pointer must have ID > 0")
-
-    val allConns = connectors.asScala.filter(c => c.connectorId == mainConn.getConnectorId)
-
-    val groupedConns = allConns.groupBy(c => {
-      if(ConnectorType.isRedwallType(c.getConnectorType)){
-        20
-      }else if(c.getConnectorType == ConnectorType.ELEVATOR){
-        ConnectorType.ELEVATOR
-      }else if(c.getConnectorType == ConnectorType.TELEPORTER && (c.asInstanceOf[TeleportConnector]).isWater){
-        ConnectorType.TELEPORTER
-      }else{
-        throw new SpriteLogicException(s"invalid child connector (type ${c.getConnectorType}) in child sector group")
-      }
-    })
-    ChildPointer(
-      marker,
-      mainConn.connectorId,
-      groupedConns.getOrElse(20, Seq()).map(_.asInstanceOf[RedwallConnector]),
-      //groupedConns.getOrElse(ConnectorType.TELEPORTER, Seq()).map(_.asInstanceOf[TeleportConnector]),
-      //groupedConns.getOrElse(ConnectorType.ELEVATOR, Seq()).map(_.asInstanceOf[ElevatorConnector])
-    )
-
-    // if(allConns.find(c => !ConnectorType.isRedwallType(c.getConnectorType)).nonEmpty){
-    //   throw new SpriteLogicException(s"child sector cannot connect with non redwall connector (id=${mainConn.getConnectorId}")
-    // }else{
-    //   ChildPointer(marker, mainConn.connectorId, allConns.map(_.asInstanceOf[RedwallConnector]))
-    // }
-  }
-}
 
 
 class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroupProperties)
-  extends ConnectorCollection {
+  extends SectorGroupBase with ConnectorCollection {
   val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
   val autoTexts: java.util.List[AutoText] = new java.util.ArrayList[AutoText]
+
+  protected def wallSeq(): Seq[Wall] = {
+    val walls = Seq.newBuilder[Wall]
+    for(i <- 0 until map.getWallCount){
+      walls += map.getWall(i)
+    }
+    walls.result
+  }
 
   def copy(): SectorGroup = {
     SectorGroupBuilder.createSectorGroup(map.copy, this.sectorGroupId, this.props)
@@ -137,8 +76,9 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
     SectorGroupBuilder.createSectorGroup(map.rotatedCW(anchor), this.sectorGroupId, this.props)
   }
 
-  def rotateCW: SectorGroup = rotateAroundCW(this.getAnchor)
+  def rotateCW: SectorGroup = rotateAroundCW(this.rotationAnchor)
 
+  def rotate180: SectorGroup = rotateCW.rotateCW
 
   def rotateAroundCW(anchor: PointXYZ): SectorGroup = rotateAroundCW(anchor.asXY)
 
@@ -274,13 +214,6 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
 
 
 
-  private def wallSeq(): Seq[Wall] = {
-    val walls = Seq.newBuilder[Wall]
-    for(i <- 0 until map.getWallCount){
-      walls += map.getWall(i)
-    }
-    walls.result
-  }
 
   private def bbDimension(values: Seq[Int]): Int = values.max - values.min
   def bbHeight: Int = bbDimension(wallSeq.map(_.getY))
@@ -304,13 +237,13 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
     (x.min, y.min)
   }
 
-  def boundingBox: BoundingBox = {
-    val walls = wallSeq
-    val w = walls(0)
-    walls.foldLeft(BoundingBox(w.getX, w.getY, w.getX, w.getY)){ (acc, wall) =>
-      acc.add(wall.getX, wall.getY)
-    }
-  }
+  // def boundingBox: BoundingBox = {
+  //   val walls = wallSeq
+  //   val w = walls(0)
+  //   walls.foldLeft(BoundingBox(w.getX, w.getY, w.getX, w.getY)){ (acc, wall) =>
+  //     acc.add(wall.getX, wall.getY)
+  //   }
+  // }
 
   def hasMarker(lotag: Int): Boolean = {
     for(i <- 0 until map.getSpriteCount){
@@ -342,6 +275,12 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
   def getAnchor: PointXYZ = getAnchorSprite.getOrElse(
     throw new SpriteLogicException("no anchor sprite")
   ).getLocation
+
+  // well this is a terriable name - maybe getAnchor should do this
+  private def rotationAnchor: PointXYZ = getAnchorSprite.map(_.getLocation).getOrElse {
+    val bb = this.boundingBox
+    new PointXY(bb.xMin, bb.yMin).withZ(0)
+  }
 
   def getAnchorSprite: Option[Sprite] = sprites.find(MapBuilder.isAnchorSprite)
 

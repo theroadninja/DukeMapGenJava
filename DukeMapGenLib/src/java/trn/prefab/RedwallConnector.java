@@ -33,6 +33,8 @@ public abstract class RedwallConnector extends Connector {
         return true;
     }
 
+    public abstract boolean isMatch(RedwallConnector c);
+
     public abstract void removeConnector(Map map);
 
     public abstract PointXYZ getAnchorPoint();

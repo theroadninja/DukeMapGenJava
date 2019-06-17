@@ -13,15 +13,15 @@ import java.util.List;
 // TODO - on top of the redwall connector, which could use a wall of any angle.
 public class SimpleConnector extends RedwallConnector {
 
-    @Deprecated // use Heading instead
-	public static class Direction {
-		public static int EAST = 0;
-		public static int SOUTH = 1;
-		public static int WEST = 2;
-		public static int NORTH = 3;
+    // @Deprecated // use Heading instead
+	// public static class Direction {
+	// 	public static int EAST = 0;
+	// 	public static int SOUTH = 1;
+	// 	public static int WEST = 2;
+	// 	public static int NORTH = 3;
 
-		public static List<Integer> all = Arrays.asList(EAST, SOUTH, WEST, NORTH);
-	}
+	// 	public static List<Integer> all = Arrays.asList(EAST, SOUTH, WEST, NORTH);
+	// }
 
 	public static int connectorTypeForHeading(int heading){
     	if(Heading.E == heading){
@@ -34,6 +34,20 @@ public class SimpleConnector extends RedwallConnector {
     		return ConnectorType.VERTICAL_SOUTH;
 		}else{
     		throw new IllegalArgumentException();
+		}
+	}
+
+	public static int headingForConnectorType(int connectorType){
+		if(connectorType == ConnectorType.VERTICAL_SOUTH){
+			return Heading.S;
+		}else if(connectorType == ConnectorType.VERTICAL_NORTH){
+			return Heading.N;
+		}else if(connectorType == ConnectorType.HORIZONTAL_EAST){
+			return Heading.E;
+		}else if(connectorType == ConnectorType.HORIZONTAL_WEST){
+			return Heading.W;
+		}else{
+			throw new IllegalArgumentException("Invalid SimpleConnector type: " + connectorType);
 		}
 	}
 
@@ -50,6 +64,10 @@ public class SimpleConnector extends RedwallConnector {
 	final int sectorId;
 	final int wallId;
 	final int connectorType;
+	final int heading;
+
+	/** length of the wall of this connector */
+	final long length;
 
 	// could be 20, or the specific type
 	final int markerSpriteLotag;
@@ -59,14 +77,14 @@ public class SimpleConnector extends RedwallConnector {
 	}
 	
 	// used for horizontal connector
-	int x;
-	int ymin;
-	int ymax;
+	// int x;
+	// int ymin;
+	// int ymax;
 	PointXYZ anchorPoint = null;
 	int z;
 
 
-	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall){
+	SimpleConnector(Sprite markerSprite, int wallId, Wall wall, long length){
 		super(markerSprite);
 		//super(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
 		if(markerSprite == null){
@@ -76,24 +94,27 @@ public class SimpleConnector extends RedwallConnector {
 			throw new IllegalArgumentException();
 		}
         this.connectorType = markerSprite.getLotag();
+		this.heading = headingForConnectorType(this.connectorType);
 		this.sectorId = markerSprite.getSectorId();
 		if(this.sectorId < 0){
 			throw new RuntimeException("SimpleConnector sectorId cannot be < 0");
 		}
 		this.wallId = wallId;
+		this.length = length;
 		this.markerSpriteLotag = markerSprite.getLotag();
 	}
 	
-	public SimpleConnector(Sprite markerSprite, int wallId, Wall wall, Sector sector){
-		this(markerSprite, wallId, wall);
-		this.z = sector.getFloorZ();
-	}
+	// SimpleConnector(Sprite markerSprite, int wallId, Wall wall, Sector sector){
+	// 	this(markerSprite, wallId, wall);
+	// 	this.z = sector.getFloorZ();
+	// }
 
 	public SimpleConnector(Sprite markerSprite, Sector sector, int wallId, Map map)
 			throws MapErrorException {
         super(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
 		int z = sector.getFloorZ();
         this.wallId = wallId;
+        this.length = wallLength(this.wallId, map);
         this.sectorId = markerSprite.getSectorId();
 		Wall wall = map.getWall(wallId);
 		Wall nextWallInLoop = map.getWall(wall.getPoint2Id());
@@ -102,16 +123,20 @@ public class SimpleConnector extends RedwallConnector {
         if(vector.x == 1) {
             // horizontal wall, vertical connector
             this.connectorType = ConnectorType.VERTICAL_NORTH;
+            this.heading = Heading.N;
             this.setAnchorPoint(SimpleConnector.getVerticalConnectorAnchor(wall, nextWallInLoop, z));
         }else if(vector.x == -1){
             this.connectorType = ConnectorType.VERTICAL_SOUTH;
+            this.heading = Heading.S;
             this.setAnchorPoint(SimpleConnector.getVerticalConnectorAnchor(wall, nextWallInLoop, z));
         }else if(vector.y == 1){ // y is pointed down
             // vertical wall, horizontal connector
             this.connectorType = ConnectorType.HORIZONTAL_EAST;
+            this.heading = Heading.E;
             this.setAnchorPoint(SimpleConnector.getHorizontalConnectorAnchor(wall, nextWallInLoop, z));
         }else if(vector.y == -1){ // y is pointed up
             this.connectorType = ConnectorType.HORIZONTAL_WEST;
+            this.heading = Heading.W;
             this.setAnchorPoint(SimpleConnector.getHorizontalConnectorAnchor(wall, nextWallInLoop, z));
         }else{
             throw new MapErrorException("connector wall must be horizontal or vertical");
@@ -120,6 +145,10 @@ public class SimpleConnector extends RedwallConnector {
         this.markerSpriteLotag = markerSprite.getLotag();
 
     }
+
+    public int getHeading(){
+		return this.heading;
+	}
 
     public static boolean isSimpleConnector(List<Integer> linkWallIds, Map map){
 	    if(linkWallIds.size() != 1){
@@ -134,13 +163,15 @@ public class SimpleConnector extends RedwallConnector {
 
 
 
-	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType, int markerSpriteLotag){
+	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType, int markerSpriteLotag, long length){
 	    super(connectorId);
 		//TODO add more fields ...
         this.sectorId = sectorId;
         this.wallId = wallId;
         this.connectorType = connectorType;
+        this.heading = headingForConnectorType(this.connectorType);
         this.markerSpriteLotag = markerSpriteLotag;
+        this.length = length;
 	}
 
 	@Override
@@ -149,14 +180,22 @@ public class SimpleConnector extends RedwallConnector {
 				idmap.sector(this.sectorId),
 				idmap.wall(this.wallId),
                 this.connectorType,
-				this.markerSpriteLotag);
+				this.markerSpriteLotag,
+				this.length);
+	}
+
+	public static long wallLength(int wallId, Map map){
+		Wall w1 = map.getWall(wallId);
+		Wall w2 = map.getWall(w1.getNextWallInLoop());
+		return w1.getLocation().manhattanDistanceTo(w2.getLocation());
 	}
 
 	@Override
 	public long totalManhattanLength(Map map){
-	    Wall w1 = map.getWall(this.wallId);
-	    Wall w2 = map.getWall(w1.getNextWallInLoop());
-	    return w1.getLocation().manhattanDistanceTo(w2.getLocation());
+		return wallLength(this.wallId, map);
+	    // Wall w1 = map.getWall(this.wallId);
+	    // Wall w2 = map.getWall(w1.getNextWallInLoop());
+	    // return w1.getLocation().manhattanDistanceTo(w2.getLocation());
 	}
 
 	/**
@@ -199,9 +238,28 @@ public class SimpleConnector extends RedwallConnector {
 		if(this.anchorPoint == null) throw new SpriteLogicException();
 		return this.anchorPoint;
 	}
-	
-	public void setAnchorPoint(PointXY anchor){
-		setAnchorPoint(new PointXYZ(anchor, this.z));
+
+	/**
+	 * Tests if the connectors match, i.e. if they could mate.
+	 * The sector groups dont have to be already lined up, but there must exist
+	 * a transformation that will line the sectors up.
+	 *
+	 * TODO - support rotation also.
+	 * @return
+	 */
+	@Override
+	public boolean isMatch(RedwallConnector c){
+		if(!(c instanceof SimpleConnector)){
+		    //System.out.println("NOT A SIMPLE CONNECTOR");
+			return false;
+		}
+		SimpleConnector sc = (SimpleConnector)c;
+
+		//System.out.println("" + this.heading + " vs " + sc.heading);
+		//System.out.println("\t" + this.totalManhattanLength(map) + " vs " + sc.totalManhattanLength(map));
+
+		return Heading.opposite(this.heading) == sc.heading
+				&& this.length == sc.length;
 	}
 
 	/*

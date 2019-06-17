@@ -74,7 +74,7 @@ public class PrefabUtils {
 		 */
 		public static int STAY = 6;
 
-		// TODO - reserve 7 to possible use for teleporter connectors
+		// TODO - reserve 7 to possibly use for teleporter connectors
 		
 		// /** lotag that marks a construction sprite as connector */
 		// public static int HORIZONTAL_CONNECTOR_EAST = 16;

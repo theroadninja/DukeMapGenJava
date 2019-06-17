@@ -8,7 +8,7 @@ import scala.collection.mutable.ListBuffer
 
 class RefBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
 
-  val pastedSectorGroups: ListBuffer[PastedSectorGroup] = new ListBuffer()
+  //val pastedSectorGroups: ListBuffer[PastedSectorGroup] = new ListBuffer()
 
   def addViaConnector(sg: SectorGroup, connId: Int): PastedSectorGroup = {
     addViaConnectors(sg, connId, connId)

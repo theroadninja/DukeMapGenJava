@@ -185,6 +185,12 @@ public class MultiWallConnector extends RedwallConnector {
         if(d != 1) throw new SpriteLogicException();
     }
 
+    @Override
+    public boolean isMatch(RedwallConnector c){
+        throw new RuntimeException("Not implemented yet!");
+        // return c instanceof MultiWallConnector
+        //         && this.canLink((MultiWallConnector)c, map);
+    }
 
     /**
      *
