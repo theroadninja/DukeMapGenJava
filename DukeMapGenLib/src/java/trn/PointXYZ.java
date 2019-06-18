@@ -49,6 +49,18 @@ public class PointXYZ {
 	}
 
 	@Override
+	public boolean equals(Object other){
+		if(this == other){
+			return true;
+		}else if(!(other instanceof PointXYZ)){
+			return false;
+		}else{
+			PointXYZ p2 = (PointXYZ)other;
+			return this.x == p2.x && this.y == p2.y && this.z == p2.z;
+		}
+	}
+
+	@Override
 	public String toString(){
 		return "{ PointXY x=" + this.x + " y=" + y + " z=" + z + " }";
 	}

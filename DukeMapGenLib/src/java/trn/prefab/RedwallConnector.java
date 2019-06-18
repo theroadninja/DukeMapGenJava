@@ -33,6 +33,14 @@ public abstract class RedwallConnector extends Connector {
         return true;
     }
 
+    /**
+     * Tests if the connectors match, i.e. if they could mate.
+     * The sector groups dont have to be already lined up, but there must exist
+     * a transformation that will line the sectors up.
+     *
+     * TODO - support rotation also (or maybe not...)
+     * @return
+     */
     public abstract boolean isMatch(RedwallConnector c);
 
     public abstract void removeConnector(Map map);

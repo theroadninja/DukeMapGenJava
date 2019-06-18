@@ -24,6 +24,15 @@ class PastedSectorGroupS(val map: DMap, destSectorIds: java.util.Set[java.lang.S
     connectors.asScala.filter(c => !isConnectorLinked(c))
   }
 
+  final def unlinkedRedwallConnectors: Seq[RedwallConnector] = {
+    unlinkedConnectors.flatMap { c =>
+      c match {
+        case rw: RedwallConnector => Some(rw)
+        case _ => None
+      }
+    }
+  }
+
   protected def wallSeq(): Seq[Wall] = {
     val wallIds = sectorIds.map(map.getSector(_)).flatMap(s => map.getAllSectorWallIds(s).asScala)
     wallIds.map(map.getWall(_)).toSeq

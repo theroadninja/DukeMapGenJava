@@ -21,11 +21,38 @@ class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
     existingConn: RedwallConnector,
     newSg: SectorGroup,
     newConn: RedwallConnector
-  ): Unit = {
+  ): PastedSectorGroup = {
     val cdelta = newConn.getTransformTo(existingConn)
-    val (_, idmap) = pasteSectorGroup2(newSg, cdelta)
+    val (psg, idmap) = pasteSectorGroup2(newSg, cdelta)
     val pastedConn2 = newConn.translateIds(idmap, cdelta)
     existingConn.linkConnectors(outMap, pastedConn2)
+    psg
+  }
+
+  def findUnlinkedRedwallConnectors(): Seq[RedwallConnector] = {
+    pastedSectorGroups.flatMap(_.unlinkedConnectors).flatMap { c =>
+      c match {
+        case n: RedwallConnector => Some(n)
+        case _ => None
+      }
+    }
+  }
+
+  /**
+    * Given a connector in a pasted sector group, see if it has been pasted on top of a perfectly matching
+    * connector, and link them.
+    * @param pastedConnector
+    */
+  def findAndLinkMatch(pastedConnector: RedwallConnector): Unit = {
+    val unlinked: Seq[RedwallConnector] = this.findUnlinkedRedwallConnectors()
+
+    val cr = pastedConnector
+    val cOpt = unlinked.find(c0 => c0.isMatch(cr) && cr.getTransformTo(c0).equals(PointXYZ.ZERO))
+    cOpt.foreach{ ccc =>
+      ccc.linkConnectors(this.outMap, cr)
+      println("FIND AND LINK SUCCESSFUL")
+    }
+
   }
 
 
@@ -100,10 +127,11 @@ object PipeDream {
         //3. paste the SG
         if(matchingSgs.nonEmpty){
           val (newSg, newSgConn) = randomItem(matchingSgs.toSeq)
-          builder.pasteAndLink(c, newSg, newSgConn)
-        }
+          val psg = builder.pasteAndLink(c, newSg, newSgConn)
 
-        //4. see if any open connectors happen to be next to each other
+          //4. see if any open connectors happen to be next to each other
+          psg.unlinkedRedwallConnectors.foreach(builder.findAndLinkMatch(_))
+        }
 
       }
 
