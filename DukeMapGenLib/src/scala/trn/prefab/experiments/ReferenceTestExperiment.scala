@@ -8,14 +8,14 @@ import scala.collection.mutable.ListBuffer
 
 class RefBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
 
-  //val pastedSectorGroups: ListBuffer[PastedSectorGroup] = new ListBuffer()
+  val pastedSectorGroups2: ListBuffer[PastedSectorGroup] = new ListBuffer()
 
   def addViaConnector(sg: SectorGroup, connId: Int): PastedSectorGroup = {
     addViaConnectors(sg, connId, connId)
   }
 
   def addViaConnectors(sg: SectorGroup, existingConnId: Int, newConnId: Int): PastedSectorGroup = {
-    val conns = pastedSectorGroups
+    val conns = pastedSectorGroups2
       .flatMap(psg => psg.getRedwallConnectorsById(existingConnId).asScala)
       .filter(c => !c.isLinked(outMap))
     if(conns.size != 1){
@@ -28,13 +28,13 @@ class RefBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
     val delta: PointXYZ = conn2.getTransformTo(conn1)
     val psg = pasteSectorGroup(sg, delta)
     conn1.linkConnectors(outMap, psg.getRedwallConnectorsById(newConnId).get(0))
-    pastedSectorGroups.append(psg)
+    pastedSectorGroups2.append(psg)
     psg
   }
 
   def addAt(sg: SectorGroup, loc: PointXYZ): PastedSectorGroup ={
     val psg = pasteSectorGroupAt(sg, loc)
-    pastedSectorGroups.append(psg)
+    pastedSectorGroups2.append(psg)
     psg
   }
 
@@ -62,11 +62,7 @@ object ReferenceTestExperiment {
     val conn1: RedwallConnector = pasted1.connectors.get(0).asInstanceOf[RedwallConnector]
     //val conn1 = palette.getSectorGroup(1).allRedwallConnectors.head
 
-    // val sg2: SectorGroup = palette.getSectorGroup(2)//.rotateCW
-    // val conn2: RedwallConnector = sg2.getRedwallConnectorsById(123).head
-    // val delta: PointXYZ = conn2.getTransformTo(conn1)
-    // val pasted2 = builder.pasteSectorGroup(palette.getSectorGroup(2), delta)
-    // conn1.linkConnectors(builder.outMap, pasted2.getRedwallConnectorsById(123).get(0))
+    require(palette.getSectorGroup(2).getRedwallConnector(123).isMatch(conn1))
     val pasted2 = builder.addViaConnector(palette.getSectorGroup(2), 123)
 
 

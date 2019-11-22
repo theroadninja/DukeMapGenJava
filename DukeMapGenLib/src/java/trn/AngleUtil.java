@@ -42,9 +42,17 @@ public class AngleUtil {
     }
 
     public static int angleOf(PointXY vector){
-        // TODO - can i made this work with non-unit vectors?
-        // normal version: double radians = Math.atan2(vector.y, vector.x);
-        double radians = Math.atan2(-vector.y, vector.x); // -y because build has y+ going down
+        // i think this was wrong...
+        // // TODO - can i made this work with non-unit vectors?
+        // // normal version: double radians = Math.atan2(vector.y, vector.x);
+        // double radians = Math.atan2(-vector.y, vector.x); // -y because build has y+ going down
+        // int ang = fromRadians(radians);
+        // if(ang < 0){
+        //     ang += 2048; // atan2 returns values in [-PI, PI]
+        // }
+        // return ang;
+
+        double radians = Math.atan2(vector.y, vector.x);
         int ang = fromRadians(radians);
         if(ang < 0){
             ang += 2048; // atan2 returns values in [-PI, PI]

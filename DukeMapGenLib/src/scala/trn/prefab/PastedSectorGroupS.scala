@@ -24,10 +24,23 @@ class PastedSectorGroupS(val map: DMap, destSectorIds: java.util.Set[java.lang.S
     connectors.asScala.filter(c => !isConnectorLinked(c))
   }
 
+  final def redwallConnectors: Seq[RedwallConnector] = {
+    connectors.asScala.flatMap { c =>
+      c match {
+        case rw: RedwallConnector => Some(rw)
+        case _ => None
+      }
+    }
+  }
+
+
   final def unlinkedRedwallConnectors: Seq[RedwallConnector] = {
     unlinkedConnectors.flatMap { c =>
       c match {
-        case rw: RedwallConnector => Some(rw)
+        case rw: RedwallConnector => {
+          require(!rw.isLinked(map))
+          Some(rw)
+        }
         case _ => None
       }
     }

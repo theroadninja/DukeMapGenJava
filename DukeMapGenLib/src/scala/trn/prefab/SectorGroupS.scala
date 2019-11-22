@@ -78,6 +78,8 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
 
   def rotateCW: SectorGroup = rotateAroundCW(this.rotationAnchor)
 
+  def rotateCCW: SectorGroup = rotateCW.rotateCW.rotateCW
+
   def rotate180: SectorGroup = rotateCW.rotateCW
 
   def rotateAroundCW(anchor: PointXYZ): SectorGroup = rotateAroundCW(anchor.asXY)

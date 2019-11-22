@@ -72,11 +72,20 @@ class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
 object PipeDream {
   val FILENAME = "pipe.map"
 
+  // TODO - next: support multiwall connectors
+
+  // TODO - idea: priorities connectors on groups with more open connectors?
+  // (i.e. check ratio)
 
   def run(mapLoader: MapLoader): DMap = {
     val sourceMap = mapLoader.load(FILENAME)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val builder = new PipeBuilder(DMap.createNew(), palette)
+
+
+    val sanityCheck = palette.getSectorGroup(13).getConnector(101).asInstanceOf[RedwallConnector]
+    val sanityCheck2 = palette.getSectorGroup(700).getConnector(101).asInstanceOf[RedwallConnector]
+    require(sanityCheck.isMatch(sanityCheck2))
 
     def randomItem[T](list: Seq[T]): T = {
       if(list.size < 1) throw new IllegalArgumentException

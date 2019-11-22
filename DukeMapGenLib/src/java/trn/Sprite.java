@@ -391,6 +391,16 @@ public class Sprite {
 		return s;
 		
 	}
+
+	/**
+	 * @param p1  one end of the line segment
+	 * @param p2  the other send of the line segment (NOT the vector expressing the delta)
+	 * @return true if the ray defined by this sprite intersects the line segment (p1, p2)
+	 */
+	public boolean intersectsSegment(PointXY p1, PointXY p2){
+		PointXY sv = AngleUtil.unitVector(this.getAngle());
+		return PointXY.raySegmentIntersect(getLocation().asXY(), sv, p1, p2.subtractedBy(p1));
+	}
 	
 	
 

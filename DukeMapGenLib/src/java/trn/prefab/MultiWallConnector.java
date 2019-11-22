@@ -32,8 +32,13 @@ public class MultiWallConnector extends RedwallConnector {
 
     private final int markerSpriteLotag;
 
+    /**
+     * The points of the walls relative to the first point, which we use to store the shape of the connector,
+     * to verify whether it can fit to another connector.
+     */
+    private final List<PointXY> relativePoints;
 
-    private MultiWallConnector(int connectorId, int sectorId, List<Integer> wallIds, PointXYZ anchor, PointXY wallAnchor1, PointXY wallAnchor2, int markerSpriteLotag){
+    private MultiWallConnector(int connectorId, int sectorId, List<Integer> wallIds, PointXYZ anchor, PointXY wallAnchor1, PointXY wallAnchor2, int markerSpriteLotag, List<PointXY> relativePoints){
         super(connectorId);
         this.sectorId = sectorId;
         this.wallIds = Collections.unmodifiableList(new ArrayList<>(wallIds));
@@ -42,6 +47,7 @@ public class MultiWallConnector extends RedwallConnector {
         this.wallAnchor1 = wallAnchor1;
         this.wallAnchor2 = wallAnchor2;
         this.markerSpriteLotag = markerSpriteLotag;
+        this.relativePoints = relativePoints;
     }
 
     public MultiWallConnector(Sprite markerSprite, Sector sector, List<Integer> wallIds, Map map){
@@ -90,6 +96,7 @@ public class MultiWallConnector extends RedwallConnector {
 
         this.wallIds = Collections.unmodifiableList(wallIds);
         if(this.wallIds.size() < 1) throw new RuntimeException();
+        this.relativePoints = allRelativeConnPoints(this.wallIds, map, this.anchor, this.wallAnchor2);
     }
 
 
@@ -117,8 +124,9 @@ public class MultiWallConnector extends RedwallConnector {
                 this.anchor.add(delta),
                 this.wallAnchor1.add(delta.asXY()),
                 this.wallAnchor2.add(delta.asXY()),
-                this.markerSpriteLotag
-        );  // TODO - need the translate the anchors ...
+                this.markerSpriteLotag,
+                this.relativePoints
+        );
     }
 
     @Override
@@ -187,9 +195,42 @@ public class MultiWallConnector extends RedwallConnector {
 
     @Override
     public boolean isMatch(RedwallConnector c){
-        throw new RuntimeException("Not implemented yet!");
-        // return c instanceof MultiWallConnector
-        //         && this.canLink((MultiWallConnector)c, map);
+        System.out.println("MONKEY 0");
+        if(!(c instanceof MultiWallConnector)){
+            return false;
+        }
+        System.out.println("MONKEY 1");
+        MultiWallConnector other = (MultiWallConnector)c;
+
+        // TODO - this has code duplicated from canLink()
+        if(this.wallIds.size() != other.wallIds.size()){
+            return false;
+        }
+        System.out.println("MONKEY");
+        PointXY p1 = this.wallAnchor1.subtractedBy(this.anchor);
+        PointXY p2 = this.wallAnchor2.subtractedBy(this.anchor);
+        PointXY otherP1 = other.wallAnchor1.subtractedBy(other.anchor);
+        PointXY otherP2 = other.wallAnchor2.subtractedBy(other.anchor);
+        if(! p1.equals(otherP2)) return false;
+        if(! p2.equals(otherP1)) return false;
+        System.out.println("MADE IT HERE");
+
+        List<PointXY> list1 = this.relativePoints;
+        List<PointXY> list2 = other.relativePoints;
+        if(! list1.get(0).equals(p1)) throw new RuntimeException();
+        if(! list2.get(0).equals(otherP1)) throw new RuntimeException();
+        if(list1.size() != list2.size()) throw new RuntimeException();
+
+        for(int i = 0; i < list1.size(); ++i){
+            int j = list2.size() - 1 - i;
+            if(! list1.get(i).equals(list2.get(j))){
+                // System.out.println("no match: " + list1.get(i).toString() + "," + list2.get(i).toString());
+                // System.out.println("i=" + i + " j=" + j);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -209,13 +250,13 @@ public class MultiWallConnector extends RedwallConnector {
         PointXY otherP2 = other.wallAnchor2.subtractedBy(other.anchor);
 
 
-        System.out.println("p1=" + this.wallAnchor1 + ", anchor=" + this.anchor);
-        System.out.println("p2=" + this.wallAnchor2);
-        System.out.println("-----");
-        System.out.println("p1=" + p1.toString());
-        System.out.println("p2=" + p2.toString());
-        System.out.println("otherP1=" + otherP1.toString());
-        System.out.println("otherP2=" + otherP2.toString());
+        // System.out.println("p1=" + this.wallAnchor1 + ", anchor=" + this.anchor);
+        // System.out.println("p2=" + this.wallAnchor2);
+        // System.out.println("-----");
+        // System.out.println("p1=" + p1.toString());
+        // System.out.println("p2=" + p2.toString());
+        // System.out.println("otherP1=" + otherP1.toString());
+        // System.out.println("otherP2=" + otherP2.toString());
 
         // check each point
         if(map != null){
@@ -230,8 +271,10 @@ public class MultiWallConnector extends RedwallConnector {
             }
 
             // 2. are the walls lined up correclty?
-            List<PointXY> list1 = allRelativeConnPoints(map);
-            List<PointXY> list2 = other.allRelativeConnPoints(map);
+            // List<PointXY> list1 = allRelativeConnPoints(map);
+            List<PointXY> list1 = this.relativePoints;
+            // List<PointXY> list2 = other.allRelativeConnPoints(map);
+            List<PointXY> list2 = other.relativePoints;
             // System.out.println("list1");
             // for(PointXY p : list1){
             //     System.out.print(p.toString() + ", ");
@@ -265,11 +308,21 @@ public class MultiWallConnector extends RedwallConnector {
      * @return an XY point for each wall, AND the xy point where the last wall terminates.
      */
     private List<PointXY> allRelativeConnPoints(Map map){
-        List<PointXY> results = new ArrayList<>(this.wallIds.size() + 1);
+        return allRelativeConnPoints(this.wallIds, map, this.anchor, this.wallAnchor2);
+        // List<PointXY> results = new ArrayList<>(this.wallIds.size() + 1);
+        // for(Integer i: wallIds){
+        //     results.add(map.getWall(i).getLocation().subtractedBy(this.anchor));
+        // }
+        // results.add(this.wallAnchor2.subtractedBy(this.anchor));
+        // return results;
+    }
+
+    static List<PointXY> allRelativeConnPoints(List<Integer> wallIds, Map map, PointXYZ anchor, PointXY anchor2){
+        List<PointXY> results = new ArrayList<>(wallIds.size() + 1);
         for(Integer i: wallIds){
-            results.add(map.getWall(i).getLocation().subtractedBy(this.anchor));
+            results.add(map.getWall(i).getLocation().subtractedBy(anchor));
         }
-        results.add(this.wallAnchor2.subtractedBy(this.anchor));
+        results.add(anchor2.subtractedBy(anchor));
         return results;
     }
 

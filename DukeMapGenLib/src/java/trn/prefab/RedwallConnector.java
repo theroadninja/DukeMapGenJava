@@ -43,6 +43,10 @@ public abstract class RedwallConnector extends Connector {
      */
     public abstract boolean isMatch(RedwallConnector c);
 
+    public final boolean isFullMatch(RedwallConnector c, Map map){
+        return isMatch(c) && getTransformTo(c).equals(PointXYZ.ZERO) && !(isLinked(map) || c.isLinked(map));
+    }
+
     public abstract void removeConnector(Map map);
 
     public abstract PointXYZ getAnchorPoint();

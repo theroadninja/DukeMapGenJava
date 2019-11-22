@@ -40,10 +40,12 @@ public class AngleUtilTests {
     public void testVectorToAngle(){
         Assert.assertEquals(0, AngleUtil.angleOf(new PointXY(R, 0)));
 
-        Assert.assertEquals(512, AngleUtil.angleOf(new PointXY(0, -R)));
+        //Assert.assertEquals(512, AngleUtil.angleOf(new PointXY(0, -R)));
+        Assert.assertEquals(1536, AngleUtil.angleOf(new PointXY(0, -R)));
 
         Assert.assertEquals(1024, AngleUtil.angleOf(new PointXY(-R, 0)));
 
-        Assert.assertEquals(1536, AngleUtil.angleOf(new PointXY(0, R)));
+        //Assert.assertEquals(1536, AngleUtil.angleOf(new PointXY(0, R)));
+        Assert.assertEquals(512, AngleUtil.angleOf(new PointXY(0, R)));
     }
 }

@@ -244,7 +244,13 @@ public class SimpleConnector extends RedwallConnector {
 	 * The sector groups dont have to be already lined up, but there must exist
 	 * a transformation that will line the sectors up.
 	 *
-	 * TODO - support rotation also.
+	 * The connectors rotation must match.
+	 *
+	 * The connectors positions do not need to match.
+	 *
+	 * The connectors link status does not matter.
+	 *
+	 * TODO - support rotation also?
 	 * @return
 	 */
 	@Override

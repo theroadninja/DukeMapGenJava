@@ -266,6 +266,7 @@ public class MapUtil {
 	}
 
 	// this is just split out for unit testing
+	// TODO - compare to Sprite.intersectsSegment (maybe get rid of this one)
 	static boolean isSpritePointedAtWall(Sprite s, Wall w1, Wall w2){
 		PointXY sv = AngleUtil.unitVector(s.getAngle());
 		// System.out.println("\tunit vector: " + sv);

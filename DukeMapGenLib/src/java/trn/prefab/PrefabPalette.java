@@ -212,6 +212,26 @@ public class PrefabPalette {
 		return this.numberedSectorGroups.get(sectorGroupId);
 	}
 
+	public SectorGroup getSG(int sectorGroupId){
+		return this.getSectorGroup(sectorGroupId);
+	}
+
+	public SectorGroup getRandomSectorGroup(){
+		int size = this.numberedSectorGroups.size() + this.anonymousSectorGroups.size();
+		if(size < 1) throw new RuntimeException("there are no sector groups");
+		int i = random.nextInt(size);
+		if(i < this.numberedSectorGroups.size()){
+		    return (SectorGroup)this.numberedSectorGroups.values().toArray()[i];
+		}else{
+			return this.anonymousSectorGroups.get(i - this.numberedSectorGroups.size());
+		}
+
+	}
+	public SectorGroup getRandomGroupWith(ConnectorFilter cf){
+		List<SectorGroup> results = getAllGroupsWith(cf);
+		return results.get(random.nextInt(results.size()));
+	}
+
 	public List<SectorGroup> getStaySectorGroups(){
 		List<SectorGroup> results = new ArrayList<>();
 		for(SectorGroup sg : this.numberedSectorGroups.values()){
@@ -243,10 +263,6 @@ public class PrefabPalette {
 		}
 		return results;
 	}
-    public SectorGroup getRandomGroupWith(ConnectorFilter cf){
-        List<SectorGroup> results = getAllGroupsWith(cf);
-        return results.get(random.nextInt(results.size()));
-    }
 
 	/**
 	 * 

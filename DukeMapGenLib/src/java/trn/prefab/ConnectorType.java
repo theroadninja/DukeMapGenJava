@@ -52,4 +52,6 @@ public class ConnectorType {
 
     public static int MULTI_REDWALL = 21;
 
+    /** multi redwall that can be in more than one sector */
+    public static int MULTI_SECTOR = 22;
 }

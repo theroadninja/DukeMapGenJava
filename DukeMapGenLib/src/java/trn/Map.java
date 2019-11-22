@@ -123,6 +123,14 @@ public class Map implements WallContainer {
 		}
 		return this.walls.get(i);
 	}
+
+	// public List<Wall> getWalls(List<Integer> wallIds){
+	// 	List<Wall> results = new ArrayList<>();
+	// 	for(int i : wallIds){
+	// 		results.add(getWall(i));
+	// 	}
+	// 	return results;
+	// }
 	
 	/**
 	 * @return indexes of all walls in a sector ...actually no, just all walls in the loop that has the first wall
