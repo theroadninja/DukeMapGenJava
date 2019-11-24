@@ -2,16 +2,11 @@ package trn;
 
 import trn.duke.MapErrorException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class Map implements WallContainer {
 
@@ -36,7 +31,7 @@ public class Map implements WallContainer {
 	//XXX: in theory we could get rid of this and rely on wall.size()
 	int wallCount;
 	
-	List<Wall> walls = new ArrayList<Wall>();
+	ArrayList<Wall> walls = new ArrayList<Wall>();
 	
 	int spriteCount;
 	
@@ -183,18 +178,18 @@ public class Map implements WallContainer {
 	
 	
 	// TODO: !!!! i'm an idiot; the sector could have many wall loops...
-	public List<Integer> getSecondWallLoop(final Sector sector){
-		
-		int loop1size = getFirstWallLoop(sector).size();
-		if(loop1size > sector.getWallCount()){
-			throw new RuntimeException("something went very wrong");
-		}else if(loop1size == sector.getWallCount()){
-			return null; // it has no second loop;
-		}
-		int loop2start = (loop1size + sector.getFirstWall());
-		
-		return this.getWallLoop(loop2start);
-	}
+	// public List<Integer> getSecondWallLoop(final Sector sector){
+	//
+	// 	int loop1size = getFirstWallLoop(sector).size();
+	// 	if(loop1size > sector.getWallCount()){
+	// 		throw new RuntimeException("something went very wrong");
+	// 	}else if(loop1size == sector.getWallCount()){
+	// 		return null; // it has no second loop;
+	// 	}
+	// 	int loop2start = (loop1size + sector.getFirstWall());
+	//
+	// 	return this.getWallLoop(loop2start);
+	// }
 	
 	public Iterator<Collection<Integer>> wallLoopIterator(int sectorId){
 		return new WallLoopIterator(this, sectorId);
@@ -243,13 +238,9 @@ public class Map implements WallContainer {
 	 * @return the index of the new wall
 	 */
 	public int addWall(Wall w){
-		
-		
 		walls.add(w);
 		this.wallCount++;
-		
 		if(this.wallCount != walls.size()) throw new RuntimeException("wall count mismatch");
-		
 		return wallCount - 1;
 	}
 	
@@ -261,7 +252,6 @@ public class Map implements WallContainer {
 	 * walls for the entire map, so we don't really have an identifier for them until we add them to
 	 * that list.  This method makes it easy to add all the walls for a sector at once.
 	 * 
-	 * @param walls
 	 * @return
 	 */
 	public int addLoop(Wall ... wallsToAdd){
@@ -288,7 +278,6 @@ public class Map implements WallContainer {
 		lastWall.setPoint2Id(firstWall);
 		
 		return firstWall;
-		
 	}
 	
 	/**
@@ -319,11 +308,6 @@ public class Map implements WallContainer {
 		
 		
 	}
-	
-	
-	
-	
- 
 	
 	/**
 	 * connects two sectors by creating the necessary link between the sectors' walls,
@@ -362,7 +346,6 @@ public class Map implements WallContainer {
 		this.sprites.add(s);
 		this.spriteCount++;
 		if(sprites.size() != spriteCount) throw new RuntimeException();
-		
 		return spriteCount - 1;
 	}
 	
@@ -377,7 +360,6 @@ public class Map implements WallContainer {
 	}
 	
 	public void deleteSprite(int spriteId){
-		
 		sprites.remove(spriteId);
 		this.spriteCount = sprites.size();
 	}
@@ -392,6 +374,155 @@ public class Map implements WallContainer {
 			results.add(i);
 		}
 		return results;
+	}
+
+	/**
+	 * Removes a sector AND everything in it.
+	 */
+	public void deleteSector(int sectorId){
+
+		if(sectorId < 0 || sectorId > this.sectors.size()){
+			throw new IllegalArgumentException("invalid sector id: " + sectorId);
+		}
+
+		Sector sector = getSector(sectorId);
+
+		// 1. unlink all walls
+		List<Integer> wallsToDelete = getAllSectorWallIds(sector);
+		for(Wall w: walls){
+			if(wallsToDelete.contains((int)w.nextWall)){
+				w.setOtherSide(-1, -1);
+			}
+		}
+
+		// 2. remove this sectors sprites
+		deleteSprites((Sprite s) -> s.getSectorId() == sectorId);
+
+		// if(1==1) return;
+
+		int startIndex = sector.getFirstWall();
+		int endIndexExclusive = startIndex + sector.getWallCount();
+		int deletedCount = sector.getWallCount();
+
+		// 2. delete this sector's walls
+		walls.subList(startIndex, endIndexExclusive).clear();
+
+
+		// 4. remove the sector
+		this.sectors.remove(sectorId);
+
+		// 5. shift sprite sectorIds
+        for(Sprite s: this.sprites){
+        	if(s.sectnum >= sectorId){
+        		s.sectnum -= 1;
+			}
+		}
+
+		// 6. shift all walls of other sectors
+		for(Sector s: sectors){
+			if(s.getFirstWall() >= startIndex && s.getFirstWall() < endIndexExclusive){
+			    // NOTE: this gets false positive if we do it before we delete the sector
+				throw new RuntimeException("something went wrong");
+			}else if(s.getFirstWall() >= endIndexExclusive){
+				s.setFirstWall(s.getFirstWall() - deletedCount);
+			}
+		}
+
+		// 7. shift the redwall indexes and point2 indexes, and the next sector tag
+        for(Wall w: walls){
+        	if(w.nextWall >= startIndex){
+        		if(w.nextWall < endIndexExclusive){
+					// these walls have been deleted; nothing should be pointing to them
+					throw new RuntimeException("something went wrong");
+				}else{
+        		    w.nextWall -= deletedCount;
+				}
+			}
+        	if(w.nextSector == sectorId) {
+				throw new RuntimeException("something went wrong");
+			}else if(w.nextSector > sectorId){
+        		w.nextSector -= 1;
+			}
+        	if(w.point2 >= startIndex){
+        		if(w.point2 < endIndexExclusive){
+					// these walls have been deleted; nothing should be pointing to them
+					throw new RuntimeException("something went wrong");
+				}else{
+        			w.point2 -= deletedCount;
+				}
+			}
+		}
+
+
+		// 8. update counts
+		this.sectorCount -= 1;
+		if(this.wallCount != this.walls.size() + wallsToDelete.size()){
+			throw new RuntimeException("something went wrong");
+		}
+		this.wallCount = this.walls.size();
+
+	}
+
+
+	private void assertValidSector(int sectorId) throws Exception {
+		if(sectorId < 0 || sectorId > this.sectors.size()){
+			throw new Exception("invalid sector id=" + sectorId);
+		}
+
+	}
+	/**
+	 * @throws if there is something wrong with the map's structure
+	 */
+	public void assertIntegrity() throws Exception {
+		if (this.sectorCount != this.sectors.size()) {
+			throw new Exception("sectorCount is off");
+		}
+
+	    // make sure all sprites point to an existing sector
+		for(Sprite s: this.sprites){
+			if(s.sectnum < 0 || s.sectnum >= this.sectors.size()){
+				throw new Exception("sprite has invalid sector id: " + s.sectnum);
+			}
+		}
+
+		// make sure walls are all accounted for, and only belong to one sector
+		Set<Integer> closedList = new HashSet<>();
+        for(int sectorId = 0; sectorId < this.sectors.size(); ++sectorId){
+        	Sector sector = getSector(sectorId);
+        	Set<Integer> sectorWallIds = new HashSet<>(this.getAllSectorWallIds(sector));
+        	for(Integer wallId : sectorWallIds){
+        		if(closedList.contains(wallId)){
+        			throw new Exception("wall appears twice id=" + wallId);
+				}else{
+        			closedList.add(wallId);
+				}
+			}
+
+        	// also check the loops
+			for(Integer wallId: this.getWallLoop(sector.getFirstWall())){
+				if(!sectorWallIds.contains(wallId)){
+					throw new RuntimeException("wall loop broken");
+				}
+			}
+		}
+
+        if(closedList.size() != this.walls.size()){
+        	throw new Exception("walls are missing or unused");
+		}
+
+        // make sure every redwall is pointing to a valid sector and a matching redwall?
+        for(int wallId = 0; wallId < this.walls.size(); ++wallId){
+        	Wall w = this.getWall(wallId);
+        	if(w.isRedWall()){
+        		assertValidSector(w.nextSector);
+        		Wall otherWall = getWall(w.nextWall);
+        		assertValidSector(otherWall.nextSector);
+        		if(wallId != otherWall.nextWall){
+        			throw new Exception("redwalls dont match");
+				}
+			}
+		}
+
 	}
 
 	/**
@@ -558,7 +689,11 @@ public class Map implements WallContainer {
 		
 		
 	}
-	
+
+	public static Map readMap(byte[] bytes) throws IOException {
+	    return readMap(new ByteArrayInputStream(bytes));
+	}
+
 	public static Map readMap(InputStream bs) throws IOException {
 		
 		Map map = new Map();

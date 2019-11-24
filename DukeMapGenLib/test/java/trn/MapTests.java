@@ -1,5 +1,9 @@
 package trn;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Assert;
@@ -65,5 +69,41 @@ public class MapTests {
 		Assert.assertEquals(0, (int)list.get(0));
 		Assert.assertEquals(1, (int)list.get(1));
 		Assert.assertEquals(2, (int)list.get(2));
+	}
+
+	private static int getSectorWithSprite(Map map, int spriteLotag){
+		for(int i = 0; i < map.spriteCount; ++i){
+			if(map.getSprite(i).lotag == spriteLotag){
+				return map.getSprite(i).sectnum;
+			}
+		}
+		return -1;
+	}
+
+	private Map checkSerialization(Map map) throws Exception {
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		map.toBytes(output);
+		Map result = Map.readMap(output.toByteArray());
+		result.assertIntegrity();
+		return result;
+	}
+
+	@Test
+	public void testDeleteSector() throws Exception {
+
+		for(int lotagToDelete = 1; lotagToDelete <= 5; lotagToDelete++){
+
+			Map map = JavaTestUtils.readTestMap("ds.map");
+			map.assertIntegrity();
+			int startingSectorCount = map.sectorCount;
+
+			int sectorId = getSectorWithSprite(map, lotagToDelete);
+			Assert.assertTrue(sectorId > -1);
+			map.deleteSector(sectorId);
+			Assert.assertEquals(-1, getSectorWithSprite(map, lotagToDelete));
+			map.assertIntegrity();
+
+			Assert.assertEquals(startingSectorCount - 1, checkSerialization(map).sectorCount);
+		}
 	}
 }

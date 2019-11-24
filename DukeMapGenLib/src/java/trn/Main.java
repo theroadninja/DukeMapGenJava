@@ -39,11 +39,32 @@ public class Main {
         //Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
 		//Map outMap = ReferenceTestExperiment.run(new MapLoader(DOSPATH));
 		//Map outMap = PipeDream.run(new MapLoader(DOSPATH));
-		Map outMap = Sushi.run(new MapLoader(DOSPATH));
+		//Map outMap = Sushi.run(new MapLoader(DOSPATH));
+
+		Map outMap = runDeleteSectorTest(5, new MapLoader(DOSPATH));
 
 		// writeAndOpenMapPng(outMap);
 		deployTest(outMap);
 
+	}
+
+	static Map runDeleteSectorTest(int spriteLotag, MapLoader mapLoader) throws IOException {
+	    // TODO - this is copied from JavaTestUtils ...
+		String fname = "DS.MAP";
+		String filepath = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata" + File.separator + fname;
+		Map map = MapLoader.loadMap(filepath);
+		//Map map = mapLoader.load("DS2.MAP");
+
+
+		int sectorId = -1;
+		for(int i = 0; i < map.spriteCount; ++i){
+			if(map.getSprite(i).lotag == spriteLotag){
+				sectorId = map.getSprite(i).sectnum;
+			}
+		}
+
+		map.deleteSector(sectorId);
+		return map;
 	}
 
 	public static void writeAndOpenMapPng(Map map) throws IOException {

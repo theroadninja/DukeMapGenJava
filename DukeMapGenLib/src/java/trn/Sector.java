@@ -214,6 +214,9 @@ public class Sector {
 	public short getFirstWall(){
 		return this.firstWall;
 	}
+	public void setFirstWall(int wallId){
+		this.firstWall = (short)wallId;
+	}
 	
 	public short getWallCount(){
 		return this.wallCount;

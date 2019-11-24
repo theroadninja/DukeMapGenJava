@@ -21,8 +21,7 @@ public class MapSerializationTests {
 	public void testSerialize() throws Exception {
 		
 		byte[] bytes = IOUtils.toByteArray(new FileInputStream(new File(ParseOneRoomTests.oneRoomFilename())));
-		
-		
+
 		//read in map
 		Map m = Map.readMap(new ByteArrayInputStream(bytes));
 		
