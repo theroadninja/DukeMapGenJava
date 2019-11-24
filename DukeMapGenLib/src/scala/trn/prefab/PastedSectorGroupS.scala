@@ -46,9 +46,11 @@ class PastedSectorGroupS(val map: DMap, destSectorIds: java.util.Set[java.lang.S
     }
   }
 
-  protected def wallSeq(): Seq[Wall] = {
+  protected override def wallSeq(): Seq[Wall] = {
     val wallIds = sectorIds.map(map.getSector(_)).flatMap(s => map.getAllSectorWallIds(s).asScala)
     wallIds.map(map.getWall(_)).toSeq
   }
+
+  protected override def allSectorIds: Set[Int] = sectorIds
 
 }

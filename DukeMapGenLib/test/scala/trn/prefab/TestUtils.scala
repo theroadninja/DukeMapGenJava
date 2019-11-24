@@ -16,4 +16,8 @@ object TestUtils {
     DMap.readMap(new ByteArrayInputStream(IOUtils.toByteArray(new FileInputStream(new File(path)))))
   }
 
+  def load(filename: String): DMap = TestUtils.loadTestMap(s"scala/trn.prefab/${filename}")
+
+  def loadPalette(filename: String): PrefabPalette = PrefabPalette.fromMap(TestUtils.load(filename), true)
+
 }

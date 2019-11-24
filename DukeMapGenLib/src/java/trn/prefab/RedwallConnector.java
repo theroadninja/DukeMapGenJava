@@ -43,6 +43,10 @@ public abstract class RedwallConnector extends Connector {
      */
     public abstract boolean isMatch(RedwallConnector c);
 
+    /**
+     * meant to be used for two connectors that have already been pasted, to see if they are in the same place
+     * TODO - maybe this doesnt belong here (because it is specific to pasted connectors)
+     */
     public final boolean isFullMatch(RedwallConnector c, Map map){
         return isMatch(c) && getTransformTo(c).equals(PointXYZ.ZERO) && !(isLinked(map) || c.isLinked(map));
     }

@@ -9,7 +9,9 @@ import scala.collection.JavaConverters._ // this is the good one
 
 class SectorGroupTests {
 
+  // TODO - this is a dupe of the one in TestUtils
   private def load(filename: String): DMap = TestUtils.loadTestMap(s"scala/trn.prefab/${filename}")
+
   private def loadPalette: PrefabPalette = PrefabPalette.fromMap(load("UNIT.MAP"), true)
   private def eastConn(psg: PastedSectorGroup): SimpleConnector = {
     psg.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[SimpleConnector]

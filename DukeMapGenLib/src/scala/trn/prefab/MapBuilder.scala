@@ -1,7 +1,7 @@
 package trn.prefab
 
 import trn.MapImplicits._
-import trn.{IdMap, MapUtil, PlayerStart, PointXYZ, Sprite, SpriteFilter, Map => DMap}
+import trn.{IdMap, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, SpriteFilter, Map => DMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -274,5 +274,29 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
       }
     }
   }
+
+  /**
+    * TODO - very similar to method in Sushi, PipeDream
+    * TODO - fill out this doc
+    */
+  //def spaceAvailable(bb: BoundingBox): Boolean = {
+  // def spaceAvailable(bb: BoundingBox): Boolean = {
+
+  //   def conflict(psg: PastedSectorGroup, bb: BoundingBox): Boolean ={
+  //     psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0
+  //   }
+
+  //   if(!bb.isInsideInclusive(MapBuilder.mapBounds)){
+  //     return false
+  //   }else{
+  //     val conflicts = pastedSectorGroups.filter { psg =>
+  //       conflict(psg, bb) && sg.fineBoundingBoxes.map(_.translate(tx)).filter(b => conflict(psg, b)).nonEmpty
+  //     }
+  //     conflicts.nonEmpty
+  //   }
+
+  //   bb.isInsideInclusive(MapBuilder.mapBounds) &&
+  //     pastedSectorGroups.filter(psg => psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0).isEmpty
+  // }
 
 }

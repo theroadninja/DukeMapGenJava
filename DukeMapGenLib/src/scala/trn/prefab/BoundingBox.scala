@@ -2,6 +2,54 @@ package trn.prefab
 
 import trn.PointXY
 
+object BoundingBox {
+
+  /**
+    * merges the given bounding box into the set, discarding it if it fits inside any existing box,
+    * or any boxes that fit inside the newcomer.
+    *
+    * To use this to merge a Seq of boxes:
+    *   boxes.foldLeft(Seq.empty[BoundingBox])(BoundingBox.merge))
+    *
+    * @param boxes existing seq of boxes
+    * @param b the new bounding box
+    * @return seq of boxes merged with b
+    */
+  def merge(boxes: Seq[BoundingBox], b: BoundingBox): Seq[BoundingBox] = {
+    val results = Seq.newBuilder[BoundingBox]
+    var used = false
+    boxes.foreach { existing =>
+      if(existing.isInsideInclusive(b)){
+        if(!used){
+          results += b
+          used = true
+        }
+      } else {
+        results += existing
+        if((!used) && b.isInsideInclusive(existing)){
+          used = true
+        }
+      }
+    }
+    if(!used){
+      results += b
+    }
+    results.result
+  }
+
+  /**
+    *
+    * @param group1
+    * @param group2
+    * @return true if any boundings box in group 1 has non-zero overlap with a box in group 2
+    *         (if two boxes have edges touching, that wont count)
+    */
+  def nonZeroOverlap(group1: Traversable[BoundingBox], group2: Traversable[BoundingBox]): Boolean = {
+    def area(b1: BoundingBox, b2: BoundingBox): Int = b1.intersect(b2).map(_.area).getOrElse(0)
+    group1.map(b1 => group2.map(b2 => area(b1, b2)).sum).sum > 0
+  }
+}
+
 case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
   val w = xMax - xMin
   val h = yMax - yMin
@@ -24,6 +72,11 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
   )
 
   def area: Int = w * h
+
+  /**
+    * @return if both bounding boxes have the same shape (without rotating)
+    */
+  def sameShape(other: BoundingBox): Boolean = w == other.w && h == other.h
 
   /**
     * Tests box size only, not location.

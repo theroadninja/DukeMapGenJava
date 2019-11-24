@@ -48,6 +48,8 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
     walls.result
   }
 
+  val allSectorIds = (0 until map.getSectorCount).toSet
+
   def copy(): SectorGroup = {
     SectorGroupBuilder.createSectorGroup(map.copy, this.sectorGroupId, this.props)
     //new SectorGroup(map.copy, this.sectorGroupId);

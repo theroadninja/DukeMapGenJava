@@ -68,9 +68,6 @@ public class PrefabUtils {
 		 * The sector group should stay right where it is.  If it has an ID ( GROUP_ID set ) then it will be scanned
 		 * and can be pasted again, but the original copy will stay where it is.
 		 *
-		 * TODO - open question:  if there is no sector id, should it be included with the anonymous gropus?
-		 * 		I am thinking no, because it someone wanted it included they can add an ID to it.  The opposite
-		 * 		is not currently possible.
 		 */
 		public static int STAY = 6;
 

@@ -8,6 +8,10 @@ import trn.PointXY
 
 class BoundingBoxTests {
 
+  private def b(xmin: Int, ymin: Int, xmax: Int, ymax: Int): BoundingBox = BoundingBox(xmin, ymin, xmax, ymax)
+
+  private def p(x: Int, y: Int): PointXY = new PointXY(x, y)
+
   @Test
   def testBoundingBox: Unit = {
 
@@ -42,6 +46,15 @@ class BoundingBoxTests {
 
     // x max, y min
     Assert.assertEquals(BoundingBox(0, -2, 12, 10), BoundingBox(0, 0, 10, 10).add(12, -2))
+  }
+
+  @Test
+  def testSameShape: Unit = {
+    Assert.assertTrue(b(0, 0, 0, 0).sameShape(b(1, 1, 1, 1)))
+    Assert.assertTrue(b(0, 0, 10, 10).sameShape(b(10, 10, 20, 20)))
+    Assert.assertTrue(b(0, 0, 10, 20).sameShape(b(15, 10, 25, 30)))
+    Assert.assertFalse(b(0, 0, 10, 20).sameShape(b(15, 10, 30, 25)))
+
   }
 
   @Test
@@ -81,9 +94,6 @@ class BoundingBoxTests {
     Assert.assertEquals(true, BoundingBox(0, 0, 10, 20).fitsInside(21, 21))
   }
 
-  private def b(xmin: Int, ymin: Int, xmax: Int, ymax: Int): BoundingBox = BoundingBox(xmin, ymin, xmax, ymax)
-
-  private def p(x: Int, y: Int): PointXY = new PointXY(x, y)
 
   @Test
   def testIsInsideInclusive: Unit = {
@@ -247,6 +257,56 @@ class BoundingBoxTests {
     // some more false cases
     Assert.assertEquals(b(-20, -20, -5, -5).intersect(b(1, 1, 2, 3)), None)
     Assert.assertEquals(b(0, 0, 5, 5).intersect(b(8, 0, 20, 3)), None)
+  }
+
+
+  @Test
+  def testMerge: Unit = {
+    val seq0 = Seq(b(0, 0, 20, 20))
+    Assert.assertEquals(seq0, BoundingBox.merge(seq0, b(0, 0, 20, 20))) // merge with same
+    Assert.assertEquals(seq0, BoundingBox.merge(seq0, b(0, 0, 10, 10))) // merge with smaller
+    Assert.assertEquals(Seq(b(0, 0, 30, 30)), BoundingBox.merge(seq0, b(0, 0, 30, 30))) // merge with larger
+
+    val seq1 = Seq(b(0, 0, 10, 10))
+    Assert.assertEquals(Seq(b(0, 0, 20, 20)), BoundingBox.merge(seq1, b(0, 0, 20, 20))) // merge with larger
+    Assert.assertEquals(Seq(b(0, 0, 10, 10), b(10, 0, 20, 10)), BoundingBox.merge(seq1, b(10, 0, 20, 10)))
+
+    val seq2 = Seq(b(10, 0, 20, 10))
+    Assert.assertEquals(Seq(b(0, 0, 20, 20)), BoundingBox.merge(seq2, b(0, 0, 20, 20)))
+
+    val seq3 = Seq(b(0, 0, 10, 10), b(10, 0, 20, 0), b(5, 5, 6, 6)) // note: this seq isn't fully merged
+    Assert.assertEquals(seq3, BoundingBox.merge(seq3, b(0, 0, 2, 1))) // gets eaten by the first one
+    Assert.assertEquals(Seq(b(0, 0, 10, 10), b(10, 0, 20, 0)), BoundingBox.merge(seq3, b(0, 0, 10, 10))) // eats 5,6
+    Assert.assertEquals(Seq(b(0, 0, 20, 20)), BoundingBox.merge(seq3, b(0, 0, 20, 20)))
+
+    Assert.assertEquals(Seq(b(0, 0, 10, 10), b(10, 0, 20, 0)), seq3.foldLeft(Seq.empty[BoundingBox])(BoundingBox.merge))
+  }
+
+  @Test
+  def testNonZeroOverlap: Unit = {
+    def nz :(Seq[BoundingBox], Seq[BoundingBox]) => Boolean = BoundingBox.nonZeroOverlap _
+    val a0 = b(0, 0, 10, 10)
+    val a1 = b(5, 5, 15, 15)
+
+    Assert.assertTrue(nz(Seq(b(0, 0, 1, 1)), Seq(b(0, 0, 1, 1))))
+    Assert.assertFalse(nz(Seq(b(0, 0, 1, 1)), Seq(b(1, 0, 1, 2))))
+
+    Assert.assertTrue(nz(Seq(a0), Seq(a1)))
+
+    // intersections within the group dont count
+    Assert.assertTrue(nz(Seq(a0, a1), Seq(a0, a1)))
+    Assert.assertFalse(nz(Seq(a0, a1), Seq(a0, a1).map(_.translate(new PointXY(15, 0)))))
+
+
+    Assert.assertFalse(nz(
+      Seq(b(0, 0, 50, 20), b(0, 20, 16, 40)),
+      Seq(b(16, 25, 22, 32), b(100, 0, 120, 10))
+    ))
+    Assert.assertTrue(nz(
+      Seq(b(0, 0, 50, 20), b(0, 20, 16, 40)),
+      Seq(b(16-1, 25, 22, 32), b(100, 0, 120, 10))
+    ))
+
   }
 
 
