@@ -10,62 +10,52 @@ import scala.util.Random
 
 
 class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
+  val writer = new MapWriter(this, sgBuilder) // TODO
 
-  def sectorCount: Int = outMap.getSectorCount
+  def sectorCount: Int = sgBuilder.sectorCount
 
+  def spaceAvailable(b: BoundingBox): Boolean = writer.spaceAvailable(b)
+
+  def pasteAndLink(existing: RedwallConnector, newSg: SectorGroup, newConn: RedwallConnector): PastedSectorGroup =
+    writer.pasteAndLink(existing, newSg, newConn)
+
+  // -----------------
+
+  // TODO - does this belong in a more generic place?
   def openConnectors: Seq[RedwallConnector] = pastedSectorGroups.flatMap{ psg =>
-      psg.unlinkedConnectors.collect{case cc: RedwallConnector => cc}
-    }
-
-  def pasteAndLink(
-    existingConn: RedwallConnector,
-    newSg: SectorGroup,
-    newConn: RedwallConnector
-  ): PastedSectorGroup = {
-    val cdelta = newConn.getTransformTo(existingConn)
-    val (psg, idmap) = pasteSectorGroup2(newSg, cdelta)
-    val pastedConn2 = newConn.translateIds(idmap, cdelta)
-    existingConn.linkConnectors(outMap, pastedConn2)
-    psg
-  }
-
-  def findUnlinkedRedwallConnectors(): Seq[RedwallConnector] = {
-    pastedSectorGroups.flatMap(_.unlinkedConnectors).flatMap { c =>
-      c match {
-        case n: RedwallConnector => Some(n)
-        case _ => None
-      }
-    }
-  }
-
-  /**
-    * Given a connector in a pasted sector group, see if it has been pasted on top of a perfectly matching
-    * connector, and link them.
-    * @param pastedConnector
-    */
-  def findAndLinkMatch(pastedConnector: RedwallConnector): Unit = {
-    val unlinked: Seq[RedwallConnector] = this.findUnlinkedRedwallConnectors()
-
-    val cr = pastedConnector
-    val cOpt = unlinked.find(c0 => c0.isMatch(cr) && cr.getTransformTo(c0).equals(PointXYZ.ZERO))
-    cOpt.foreach{ ccc =>
-      ccc.linkConnectors(this.outMap, cr)
-      println("FIND AND LINK SUCCESSFUL")
-    }
-
+    psg.unlinkedConnectors.collect{case cc: RedwallConnector => cc}
   }
 
 
-  /**
-    * Tests if the given box is available (empty).  This tests the entire (axis-aligned) box, which means it is
-    * an inefficient measure for sector groups that are not box-like.
-    * @param bb the bounding box
-    * @return true if the bounding box is in bounds and there are no existing groups in that area.
-    */
-  def spaceAvailable(bb: BoundingBox): Boolean = {
-    bb.isInsideInclusive(MapBuilder.mapBounds) &&
-      pastedSectorGroups.filter(psg => psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0).isEmpty
-  }
+  // these are basically just an optimization of SgMapBuilder.autoLinkRedwalls()
+  // def findUnlinkedRedwallConnectors(): Seq[RedwallConnector] = {
+  //   pastedSectorGroups.flatMap(_.unlinkedConnectors).flatMap { c =>
+  //     c match {
+  //       case n: RedwallConnector => Some(n)
+  //       case _ => None
+  //     }
+  //   }
+  // }
+  // /**
+  //   * Given a connector in a pasted sector group, see if it has been pasted on top of a perfectly matching
+  //   * connector, and link them.
+  //   * @param pastedConnector
+  //   */
+  // def findAndLinkMatch(pastedConnector: RedwallConnector): Int = {
+  //   var count = 0
+  //   val unlinked: Seq[RedwallConnector] = this.findUnlinkedRedwallConnectors()
+
+  //   val cr = pastedConnector
+  //   val cOpt = unlinked.find(c0 => c0.isMatch(cr) && cr.getTransformTo(c0).equals(PointXYZ.ZERO))
+  //   cOpt.foreach{ ccc =>
+  //     ccc.linkConnectors(this.outMap, cr)
+  //     count += 1
+  //     println("FIND AND LINK SUCCESSFUL")
+  //   }
+
+  //   count
+  // }
+
 }
 
 
@@ -82,10 +72,13 @@ object PipeDream {
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val builder = new PipeBuilder(DMap.createNew(), palette)
 
+    val SIZE = 40
 
-    val sanityCheck = palette.getSectorGroup(13).getConnector(101).asInstanceOf[RedwallConnector]
-    val sanityCheck2 = palette.getSectorGroup(700).getConnector(101).asInstanceOf[RedwallConnector]
-    require(sanityCheck.isMatch(sanityCheck2))
+
+    // TODO - implement multi-wall-multi-sector connector
+    // val sanityCheck = palette.getSectorGroup(13).getConnector(101).asInstanceOf[RedwallConnector]
+    // val sanityCheck2 = palette.getSectorGroup(700).getConnector(101).asInstanceOf[RedwallConnector]
+    // require(sanityCheck.isMatch(sanityCheck2))
 
     def randomItem[T](list: Seq[T]): T = {
       if(list.size < 1) throw new IllegalArgumentException
@@ -102,7 +95,7 @@ object PipeDream {
             .filter{c2 =>
               val bb = sg.boundingBox
               val cdelta: PointXYZ = c2.getTransformTo(existingConn)
-              builder.sectorCount + sg.getSectorCount <= MapBuilder.MAX_SECTOR_GROUPS &&
+              builder.sectorCount + sg.getSectorCount <= DMap.MAX_SECTOR_GROUPS &&
                 builder.spaceAvailable(bb.translate(cdelta.asXY()))
             }
         conns.map((sg, _))
@@ -118,7 +111,8 @@ object PipeDream {
 
     //builder.pasteSectorGroup(palette.getSectorGroup(2), PointXYZ.ZERO)
 
-    for(_ <- 0 to 60){
+    var linked0 = 0
+    for(_ <- 0 to SIZE){
       //1. pick an open connector
       // TODO - refactor PastedSectorGroup so it is easy to find unliked connectors
       val openConnectors = builder.openConnectors
@@ -138,13 +132,16 @@ object PipeDream {
           val (newSg, newSgConn) = randomItem(matchingSgs.toSeq)
           val psg = builder.pasteAndLink(c, newSg, newSgConn)
 
-          //4. see if any open connectors happen to be next to each other
-          psg.unlinkedRedwallConnectors.foreach(builder.findAndLinkMatch(_))
+          // 4. see if any open connectors happen to be next to each other
+          // linked0 += psg.unlinkedRedwallConnectors.map(builder.findAndLinkMatch(_)).sum
         }
 
       }
 
     }
+    val linked = builder.sgBuilder.autoLinkRedwalls()
+    println(s"linked ${linked0} connectors by old method")
+    println(s"linked ${linked} connectors by new method")
 
     println(s"Sector count: ${builder.outMap.getSectorCount}")
     builder.setAnyPlayerStart()

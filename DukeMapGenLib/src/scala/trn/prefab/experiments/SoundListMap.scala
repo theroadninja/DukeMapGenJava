@@ -3,37 +3,21 @@ package trn.prefab.experiments
 import trn.MapImplicits._
 import trn.duke.{MusicSFXList, TextureList}
 import trn.prefab._
-import trn.{PointXY, PointXYZ, Wall, Map => DMap}
+import trn.{PointXY, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._
 
-
-object SoundMapBuilder {
-  def westConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[RedwallConnector]
-  def eastConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[RedwallConnector]
-  def westConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[RedwallConnector]
-  def eastConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[RedwallConnector]
-  def translateToTopMiddle(sg: SectorGroup): PointXYZ ={
-    sg.boundingBox.topLeft.translateTo(new PointXY(0, DMap.MIN_Y)).withZ(0);
-  }
-}
-
 class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
-  val mainHall = palette.getSectorGroup(2)
-  val pastedMainHall = pasteSectorGroup(mainHall, SoundMapBuilder.translateToTopMiddle(mainHall))
+  val writer = new MapWriter(this, sgBuilder)
+
+  val mainHall = 2
+  val pastedMainHall = pasteSectorGroupAt(palette.getSG(mainHall), new PointXY(0, DMap.MIN_Y).withZ(0))
 
   var currentPsgRight: Option[PastedSectorGroup] = None
   var rowRight = 1 // 1-based because hitag 0 means no connector id
 
   var currentPsgLeft: Option[PastedSectorGroup] = None
   var rowLeft = 1
-
-  // TODO - this should probably become part of MapBuilder
-  def joinWalls(c1: Connector, c2: Connector): Unit = {
-    // TODO - this should throw if the walls are already joined!
-    if(c1 == null || c2 == null) throw new IllegalArgumentException
-    c1.asInstanceOf[RedwallConnector].linkConnectors(outMap, c2.asInstanceOf[RedwallConnector])
-  }
 
   def getRowStart(row: Int): RedwallConnector  ={
     if(row < 0) throw new IllegalArgumentException
@@ -53,11 +37,10 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
   }
 
   def addRoom(room: SectorGroup): Unit = {
-    val wconn = SoundMapBuilder.westConnector(room)
     val econn = currentPsgRight match {
       case None => getRowStart(rowRight)
       case Some(psg) =>
-        val econn = SoundMapBuilder.eastConnector(psg)
+        val econn = MapWriter.eastConnector(psg)
         if(econn.getAnchorPoint.x < DMap.MAX_X - (1024 * 5)){
           econn
         }else{
@@ -65,9 +48,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
           getRowStart(rowRight)
         }
     } // match
-    val cdelta = wconn.getTransformTo(econn)
-    val pastedRoom = pasteSectorGroup(room, cdelta)
-    joinWalls(econn, SoundMapBuilder.westConnector(pastedRoom))
+    val pastedRoom = writer.pasteAndLink(econn, room, MapWriter.westConnector(room))
     currentPsgRight = Some(pastedRoom)
   }
 
@@ -75,7 +56,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
     val wconn = currentPsgLeft match {
       case None => getLeftRowStart(rowLeft)
       case Some(psg) =>
-        val wconn = SoundMapBuilder.westConnector(psg)
+        val wconn = MapWriter.westConnector(psg)
         if(wconn.getAnchorPoint.x > DMap.MIN_Y + (1025 * 5)){
           wconn
         }else{
@@ -83,10 +64,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
           getLeftRowStart(rowLeft)
         }
     }
-    val econn = SoundMapBuilder.eastConnector(room)
-    val cdelta = econn.getTransformTo(wconn)
-    val pastedRoom = pasteSectorGroup(room, cdelta)
-    joinWalls(wconn, SoundMapBuilder.eastConnector(pastedRoom))
+    val pastedRoom = writer.pasteAndLink(wconn, room, MapWriter.eastConnector(room))
     currentPsgLeft = Some(pastedRoom)
   }
 }
@@ -113,14 +91,13 @@ case class WallDetails(texture: Int, xRepeat: Option[Int], yRepeat: Option[Int],
   def matches(sound: Int): Boolean = sounds.contains(sound)
 }
 
-object SoundListMap {
-  val FILENAME = "sound.map"
 
+object SoundListRoom {
   def makeRoom(sound: Int, palette: PrefabPalette, labels: Seq[WallDetails]): SectorGroup ={
     if(sound < 0) throw new IllegalArgumentException
     val room = palette.getSectorGroup(3).copy()
     room.getMap.allSprites.foreach { s =>
-      if(s.getTexture == TextureList.TOUCHPLATE || s.getTexture == TextureList.ACTIVATOR || s.getTexture == TextureList.MUSIC_AND_SFX) {
+      if(s.getTex== TextureList.TOUCHPLATE || s.getTex == TextureList.ACTIVATOR || s.getTex == TextureList.MUSIC_AND_SFX) {
         s.setLotag(sound)
       }
     }
@@ -133,8 +110,14 @@ object SoundListMap {
     }
     room
   }
+}
 
-  def run(sourceMap: DMap): DMap = {
+object SoundListMap {
+  val FILENAME = "sound.map"
+
+  def toSet(list: java.util.List[java.lang.Integer]): Set[Int] = list.asScala.map(_.toInt).toSet
+
+  def getLabels: Seq[WallDetails] = {
     val dukeVocals = WallDetails(1405, Some(5), Some(4), MusicSFXList.DUKE_VOCALS.ALL)
     val dukeNoises = WallDetails(1405, Some(5), Some(4), MusicSFXList.DUKE_NOISES.ALL)
     val doors = WallDetails(1173, MusicSFXList.DOOR_SOUNDS.ALL)
@@ -153,33 +136,34 @@ object SoundListMap {
     val weapons = WallDetails(2614, None, None, MusicSFXList.WEAPON_SOUNDS.ALL)
     val inventory = WallDetails(2614, None, None, MusicSFXList.INVENTORY.ALL)
 
+    Seq(dukeVocals, dukeNoises, doors, slimer, octabrain, trooper, pigcop, pigcopRecon, enforcer, drone,
+      fatCommander, bossEp1, bossEp2, bossEp3, secretLevel, weapons, inventory)
+  }
+
+  def run(sourceMap: DMap): DMap = {
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val builder = new SoundMapBuilder(DMap.createNew(), palette)
-
-    val DUKE_VOCALS: Set[Int] = MusicSFXList.DUKE_VOCALS.ALL.asScala.map(_.toInt).toSet
-    val DUKE_NOISES: Set[Int] = MusicSFXList.DUKE_NOISES.ALL.asScala.map(_.toInt).toSet
-    val ENEMIES: Set[Int] = MusicSFXList.ENEMIES.ALL.asScala.map(_.toInt).toSet
-
-    val labels = Seq(dukeVocals, dukeNoises, doors, slimer, octabrain, trooper, pigcop, pigcopRecon, enforcer, drone,
-      fatCommander, bossEp1, bossEp2, bossEp3, secretLevel, weapons, inventory)
-
-    val allSounds = MusicSFXList.ALL.asScala.map(_.toInt).toSet
-    val ITEMS = (weapons.sounds ++ inventory.sounds).toSeq.sorted
-
-    val rightSoundsA = allSounds -- DUKE_VOCALS -- ENEMIES -- DUKE_NOISES -- ITEMS
-    val rightSounds = rightSoundsA.toSeq.sorted ++ DUKE_VOCALS.toSeq.sorted
-    for(i <- rightSounds){
-      builder.addRoom(makeRoom(i, palette, labels))
-    }
-
-    val leftSounds: Seq[Int] = ITEMS ++ DUKE_NOISES.toSeq.sorted ++ ENEMIES.toSeq.sorted
-    for(i <- leftSounds){
-      builder.addLeft(makeRoom(i, palette, labels))
-    }
-
+    run2(builder, palette, getLabels)
     println(s"Sector count: ${builder.outMap.getSectorCount}")
     builder.setAnyPlayerStart()
     builder.clearMarkers()
     builder.outMap
+  }
+
+  def run2(builder: SoundMapBuilder, palette: PrefabPalette, labels: Seq[WallDetails]): Unit = {
+    val DUKE_VOCALS: Set[Int] = MusicSFXList.DUKE_VOCALS.ALL.asScala.map(_.toInt).toSet
+    val DUKE_NOISES: Set[Int] = MusicSFXList.DUKE_NOISES.ALL.asScala.map(_.toInt).toSet
+    val ENEMIES: Set[Int] = MusicSFXList.ENEMIES.ALL.asScala.map(_.toInt).toSet
+    val ITEMS: Set[Int] = toSet(MusicSFXList.WEAPON_SOUNDS.ALL) ++ toSet(MusicSFXList.WEAPON_SOUNDS.ALL)
+
+    val rightSoundsA = toSet(MusicSFXList.ALL) -- DUKE_VOCALS -- ENEMIES -- DUKE_NOISES -- ITEMS
+    val rightSounds = rightSoundsA.toSeq.sorted ++ DUKE_VOCALS.toSeq.sorted
+    for(i <- rightSounds){
+      builder.addRoom(SoundListRoom.makeRoom(i, palette, labels))
+    }
+    val leftSounds: Seq[Int] = ITEMS.toSeq.sorted ++ DUKE_NOISES.toSeq.sorted ++ ENEMIES.toSeq.sorted
+    for(i <- leftSounds){
+      builder.addLeft(SoundListRoom.makeRoom(i, palette, labels))
+    }
   }
 }

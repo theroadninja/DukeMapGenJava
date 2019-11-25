@@ -18,6 +18,10 @@ class PastedSectorGroupS(val map: DMap, destSectorIds: java.util.Set[java.lang.S
     }
   }
 
+  final def getTeleportConnector(connectorId: Int): TeleportConnector = {
+    getConnector(connectorId).asInstanceOf[TeleportConnector]
+  }
+
   final def isConnectorLinked(c: Connector): Boolean = c.isLinked(map)
 
   final def unlinkedConnectors: Seq[Connector] = {

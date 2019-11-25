@@ -14,6 +14,7 @@ object Hyper2MapBuilder {
 }
 
 class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
+  val writer = new MapWriter(this, sgBuilder) // TODO
 
   val grid = scala.collection.mutable.Map[Cell, PastedSectorGroup]()
   val grid2 = scala.collection.mutable.Map[Cell, Room]()
@@ -62,16 +63,6 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
 
   /** sets the player start of the map to the location of the first player start marker sprite it finds */
   def setPlayerStart(cell: Cell): Unit = setPlayerStart(grid(cell))
-
-  @deprecated // old version
-  def addRoom(room: SectorGroup, gridCell: (Int, Int, Int, Int)): PastedSectorGroup = {
-    val anchor: PointXYZ = room.getAnchor.withZ(0)
-    val p = toCoordinates(gridCell)
-    val tr = anchor.getTransformTo(origin.add(p))
-    val psg = pasteSectorGroup(room, tr)
-    grid(gridCell) = psg
-    psg
-  }
 
   // new version
   def addRoom(room: Room, gridCell: (Int, Int, Int, Int)): PastedSectorGroup = {
@@ -374,6 +365,8 @@ case class Room(
 
   def rotateCCW: Room = this.rotateCW.rotateCW.rotateCW
 
+  // TODO - good candidate for a more generic tool; not sure what
+  // (keep a list of textures that can be "turned blue" with that BLUE_TO_RED palette"?)
   def paintedRed: Room = {
     val redGroup = sectorGroup.copy()
     redGroup.getMap.allWalls.foreach { w =>
@@ -399,16 +392,16 @@ object Hypercube2 {
   //
   // Room Prefabs (room id is marker w/ lotag 1)
   //
-  // 100 - basic room
-  // 101 - pool room top
+  val BasicRoom = 100
+  val PoolRoomTop = 101
   // 102 - pool room bottom
   // 103 - reactor room top
 
-  // 104 - circular nuke sign room (can connect on both top or bottom)
-  // 105 - room with a view (must be top level)
-  // 106 - command center
-  // 107 - habitat
-  // 108 - train station
+  val CircularRoom = 104 // 104 - circular nuke sign room (can connect on both top or bottom)
+  val RoomWithView = 105 // must be top level
+  val CommandCenter = 106
+  val Habitat = 107
+  val TrainStation = 108
 
   // 109 - testing double red wall
   // 1091 - other room for testing double red wall
@@ -428,19 +421,15 @@ object Hypercube2 {
   // 11101 - connector for roof antenna
   // 112 - roof antenna bottom (no longer used -- now its a child sector)
 
-  // 113 - medical bay
+  val MedicalBay = 113
   // 11301 - medical bay upper floor (no longer used -- now its a child sector)
   // 11302 - redwall connection to upper floor
 
-  // 114 - end room / train
-  // 115 - super computer room
-  // 116 - plant room
-  // 117 - upper room with view
+  val EndTrain = 114
+  val SuperComputerRoom = 115
+  val PlantRoom = 116
+  val UpperRoomWithView = 117
   // 118 - modular room, high version
-
-
-
-
 
   // Intra-sector connectors
   // 150 - elevator sector
@@ -448,7 +437,6 @@ object Hypercube2 {
   //
   // Connection Groups
   //
-
 
   // 200 - east-west hallway
   // 201 - north-south hallway
@@ -468,9 +456,7 @@ object Hypercube2 {
   //
   // 303 - reactor underwater
 
-
   // note:  6 large squares ( 1042 ) seem like a good size.
-
 
   def run(sourceMap: DMap): DMap = {
 
@@ -518,35 +504,22 @@ object Hypercube2 {
     }
 
     val allDoors: Seq[Int] = Heading.all.asScala.map(_.toInt)
-    val circleRoom = Room.auto(palette.getSectorGroup(104), allDoors, allDoors)
-
-    val roomWithView = Room(palette.getSectorGroup(105), Seq(), Seq(Heading.W, Heading.N), false, false)
-
-    val poolRoom = Room.auto(palette.getSectorGroup(101), allDoors, Seq())
-
-    val commandCenter = Room.auto(palette.getSectorGroup(106), Seq(), Room.autoDoors(palette.getSectorGroup(106)))
-
-    val habitat = Room.auto(palette.getSectorGroup(107), Seq(), Seq(Heading.W))
-
-    val trainStop = Room(palette.getSectorGroup(108), Seq(), Seq( Heading.EAST, Heading.SOUTH ), false, false)
+    // val circleRoom = Room.auto(palette.getSectorGroup(CircularRoom), allDoors, allDoors)
+    val roomWithView = Room(palette.getSectorGroup(RoomWithView), Seq(), Seq(Heading.W, Heading.N), false, false)
+    // val poolRoom = Room.auto(palette.getSectorGroup(PoolRoomTop), allDoors, Seq())
+    val commandCenter = Room.auto(palette.getSG(CommandCenter), Seq(), Room.autoDoors(palette.getSectorGroup(106)))
+    // val habitat = Room.auto(palette.getSectorGroup(Habitat), Seq(), Seq(Heading.W))
+    val trainStop = Room(palette.getSectorGroup(TrainStation), Seq(), Seq( Heading.EAST, Heading.SOUTH ), false, false)
 
     val ELEVATOR_GROUP = 1101
     val dishSg = palette.getSectorGroup(111).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
     val dishRoof = Room.auto(dishSg, Seq(Heading.S, Heading.W), Seq())
 
-    // 113 - medical bay
-    val medicalBay = Room(palette.getSectorGroup(113), Seq(), Seq(Heading.S), false, false)
-
-    val endTrain = Room(palette.getSectorGroup(114), Seq(), Seq(Heading.S), false, false)
-
-    val computerRoom = Room(palette.getSectorGroup(115), Seq(Heading.W), Seq(Heading.S), true, false)
-
-    val plantRoom = Room(palette.getSectorGroup(116), allDoors, Seq(), false, false)
-
-    val highViewRoom = Room(palette.getSectorGroup(117), Seq(Heading.N), Seq(), false, true)
-
-    // TODO - anchor sprite removal with connectedTo() is not working
-
+    val medicalBay = Room(palette.getSectorGroup(MedicalBay), Seq(), Seq(Heading.S), false, false)
+    val endTrain = Room(palette.getSectorGroup(EndTrain), Seq(), Seq(Heading.S), false, false)
+    val computerRoom = Room(palette.getSectorGroup(SuperComputerRoom), Seq(Heading.W), Seq(Heading.S), true, false)
+    val plantRoom = Room(palette.getSectorGroup(PlantRoom), allDoors, Seq(), false, false)
+    val highViewRoom = Room(palette.getSectorGroup(UpperRoomWithView), Seq(Heading.N), Seq(), false, true)
 
     // BOTTOM FLOOR
     builder.addRoom(trainStop, (0, 0, 0, 0))
@@ -577,99 +550,9 @@ object Hypercube2 {
     builder.autoLinkRooms()
 
     builder.applyPaletteToAll(TextureList.SKIES.MOON_SKY, PaletteList.ALSO_NORMAL)
-    builder.setPlayerStart((0, 0, 0, 0))
-    //builder.setAnyPlayerStart()
+    builder.setPlayerStart((0, 0, 0, 0)) //builder.setAnyPlayerStart()
     builder.clearMarkers()
     builder.outMap
   }
-
-
-
-
-
-
-
-
-
-  // def run2(sourceMap: DMap): DMap = {
-  //   val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
-  //   val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
-
-  //   val sg = palette.getSectorGroup(109)
-  //   val sg2 = palette.getSectorGroup(1091)
-
-  //   val basicElevator = palette.getSectorGroup(1101)
-  //   val basicEmpty = palette.getSectorGroup(1102).flippedY(0).flippedX(0)
-  //   val basicRoom = palette.getSectorGroup(110).flippedY().flippedX()
-
-  //   val room = basicRoom.connectedTo(123, basicEmpty)
-  //   builder.placeAnywhere(room);
-
-  //   builder.setAnyPlayerStart()
-  //   builder.clearMarkers()
-  //   builder.outMap
-  // }
-
-  def runUnderwaterTest(sourceMap: DMap): DMap = {
-    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
-    val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
-
-    val basicRoom = palette.getSectorGroup(100)
-
-    val poolRoomTop = palette.getSectorGroup(101)
-    val poolRoomBottom = palette.getSectorGroup(102)
-    val reactorRoomTop = palette.getSectorGroup(103)
-
-    val eastWestHallway = palette.getSectorGroup(200)
-    val northSouthHallway = palette.getSectorGroup(201)
-    val eastWestElevator = palette.getSectorGroup(202)
-
-    val underWaterPassage1 = palette.getSectorGroup(301)
-    val reactorUnderwaterRoom = palette.getSectorGroup(303)
-
-    val a = basicRoom.getAnchor.asPointXY
-
-    val topPsg = builder.addRoom(reactorRoomTop, (1, 0, 0, 0))
-
-    //val tmpPoolBottom = poolRoomBottom.connectedTo(RedwallJoinType.NorthToSouth, underWaterPassage1)
-    val tmpPoolBottom = poolRoomBottom.connectedTo(RedwallJoinType.NorthToSouth, underWaterPassage1)
-      //.connectedTo(RedwallJoinType.NorthToSouth, poolRoomBottom)
-      .connectedTo(RedwallJoinType.NorthToSouth, reactorUnderwaterRoom)
-
-    val bottomPsg = builder.placeAnywhere(tmpPoolBottom)
-
-    val top2Psg = builder.addRoom(poolRoomTop, (1, 1, 0, 0))
-
-    builder.linkAllWater2(Seq(topPsg, top2Psg), Seq(bottomPsg))
-
-    builder.placeHallwayNS(northSouthHallway, (1, 0, 0, 0), (1, 1, 0, 0))
-
-    // TODO - the hallway connectors should all be automatic ...
-
-    // TODO - redwall connectors should check distance and throw if wall length not equal
-
-    // TODO copy code should warn if there are sectors in the map that it didnt copy
-
-    // TODO - add a smaller type of door
-
-    builder.addRoom(basicRoom.flippedX(a.x), (0, 1, 0, 0))
-    builder.placeHallwayEW(eastWestElevator, (0, 1, 0, 0), (1, 1, 0, 0))
-
-    // builder.addRoom(basicRoom, (1, 1, 0, 0))
-    // builder.addRoom(basicRoom.flippedX(a.x), (0, 1, 0, 0))
-    // builder.addRoom(basicRoom.flippedY(a.y).flippedX(a.x), (0, 0, 0, 0))
-
-    // builder.placeHallwayEW(eastWestHallway, (0, 1, 0, 0), (1, 1, 0, 0))
-    // builder.placeHallwayNS(northSouthHallway, (0, 0, 0, 0), (0, 1, 0, 0))
-
-    // builder.addRoom(basicRoom.flippedY(a.x), (1, 0, 0, 0))
-    // builder.placeHallwayEW(eastWestHallway, (0, 0, 0, 0), (1, 0, 0, 0))
-    // builder.placeHallwayNS(northSouthHallway, (1, 0, 0, 0), (1, 1, 0, 0))
-
-    builder.setAnyPlayerStart()
-    builder.clearMarkers()
-    builder.outMap
-  }
-
 
 }

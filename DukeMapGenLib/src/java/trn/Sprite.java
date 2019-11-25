@@ -224,6 +224,9 @@ public class Sprite {
 	public short getTexture(){
 		return this.picnum;
 	}
+	public short getTex(){
+		return getTexture();
+	}
 	
 	public void setTexture(short s){
 		this.picnum = s;

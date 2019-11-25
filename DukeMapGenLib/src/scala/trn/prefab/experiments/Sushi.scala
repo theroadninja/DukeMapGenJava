@@ -16,118 +16,22 @@ case class Placement(existing: RedwallConnector, newConn: RedwallConnector, newS
 
 class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = new RandomX()) extends MapBuilder {
 
-  // TODO - this is copied from Hypercube2
-  val sgPacker: SectorGroupPacker = new SimpleSectorGroupPacker(
-    new PointXY(DMap.MIN_X, 0),
-    new PointXY(DMap.MAX_X, DMap.MAX_Y),
-    512)
+  val writer = new MapWriter(this, sgBuilder) // TODO
+  sgBuilder.pasteAllStaySectors(palette)
 
-  // TODO - this is copied from Hypercube2
-  def placeAnywhere(sg: SectorGroup): PastedSectorGroup = {
-    val topLeft = sgPacker.reserveArea(sg)
-    val tr = sg.boundingBox.getTranslateTo(topLeft).withZ(0)
-    pasteSectorGroup(sg, tr)
-  }
+  def pasteSouthOf(existing: PastedSectorGroup, newGroup: SectorGroup): PastedSectorGroup =
+    writer.pasteSouthOf(existing, newGroup)
 
-  // TODO - copied from PipeDream
-  def pasteAndLink(
-    existingConn: RedwallConnector,
-    newSg: SectorGroup,
-    newConn: RedwallConnector
-  ): PastedSectorGroup = {
-    require(Option(existingConn).isDefined)
-    require(Option(newSg).isDefined)
-    require(Option(newConn).isDefined)
-    val cdelta = newConn.getTransformTo(existingConn)
-    val (psg, idmap) = pasteSectorGroup2(newSg, cdelta)
-    val pastedConn2 = newConn.translateIds(idmap, cdelta)
-    existingConn.linkConnectors(outMap, pastedConn2)
-    psg
-  }
+  def pasteEastOf(existing: PastedSectorGroup, newGroup: SectorGroup): PastedSectorGroup =
+    writer.pasteEastOf(existing, newGroup)
 
-  // TODO - copied from PipeDream.scala
-  val pastedStays: Seq[PastedSectorGroup] = palette.getStaySectorGroups.asScala.map { sg =>
-    // NOTE:  this adds it to pastedSectorGroups
-    pasteSectorGroup(sg, PointXYZ.ZERO) // no translate == leave where it is
-  }
+  def pasteWestOf(existing: PastedSectorGroup, newGroup: SectorGroup): PastedSectorGroup =
+    writer.pasteWestOf(existing, newGroup)
 
-  def pasteAndLinkSouthOf(
-    existingGroup: PastedSectorGroup,
-    newGroup: SectorGroup
-  ): PastedSectorGroup = {
-    val conn1 = existingGroup.findFirstConnector(SimpleConnector.SouthConnector).asInstanceOf[RedwallConnector]
-    pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(SimpleConnector.NorthConnector).asInstanceOf[RedwallConnector])
-  }
+  def pasteNorthOf(existing: PastedSectorGroup, newGroup: SectorGroup): PastedSectorGroup =
+    writer.pasteNorthOf(existing, newGroup)
 
-  def pasteAndLinkWestOf(
-    existingGroup: PastedSectorGroup,
-    newGroup: SectorGroup
-  ): PastedSectorGroup = {
-    val conn1 = existingGroup.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[RedwallConnector]
-    pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[RedwallConnector])
-  }
-
-  private def pasteAndLinkNextTo(
-    existingGroup: PastedSectorGroup,
-    existingConn: ConnectorFilter,
-    newGroup: SectorGroup,
-    newConn: ConnectorFilter
-  ): PastedSectorGroup = {
-    val conn1 = existingGroup.findFirstConnector(existingConn).asInstanceOf[RedwallConnector]
-    pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(newConn).asInstanceOf[RedwallConnector])
-  }
-
-  def pasteEastOf(
-    existing: PastedSectorGroup,
-    newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, SimpleConnector.EastConnector, newGroup, SimpleConnector.WestConnector)
-
-  def pasteWestOf(
-    existing: PastedSectorGroup,
-    newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, SimpleConnector.WestConnector, newGroup, SimpleConnector.EastConnector)
-
-  def pasteNorthOf(
-    existing: PastedSectorGroup,
-    newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, SimpleConnector.NorthConnector, newGroup, SimpleConnector.SouthConnector)
-
-  /**
-    * TODO - copied from PipeDream
-    * TODO - making this one more advanced
-    * Tests if the given box is available (empty).  This tests the entire (axis-aligned) box, which means it is
-    * an inefficient measure for sector groups that are not box-like.
-    * @param bb the bounding box
-    * @param tx - the translation to apply to SG.   TODO - this is terrible; should move the SG before passing to this
-    * @return true if the bounding box is in bounds and there are no existing groups in that area.
-    */
-  //def spaceAvailable(bb: BoundingBox): Boolean = {
-  def spaceAvailable(sg: SectorGroup, tx: PointXY): Boolean = {
-
-    def conflict(psg: PastedSectorGroup, bb: BoundingBox): Boolean ={
-      psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0
-    }
-
-    val bb = sg.boundingBox.translate(tx)
-    lazy val sgBoxes = sg.fineBoundingBoxes.map(_.translate(tx))
-
-    if(!bb.isInsideInclusive(MapBuilder.mapBounds)){
-      false
-    }else{
-      val conflicts = pastedSectorGroups.filter { psg =>
-        //conflict(psg, bb) && sg.fineBoundingBoxes.map(_.translate(tx)).filter(b => conflict(psg, b)).nonEmpty
-        conflict(psg, bb) && BoundingBox.nonZeroOverlap(psg.fineBoundingBoxes, sgBoxes)
-      }
-      conflicts.isEmpty
-    }
-
-    // bb.isInsideInclusive(MapBuilder.mapBounds) &&
-    //   pastedSectorGroups.filter(psg => conflict(psg, bb)).isEmpty
-  }
-
-
-
-
+  def autoLink: Unit = sgBuilder.autoLinkRedwalls()
 
 
   def pasteOptions(existing: PastedSectorGroup, newGroup: SectorGroup): Seq[Placement] = {
@@ -135,7 +39,7 @@ class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = n
       if(existing.isMatch(newConn)){
         val t = newConn.getTransformTo(existing)
         //spaceAvailable(newGroup.boundingBox.translate(t.asXY()))
-        spaceAvailable(newGroup, t.asXY)
+        writer.spaceAvailable(newGroup, t.asXY)
       }else{
         false
       }
@@ -171,7 +75,7 @@ class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = n
       //val (c1, c2, g) = random.randomElement(allOptions)
       val p = random.randomElement(allOptions)
       //Some(pasteAndLink(c1, g, c2))
-      Some(pasteAndLink(p.existing, p.newSg, p.newConn))
+      Some(writer.pasteAndLink(p.existing, p.newSg, p.newConn))
     }
   }
 
@@ -216,19 +120,6 @@ class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = n
   //   }
   // }
 
-  // TODO - finish this
-  // compare to Hypercube2 autoLinkRooms
-  def autoLink(): Unit = {
-    val unlinked = pastedSectorGroups.flatMap(psg => psg.unlinkedRedwallConnectors)
-    unlinked.foreach(c => require(!c.isLinked(outMap)))
-    unlinked.foreach { x =>
-      unlinked.foreach { y =>
-        if (x.isFullMatch(y, outMap)) {
-          x.linkConnectors(outMap, y)
-        }
-      }
-    }
-  }
 
 }
 
@@ -280,17 +171,17 @@ object Sushi {
     val entrance = builder.pastedSectorGroups.head
 
     val corner = builder.pasteEastOf(entrance, palette.getSectorGroup(Corner))
-    val psg = builder.pasteAndLinkSouthOf(corner, palette.getSectorGroup(HallLeftPR))
-    val psg2 = builder.pasteAndLinkSouthOf(psg, palette.getSectorGroup(HallLeftPR))
-    val psg3 = builder.pasteAndLinkSouthOf(psg2, palette.getSectorGroup(HallLeftPR))
-    val corner2 = builder.pasteAndLinkSouthOf(psg3, palette.getSectorGroup(3).rotateCW)
+    val psg = builder.pasteSouthOf(corner, palette.getSectorGroup(HallLeftPR))
+    val psg2 = builder.pasteSouthOf(psg, palette.getSectorGroup(HallLeftPR))
+    val psg3 = builder.pasteSouthOf(psg2, palette.getSectorGroup(HallLeftPR))
+    val corner2 = builder.pasteSouthOf(psg3, palette.getSectorGroup(3).rotateCW)
     val barEntrance = builder.pasteWestOf(corner2, palette.getSG(BarEntrance).rotateCW)
     val corner3 = builder.pasteWestOf(barEntrance, palette.getSG(Corner).rotate180)
     val bigRestaurant = builder.pasteNorthOf(corner3, palette.getSG(BigRestaurant))
     val cashier = builder.pasteNorthOf(bigRestaurant, palette.getSG(CornerCashier).rotateCCW)
     val barRamp = builder.pasteConnectedTo(barEntrance, palette.getSG(Ramp2))
     val stage = builder.pasteEastOf(barRamp, palette.getSG(Stage))
-    val bar = builder.pasteAndLinkSouthOf(barRamp, palette.getSG(Bar2))
+    val bar = builder.pasteSouthOf(barRamp, palette.getSG(Bar2))
     val kitchen = builder.pasteWestOf(
       builder.pasteWestOf(bar, palette.getSG(Doorway1)),
       palette.getSG(Kitchen))
@@ -306,11 +197,11 @@ object Sushi {
 
     val corner = builder.pasteEastOf(entrance, palette.getSectorGroup(Corner))
 
-    val psg = builder.pasteAndLinkSouthOf(corner, palette.getSectorGroup(HallLeftPR))
-    val psg2 = builder.pasteAndLinkSouthOf(psg, palette.getSectorGroup(HallLeftPR))
-    val psg3 = builder.pasteAndLinkSouthOf(psg2, palette.getSectorGroup(HallLeftPR))
+    val psg = builder.pasteSouthOf(corner, palette.getSectorGroup(HallLeftPR))
+    val psg2 = builder.pasteSouthOf(psg, palette.getSectorGroup(HallLeftPR))
+    val psg3 = builder.pasteSouthOf(psg2, palette.getSectorGroup(HallLeftPR))
 
-    val corner2 = builder.pasteAndLinkSouthOf(psg3, palette.getSectorGroup(3).rotateCW)
+    val corner2 = builder.pasteSouthOf(psg3, palette.getSectorGroup(3).rotateCW)
 
     val barEntrance = builder.pasteWestOf(corner2, palette.getSG(BarEntrance).rotateCW)
 

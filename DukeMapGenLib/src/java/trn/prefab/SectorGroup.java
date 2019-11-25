@@ -164,6 +164,7 @@ public class SectorGroup extends SectorGroupS
 	    return super.map().getSectorCount();
     }
 
+    // TODO - move to base class or interface something
 	public Connector findFirstConnector(ConnectorFilter cf){
 		Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
 		return it.hasNext() ? it.next() : null;

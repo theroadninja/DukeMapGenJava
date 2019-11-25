@@ -11,8 +11,7 @@ import scala.collection.mutable.ListBuffer
 object MapBuilder {
   def mapBounds = BoundingBox(DMap.MIN_X, DMap.MIN_Y, DMap.MAX_X, DMap.MAX_Y)
 
-  /** The build editor will crash if a map has more than 1024 sectors */
-  def MAX_SECTOR_GROUPS: Int = 1024
+  //def MAX_SECTOR_GROUPS: Int = 1024
 
   def isMarkerSprite(s: Sprite, lotag: Int): Boolean = {
     s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
@@ -52,7 +51,7 @@ object MapBuilder {
   * Providers extra functionality for placing sectors whose locations are not important (underwater sectors, etc).
   * Automatically separates them, so you don't have to bother hardcoding locations.
   */
-trait AnywhereBuilder {
+trait AnywhereBuilder { // TODO rename to AnywhereWriter or something
 
   def sgPacker: SectorGroupPacker
 
@@ -66,10 +65,18 @@ trait AnywhereBuilder {
   }
 }
 
+/**
+  * TODO - this should go away in favor of SgMapBuilder + MapWriter
+  */
 trait MapBuilder extends ISectorGroup with TagGenerator {
   val outMap: DMap
 
-  val pastedSectorGroups: mutable.Buffer[PastedSectorGroup] = new ListBuffer()
+  val sgBuilder = new SgMapBuilder(outMap)
+  //def pastedSectorGroups: mutable.Buffer[PastedSectorGroup] = sgBuilder.pastedSectorGroups
+  def pastedSectorGroups: Seq[PastedSectorGroup] = sgBuilder.pastedSectorGroups
+
+
+  //val pastedSectorGroups: mutable.Buffer[PastedSectorGroup] = new ListBuffer()
 
   //var hiTagCounter = 1 + Math.max(0, outMap.allSprites.map(_.getHiTag).max)
   var hiTagCounter = 1
@@ -83,6 +90,7 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
   override def getMap(): DMap = outMap
 
   /**
+    * TODO - candidate for moving to MapWriter
     * paste the sector group so that it's anchor is at the given location.  If no anchor,
     * its top left corner of the bounder box will be used.
     * @param sg
@@ -94,21 +102,33 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
       if(anchorOnly){ throw new SpriteLogicException(("no anchor sprite"))}
       new PointXYZ(sg.boundingBox.xMin, sg.boundingBox.yMin, 0) // TODO - bounding box doesnt do z ...
     }
-    pasteSectorGroup(sg, anchor.getTransformTo(location))
-  }
-
-  def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = {
-    val psg = new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
-    pastedSectorGroups.append(psg)
+    //pasteSectorGroup(sg, anchor.getTransformTo(location))
+    val (psg, _) = sgBuilder.pasteSectorGroup2(sg, anchor.getTransformTo(location))
     psg
   }
 
-  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap)  = {
-    val copyState = MapUtil.copySectorGroup(sg.map, outMap, 0, translate);
-    val tp = (new PastedSectorGroup(outMap, copyState), copyState.idmap)
-    pastedSectorGroups.append(tp._1)
-    tp
+  // TODO - if the other experiments have bugs with pasting sector groups, look at this commented out version
+  // I think we want to deprecate this one in favor of pasteSectorGroup2
+  // def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = {
+  //   val psg = new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
+  //   pastedSectorGroups.append(psg)
+  //   psg
+  // }
+  def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = {
+    val (psg, _) = pasteSectorGroup2(sg, translate)
+    psg
   }
+
+  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap) = {
+    sgBuilder.pasteSectorGroup2(sg, translate)
+  }
+
+  // def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap)  = {
+  //   val copyState = MapUtil.copySectorGroup(sg.map, outMap, 0, translate);
+  //   val tp = (new PastedSectorGroup(outMap, copyState), copyState.idmap)
+  //   pastedSectorGroups.append(tp._1)
+  //   tp
+  // }
 
   /** sets the player start of the map to the location of the first player start marker sprite it finds */
   def setAnyPlayerStart(): Unit = {
@@ -153,12 +173,13 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
     outMap.setPlayerStart(new PlayerStart(playerStarts(0)))
   }
 
-  def clearMarkers(): Unit = {
-    if(!outMap.hasPlayerStart){
-      throw new IllegalStateException("Cannot delete marker sprites - there is no player start set")
-    }
-    outMap.deleteSprites(SpriteFilter.texture(PrefabUtils.MARKER_SPRITE_TEX))
-  }
+  def clearMarkers(): Unit = sgBuilder.clearMarkers()
+  // def clearMarkers(): Unit = {
+  //   if(!outMap.hasPlayerStart){
+  //     throw new IllegalStateException("Cannot delete marker sprites - there is no player start set")
+  //   }
+  //   outMap.deleteSprites(SpriteFilter.texture(PrefabUtils.MARKER_SPRITE_TEX))
+  // }
 
   /**
     * @param s
@@ -170,8 +191,7 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
     MapBuilder.isMarkerSprite(s, lotag)
   }
 
-  // TODO - add optional hitag param
-  def isAnchor(s: Sprite): Boolean = MapBuilder.isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
+  def isAnchor(s: Sprite): Boolean = MapBuilder.isAnchorSprite(s)
 
 
   // gets all of the water connections from the pasted sector group, in sorted order
@@ -277,7 +297,6 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
 
   /**
     * TODO - very similar to method in Sushi, PipeDream
-    * TODO - fill out this doc
     */
   //def spaceAvailable(bb: BoundingBox): Boolean = {
   // def spaceAvailable(bb: BoundingBox): Boolean = {

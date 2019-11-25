@@ -7,6 +7,7 @@ import trn.duke.PaletteList
 
 
 class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
+  val Hallway = 250
 
   val origin: PointXYZ = new PointXYZ(DMap.MIN_X + 10*1024, DMap.MIN_Y + 10*1024, 0)
 
@@ -14,9 +15,8 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
   val maxGridY = 4
   val maxGridX = 4
 
-  val horizHallway = palette.getSectorGroup(200)
-  //val horizHallway2 = palette.getSectorGroup(201)
-  val vertHallway = palette.getSectorGroup(250)
+  val horizHallway = palette.getSectorGroup(Hallway)
+  val vertHallway = horizHallway.rotateCW
 
   val grid = scala.collection.mutable.Map[(Int, Int, Int, Int), PastedSectorGroup]()
 
@@ -181,9 +181,9 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
     val room2 = grid.get(node2).get
 
     TeleportConnector.linkTeleporters(
-      room1.getConnector(connectorId).asInstanceOf[TeleportConnector],
+      room1.getTeleportConnector(connectorId),
       room1,
-      room2.getConnector(connectorId).asInstanceOf[TeleportConnector],
+      room2.getTeleportConnector(connectorId),
       room2,
       nextUniqueHiTag()
     )
@@ -252,18 +252,6 @@ object Hypercube1 {
 
       roomToPlace2.foreach(builder.placeRoom(_, x, y, z, w))
 
-
-      // doesnt work - it affects the entire map
-      // if(w == 1){
-      //   psg.getMap.allWalls.foreach { w =>
-      //     w.setPal(PaletteList.BLUE_TO_RED)
-      //   }
-      // }else if(w == 0){
-      //   psg.getMap.allWalls.foreach { w =>
-      //     w.setPal(PaletteList.NORMAL)
-      //   }
-
-      // }
     }
 
     builder.placeHallways()

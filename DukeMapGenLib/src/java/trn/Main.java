@@ -39,9 +39,9 @@ public class Main {
         //Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
 		//Map outMap = ReferenceTestExperiment.run(new MapLoader(DOSPATH));
 		//Map outMap = PipeDream.run(new MapLoader(DOSPATH));
-		//Map outMap = Sushi.run(new MapLoader(DOSPATH));
+		Map outMap = Sushi.run(new MapLoader(DOSPATH));
 
-		Map outMap = runDeleteSectorTest(5, new MapLoader(DOSPATH));
+		//Map outMap = runDeleteSectorTest(5, new MapLoader(DOSPATH));
 
 		// writeAndOpenMapPng(outMap);
 		deployTest(outMap);
