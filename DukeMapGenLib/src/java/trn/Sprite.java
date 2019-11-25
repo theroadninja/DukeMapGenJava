@@ -211,6 +211,11 @@ public class Sprite {
 		this.y = point.y;
 	}
 
+	// // convenience method
+	// public PointXYZ getTransformTo(PointXYZ dest){
+	// 	return getLocation().getTransformTo(dest);
+	// }
+
 	public void setLocation(PointXYZ point){
 		this.x = point.x;
 		this.y = point.y;

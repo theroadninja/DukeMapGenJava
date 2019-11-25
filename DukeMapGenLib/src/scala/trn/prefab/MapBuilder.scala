@@ -75,17 +75,8 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
   //def pastedSectorGroups: mutable.Buffer[PastedSectorGroup] = sgBuilder.pastedSectorGroups
   def pastedSectorGroups: Seq[PastedSectorGroup] = sgBuilder.pastedSectorGroups
 
-
   //val pastedSectorGroups: mutable.Buffer[PastedSectorGroup] = new ListBuffer()
-
-  //var hiTagCounter = 1 + Math.max(0, outMap.allSprites.map(_.getHiTag).max)
-  var hiTagCounter = 1
-
-  override def nextUniqueHiTag(): Int = {
-    val i = hiTagCounter
-    hiTagCounter += 1
-    i
-  }
+  override def nextUniqueHiTag(): Int = sgBuilder.nextUniqueHiTag()
 
   override def getMap(): DMap = outMap
 

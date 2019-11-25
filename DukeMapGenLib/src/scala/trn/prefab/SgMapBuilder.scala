@@ -8,7 +8,7 @@ import scala.collection.JavaConverters._ // this is the good one
 /**
   * Lower-level map builder, that manages pasted sector groups.
   */
-class SgMapBuilder(private val map: DMap) {
+class SgMapBuilder(private val map: DMap) extends TagGenerator {
 
   // when this becomes true, the map is "finalized" and we can no longer add/remove sector groups
   var markersCleared = false
@@ -16,9 +16,18 @@ class SgMapBuilder(private val map: DMap) {
   def getMap: ImmutableMap = map.readOnly
   def sectorCount: Int = map.getSectorCount
 
+  var hiTagCounter = 1
+  // TODO - for now, if PSGs are modified (connecting teleporers, elevators...) just mark them as
+  // unable to be removed (so a PSG can only be deleted if it hasn't been touched)
   private val pastedSectorGroupsMutable: mutable.Buffer[PastedSectorGroup] = new ListBuffer()
   def pastedSectorGroups: Seq[PastedSectorGroup] = pastedSectorGroupsMutable
   private var pastedStays: Option[Seq[PastedSectorGroup]] = None  // NOTE: will need to check this when removing PSGs
+
+  override def nextUniqueHiTag(): Int = {
+    val i = hiTagCounter
+    hiTagCounter += 1
+    i
+  }
 
   def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap)  = {
     require(!markersCleared)
@@ -58,6 +67,15 @@ class SgMapBuilder(private val map: DMap) {
       }
     }
     count
+  }
+
+  def linkTeleporters(
+    c1: TeleportConnector,
+    g1: ISectorGroup,
+    c2: TeleportConnector,
+    g2: ISectorGroup
+  ){
+    TeleportConnector.linkTeleporters(c1, g1, c2, g2, nextUniqueHiTag())
   }
 
   def clearMarkers(): Unit = {

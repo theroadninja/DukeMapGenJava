@@ -1,6 +1,8 @@
 package trn.prefab
 
+import trn.duke.PaletteList
 import trn.{PointXY, PointXYZ}
+import trn.MapImplicits._
 
 
 object MapWriter {
@@ -11,10 +13,20 @@ object MapWriter {
 
   def westConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(WestConn).asInstanceOf[RedwallConnector]
   def eastConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
+  def northConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
+  def southConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
 
   // TODO - should not need different methods for SectorGroup and PastedSectorGroup
   def westConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(WestConn).asInstanceOf[RedwallConnector]
   def eastConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
+  def northConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
+  def southConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
+
+  def painted(sg: SectorGroup, colorPalette: Int): SectorGroup = {
+    val sg2 = sg.copy
+    sg2.getMap.allWalls.foreach(_.setPal(colorPalette))
+    sg2
+  }
 }
 /**
   * TODO - write unit tests for this class
@@ -23,6 +35,14 @@ object MapWriter {
   * @param sgBuilder
   */
 class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder) {
+
+  /** throws if the map has too many sectors */
+  def checkSectorCount(): Unit = {
+    println(s"checkSectorCount(): Total Sector Count: ${builder.outMap.getSectorCount}")
+    if(builder.outMap.getSectorCount > 1024){
+      throw new Exception("too many sectors") // I think maps are limited to 1024 sectors
+    }
+  }
 
   def pastedSectorGroups: Seq[PastedSectorGroup] = sgBuilder.pastedSectorGroups
 

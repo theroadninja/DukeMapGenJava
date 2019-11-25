@@ -8,15 +8,20 @@ import scala.collection.JavaConverters._ // this is the good one
 
 class PastedSectorGroupS(val map: DMap, destSectorIds: java.util.Set[java.lang.Short]) extends SectorGroupBase {
   val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
+  val connectorCollection = new PastedConnectorCollection(connectors)
+
   val sectorIds: Set[Int] = destSectorIds.asScala.map(_.toInt).toSet
 
-  final def getConnector(connectorId: Int): Connector = {
-    if(connectorId < 0) throw new IllegalArgumentException
-    connectors.asScala.find(_.connectorId == connectorId) match {
-      case Some(conn) => conn
-      case None => throw new NoSuchElementException
-    }
-  }
+  final def getConnector(connectorId: Int): Connector = connectorCollection.getConnector(connectorId)
+  //   if(connectorId < 0) throw new IllegalArgumentException
+  //   connectors.asScala.find(_.connectorId == connectorId) match {
+  //     case Some(conn) => conn
+  //     case None => throw new NoSuchElementException
+  //   }
+  // }
+
+
+  final def getElevatorConn(connId: Int): Option[ElevatorConnector] = connectorCollection.getElevatorConn(connId)
 
   final def getTeleportConnector(connectorId: Int): TeleportConnector = {
     getConnector(connectorId).asInstanceOf[TeleportConnector]

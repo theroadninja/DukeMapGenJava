@@ -106,6 +106,11 @@ public class PastedSectorGroup extends PastedSectorGroupS implements ISectorGrou
 		return it.hasNext() ? it.next() : null;
 	}
 
+	public RedwallConnector findFirstRedwallConnector(ConnectorFilter cf){
+		Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
+		return it.hasNext() ? (RedwallConnector)it.next() : null;
+	}
+
 	// public List<Connector> unlinkedConnectors(){
 	// 	LinkedList<Connector> list = new LinkedList<Connector>();
 	// 	for(Connector c : this.connectors_()){

@@ -6,6 +6,7 @@ import trn.MapImplicits._
 
 import scala.collection.JavaConverters._ // this is the good one
 
+/** first attempt at a standard connector collection interface */
 trait ConnectorCollection {
   def connectors: java.util.List[Connector]
   def map: DMap
