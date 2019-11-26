@@ -22,9 +22,13 @@ object MapWriter {
   def northConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
   def southConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
 
-  def painted(sg: SectorGroup, colorPalette: Int): SectorGroup = {
+  def painted(sg: SectorGroup, colorPalette: Int, excludeTextures: Seq[Int] = Seq.empty): SectorGroup = {
     val sg2 = sg.copy
-    sg2.getMap.allWalls.foreach(_.setPal(colorPalette))
+    sg2.getMap.allWalls.foreach { w=>
+      if (! excludeTextures.contains(w.getTexture)){
+        w.setPal(colorPalette)
+      }
+    }
     sg2
   }
 }

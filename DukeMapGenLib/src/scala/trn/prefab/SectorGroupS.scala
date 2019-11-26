@@ -1,7 +1,7 @@
 package trn.prefab
 
 import trn.duke.{MapErrorException, TextureList}
-import trn.{DukeConstants, ISpriteFilter, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
+import trn.{DukeConstants, ISpriteFilter, PointXY, PointXYZ, Sector, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._ // this is the good one
@@ -54,6 +54,14 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
     SectorGroupBuilder.createSectorGroup(map.copy, this.sectorGroupId, this.props)
     //new SectorGroup(map.copy, this.sectorGroupId);
   }
+
+  def withModifiedSectors(f: Sector => Unit): SectorGroup = {
+    val cp = copy()
+    cp.getMap.sectors.asScala.foreach(f)
+    cp
+  }
+
+
   /**
     * @return a copy of this sector group, flipped about the X axis
     */

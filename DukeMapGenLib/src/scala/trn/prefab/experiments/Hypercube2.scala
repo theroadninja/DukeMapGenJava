@@ -8,6 +8,23 @@ import trn.prefab.experiments.Hyper2MapBuilder.Cell
 
 import scala.collection.JavaConverters._
 
+class GridManagerV2(
+  val origin: PointXYZ,
+  val cellDist: Int,
+  val maxGrid: Int
+) {
+  def toCoordinates(gridCell: (Int, Int, Int, Int)): PointXYZ = {
+    // offsets must shift the max width of the grid for each value
+    val offsetForZ = gridCell._3 * cellDist * (maxGrid + 1)
+    val offsetForW = gridCell._4 * cellDist * (maxGrid + 1) // TODO - actually we'll want W in the same place ...
+    val x = gridCell._1 * cellDist + offsetForW
+    val y = gridCell._2 * cellDist + offsetForZ
+
+    // NOTE:  negative z is higher.  Also need to shift z
+    val z = -1 * (gridCell._3 << 4) * cellDist + 1024 // raise it, so elevators work
+    origin.add(new PointXYZ(x, y, z))
+  }
+}
 
 object Hyper2MapBuilder {
   type Cell = (Int, Int, Int, Int)
@@ -20,10 +37,16 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
   val grid2 = scala.collection.mutable.Map[Cell, Room]()
   val margin: Int = 10 * 1024
 
-  // Main hypercube stuff goes here
-  val origin: PointXYZ = new PointXYZ(
-    DMap.MIN_X + margin + (14 * 1024),  // extra for the train
-    DMap.MIN_Y + margin, 0)
+  // rooms are six big grid cells wide and anchor is in the middle
+  // hallways are one grid cell wide
+  val gridManager = new GridManagerV2(
+    new PointXYZ(
+      DMap.MIN_X + margin + (14 * 1024),  // extra for the train
+      DMap.MIN_Y + margin, 0
+    ),
+    cellDist = (6 + 1) * 1024,
+    maxGrid = 2 // max number of rooms, used to offset z and w
+  )
 
   // tracks locations for placing "floating" sectors that can go anywhere, like underwater areas.
   val sgPacker: SectorGroupPacker = new SimpleSectorGroupPacker(
@@ -31,53 +54,23 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
     new PointXY(DMap.MAX_X, DMap.MAX_Y),
     512)
 
-  // rooms are six big grid cells wide and anchor is in the middle
-  // hallways are one grid cell wide
-  val cellDist = (6 + 1) * 1024
-  val hallwayWidth = 1024
-  val MAXGRID = 2
+  // def placeAnywhere(sg: SectorGroup): PastedSectorGroup = {
+  //   val topLeft = sgPacker.reserveArea(sg)
+  //   val tr = sg.boundingBox.getTranslateTo(topLeft).withZ(0)
+  //   pasteSectorGroup(sg, tr)
+  // }
 
-  def placeAnywhere(sg: SectorGroup): PastedSectorGroup = {
-    val topLeft = sgPacker.reserveArea(sg)
-    val tr = sg.boundingBox.getTranslateTo(topLeft).withZ(0)
-    pasteSectorGroup(sg, tr)
-  }
-
-  def joinWalls(c1: Connector, c2: Connector): Unit = {
-    if(c1 == null || c2 == null) throw new IllegalArgumentException
-    c1.asInstanceOf[RedwallConnector].linkConnectors(outMap, c2.asInstanceOf[RedwallConnector])
-  }
-
-  def toCoordinates(gridCell: (Int, Int, Int, Int)): PointXYZ = {
-    // offsets must shift the max width of the grid for each value
-    val offsetForZ = gridCell._3 * cellDist * (MAXGRID + 1)
-    val offsetForW = gridCell._4 * cellDist * (MAXGRID + 1) // TODO - actually we'll want W in the same place ...
-    val x = gridCell._1 * cellDist + offsetForW
-    val y = gridCell._2 * cellDist + offsetForZ
-    //val z = gridCell._3 * cellDist
-
-    // NOTE:  negative z is higher.  Also need to shift z
-    val z = -1 * (gridCell._3 << 4) * cellDist + 1024 // raise it, so elevators work
-    new PointXYZ(x, y, z)
-  }
-
-  /** sets the player start of the map to the location of the first player start marker sprite it finds */
   def setPlayerStart(cell: Cell): Unit = setPlayerStart(grid(cell))
 
   // new version
   def addRoom(room: Room, gridCell: (Int, Int, Int, Int)): PastedSectorGroup = {
     if(grid.get(gridCell).nonEmpty) throw new IllegalArgumentException("that cell already taken")
     if(grid2.get(gridCell).nonEmpty) throw new IllegalArgumentException("that cell already taken")
-
     val anchor = room.sectorGroup.getAnchor.withZ(0)
-    val p = toCoordinates(gridCell)
-
-    val tr = anchor.getTransformTo(origin.add(p))
+    val tr = anchor.getTransformTo(gridManager.toCoordinates(gridCell))
     val psg = pasteSectorGroup(room.sectorGroup, tr)
-
     grid(gridCell) = psg
     grid2(gridCell) = room
-
     psg
   }
 
@@ -93,7 +86,6 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
         (x, y, z, w + 1)
       ).foreach{ neighboorCell =>
         grid2.get(neighboorCell).foreach { n =>
-
           if(x + 1 == neighboorCell._1){
             tryAutoLinkWestToEast(gridCell, neighboorCell)
           } else if(y + 1 == neighboorCell._2){
@@ -117,7 +109,7 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
           TeleportConnector.linkTeleporters(teleporters1.get(0), grid(cell1), teleporters2.get(0), grid(cell2), nextUniqueHiTag())
           true
         } else {
-        false
+          false
         }
       case _ => false
     }
@@ -154,7 +146,6 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
     if((westRoom.hasLowDoor(E) && eastRoom.hasLowDoor(W)
       || (westRoom.hasHighDoor(E) && eastRoom.hasHighDoor(W)) )){
 
-      //val eastWestHallway = palette.getSectorGroup(200)
       val hallway = if(westCell._4 < 1){ palette.getSectorGroup(206) }else{ palette.getSectorGroup(200) }
       placeHallwayEW(grid(westCell), hallway, grid(eastCell))
       return true
@@ -162,12 +153,6 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
       placeHallwayEW(grid(westCell), palette.getSectorGroup(202), grid(eastCell))
       return true
     }
-    // if(westCell == (0, 1, 0, 1)){
-    //   println("MONKEY - no hallway")
-    //   println(s"MONKEY - west room has High E: ${westRoom.hasHighDoor(E)}")
-    //   println(s"MONKEY - east room has High W: ${eastRoom.hasHighDoor(W)}")
-    // }
-
     return false
   }
 
@@ -199,60 +184,33 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
     }
   }
 
-  def placeHallwayEW(hallway: SectorGroup, left: (Int, Int, Int, Int), right: (Int, Int, Int, Int)): PastedSectorGroup = {
-    if(left._1 + 1 != right._1) throw new IllegalArgumentException
-    if(!(left._2 == right._2 && left._3 == right._3 && left._4 == right._4)) throw new IllegalArgumentException
-    val leftRoom = grid(left)
-    val rightRoom = grid(right)
-    placeHallwayEW(leftRoom, hallway, rightRoom)
-  }
-
   def placeHallwayEW(leftRoom: PastedSectorGroup, hallway: SectorGroup, rightRoom: PastedSectorGroup): PastedSectorGroup = {
-    def westConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[RedwallConnector]
-    def eastConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[RedwallConnector]
     val leftConn = leftRoom.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[RedwallConnector]
     val rightConn = rightRoom.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[RedwallConnector]
-
-    //val cdelta: PointXYZ = westConnector(hallway).getTransformTo(leftConn)
     val cdelta: PointXYZ = if(leftConn.getAnchorPoint.z < rightConn.getAnchorPoint.z){
-      westConnector(hallway).getTransformTo(leftConn)
+      MapWriter.westConnector(hallway).getTransformTo(leftConn)
     }else{
-      eastConnector(hallway).getTransformTo(rightConn)
+      MapWriter.eastConnector(hallway).getTransformTo(rightConn)
     }
-
     val pastedHallway = pasteSectorGroup(hallway, cdelta)
-    joinWalls(pastedHallway.findFirstConnector(SimpleConnector.WestConnector), leftConn)
-    joinWalls(pastedHallway.findFirstConnector(SimpleConnector.EastConnector), rightConn)
+    sgBuilder.linkConnectors(MapWriter.westConnector(pastedHallway), leftConn)
+    sgBuilder.linkConnectors(MapWriter.eastConnector(pastedHallway), rightConn)
     pastedHallway
-  }
-
-  def placeHallwayNS(hallway: SectorGroup, top: Cell, bottom: Cell): PastedSectorGroup = {
-    val topRoom = grid(top)
-    val bottomRoom = grid(bottom)
-    placeHallwayNS(topRoom, hallway, bottomRoom)
   }
 
   def placeHallwayNS(topRoom: PastedSectorGroup, hallway: SectorGroup, bottomRoom: PastedSectorGroup): PastedSectorGroup = {
-    def northConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.NorthConnector).asInstanceOf[RedwallConnector]
-    def southConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SimpleConnector.SouthConnector).asInstanceOf[RedwallConnector]
-
-    val topConn = topRoom.findFirstConnector(SimpleConnector.SouthConnector).asInstanceOf[RedwallConnector]
-    val bottomConn = bottomRoom.findFirstConnector(SimpleConnector.NorthConnector).asInstanceOf[RedwallConnector]
-    if(topConn == null || bottomConn == null) throw new SpriteLogicException("missing connector")
-
+    val topConn = MapWriter.southConnector(topRoom)
+    val bottomConn = MapWriter.northConnector(bottomRoom)
     val cdelta: PointXYZ = if(topConn.getAnchorPoint.z < bottomConn.getAnchorPoint.z){
-      northConnector(hallway).getTransformTo(topConn)
+      MapWriter.northConnector(hallway).getTransformTo(topConn)
     } else {
-      southConnector(hallway).getTransformTo(bottomConn)
+      MapWriter.southConnector(hallway).getTransformTo(bottomConn)
     }
-
     val pastedHallway = pasteSectorGroup(hallway, cdelta)
-    joinWalls(pastedHallway.findFirstConnector(SimpleConnector.NorthConnector), topConn)
-    joinWalls(pastedHallway.findFirstConnector(SimpleConnector.SouthConnector), bottomConn)
+    sgBuilder.linkConnectors(MapWriter.northConnector(pastedHallway), topConn)
+    sgBuilder.linkConnectors(MapWriter.southConnector(pastedHallway), bottomConn)
     pastedHallway
   }
-
-
 }
 
 
@@ -344,13 +302,8 @@ case class Room(
   def withoutLowDoor(direction: Int): Room = {
     Room(sectorGroup, highDoors, lowDoors - direction, elevator, teleporter)
   }
-  def withLowDoors(lowDoors2: Map[Int, Boolean]): Room = {
-    Room(sectorGroup, highDoors, lowDoors2, elevator, teleporter)
-  }
-  def withHighDoors(highDoors2: Map[Int, Boolean]): Room = {
-    Room(sectorGroup, highDoors2, lowDoors, elevator, teleporter)
-  }
-
+  def withLowDoors(lowDoors2: Map[Int, Boolean]): Room = this.copy(lowDoors = lowDoors2)
+  def withHighDoors(highDoors2: Map[Int, Boolean]): Room = this.copy(highDoors = highDoors2)
 
   def flipY: Room = {
     Room(sectorGroup.flippedY(), Room.flipY(highDoors), Room.flipY(lowDoors), elevator, teleporter)
@@ -365,38 +318,24 @@ case class Room(
 
   def rotateCCW: Room = this.rotateCW.rotateCW.rotateCW
 
-  // TODO - good candidate for a more generic tool; not sure what
-  // (keep a list of textures that can be "turned blue" with that BLUE_TO_RED palette"?)
-  def paintedRed: Room = {
-    val redGroup = sectorGroup.copy()
-    redGroup.getMap.allWalls.foreach { w =>
-      if (w.getTexture != 225 && w.getTexture != 229) {
-        w.setPal(PaletteList.BLUE_TO_RED)
-      }
-    }
-    Room(redGroup, highDoors, lowDoors, elevator, teleporter)
-  }
+  def paintedRed: Room = this.copy (
+    sectorGroup = MapWriter.painted(sectorGroup, PaletteList.BLUE_TO_RED, Seq(225, 229))
+  )
 
-  def withCarpet: Room = {
-    val sg = sectorGroup.copy()
-    sg.getMap.sectors.asScala.foreach { s =>
+  def withCarpet: Room = this.copy (
+    sectorGroup = sectorGroup.withModifiedSectors{ s =>
       if(s.getFloorTexture == 181){
         s.setFloorTexture(898)
       }
     }
-    Room(sg, highDoors, lowDoors, elevator, teleporter)
-  }
+  )
 }
 
 object Hypercube2 {
-  //
-  // Room Prefabs (room id is marker w/ lotag 1)
-  //
   val BasicRoom = 100
   val PoolRoomTop = 101
   // 102 - pool room bottom
   // 103 - reactor room top
-
   val CircularRoom = 104 // 104 - circular nuke sign room (can connect on both top or bottom)
   val RoomWithView = 105 // must be top level
   val CommandCenter = 106
@@ -417,49 +356,33 @@ object Hypercube2 {
   // 124 - (test connector for multi redwall)
   // 125 - TELEPORTER
 
-  // 111 - roof antenna
-  // 11101 - connector for roof antenna
-  // 112 - roof antenna bottom (no longer used -- now its a child sector)
-
+  val RoofAntenna = 111
   val MedicalBay = 113
-  // 11301 - medical bay upper floor (no longer used -- now its a child sector)
-  // 11302 - redwall connection to upper floor
-
   val EndTrain = 114
   val SuperComputerRoom = 115
   val PlantRoom = 116
   val UpperRoomWithView = 117
-  // 118 - modular room, high version
+  val ModularRoomHigh = 118
 
   // Intra-sector connectors
   // 150 - elevator sector
 
-  //
   // Connection Groups
   //
-
   // 200 - east-west hallway
   // 201 - north-south hallway
-  //
   // 202 - east-west simple elevator, with east=high part
   // 203 - low south to night north elevator
-  //
   // 204 - hallway for troubleshooting
-
   // 205 - some other hallway for troubleshooting (probably unused)
   // 206 - locked hallway
 
-  //
   // More underwater stuff
-  //
   // 301 - underwater connector
-  //
   // 303 - reactor underwater
 
-  // note:  6 large squares ( 1042 ) seem like a good size.
 
   def run(sourceMap: DMap): DMap = {
-
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
     val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
 
@@ -497,10 +420,9 @@ object Hypercube2 {
     }
 
     def modularRoomHigh(x: Int, y: Int, elevator: Boolean, teleporter: Boolean, w: Int = 0): Room = {
-      val sg = palette.getSectorGroup(118)
+      val sg = palette.getSectorGroup(ModularRoomHigh)
       val r = modularRoom2(sg, x, y, elevator, teleporter, w)
       r.withHighDoors(r.lowDoors).withLowDoors(Map())
-      //r.copy(highDoors = r.lowDoors, lowDoors = Seq())
     }
 
     val allDoors: Seq[Int] = Heading.all.asScala.map(_.toInt)
@@ -512,7 +434,7 @@ object Hypercube2 {
     val trainStop = Room(palette.getSectorGroup(TrainStation), Seq(), Seq( Heading.EAST, Heading.SOUTH ), false, false)
 
     val ELEVATOR_GROUP = 1101
-    val dishSg = palette.getSectorGroup(111).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
+    val dishSg = palette.getSectorGroup(RoofAntenna).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
     val dishRoof = Room.auto(dishSg, Seq(Heading.S, Heading.W), Seq())
 
     val medicalBay = Room(palette.getSectorGroup(MedicalBay), Seq(), Seq(Heading.S), false, false)
