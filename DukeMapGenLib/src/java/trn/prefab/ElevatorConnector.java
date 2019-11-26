@@ -66,13 +66,16 @@ public class ElevatorConnector extends Connector {
      * @return the actual SE 17 sprite used to make the elevator work
      */
     public Sprite getSESprite(ISectorGroup sg){
-        List<Sprite> list = getSESprites(sg.getMap());
+        List<Sprite> list = getSESprites(sg);
         if(list.size() != 1) throw new SpriteLogicException("too many elevator sprites in sector");
         return list.get(0);
     }
 
     private List<Sprite> getSESprites(Map map){
         return map.findSprites(TextureList.SE, Lotags.SE.ELEVATOR, sectorId);
+    }
+    private List<Sprite> getSESprites(ISectorGroup sg){
+        return sg.findSprites(TextureList.SE, Lotags.SE.ELEVATOR, sectorId);
     }
 
     // for auto marker 20, to distinguish between other uses of the auto marker

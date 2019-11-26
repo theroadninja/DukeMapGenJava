@@ -10,19 +10,23 @@ object AutoText {
     TextureList.isFontTex(s.getTexture) && s.getLotag > 0
   }
 
-  def getTextSpriteIds(sectorId: Int, map: DMap): Seq[Int] = {
-    (0 until map.getSpriteCount).filter { spriteId =>
-      val sprite = map.getSprite(spriteId)
-      sprite.getSectorId == sectorId && isFontSprite(sprite)
-    }
+  def getTextSprites(sectorId: Int, sprites: Iterable[Sprite]): Seq[Sprite] = {
+    sprites.filter(s => s.getSectorId == sectorId && isFontSprite(s)).toSeq
   }
 
-  def apply(marker: Sprite, map: DMap): AutoText = {
-    // TODO - currently the IdMap doesnt track sprites, so we cant load them here
-    if(getTextSpriteIds(marker.getSectorId, map).size < 1){
-      throw new SpriteLogicException("AutoText marker (5) without any texture sprites with nonzero lotags")
+  private[prefab] def write(text: String, sprites: Set[Sprite]): Unit = {
+    if(text == "") return
+    val sorted = sprites.toSeq.sortBy(s => s.getLotag)
+    if(sorted.size < text.size){
+      val msg = s"Not enough text sprites: string length is ${text.size} but only ${sorted.size} sprites"
+      throw new SpriteLogicException(msg)
     }
-    new AutoText(PrefabUtils.hitagToId(marker), Set(marker.getSectorId.toInt))
+    text.chars().toArray
+    sorted.take(text.size).zip(text.toList).foreach { case(sprite, char) =>
+      val font = TextureList.getFont(sprite.getTexture)
+      sprite.setTexture(font.textureFor(char.toString))
+      sprite.setLotag(0)
+    }
   }
 }
 
@@ -30,12 +34,6 @@ object AutoText {
   * This is a logical object make of a group of text sprites.
   */
 case class AutoText(autoTextId: Int, sectorIds: Set[Int]) {
-
-  // TODO - cant do this yet
-  // def translateIds(idmap: IdMap, delta: PointXYZ): AutoText = {
-  //   textSpriteIds.map(spriteId => idmap.)
-  //   AutoText(connectorId, )
-  // }
 
   def translateIds(idMap: IdMap, delta: PointXYZ): AutoText = {
     new AutoText(autoTextId, sectorIds.map(i => idMap.sector(i).toInt))
@@ -47,7 +45,6 @@ case class AutoText(autoTextId: Int, sectorIds: Set[Int]) {
   }
 
   /**
-    * WARNING: side effects.
     *
     * Finds sprites designated as text sprites (a font texture, and lotag > 0) and sets their textures such that they
     * spell out the provided string.
@@ -55,28 +52,10 @@ case class AutoText(autoTextId: Int, sectorIds: Set[Int]) {
     * The sprites are assumed to be ordered by ascending lotag.
     *
     * The lotags are reset to 0, allowing this method to be called multiple times.
-    *
-    * @param text
-    * @param map
     */
-  def appendText(text: String, map: DMap): Unit = {
+  def appendText(text: String, sg: SectorGroup): Unit = {
     if(text == "") return
-
-    val sprites = sectorIds.flatMap(sectorId => AutoText.getTextSpriteIds(sectorId, map)).map(map.getSprite)
-    val sorted = sprites.toSeq.sortBy(s => s.getLotag)
-    if(sorted.size < text.size){
-      val msg = s"Not enough text sprites: string length is ${text.size} but only ${sorted.size} sprites"
-      throw new SpriteLogicException(msg)
-    }
-    text.chars().toArray
-    sorted.take(text.size).zip(text.toList).foreach { case(sprite, char) =>
-        val font = TextureList.getFont(sprite.getTexture)
-        sprite.setTexture(font.textureFor(char.toString))
-        sprite.setLotag(0)
-    }
+    val sprites = sectorIds.flatMap(sectorId => AutoText.getTextSprites(sectorId, sg.allSprites))
+    AutoText.write(text, sprites)
   }
-
-  def appendText(text: String, map: ISectorGroup): Unit = appendText(text, map.getMap)
-
-
 }

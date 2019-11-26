@@ -93,22 +93,16 @@ public class TeleportConnector extends Connector {
      * @return the actual SE 7 sprite used to make the elevator work
      */
     Sprite getSESprite(ISectorGroup sg){
-        List<Sprite> list = getSESprites(sg.getMap());
+        List<Sprite> list = getSESprites(sg);
         if(list.size() != 1) throw new SpriteLogicException("too many teleporter sprites in sector");
         return list.get(0);
     }
 
-    private List<Sprite> getSESprites(Map map) {
-        //return map.findSprites(TextureList.SE, Lotags.SE.TELEPORT, sectorId);
-        //return map.findSprites(new ISpriteFilter() {
-        //    @Override
-        //    public boolean matches(Sprite sprite) {
-        //        return false;
-        //    }
-        //});
+    private List<Sprite> getSESprites(ISectorGroup sg) {
+        Map map = sg.getMap();
         Sector sector = map.getSector(sectorId);
 
-        return map.findSprites(
+        return sg.findSprites(
                 (Sprite s) -> s.getTexture() == TextureList.SE
                 && s.getLotag() == Lotags.SE.TELEPORT
                 && s.getSectorId() == sectorId

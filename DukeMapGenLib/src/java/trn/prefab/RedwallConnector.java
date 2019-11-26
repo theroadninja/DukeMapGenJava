@@ -25,6 +25,10 @@ public abstract class RedwallConnector extends Connector {
      */
     public abstract long totalManhattanLength(Map map);
 
+    public final long totalManhattanLength(SectorGroup sg) {
+        return totalManhattanLength(sg.getMap());
+    }
+
     @Override
     public abstract int getConnectorType();
 

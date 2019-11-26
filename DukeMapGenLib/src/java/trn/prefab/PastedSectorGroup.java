@@ -2,8 +2,10 @@ package trn.prefab;
 
 import java.util.*;
 
+import trn.ISpriteFilter;
 import trn.Map;
 import trn.MapUtil;
+import trn.Sprite;
 import trn.duke.MapErrorException;
 
 
@@ -49,6 +51,16 @@ public class PastedSectorGroup extends PastedSectorGroupS implements ISectorGrou
 	@Override
 	public Map getMap(){
 		return destMap;
+	}
+
+	@Override
+	public List<Sprite>findSprites(int picnum, int lotag, int sectorId) {
+		return getMap().findSprites(picnum, lotag, sectorId);
+	}
+
+	@Override
+	public List<Sprite> findSprites(ISpriteFilter... filters){
+		return getMap().findSprites(filters);
 	}
 
 

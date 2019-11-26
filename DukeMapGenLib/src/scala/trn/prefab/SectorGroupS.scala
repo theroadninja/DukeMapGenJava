@@ -33,20 +33,25 @@ case class ChildPointer(
 }
 
 
-
-
 class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroupProperties)
   extends SectorGroupBase with ConnectorCollection {
   val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
   val autoTexts: java.util.List[AutoText] = new java.util.ArrayList[AutoText]
 
-  protected def wallSeq(): Seq[Wall] = {
+  protected def wallSeq: Seq[Wall] = {
     val walls = Seq.newBuilder[Wall]
     for(i <- 0 until map.getWallCount){
       walls += map.getWall(i)
     }
     walls.result
   }
+
+  def getGroupId: Int = sectorGroupId
+
+  def allSprites: Seq[Sprite] = map.allSprites
+
+
+  def allWalls: Seq[Wall] = wallSeq
 
   val allSectorIds = (0 until map.getSectorCount).toSet
 
@@ -63,7 +68,6 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
     cp
   }
 
-
   /**
     * @return a copy of this sector group, flipped about the X axis
     */
@@ -73,8 +77,6 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
   }
 
   def flippedX(): SectorGroup = flippedX(getAnchor.x)
-
-
 
   def flippedY(y: Int): SectorGroup = {
     //new SectorGroup(map.flippedY(y), this.sectorGroupId)
@@ -137,6 +139,18 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
       throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
     }
     connectors.asScala.filter(c => c.getConnectorType == connectorType).map(_.asInstanceOf[RedwallConnector])
+  }
+
+  // TODO - move to base class or interface something
+  def findFirstConnector(cf: ConnectorFilter): Connector = {
+    val it: java.util.Iterator[Connector] = Connector.findConnectors(connectors, cf).iterator();
+    //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
+    //return it.hasNext() ? it.next() : null;
+    if(it.hasNext) {
+      it.next
+    }else{
+      None.orNull // TODO!
+    }
   }
 
   def getTeleportConnectors(): Seq[TeleportConnector] = {

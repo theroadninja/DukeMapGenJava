@@ -2,6 +2,8 @@ package trn;
 
 import trn.prefab.PrefabUtils;
 
+import java.util.List;
+
 public class SpriteFilter implements ISpriteFilter {
 	
 	public static final int TEXTURE = 0;
@@ -61,4 +63,16 @@ public class SpriteFilter implements ISpriteFilter {
 		}
 		return true;
 	}
+
+	// TODO - dry
+	public static boolean matchAll(Sprite sprite, List<ISpriteFilter> filters){
+		for(ISpriteFilter sf: filters){
+			if(! sf.matches(sprite)){
+				return false;
+			}
+		}
+		return true;
+	}
+
+
 }

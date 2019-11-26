@@ -3,6 +3,7 @@ package trn.prefab;
 import java.util.*;
 
 import scala.Int;
+import trn.ISpriteFilter;
 import trn.Map;
 import trn.Sprite;
 import trn.duke.MapErrorException;
@@ -44,14 +45,21 @@ public class SectorGroup extends SectorGroupS
 		}
 	}
 
+	// TODO - try to get rid of this.  Most things probably shouldnt be operating on the map directly.
 	@Override
 	public Map getMap(){
 		return super.map();
 	}
 
-	private int getGroupId(){
-		return this.sectorGroupId;
-	}
+	@Override
+	public List<Sprite>findSprites(int picnum, int lotag, int sectorId) {
+	    return getMap().findSprites(picnum, lotag, sectorId);
+    }
+
+    @Override
+	public List<Sprite> findSprites(ISpriteFilter... filters){
+	    return getMap().findSprites(filters);
+    }
 
 	private void addConnector(Connector c){
 		Map map = super.map();
@@ -132,10 +140,10 @@ public class SectorGroup extends SectorGroupS
 	}
 
 
-    // TODO - move to base class or interface something
-	public Connector findFirstConnector(ConnectorFilter cf){
-		Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
-		return it.hasNext() ? it.next() : null;
-	}
+    // // TODO - move to base class or interface something
+	// Connector findFirstConnector(ConnectorFilter cf){
+	// 	Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
+	// 	return it.hasNext() ? it.next() : null;
+	// }
 
 }

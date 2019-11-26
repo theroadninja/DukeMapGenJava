@@ -240,7 +240,8 @@ object Room {
     val standardDoorLength = 2048
     def hasHeading(h: Int): Boolean  = sectorGroup.getRedwallConnectors(SimpleConnector.connectorTypeForHeading(h)) match {
       case x: Seq[RedwallConnector] => {
-        x.find(_.totalManhattanLength(sectorGroup.getMap) == standardDoorLength).nonEmpty
+        //x.find(_.totalManhattanLength(sectorGroup.getMap) == standardDoorLength).nonEmpty
+        x.find(_.totalManhattanLength(sectorGroup) == standardDoorLength).nonEmpty
       }
       case _ => false
     }
@@ -397,7 +398,7 @@ object Hypercube2 {
         case 0 => sg2
         case 1 => {
           val g = sg2.copy()
-          g.getMap.allWalls.foreach{ w =>
+          g.allWalls.foreach{ w =>
             if(w.getTexture != 225 && w.getTexture != 229){
               w.setPal(PaletteList.BLUE_TO_RED)
             }

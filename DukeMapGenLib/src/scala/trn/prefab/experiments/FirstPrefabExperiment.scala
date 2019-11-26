@@ -29,7 +29,8 @@ class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder
     if(destConnector.isLinked(outMap)){
       throw new IllegalArgumentException("connector already connected");
     }
-    val paletteConnector = sg.findFirstConnector(paletteConnectorFilter).asInstanceOf[RedwallConnector]
+    // val paletteConnector = sg.findFirstConnector(paletteConnectorFilter).asInstanceOf[RedwallConnector]
+    val paletteConnector = MapWriter.firstConnector(sg, paletteConnectorFilter)
     return add(writer.pasteAndLink(destConnector.asInstanceOf[RedwallConnector], sg, paletteConnector))
   }
 

@@ -96,13 +96,13 @@ object SoundListRoom {
   def makeRoom(sound: Int, palette: PrefabPalette, labels: Seq[WallDetails]): SectorGroup ={
     if(sound < 0) throw new IllegalArgumentException
     val room = palette.getSectorGroup(3).copy()
-    room.getMap.allSprites.foreach { s =>
+    room.allSprites.foreach { s =>
       if(s.getTex== TextureList.TOUCHPLATE || s.getTex == TextureList.ACTIVATOR || s.getTex == TextureList.MUSIC_AND_SFX) {
         s.setLotag(sound)
       }
     }
     room.getAutoTextById(1).appendText("%03d".format(sound), room)
-    val wall = room.getMap.allWalls.filter(_.getLotag == 2).head
+    val wall = room.allWalls.filter(_.getLotag == 2).head
     labels.foreach{ label =>
       if(label.matches(sound)){
         label.applyTo(wall)

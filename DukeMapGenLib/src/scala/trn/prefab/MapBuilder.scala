@@ -1,7 +1,9 @@
 package trn.prefab
 
+import java.util
+
 import trn.MapImplicits._
-import trn.{IdMap, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, SpriteFilter, Map => DMap}
+import trn.{ISpriteFilter, IdMap, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, SpriteFilter, Map => DMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -79,6 +81,14 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
   override def nextUniqueHiTag(): Int = sgBuilder.nextUniqueHiTag()
 
   override def getMap(): DMap = outMap
+
+  override def findSprites(picnum: Int, lotag: Int, sectorId: Int): util.List[Sprite] = {
+    getMap().findSprites(picnum, lotag, sectorId)
+  }
+
+  override def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = {
+    getMap().findSprites4Scala(filters.asJava)
+  }
 
   /**
     * TODO - candidate for moving to MapWriter
