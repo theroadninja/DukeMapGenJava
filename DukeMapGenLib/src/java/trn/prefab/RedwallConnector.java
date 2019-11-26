@@ -28,11 +28,6 @@ public abstract class RedwallConnector extends Connector {
     @Override
     public abstract int getConnectorType();
 
-    @Override
-    public boolean hasXYRequirements() {
-        return true;
-    }
-
     /**
      * Tests if the connectors match, i.e. if they could mate.
      * The sector groups dont have to be already lined up, but there must exist

@@ -50,6 +50,8 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
 
   val allSectorIds = (0 until map.getSectorCount).toSet
 
+  def sectorCount: Int = map.getSectorCount
+
   def copy(): SectorGroup = {
     SectorGroupBuilder.createSectorGroup(map.copy, this.sectorGroupId, this.props)
     //new SectorGroup(map.copy, this.sectorGroupId);
@@ -112,6 +114,9 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
   protected def updateConnectors(): Unit = ???
 
 
+  def getRedwallConnector(connectorId: Int): RedwallConnector = {
+    getConnector(connectorId).asInstanceOf[RedwallConnector]
+  }
 
   // TODO - move to trait
   def getRedwallConnector(connectorType: Int, allowMoreThanOne: Boolean = false): RedwallConnector = {
@@ -190,7 +195,7 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
     pastedConn2.removeConnector(tmpBuilder.outMap)
 
 
-    if(result.getSectorCount != this.map.getSectorCount + group2.getSectorCount){
+    if(result.sectorCount != this.map.getSectorCount + group2.sectorCount){
       throw new SpriteLogicException()
     }
 

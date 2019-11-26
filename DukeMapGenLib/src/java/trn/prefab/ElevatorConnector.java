@@ -62,11 +62,6 @@ public class ElevatorConnector extends Connector {
         }
     }
 
-    @Override
-    public boolean hasXYRequirements() {
-        return false;  // NOTE:  it DOES have z requirements though ...
-    }
-
     /**
      * @return the actual SE 17 sprite used to make the elevator work
      */

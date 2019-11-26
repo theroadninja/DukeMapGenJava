@@ -87,12 +87,6 @@ public class TeleportConnector extends Connector {
         }
     }
 
-    @Override
-    public boolean hasXYRequirements() {
-        return false;
-    }
-
-
     /**
      * NOTE:  should not be public, in case we dont have an SE sprite until the connection is made.
      *

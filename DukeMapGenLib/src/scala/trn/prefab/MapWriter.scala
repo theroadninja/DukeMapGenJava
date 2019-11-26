@@ -1,9 +1,15 @@
 package trn.prefab
 
 import trn.duke.PaletteList
-import trn.{PointXY, PointXYZ}
+import trn.{PointXY, PointXYZ, Map => DMap}
 import trn.MapImplicits._
 
+
+
+// creating this as an adapter for old (new?) code
+class MapBuilderAdapter(val outMap: DMap) extends MapBuilder {
+
+}
 
 object MapWriter {
   val WestConn = SimpleConnector.WestConnector
@@ -31,6 +37,13 @@ object MapWriter {
     }
     sg2
   }
+
+  def apply(map: DMap): MapWriter = {
+    val builder = new MapBuilderAdapter(map)
+    new MapWriter(builder, builder.sgBuilder)
+  }
+
+  def apply(builder: MapBuilder): MapWriter = new MapWriter(builder, builder.sgBuilder)
 }
 /**
   * TODO - write unit tests for this class

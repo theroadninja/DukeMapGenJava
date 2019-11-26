@@ -95,7 +95,7 @@ object PipeDream {
             .filter{c2 =>
               val bb = sg.boundingBox
               val cdelta: PointXYZ = c2.getTransformTo(existingConn)
-              builder.sectorCount + sg.getSectorCount <= DMap.MAX_SECTOR_GROUPS &&
+              builder.sectorCount + sg.sectorCount <= DMap.MAX_SECTOR_GROUPS &&
                 builder.spaceAvailable(bb.translate(cdelta.asXY()))
             }
         conns.map((sg, _))

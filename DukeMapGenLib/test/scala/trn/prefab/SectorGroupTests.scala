@@ -74,7 +74,7 @@ class SectorGroupTests {
     val map = TestUtils.loadTestMap("scala/trn.prefab/CHILDTST.MAP")
 
     val palette: PrefabPalette = PrefabPalette.fromMap(map, true);
-    println(s"palette sector groups: ${palette.numberedSectorGroups.keySet().asScala}")
+    println(s"palette sector groups: ${palette.numberedSectorGroupIds().asScala}")
     val builder = new TestBuilder(DMap.createNew())
     builder.pasteSectorGroup(palette.getSectorGroup(100), new PointXYZ(0, 0, 0))
     builder.setAnyPlayerStart()

@@ -15,14 +15,11 @@ import trn.javax.MultiIterable;
  */
 public class PrefabPalette {
 
-	// TODO - make private again
-	public final java.util.Map<Integer, SectorGroup> numberedSectorGroups;
-	
+    /** sector groups that have ids (set with a marker sprite) */
+	private final java.util.Map<Integer, SectorGroup> numberedSectorGroups;
+
 	/** sector groups that dont have ids */
 	private final List<SectorGroup> anonymousSectorGroups;
-
-	private Random random = new Random();
-
 
 	public PrefabPalette(
 			java.util.Map<Integer, SectorGroup> numberedSectorGroups,
@@ -30,6 +27,10 @@ public class PrefabPalette {
 	){
 		this.numberedSectorGroups = numberedSectorGroups;
 		this.anonymousSectorGroups = anonymousSectorGroups;
+	}
+
+	public final java.util.Set<Integer> numberedSectorGroupIds(){
+		return numberedSectorGroups.keySet();
 	}
 
 	public Iterable<SectorGroup> allSectorGroups(){
@@ -129,84 +130,6 @@ public class PrefabPalette {
 
 	}
 
-
-	public PastedSectorGroup pasteAndLink(
-			int sectorGroupId,
-			int paletteConnectorId,
-			Map destMap,
-			RedwallConnector destConnector) throws MapErrorException {
-
-	    // TODO - avoid cast here
-		RedwallConnector paletteConnector = (RedwallConnector)this.getConnector(sectorGroupId, paletteConnectorId);
-		return pasteAndLink(sectorGroupId, paletteConnector, destMap, destConnector);
-    }
-
-	public PastedSectorGroup pasteAndLink(
-			int sectorGroupId, 
-			RedwallConnector paletteConnector,
-			Map destMap, 
-			RedwallConnector destConnector) throws MapErrorException {
-
-		PointXYZ cdelta = paletteConnector.getTransformTo(destConnector);
-				
-		PastedSectorGroup result = this.pasteSectorGroup(sectorGroupId, destMap, cdelta);
-		
-		//paletteConnector = result.getConnector(paletteConnectorId);
-		paletteConnector.translateIds(result.copystate.idmap, cdelta);
-		//destMap.linkRedWalls(sectorIndex, wallIndex, sectorIndex2, wallIndex2)
-		
-		//PrefabUtils.joinWalls(destMap, paletteConnector, destConnector);
-		paletteConnector.linkConnectors(destMap, destConnector);
-		
-		return result;
-	}
-
-	public PastedSectorGroup pasteAndLink(
-			SectorGroup sg,
-			ConnectorFilter paletteConnectorFilter,
-			Map destMap,
-			Connector destConnector) throws MapErrorException {
-
-	    // TODO - this method is a hack
-		return pasteAndLink(sg, paletteConnectorFilter, destMap, (RedwallConnector)destConnector);
-    }
-
-	public PastedSectorGroup pasteAndLink(
-			SectorGroup sg,
-			ConnectorFilter paletteConnectorFilter,
-			Map destMap,
-			RedwallConnector destConnector) throws MapErrorException {
-
-		if(destConnector == null){
-			throw new IllegalArgumentException("destConnector is null");
-		}
-
-		// TODO - avoid cast here
-		RedwallConnector paletteConnector = (RedwallConnector)sg.findFirstConnector(paletteConnectorFilter);
-		if(paletteConnector == null){
-			throw new IllegalArgumentException("cant find connector: " + paletteConnectorFilter);
-		}
-		
-		PointXYZ cdelta = paletteConnector.getTransformTo(destConnector);
-
-		if(paletteConnector.getSectorId() < 0 || paletteConnector.getSectorId() >= sg.getSectorCount() ){
-		    throw new RuntimeException("sectorId invalid: " + paletteConnector.getSectorId());
-        }
-
-		PastedSectorGroup result = this.pasteSectorGroup(sg, destMap, cdelta);
-		
-		
-		RedwallConnector pastedConnector = paletteConnector.translateIds(result.copystate.idmap, cdelta);
-		//paletteConnector = result.getConnector(paletteConnectorId);
-		//destMap.linkRedWalls(sectorIndex, wallIndex, sectorIndex2, wallIndex2)
-		
-		//PrefabUtils.joinWalls(destMap, pastedConnector, destConnector);
-		pastedConnector.linkConnectors(destMap, destConnector);
-
-		return result;
-		
-	}
-	
 	public SectorGroup getSectorGroup(int sectorGroupId){
 	    if(!this.numberedSectorGroups.containsKey(sectorGroupId)) throw new NoSuchElementException();
 		return this.numberedSectorGroups.get(sectorGroupId);
@@ -214,22 +137,6 @@ public class PrefabPalette {
 
 	public SectorGroup getSG(int sectorGroupId){
 		return this.getSectorGroup(sectorGroupId);
-	}
-
-	public SectorGroup getRandomSectorGroup(){
-		int size = this.numberedSectorGroups.size() + this.anonymousSectorGroups.size();
-		if(size < 1) throw new RuntimeException("there are no sector groups");
-		int i = random.nextInt(size);
-		if(i < this.numberedSectorGroups.size()){
-		    return (SectorGroup)this.numberedSectorGroups.values().toArray()[i];
-		}else{
-			return this.anonymousSectorGroups.get(i - this.numberedSectorGroups.size());
-		}
-
-	}
-	public SectorGroup getRandomGroupWith(ConnectorFilter cf){
-		List<SectorGroup> results = getAllGroupsWith(cf);
-		return results.get(random.nextInt(results.size()));
 	}
 
 	public List<SectorGroup> getStaySectorGroups(){
@@ -245,78 +152,5 @@ public class PrefabPalette {
 			}
 		}
 		return results;
-
-	}
-
-	public List<SectorGroup> getAllGroupsWith(ConnectorFilter cf){
-		// TODO - need source of entropy ...
-		List<SectorGroup> results = new ArrayList<SectorGroup>();
-		for(SectorGroup sg : this.numberedSectorGroups.values()){
-			if(sg.findFirstConnector(cf) != null){
-				results.add(sg);
-			}
-		}
-		for(SectorGroup sg : this.anonymousSectorGroups){
-			if(sg.findFirstConnector(cf) != null){
-				results.add(sg);
-			}
-		}
-		return results;
-	}
-
-	/**
-	 * 
-	 * TODO - need to zero out the groups as we read them in
-	 * 
-	 * @param sectorGroupId
-	 * @param destMap
-	 * @param rawTrasform
-	 */
-	public PastedSectorGroup pasteSectorGroup(int sectorGroupId, Map destMap, PointXYZ rawTrasform) throws MapErrorException {
-		return pasteSectorGroup(this.numberedSectorGroups.get(sectorGroupId), destMap, rawTrasform);
-	}
-	public PastedSectorGroup pasteSectorGroup(SectorGroup sg, Map destMap, PointXYZ rawTrasform) throws MapErrorException {
-		Map fromMap = sg.map();
-		
-		PastedSectorGroup psg = new PastedSectorGroup(
-				destMap, 
-				MapUtil.copySectorGroup(fromMap, destMap, 0, rawTrasform));
-
-		
-		return psg;
-	}
-	
-	// public List<Connector> findConnectors(int sectorGroupId, ConnectorFilter... filters){
-	// 	//PrefabUtils.findConnector(outMap, PrefabUtils.JoinType.VERTICAL_JOIN, 1);
-	// 	//Map map = numberedSectorGroups.get(sectorGroupId).map;
-	// 	//return SimpleConnector.findConnectors(map, filters);
-
-	// 	return Connector.matchConnectors(numberedSectorGroups.get(sectorGroupId).connectors, filters);
-	// }
-	
-	
-	
-	
-	public Connector getConnector(int sectorGroupId, int connectorId){
-		// TODO - shouldnt cast here ...
-		return numberedSectorGroups.get(sectorGroupId).getConnector(connectorId);
-	}
-	
-	
-	private static short nextSectorId(int currentSector, Set<Short> processedSectorIds, int sectorCount){
-		short i = 0;
-		if(currentSector > 0){
-			i = (short)currentSector; 
-		}
-		while(i < sectorCount){
-			
-			if(processedSectorIds.contains(i)){
-				i++;
-			}else{
-				return i;
-			}
-		}
-		
-		return -1;
 	}
 }

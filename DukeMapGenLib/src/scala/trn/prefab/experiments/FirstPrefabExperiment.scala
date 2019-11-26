@@ -7,6 +7,7 @@ import scala.collection.JavaConverters._
 class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
 
   val pastedGroups: java.util.List[PastedSectorGroup]  = new java.util.ArrayList[PastedSectorGroup]()
+  val writer = MapWriter(this)
 
   // this does not need to be more generic
   def pasteSectorGroup(sgId: Int, translate: PointXYZ): PastedSectorGroup = {
@@ -21,15 +22,15 @@ class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder
 
   def pasteAndLink(
       sectorGroupId: Int,
-      paletteConnectorFilter: ConnectorFilter,
+      paletteConnectorFilter: ConnectorFilter, // this is like SimplePalette.EastConnector ...
       destConnector: Connector): PastedSectorGroup = {
 
-    if(destConnector == null) throw new IllegalArgumentException
     val sg: SectorGroup = palette.getSectorGroup(sectorGroupId);
     if(destConnector.isLinked(outMap)){
       throw new IllegalArgumentException("connector already connected");
     }
-    return add(palette.pasteAndLink(sg, paletteConnectorFilter, outMap, destConnector));
+    val paletteConnector = sg.findFirstConnector(paletteConnectorFilter).asInstanceOf[RedwallConnector]
+    return add(writer.pasteAndLink(destConnector.asInstanceOf[RedwallConnector], sg, paletteConnector))
   }
 
   def findFirstUnlinkedConnector(cf: ConnectorFilter): Connector = {

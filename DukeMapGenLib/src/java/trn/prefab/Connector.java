@@ -34,9 +34,6 @@ public abstract class Connector {
 
     public abstract boolean isLinked(Map map);
 
-    /** @returns true if the whole sector group must be moved for this connector to work (e.g. redwall connectors) */
-    public abstract boolean hasXYRequirements();
-
     public static List<Connector> findConnectors(Map map) throws MapErrorException {
         return findConnectors(map, null);
     }

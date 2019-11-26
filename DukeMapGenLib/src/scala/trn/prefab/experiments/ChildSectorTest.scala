@@ -16,7 +16,7 @@ object ChildSectorTest {
   def run(sourceMap: DMap): DMap = {
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
 
-    println(s"palette sector groups: ${palette.numberedSectorGroups.keySet().asScala}")
+    println(s"palette sector groups: ${palette.numberedSectorGroupIds().asScala}")
 
     val builder = new TestBuilder(DMap.createNew())
 

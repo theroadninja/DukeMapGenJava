@@ -149,7 +149,6 @@ class GridMapBuilder(val outMap: DMap, random: RandomX = new RandomX()) extends 
     val size2 = simpleConns.size
 
     if(simpleConns.size != size2){
-      println(s"connector problem with sector group ${sg.getGroupId}")
       println(s"\tthere are ${sg.connectors.size}; they are:")
       sg.connectors.asScala.foreach(c => println(s"\tconnector type: ${c.getConnectorType}"))
     }
@@ -212,8 +211,10 @@ class GridMapBuilder(val outMap: DMap, random: RandomX = new RandomX()) extends 
     val dest = gridCellBoundingBox(gridX, gridY)
     // println(s"grid bounding box: ${dest}")
 
-    val redwallConns = sg.connectorsWithXYRequrements()
-    val connectors: Map[Int, SimpleConnector] = redwallConns.asScala.map(c => (c.getConnectorType, c)).toMap
+    //val redwallConns = sg.connectorsWithXYRequrements()
+    //val connectors: Map[Int, SimpleConnector] = redwallConns.asScala.map(c => (c.getConnectorType, c)).toMap
+    val redwallConns = sg.allRedwallConnectors
+    val connectors: Map[Int, SimpleConnector] = redwallConns.map(c => (c.getConnectorType, c.asInstanceOf[SimpleConnector])).toMap
 
     val newXY = snapToGridCell(sg, dest, connectors)
 

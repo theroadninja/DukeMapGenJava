@@ -49,23 +49,8 @@ public class SectorGroup extends SectorGroupS
 		return super.map();
 	}
 
-	public int getGroupId(){
+	private int getGroupId(){
 		return this.sectorGroupId;
-	}
-
-	/**
-	 *
-	 * @returns a read only list of all connecters that need the whole sector group to be in a certain place.
-	 */
-	public List<SimpleConnector> connectorsWithXYRequrements(){
-		// TODO - shouldnt be casting
-		List<SimpleConnector> list = new ArrayList(this.connectors_().size());
-		for(Connector c : connectors_()){
-			if(c.hasXYRequirements()){
-				list.add((SimpleConnector)c);
-			}
-		}
-		return Collections.unmodifiableList(list);
 	}
 
 	private void addConnector(Connector c){
@@ -78,7 +63,8 @@ public class SectorGroup extends SectorGroupS
         }
 	    this.connectors_().add(c);
     }
-	
+
+    // this is a merge operation
 	public SectorGroup connectedTo(int connectorId, SectorGroup sg){
 		if(sg == null) throw new IllegalArgumentException();
 		RedwallConnector c1 = getRedwallConnector(connectorId);
@@ -145,24 +131,6 @@ public class SectorGroup extends SectorGroupS
 		return result;
 	}
 
-	public RedwallConnector getRedwallConnector(int connectorId){ // TODO - move to scala
-		return (RedwallConnector)getConnector(connectorId);
-	}
-
-	public boolean hasConnector(int connectorId){
-		if(connectorId < 0) throw new IllegalArgumentException();
-		for(Connector c: connectors_()){
-			if(c.getConnectorId() == connectorId){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/** right now this is for debugging */
-	public int getSectorCount(){
-	    return super.map().getSectorCount();
-    }
 
     // TODO - move to base class or interface something
 	public Connector findFirstConnector(ConnectorFilter cf){
