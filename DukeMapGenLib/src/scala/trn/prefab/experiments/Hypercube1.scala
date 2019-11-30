@@ -101,10 +101,11 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
     val higherOpt = higherRoom.getElevatorConn(connectorId)
     (lowerOpt, higherOpt) match {
       case (Some(lowerElevator), Some(higherElevator)) => {
-        ElevatorConnector.linkElevators(
-          lowerElevator,
-          lowerRoom,
-          higherElevator, higherRoom, nextUniqueHiTag(), elevatorStartsLower)
+        writer.linkElevators(lowerElevator, higherElevator, elevatorStartsLower)
+        // ElevatorConnector.linkElevators(
+        //   lowerElevator,
+        //   lowerRoom,
+        //   higherElevator, higherRoom, nextUniqueHiTag(), elevatorStartsLower)
       }
       case _ => {}
     }

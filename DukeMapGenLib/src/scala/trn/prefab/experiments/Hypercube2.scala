@@ -119,13 +119,18 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
     (grid2.get(bottomCell), grid2.get(topCell)) match {
       case (Some(bottomRoom), Some(topRoom)) =>
         if(bottomRoom.elevator && topRoom.elevator){
-          ElevatorConnector.linkElevators(
+          writer.linkElevators(
             grid(bottomCell).getFirstElevatorConnector,
-            this,
             grid(topCell).getFirstElevatorConnector,
-            this,
-            nextUniqueHiTag(),
-            elevatorStartsLower)
+            elevatorStartsLower
+          )
+          // ElevatorConnector.linkElevators(
+          //   grid(bottomCell).getFirstElevatorConnector,
+          //   this,
+          //   grid(topCell).getFirstElevatorConnector,
+          //   this,
+          //   nextUniqueHiTag(),
+          //   elevatorStartsLower)
           true
         } else {
           false
@@ -392,8 +397,10 @@ object Hypercube2 {
       val teleportId = if(teleporter){ 1103 }else{ 1104 } // 1104 is teleporter empty
       val elevatorId = if(elevator){ 1101 }else{ 1102 }
       //val sg = palette.getSectorGroup(110).connectedTo(125, palette.getSectorGroup(teleportId))
-      val sg1 = sg.connectedTo(125, palette.getSectorGroup(teleportId))
-      val sg2 = sg1.connectedTo(123, palette.getSectorGroup(elevatorId))
+      //val sg1 = sg.connectedTo(125, palette.getSectorGroup(teleportId))
+      val sg1 = MapWriter.connected(sg, palette.getSectorGroup(teleportId), 125)
+      // val sg2 = sg1.connectedTo(123, palette.getSectorGroup(elevatorId))
+      val sg2 = MapWriter.connected(sg1, palette.getSectorGroup(elevatorId), 123)
       val sg3 = w match {
         case 0 => sg2
         case 1 => {
@@ -435,7 +442,8 @@ object Hypercube2 {
     val trainStop = Room(palette.getSectorGroup(TrainStation), Seq(), Seq( Heading.EAST, Heading.SOUTH ), false, false)
 
     val ELEVATOR_GROUP = 1101
-    val dishSg = palette.getSectorGroup(RoofAntenna).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
+    // val dishSg = palette.getSectorGroup(RoofAntenna).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
+    val dishSg = MapWriter.connected(palette.getSectorGroup(RoofAntenna), palette.getSectorGroup(ELEVATOR_GROUP), 123)
     val dishRoof = Room.auto(dishSg, Seq(Heading.S, Heading.W), Seq())
 
     val medicalBay = Room(palette.getSectorGroup(MedicalBay), Seq(), Seq(Heading.S), false, false)

@@ -1,7 +1,9 @@
 package trn.prefab
 
+import java.util
+
 import trn.duke.PaletteList
-import trn.{PointXY, PointXYZ, Map => DMap}
+import trn.{ISpriteFilter, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 
 
@@ -40,6 +42,25 @@ object MapWriter {
     sg2
   }
 
+  def withElevatorsLinked(
+    sg: SectorGroup,
+    lowerConn: ElevatorConnector,
+    higherConn: ElevatorConnector,
+    hitag: Int,
+    startLower: Boolean
+  ): SectorGroup = {
+    val sg2 = sg.copy
+    ElevatorConnector.linkElevators(lowerConn, sg2, higherConn, sg2, hitag, startLower)
+    sg2
+  }
+
+  // this is a merge operation
+  def connected(sg1: SectorGroup, sg2: SectorGroup, connectorId: Int): SectorGroup = {
+    val c1: RedwallConnector = sg1.getRedwallConnector(connectorId)
+    val c2: RedwallConnector = sg2.getRedwallConnector(connectorId)
+    sg1.connectedTo(c1, sg2, c2)
+  }
+
   def apply(map: DMap): MapWriter = {
     val builder = new MapBuilderAdapter(map)
     new MapWriter(builder, builder.sgBuilder)
@@ -53,7 +74,7 @@ object MapWriter {
   * @param builder
   * @param sgBuilder
   */
-class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder) {
+class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder) extends ISectorGroup {
 
   /** throws if the map has too many sectors */
   def checkSectorCount(): Unit = {
@@ -150,4 +171,32 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder) {
     existing: PastedSectorGroup,
     newGroup: SectorGroup
   ): PastedSectorGroup = pasteAndLinkNextTo(existing, MapWriter.NorthConn, newGroup, MapWriter.SouthConn)
+
+  //
+  //  CONNECTORS
+  //
+
+  // See the (static) MapWriter object for the version that works on unpasted SectorGroups
+  def linkElevators(
+    lowerConn: ElevatorConnector,
+    higherConn: ElevatorConnector,
+    startLower: Boolean
+  ): Unit = ElevatorConnector.linkElevators(
+    lowerConn,
+    this,
+    higherConn,
+    this,
+    sgBuilder.nextUniqueHiTag(),
+    startLower
+  )
+
+  //
+  //  ISectorGroup Methods
+  //  TODO - sgBuilder should implement these, not MapWriter
+  //
+  override def getMap: DMap = builder.outMap
+
+  override def findSprites(picnum: Int, lotag: Int, sectorId: Int): util.List[Sprite] = builder.findSprites(picnum, lotag, sectorId)
+
+  override def findSprites(filters: ISpriteFilter*): util.List[Sprite] = builder.findSprites(filters:_*)
 }

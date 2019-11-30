@@ -115,7 +115,7 @@ public class ElevatorConnector extends Connector {
         markerSprite.setLotag(Lotags.SE.ELEVATOR);
     }
 
-    public static void linkElevators(
+    static void linkElevators(
             ElevatorConnector lowerConn,
             ISectorGroup lowerConnGroup,
             ElevatorConnector higherConn,

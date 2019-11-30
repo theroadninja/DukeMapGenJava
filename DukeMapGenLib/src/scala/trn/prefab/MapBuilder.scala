@@ -40,12 +40,13 @@ object MapBuilder {
     aboveWater.zip(belowWater).foreach { case (above, below) => TeleportConnector.linkTeleporters(above, singleGroup, below, singleGroup, tagGenerator.nextUniqueHiTag()) }
   }
 
-  def linkTwoElevators(group: SectorGroup, elevators: Seq[ElevatorConnector], tagGenerator: TagGenerator, startLower: Boolean): Unit = {
-    if(elevators.size != 2) throw new IllegalArgumentException
-    // TODO - why does this work?  physically lower sectors should have a HIGHER z
-    elevators.sortBy(c => group.map.getSector(c.getSectorId).getFloorZ) // lower z should be higher
-    ElevatorConnector.linkElevators(elevators(0), group, elevators(1), group, tagGenerator.nextUniqueHiTag(), startLower)
-  }
+  // TODO - keep as a reference?
+  // def linkTwoElevators(group: SectorGroup, elevators: Seq[ElevatorConnector], tagGenerator: TagGenerator, startLower: Boolean): Unit = {
+  //   if(elevators.size != 2) throw new IllegalArgumentException
+  //   // TODO - why does this work?  physically lower sectors should have a HIGHER z
+  //   elevators.sortBy(c => group.map.getSector(c.getSectorId).getFloorZ) // lower z should be higher
+  //   ElevatorConnector.linkElevators(elevators(0), group, elevators(1), group, tagGenerator.nextUniqueHiTag(), startLower)
+  // }
 
 }
 
@@ -268,16 +269,17 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
 
   }
 
-  def linkTwoElevators(group: SectorGroup, connectorId: Int): Unit = {
-    if(connectorId < 1) throw new IllegalArgumentException
-    val elevators: Seq[ElevatorConnector] = group.getElevatorConnectors.filter(c => c.getConnectorId == connectorId && !c.isLinked(group.getMap))
-    val startLower = false // TODO - pass in
-    MapBuilder.linkTwoElevators(group, elevators, this, startLower)
-    // if(elevators.size != 2) throw new SpriteLogicException(s"Number of teleporters with connectorId ${connectorId}")
-    // // TODO - why does this work?  physically lower sectors should have a HIGHER z
-    // elevators.sortBy(c => group.map.getSector(c.getSectorId).getFloorZ) // lower z should be higher
-    // ElevatorConnector.linkElevators(elevators(0), group, elevators(1), group, nextUniqueHiTag(), false)
-  }
+  // TODO - maybe keep this as a reference?
+  // def linkTwoElevators(group: SectorGroup, connectorId: Int): Unit = {
+  //   if(connectorId < 1) throw new IllegalArgumentException
+  //   val elevators: Seq[ElevatorConnector] = group.getElevatorConnectors.filter(c => c.getConnectorId == connectorId && !c.isLinked(group.getMap))
+  //   val startLower = false // TODO - pass in
+  //   MapBuilder.linkTwoElevators(group, elevators, this, startLower)
+  //   // if(elevators.size != 2) throw new SpriteLogicException(s"Number of teleporters with connectorId ${connectorId}")
+  //   // // TODO - why does this work?  physically lower sectors should have a HIGHER z
+  //   // elevators.sortBy(c => group.map.getSector(c.getSectorId).getFloorZ) // lower z should be higher
+  //   // ElevatorConnector.linkElevators(elevators(0), group, elevators(1), group, nextUniqueHiTag(), false)
+  // }
 
   def applyPaletteToAll(textureId: Int, palette: Int): Unit = {
     if(textureId < 0 || palette < 0) throw new IllegalArgumentException
@@ -295,28 +297,5 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
       }
     }
   }
-
-  /**
-    * TODO - very similar to method in Sushi, PipeDream
-    */
-  //def spaceAvailable(bb: BoundingBox): Boolean = {
-  // def spaceAvailable(bb: BoundingBox): Boolean = {
-
-  //   def conflict(psg: PastedSectorGroup, bb: BoundingBox): Boolean ={
-  //     psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0
-  //   }
-
-  //   if(!bb.isInsideInclusive(MapBuilder.mapBounds)){
-  //     return false
-  //   }else{
-  //     val conflicts = pastedSectorGroups.filter { psg =>
-  //       conflict(psg, bb) && sg.fineBoundingBoxes.map(_.translate(tx)).filter(b => conflict(psg, b)).nonEmpty
-  //     }
-  //     conflicts.nonEmpty
-  //   }
-
-  //   bb.isInsideInclusive(MapBuilder.mapBounds) &&
-  //     pastedSectorGroups.filter(psg => psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0).isEmpty
-  // }
 
 }

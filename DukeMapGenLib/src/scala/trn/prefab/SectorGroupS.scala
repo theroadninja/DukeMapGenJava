@@ -20,22 +20,43 @@ case class ChildPointer(
   val childMarker: Sprite,
   val connectorId: Int,
   val childConnectors: Seq[RedwallConnector],
-
-  // NOTE: these references becone invalid after the sector merge
-  //val waterConnectors: Seq[TeleportConnector],
-  //val elevatorConnectors: Seq[ElevatorConnector]
 )
 {
   def sectorId: Int = childMarker.getSectorId
   def parentGroupId: Int = childMarker.getHiTag
-
   def connectorsJava: java.util.List[RedwallConnector] = childConnectors.asJava
 }
 
+object SectorGroupS {
 
-class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroupProperties)
-  extends SectorGroupBase with ConnectorCollection {
-  val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
+  /**
+    * This should only be called by SectorGroupBuilder
+    */
+  def newSG(map: DMap, sectorGroupId: Int, props: SectorGroupProperties): SectorGroup = {
+
+    val connectors = try {
+      Connector.findConnectors(map)
+      //for(Connector c : Connector.findConnectors(map)){
+      //  addConnector(c);
+      //}
+      //}catch(SpriteLogicException ex){
+    }catch{
+      case ex: Exception => throw new SpriteLogicException(
+        "exception while scanning connectors in sector group.  id=" + sectorGroupId,
+        ex
+      )
+    }
+
+    new SectorGroup(map, sectorGroupId, props, connectors)
+  }
+}
+
+class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroupProperties, val connectors: java.util.List[Connector])
+  extends SectorGroupBase
+    with ConnectorCollection
+    with ISectorGroup
+{
+  // val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
   val autoTexts: java.util.List[AutoText] = new java.util.ArrayList[AutoText]
 
   protected def wallSeq: Seq[Wall] = {
@@ -44,6 +65,21 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
       walls += map.getWall(i)
     }
     walls.result
+  }
+
+  // TODO - get rid of this
+  override def getMap: DMap = map
+
+  override def findSprites(picnum: Int, lotag: Int, sectorId: Int): java.util.List[Sprite] = {
+    getMap().findSprites(picnum, lotag, sectorId)
+  }
+
+  override def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = getMap().findSprites4Scala(filters.asJava)
+
+  protected def addConnector(c: Connector): Unit = {
+    require(c.getSectorId >= 0)
+    require(c.getSectorId < map.getSectorCount)
+    connectors.add(c)
   }
 
   def getGroupId: Int = sectorGroupId
@@ -112,8 +148,12 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
     }
   }
 
-  @throws(classOf[MapErrorException])
-  protected def updateConnectors(): Unit = ???
+  // @throws(classOf[MapErrorException])
+  // protected def updateConnectors(): Unit = ???
+  protected def updateConnectors(): Unit = {
+    connectors.clear()
+    Connector.findConnectors(map).forEach(c => addConnector(c))
+  }
 
 
   def getRedwallConnector(connectorId: Int): RedwallConnector = {
@@ -218,6 +258,14 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
   }
 
   def connectedToChild(childPtr: ChildPointer, child: SectorGroup, tagGenerator: TagGenerator): SectorGroup = {
+    // parent and child must have the same number of connectors
+    if(this.getRedwallConnectorsById(childPtr.connectorId).size != childPtr.connectorsJava.size){
+      throw new SpriteLogicException("parent and child sector groups have different count of connectors with ID " + childPtr.connectorId);
+    }
+    // TODO - allow child sector groups to connect to other child sector groups with same parent (need to
+    //     sort them first, and dedupe all connector IDs, to ensure deterministic behavior)
+    // TODO - sort children by connector id first! (so that at least results are deterministic)
+    require(childPtr.connectorsJava.size == 1, "not implemented yet")
     val c1 = getRedwallConnectorsById(childPtr.connectorId)
     val c2 = child.getRedwallConnectorsById(childPtr.connectorId)
     if(this.sectorGroupId != childPtr.parentGroupId || c1.size != c2.size) throw new IllegalArgumentException
@@ -235,15 +283,48 @@ class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroup
     val elevatorConns = result.getElevatorConnectorsById(childPtr.connectorId)
     if(elevatorConns.size == 2){
       val sorted = elevatorConns.sortBy(ElevatorConnector.sortKey(_, result.map))
-      ElevatorConnector.linkElevators(sorted(0), result, sorted(1), result, tagGenerator.nextUniqueHiTag(), false)
+      MapWriter.withElevatorsLinked(result, sorted(0), sorted(1), tagGenerator.nextUniqueHiTag(), false)
     }else if(elevatorConns.size != 0){
       throw new RuntimeException("not implemented yet") // need to auto detect which elevators match ...
+    }else{
+      result
     }
-
-    result
   }
 
+  /**
+    * Called by the palette loading code to attach sector group children to their parent.
+    * THIS object is the parent.
+    *
+    * 1. the child sector's marker must match THIS parent's sector group ID.
+    * 2. more than one child cannot use the same connector id
+    * 3. the connectorId the child uses to connect must match the parent's in quantity
+    * 		(e.g. if a child has two redwall connectors with ID 123, the parent must have exactly two)
+    */
+  def connectedToChildren(children: java.util.List[SectorGroup], tagGenerator: TagGenerator): SectorGroup = {
+    var result = this.copy
+    if(children.size < 1){
+      return result
+    }
+    if(sectorGroupId == -1){
+      throw new SpriteLogicException("cannot connect children to parent with no group id")
+    }
 
+    val seenConnectorIds = new java.util.HashSet[Int](children.size())
+    children.forEach { child =>
+      val childPtr = child.getChildPointer()
+      require(sectorGroupId == childPtr.parentGroupId)
+
+      if(seenConnectorIds.contains(childPtr.connectorId)){
+        throw new SpriteLogicException("more than one child sector group is trying to use connector " + childPtr.connectorId)
+      }else{
+        seenConnectorIds.add(childPtr.connectorId)
+        seenConnectorIds.addAll(child.allConnectorIds.asScala.map(_.toInt).asJava)
+      }
+
+      result = result.connectedToChild(childPtr, child, tagGenerator);
+    }
+    result
+  }
 
 
   private def bbDimension(values: Seq[Int]): Int = values.max - values.min

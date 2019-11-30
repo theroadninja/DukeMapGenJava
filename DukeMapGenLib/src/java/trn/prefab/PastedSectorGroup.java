@@ -63,25 +63,6 @@ public class PastedSectorGroup extends PastedSectorGroupS implements ISectorGrou
 		return getMap().findSprites(filters);
 	}
 
-
-	// public boolean isConnectorLinked(Connector c){ // TODO - replace with version in MapBuilderOld
-	// 	return c.isLinked(destMap);
-	// 	//// TODO - will not work with teleporer connectors, etc
-	// 	//return this.destMap.getWall(c.wallId).isRedWall();
-	// }
-
-	// public Connector getConnector(int connectorId){
-	// 	if(connectorId < 0) throw new IllegalArgumentException();
-	//
-	// 	for(Connector c: connectors_()){
-	// 		if(c.getConnectorId() == connectorId){
-	// 			return c;
-	// 		}
-	// 	}
-	//
-	// 	throw new IllegalArgumentException();
-	// }
-
 	// TODO - these functions are duplicated in SectorGroup
 	public boolean hasConnector(int connectorId){
 		if(connectorId < 0) throw new IllegalArgumentException();
