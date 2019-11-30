@@ -32,7 +32,7 @@ class SgMapBuilder(private val map: DMap) extends TagGenerator {
   def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap)  = {
     require(!markersCleared)
     val copyState = MapUtil.copySectorGroup(sg.map, map, 0, translate);
-    val tp = (new PastedSectorGroup(map, copyState), copyState.idmap)
+    val tp = (PastedSectorGroup(map, copyState), copyState.idmap)
     pastedSectorGroupsMutable.append(tp._1)
     tp
   }

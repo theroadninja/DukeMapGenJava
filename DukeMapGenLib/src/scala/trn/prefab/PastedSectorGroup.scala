@@ -7,19 +7,24 @@ import trn.MapImplicits._
 import scala.collection.JavaConverters._ // this is the good one
 
 
-object PastedSectorGroupS {
+object PastedSectorGroup {
+
+  def apply(map: DMap, copystate: MapUtil.CopyState): PastedSectorGroup = {
+    new PastedSectorGroup(map, copystate, Connector.findConnectorsInPsg(map, copystate))
+  }
 
 }
 
-class PastedSectorGroupS(
+class PastedSectorGroup(
   val map: DMap,
-  destSectorIds: java.util.Set[java.lang.Short],
   copystate: MapUtil.CopyState,
   val connectors: java.util.List[Connector]
 )
   extends SectorGroupBase
   with ISectorGroup
 {
+  val destSectorIds = copystate.destSectorIds
+
   // val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
   val connectorCollection = new PastedConnectorCollection(connectors)
 

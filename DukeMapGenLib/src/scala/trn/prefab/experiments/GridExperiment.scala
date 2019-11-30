@@ -230,7 +230,7 @@ class GridMapBuilder(val outMap: DMap, random: RandomX = new RandomX()) extends 
     }
 
     val translate = new PointXYZ(bb.getTranslateTo(newXY), 0)
-    val psg = new PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
+    val psg = PastedSectorGroup(outMap, MapUtil.copySectorGroup(sg.map, outMap, 0, translate));
     val node = unpastedNode.asPasted(psg, translate)
 
     // TODO - unit test neighboors, and all this code with the grid nodes!!
