@@ -30,6 +30,7 @@ class PastedConnectorCollection(
       None
     }
   }
+  def findFirstRedwallConn(cf: ConnectorFilter): Option[RedwallConnector] = findFirstConnector(cf).map(_.asInstanceOf[RedwallConnector])
 
   def findConnectorsByType(connectorType: Int): java.util.List[Connector] = {
     connectors.asScala.filter(_.getConnectorType == connectorType).asJava

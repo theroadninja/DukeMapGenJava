@@ -29,6 +29,24 @@ public abstract class RedwallConnector extends Connector {
         return totalManhattanLength(sg.getMap());
     }
 
+    /**
+     * If this is a simple connector and has a single wall that is aligned to x or y axis,
+     * then return which side of the sector group it is on.
+     *
+     * Otherwise, returns null.
+     *
+     * e.g. a connector with heading "east" would be:
+     *
+     * +---------+
+     * |         .
+     * |  (20)-> .
+     * |         .
+     * +---------+
+     */
+    public Integer getSimpleHeading(){
+        return null;
+    }
+
     @Override
     public abstract int getConnectorType();
 

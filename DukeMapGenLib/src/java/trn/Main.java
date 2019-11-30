@@ -32,7 +32,7 @@ public class Main {
 		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));
 
 		//Map outMap = FirstPrefabExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
-		Map outMap = GridExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
+		Map outMap = GridExperiment.run(MapLoader.loadMap(DOSPATH + GridExperiment.FILENAME()));
 
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
 		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));

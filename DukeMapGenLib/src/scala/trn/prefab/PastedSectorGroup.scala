@@ -15,7 +15,7 @@ object PastedSectorGroup {
 
 }
 
-class PastedSectorGroup(
+class PastedSectorGroup private (
   val map: DMap,
   copystate: MapUtil.CopyState,
   val connectors: java.util.List[Connector]

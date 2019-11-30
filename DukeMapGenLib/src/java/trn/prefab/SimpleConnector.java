@@ -149,6 +149,10 @@ public class SimpleConnector extends RedwallConnector {
     public int getHeading(){
 		return this.heading;
 	}
+	@Override
+	public Integer getSimpleHeading(){
+		return this.heading;
+	}
 
     public static boolean isSimpleConnector(List<Integer> linkWallIds, Map map){
 	    if(linkWallIds.size() != 1){
@@ -228,7 +232,8 @@ public class SimpleConnector extends RedwallConnector {
 	public int getConnectorType() {
 		return this.connectorType;
 	}
-	
+
+
 	public void setAnchorPoint(PointXYZ anchor){
 		this.anchorPoint = anchor;
 	}

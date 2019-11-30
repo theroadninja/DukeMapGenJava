@@ -60,13 +60,25 @@ class SgMapBuilder(private val map: DMap) extends TagGenerator {
     unlinked.foreach(c => require(!c.isLinked(map)))
     unlinked.foreach { x =>
       unlinked.foreach { y =>
-        if (x.isFullMatch(y, map)) {
-          x.linkConnectors(map, y)
+        if(autoLink(x, y)){
           count += 1
         }
+        //if (x.isFullMatch(y, map)) {
+        //  x.linkConnectors(map, y)
+        //  count += 1
+        //}
       }
     }
     count
+  }
+
+  def autoLink(c1: RedwallConnector, c2: RedwallConnector): Boolean = {
+    if (c1.isFullMatch(c2, map)) {
+      c1.linkConnectors(map, c2)
+      true
+    }else{
+      false
+    }
   }
 
   def linkTeleporters(

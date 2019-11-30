@@ -27,6 +27,18 @@ trait ConnectorCollection {
     }
   }
 
+  // TODO - copied from PastedConnectorCollection.findFirstConnector()
+  def findFirstConnectorOpt(cf: ConnectorFilter): Option[Connector] = {
+    val it: java.util.Iterator[Connector] = Connector.findConnectors(connectors, cf).iterator
+    //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
+    //return it.hasNext() ? it.next() : null;
+    if(it.hasNext){
+      Some(it.next)
+    }else{
+      None
+    }
+  }
+
   final def getRedwallConnectorsById(connectorId: Int): Seq[RedwallConnector] = {
     if(connectorId < 0) throw new IllegalArgumentException
     val c = connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType) && c.connectorId == connectorId)

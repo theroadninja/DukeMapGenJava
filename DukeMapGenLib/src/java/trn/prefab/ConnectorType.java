@@ -28,10 +28,10 @@ public class ConnectorType {
      *
      */
     /** horizontal connector on the east side of the group */
-    public static int HORIZONTAL_EAST = 16;
+    public static int HORIZONTAL_EAST = 16; // TODO get rid of this (but careful; its used for more than lotags)
 
     /** horizontal connector on the west side of the group */
-    public static int HORIZONTAL_WEST = 17;
+    public static int HORIZONTAL_WEST = 17; // TODO get rid of this
 
     /**
      * ----| - - |----
@@ -43,10 +43,10 @@ public class ConnectorType {
      * ----| - - |----
      */
     /** vertical connector on the south side of the sector */
-    public static int VERTICAL_SOUTH = 18;
+    public static int VERTICAL_SOUTH = 18; // TODO get rid of this
 
     /** vertical connector on the north side of the sector */
-    public static int VERTICAL_NORTH = 19;
+    public static int VERTICAL_NORTH = 19; // TODO get rid of this
 
     // leave 20 for the auto marker
 
