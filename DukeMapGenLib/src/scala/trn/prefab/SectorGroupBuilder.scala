@@ -48,7 +48,7 @@ object SectorGroupBuilder {
     }
 
     // autoTexts.values.asJava
-    val sg = SectorGroupS.newSG(map, sectorGroupId, props)
+    val sg = SectorGroup.newSG(map, sectorGroupId, props)
     autoTexts.values.foreach(sg.addAutoText(_))
 
     sg

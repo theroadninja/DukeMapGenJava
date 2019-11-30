@@ -27,7 +27,7 @@ case class ChildPointer(
   def connectorsJava: java.util.List[RedwallConnector] = childConnectors.asJava
 }
 
-object SectorGroupS {
+object SectorGroup {
 
   /**
     * This should only be called by SectorGroupBuilder
@@ -51,7 +51,7 @@ object SectorGroupS {
   }
 }
 
-class SectorGroupS(val map: DMap, val sectorGroupId: Int, val props: SectorGroupProperties, val connectors: java.util.List[Connector])
+class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupProperties, val connectors: java.util.List[Connector])
   extends SectorGroupBase
     with ConnectorCollection
     with ISectorGroup
