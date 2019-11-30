@@ -149,7 +149,7 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
     */
   def setPlayerStart(psg: PastedSectorGroup): Unit = {
     //
-    val sectorIds = psg.copystate.destSectorIds().asScala
+    val sectorIds = psg.getCopyState.destSectorIds().asScala
 
     val playerStarts = psg.getMap.allSprites.filter(s =>
       s.getTexture == PrefabUtils.MARKER_SPRITE_TEX

@@ -81,7 +81,7 @@ case class GridNode (
   override def south: Option[SimpleConnector] = connectors.get(ConnectorType.VERTICAL_SOUTH)
 
   def asPasted(psg: PastedSectorGroup, delta: PointXYZ): PastedGridNode = {
-    val idmap = psg.copystate.idmap
+    val idmap = psg.getCopyState.idmap
     PastedGridNode(
       gridX,
       gridY,

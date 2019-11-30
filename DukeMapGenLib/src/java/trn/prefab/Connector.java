@@ -63,6 +63,16 @@ public abstract class Connector {
         return results;
     }
 
+    public static List<Connector> findConnectorsInPsg(Map map, MapUtil.CopyState copystate) throws MapErrorException {
+        ConnectorFilter cf = new ConnectorFilter(){
+            @Override
+            public boolean matches(Connector c) {
+                return copystate.destSectorIds().contains(c.getSectorId());
+            }
+        };
+        return findConnectors(map, cf);
+    }
+
     public static final int idOf(Sprite markerSprite){
         //return (markerSprite != null && markerSprite.getHiTag() > 0) ? markerSprite.getHiTag() : -1;
         return PrefabUtils.hitagToId(markerSprite);

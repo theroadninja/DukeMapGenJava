@@ -20,6 +20,21 @@ class PastedConnectorCollection(
     }
   }
 
+  def findFirstConnector(cf: ConnectorFilter): Option[Connector] = {
+    val it: java.util.Iterator[Connector] = Connector.findConnectors(connectors, cf).iterator
+    //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
+    //return it.hasNext() ? it.next() : null;
+    if(it.hasNext){
+      Some(it.next)
+    }else{
+      None
+    }
+  }
+
+  def findConnectorsByType(connectorType: Int): java.util.List[Connector] = {
+    connectors.asScala.filter(_.getConnectorType == connectorType).asJava
+  }
+
   final def getElevatorConn(connectorId: Int): Option[ElevatorConnector] = {
     if(connectorId < 0) throw new IllegalArgumentException
     try{
@@ -28,6 +43,28 @@ class PastedConnectorCollection(
     }catch{
       case _ => None
     }
+  }
+
+  def getRedwallConnectorsById(connectorId: Int): java.util.List[RedwallConnector] = {
+    connectors.asScala.filter{ c =>
+      c.getConnectorId == connectorId && ConnectorType.isRedwallType(c.getConnectorType)
+    }.map(_.asInstanceOf[RedwallConnector]).asJava
+  }
+
+  def hasConnector(connectorId: Int): Boolean = {
+    require(connectorId >= 0)
+    val x = connectors.asScala.find(_.connectorId == connectorId)
+    x.map(_ => true).getOrElse(false)
+    // for(Connector c: connectors_()){
+    //   if(c.getConnectorId() == connectorId){
+    //     return true;
+    //   }
+    // }
+    // return false;
+  }
+
+  def getFirstElevatorConnector: Option[ElevatorConnector] = {
+    connectors.asScala.find(_.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector])
   }
 
 }
