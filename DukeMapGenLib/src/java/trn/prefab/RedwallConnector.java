@@ -5,6 +5,8 @@ import trn.Map;
 import trn.PointXYZ;
 import trn.Sprite;
 
+import java.util.List;
+
 // TODO - or should the main feature of this class be that it matters where the sector is?
 public abstract class RedwallConnector extends Connector {
 
@@ -19,6 +21,13 @@ public abstract class RedwallConnector extends Connector {
 
     @Override
     public abstract RedwallConnector translateIds(final IdMap idmap, PointXYZ delta);
+
+    public BlueprintConnector toBlueprint(){
+        throw new RuntimeException("not implemented yet");
+    }
+
+    public abstract List<Integer> getSectorIds();
+
 
     /**
      * @returns the sum of the manhattan-distance length of each wall in the group

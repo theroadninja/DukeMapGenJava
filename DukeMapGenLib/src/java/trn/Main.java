@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import trn.duke.MapImageWriter;
+import trn.prefab.JigsawPlacerMain$;
 import trn.prefab.experiments.*;
 import javax.imageio.ImageIO;
 
@@ -32,20 +33,45 @@ public class Main {
 		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));
 
 		//Map outMap = FirstPrefabExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
-		Map outMap = GridExperiment.run(MapLoader.loadMap(DOSPATH + GridExperiment.FILENAME()));
+		//Map outMap = GridExperiment.run(MapLoader.loadMap(DOSPATH + GridExperiment.FILENAME()));
 
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
 		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
-        //Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
+		//TODO - Hypercube3 -- some rooms span multiple vertical levels (and multiple w levels?)
+            //navigation:  box in the center is special (corners/edges stick out?)
+        					// location numbers on walls
+
+        	// twisting center room that goes through W
+        	// use sprites for floors to save on sectors!
+				// or better, use sprites for walls
+			// implement sector joins (get rid of red wall) to further conserve sectors?
+				// room that is double length in x or w directions
+			// bottom level is "outside" of the cube, so you only see the 4 corners, rest is shared area
+				// covered by:  water, lava, slime ...
+			// one room always locked in each W, different color key ...
+
+
+
+		//Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
 		//Map outMap = ReferenceTestExperiment.run(new MapLoader(DOSPATH));
 		//Map outMap = PipeDream.run(new MapLoader(DOSPATH));
+		//Map outMap = PoolExperiment.run(new MapLoader(DOSPATH));
 		//Map outMap = Sushi.run(new MapLoader(DOSPATH));
-
 		//Map outMap = runDeleteSectorTest(5, new MapLoader(DOSPATH));
 
 		// writeAndOpenMapPng(outMap);
-		deployTest(outMap);
+		//deployTest(outMap);
 
+		//run(Hypercube3$.MODULE$);
+
+		run(JigsawPlacerMain$.MODULE$);
+
+	}
+
+
+	private static void run(PrefabExperiment exp) throws IOException {
+		Map outMap = exp.run(new MapLoader(DOSPATH));
+		deployTest(outMap);
 	}
 
 	static Map runDeleteSectorTest(int spriteLotag, MapLoader mapLoader) throws IOException {

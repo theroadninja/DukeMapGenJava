@@ -14,6 +14,7 @@ import scala.Tuple2;
  *
  */
 public class PointXY {
+	public static PointXY ZERO = new PointXY(0, 0);
 
 	public final int x;
 	public final int y;

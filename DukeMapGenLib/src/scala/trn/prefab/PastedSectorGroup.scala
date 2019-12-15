@@ -9,8 +9,8 @@ import scala.collection.JavaConverters._ // this is the good one
 
 object PastedSectorGroup {
 
-  def apply(map: DMap, copystate: MapUtil.CopyState): PastedSectorGroup = {
-    new PastedSectorGroup(map, copystate, Connector.findConnectorsInPsg(map, copystate))
+  def apply(map: DMap, copystate: MapUtil.CopyState, groupId: Option[Int]): PastedSectorGroup = {
+    new PastedSectorGroup(map, copystate, Connector.findConnectorsInPsg(map, copystate), groupId)
   }
 
 }
@@ -18,7 +18,8 @@ object PastedSectorGroup {
 class PastedSectorGroup private (
   val map: DMap,
   copystate: MapUtil.CopyState,
-  val connectors: java.util.List[Connector]
+  val connectors: java.util.List[Connector],
+  val groupId: Option[Int] // id of the sector group this was copied from
 )
   extends SectorGroupBase
   with ISectorGroup
@@ -36,6 +37,8 @@ class PastedSectorGroup private (
     getMap().findSprites(picnum, lotag, sectorId)
   }
   override def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = getMap().findSprites4Scala(filters.asJava)
+
+  def allSprites: Seq[Sprite] = getMap().allSprites
 
   final def getConnector(connectorId: Int): Connector = connectorCollection.getConnector(connectorId)
   //   if(connectorId < 0) throw new IllegalArgumentException

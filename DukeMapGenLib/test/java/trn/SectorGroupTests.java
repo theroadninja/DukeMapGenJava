@@ -6,6 +6,7 @@ import scala.Tuple2;
 import trn.prefab.BoundingBox;
 import trn.prefab.SectorGroup;
 import trn.prefab.SectorGroupBuilder;
+import trn.prefab.SectorGroupHints;
 
 public class SectorGroupTests {
     short wallTex = 191;
@@ -19,7 +20,7 @@ public class SectorGroupTests {
 
         Map map = Map.createNew();
         map.addLoop(w4, w5, w6, w7);
-        SectorGroup sg = SectorGroupBuilder.createSectorGroup(map, null);
+        SectorGroup sg = SectorGroupBuilder.createSectorGroup(map, null, SectorGroupHints.empty());
         Assert.assertEquals(612, sg.bbHeight());
         Assert.assertEquals(1025, sg.bbWidth());
 
@@ -41,7 +42,7 @@ public class SectorGroupTests {
         Wall w6 = new Wall(512, 210, wallTex);
         Map map = Map.createNew();
         map.addLoop(w4, w5, w6);
-        SectorGroup sg = SectorGroupBuilder.createSectorGroup(map, null);
+        SectorGroup sg = SectorGroupBuilder.createSectorGroup(map, null, SectorGroupHints.empty());
         Assert.assertEquals(210-3, sg.bbHeight());
         Assert.assertEquals(1024-2, sg.bbWidth());
 

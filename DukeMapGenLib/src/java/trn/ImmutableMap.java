@@ -15,4 +15,8 @@ public class ImmutableMap implements WallContainer {
     public Wall getWall(int i){
         return map.getWall(i);
     }
+
+    public Sector getSector(int sectorId){
+        return map.getSector(sectorId).copy();
+    }
 }

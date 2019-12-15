@@ -38,7 +38,7 @@ object SectorGroupBuilder {
     new AutoText(PrefabUtils.hitagToId(marker), Set(marker.getSectorId.toInt))
   }
 
-  def createSectorGroup(map: DMap, sectorGroupId: Int, props: SectorGroupProperties): SectorGroup = {
+  def createSectorGroup(map: DMap, sectorGroupId: Int, props: SectorGroupProperties, hints: SectorGroupHints): SectorGroup = {
     val autoTexts = scala.collection.mutable.Map[Int, AutoText]()
     map.allSprites.filter(isMarker(PrefabUtils.MarkerSpriteLoTags.AUTO_TEXT, _)).foreach { sprite =>
       //val autoText = AutoText(sprite, map)
@@ -48,13 +48,13 @@ object SectorGroupBuilder {
     }
 
     // autoTexts.values.asJava
-    val sg = SectorGroup.newSG(map, sectorGroupId, props)
+    val sg = SectorGroup.newSG(map, sectorGroupId, props, hints)
     autoTexts.values.foreach(sg.addAutoText(_))
 
     sg
   }
-  def createSectorGroup(map: DMap, props: SectorGroupProperties): SectorGroup = {
-    createSectorGroup(map, -1, props)
+  def createSectorGroup(map: DMap, props: SectorGroupProperties, hints: SectorGroupHints): SectorGroup = {
+    createSectorGroup(map, -1, props, hints)
   }
 
 }

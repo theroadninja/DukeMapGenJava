@@ -4,7 +4,6 @@ import trn.duke.PaletteList
 import trn.prefab._
 import trn.{PointXYZ, Map => DMap}
 
-
 class GridManager(
   val origin: PointXYZ,
   val cellDist: Int,  // the distance between the centers of two grid nodes

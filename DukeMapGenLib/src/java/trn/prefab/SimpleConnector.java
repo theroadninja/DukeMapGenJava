@@ -65,12 +65,15 @@ public class SimpleConnector extends RedwallConnector {
 	final int wallId;
 	final int connectorType;
 	final int heading;
+	final List<Integer> allSectorIds;
 
 	/** length of the wall of this connector */
 	final long length;
 
 	// could be 20, or the specific type
 	final int markerSpriteLotag;
+
+	final BlueprintConnector blueprint;
 
 	public int getWallId(){
 		return this.wallId;
@@ -84,25 +87,26 @@ public class SimpleConnector extends RedwallConnector {
 	int z;
 
 
-	SimpleConnector(Sprite markerSprite, int wallId, Wall wall, long length){
-		super(markerSprite);
-		//super(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
-		if(markerSprite == null){
-			throw new IllegalArgumentException("markerSprite is null");
-		}
-		if(markerSprite.getTexture() != PrefabUtils.MARKER_SPRITE_TEX){
-			throw new IllegalArgumentException();
-		}
-        this.connectorType = markerSprite.getLotag();
-		this.heading = headingForConnectorType(this.connectorType);
-		this.sectorId = markerSprite.getSectorId();
-		if(this.sectorId < 0){
-			throw new RuntimeException("SimpleConnector sectorId cannot be < 0");
-		}
-		this.wallId = wallId;
-		this.length = length;
-		this.markerSpriteLotag = markerSprite.getLotag();
-	}
+	// // TODO - get rid of this?
+	// SimpleConnector(Sprite markerSprite, int wallId, Wall wall, long length){
+	// 	super(markerSprite);
+	// 	//super(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
+	// 	if(markerSprite == null){
+	// 		throw new IllegalArgumentException("markerSprite is null");
+	// 	}
+	// 	if(markerSprite.getTexture() != PrefabUtils.MARKER_SPRITE_TEX){
+	// 		throw new IllegalArgumentException();
+	// 	}
+    //     this.connectorType = markerSprite.getLotag();
+	// 	this.heading = headingForConnectorType(this.connectorType);
+	// 	this.sectorId = markerSprite.getSectorId();
+	// 	if(this.sectorId < 0){
+	// 		throw new RuntimeException("SimpleConnector sectorId cannot be < 0");
+	// 	}
+	// 	this.wallId = wallId;
+	// 	this.length = length;
+	// 	this.markerSpriteLotag = markerSprite.getLotag();
+	// }
 	
 	// SimpleConnector(Sprite markerSprite, int wallId, Wall wall, Sector sector){
 	// 	this(markerSprite, wallId, wall);
@@ -116,6 +120,8 @@ public class SimpleConnector extends RedwallConnector {
         this.wallId = wallId;
         this.length = wallLength(this.wallId, map);
         this.sectorId = markerSprite.getSectorId();
+        this.allSectorIds = new ArrayList(1);
+        this.allSectorIds.add(this.sectorId);
 		Wall wall = map.getWall(wallId);
 		Wall nextWallInLoop = map.getWall(wall.getPoint2Id());
 
@@ -144,6 +150,7 @@ public class SimpleConnector extends RedwallConnector {
 
         this.markerSpriteLotag = markerSprite.getLotag();
 
+        this.blueprint = BlueprintConnector.apply(new BlueprintWall(wall.getLocation(), nextWallInLoop.getLocation()));
     }
 
     public int getHeading(){
@@ -167,15 +174,18 @@ public class SimpleConnector extends RedwallConnector {
 
 
 
-	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType, int markerSpriteLotag, long length){
+	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType, int markerSpriteLotag, long length, BlueprintConnector bp){
 	    super(connectorId);
 		//TODO add more fields ...
         this.sectorId = sectorId;
+		this.allSectorIds = new ArrayList(1);
+		this.allSectorIds.add(this.sectorId);
         this.wallId = wallId;
         this.connectorType = connectorType;
         this.heading = headingForConnectorType(this.connectorType);
         this.markerSpriteLotag = markerSpriteLotag;
         this.length = length;
+        this.blueprint = bp;
 	}
 
 	@Override
@@ -185,13 +195,20 @@ public class SimpleConnector extends RedwallConnector {
 				idmap.wall(this.wallId),
                 this.connectorType,
 				this.markerSpriteLotag,
-				this.length);
+				this.length,
+				this.blueprint);
 	}
 
 	public static long wallLength(int wallId, Map map){
 		Wall w1 = map.getWall(wallId);
 		Wall w2 = map.getWall(w1.getNextWallInLoop());
 		return w1.getLocation().manhattanDistanceTo(w2.getLocation());
+	}
+
+	@Override
+	public BlueprintConnector toBlueprint(){
+		return this.blueprint;
+
 	}
 
 	@Override
@@ -304,11 +321,17 @@ public class SimpleConnector extends RedwallConnector {
 	// 	return false;
 	// 	*/
 	// }
-	
+
+	@Override
 	public short getSectorId(){
 		return (short)this.sectorId;
 	}
-	
+
+	@Override
+	public List<Integer> getSectorIds(){
+	    return this.allSectorIds;
+	}
+
 	@Override
 	public String toString(){
 		StringBuilder sb = new StringBuilder();

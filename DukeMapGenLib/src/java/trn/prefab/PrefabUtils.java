@@ -5,6 +5,9 @@ import trn.ISpriteFilter;
 import trn.Sprite;
 import trn.SpriteFilter;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class PrefabUtils {
 
 	public static class MarkerSpriteLoTags {
@@ -125,11 +128,31 @@ public class PrefabUtils {
 		 */
 		public static int TELEPORT_CONNECTOR = 27;
 
+		public static List<Integer> ALL = Arrays.asList(new Integer[]{
+				GROUP_ID,
+				PLAYER_START,
+				ANCHOR,
+				REDWALL_CHILD,
+				AUTO_TEXT,
+				STAY,
+				ELEVATOR_CONNECTOR,
+				SIMPLE_CONNECTOR,
+				TELEPORT_CONNECTOR
+				});
 	}
-	
 
 	public static int MARKER_SPRITE_TEX = DukeConstants.TEXTURES.CONSTRUCTION_SPRITE;
-	
+
+	public static boolean isMarker(Sprite s) {
+		return s.getTexture() == MARKER_SPRITE_TEX && s.getPal() == 0 && s.getLotag() > 0;
+	}
+
+	public static void checkValid(Sprite s) throws SpriteLogicException {
+		if(isMarker(s) && !MarkerSpriteLoTags.ALL.contains(s.getLotag())){
+			throw new SpriteLogicException("invalid marker sprite", s.getLocation().asXY());
+		}
+	}
+
 	public static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
 
 	public static final int hitagToId(Sprite s){

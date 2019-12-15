@@ -4,6 +4,8 @@ import trn.IdMap;
 import trn.Map;
 import trn.PointXYZ;
 
+import java.util.List;
+
 public class MultiSectorConnector extends RedwallConnector {
 
     protected MultiSectorConnector(int connectorId) {
@@ -22,6 +24,11 @@ public class MultiSectorConnector extends RedwallConnector {
 
     @Override
     public short getSectorId() {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    @Override
+    public List<Integer> getSectorIds() {
         throw new RuntimeException("Not implemented yet");
     }
 

@@ -33,6 +33,7 @@ public class PrefabPalette {
 		return numberedSectorGroups.keySet();
 	}
 
+	// NOTE: you can do asScala on this
 	public Iterable<SectorGroup> allSectorGroups(){
 		return new MultiIterable<SectorGroup>(numberedSectorGroups.values(), anonymousSectorGroups);
 	}
@@ -60,6 +61,13 @@ public class PrefabPalette {
 			Map clipboard = Map.createNew();
 			MapUtil.CopyState cpstate = MapUtil.copySectorGroup(map, clipboard, sector, new PointXYZ(0, 0, 0));
 			SectorGroupProperties props = SectorGroupProperties.scanMap(clipboard);
+			SectorGroupHints hints = SectorGroupHints.apply(clipboard); // NOTE: these need to get re-applied after children
+
+			for(int i = 0; i < clipboard.getSpriteCount(); ++i){
+				Sprite s = clipboard.getSprite(i);
+				PrefabUtils.checkValid(s);
+
+			}
 
 			processedSectorIds.addAll(cpstate.sourceSectorIds());
 			
@@ -73,13 +81,13 @@ public class PrefabPalette {
 					throw new SpriteLogicException("more than one sector group with id " + groupId);
 				}
 				//numberedSectorGroups.put(groupId, new SectorGroup(clipboard, groupId));
-				SectorGroup sg = SectorGroupBuilder.createSectorGroup(clipboard, groupId, props);
+				SectorGroup sg = SectorGroupBuilder.createSectorGroup(clipboard, groupId, props, hints);
 				//numberedSectorGroups.put(groupId, SectorGroupBuilder.createSectorGroup(clipboard, groupId));
 				numberedSectorGroups.put(groupId, sg);
 
 			}else if(childPointer.size() == 1){
 
-				SectorGroup childGroup = SectorGroupBuilder.createSectorGroup(clipboard, props); // new SectorGroup(clipboard);
+				SectorGroup childGroup = SectorGroupBuilder.createSectorGroup(clipboard, props, hints); // new SectorGroup(clipboard);
 				int groupId = childPointer.get(0).getHiTag();
 				// make sure the sector with the child Id sprite also has a redwall connector marker
                 // Connector conn = childGroup.findFirstConnector(c -> c.getSectorId() == childPointer.get(0).getSectorId()
@@ -95,7 +103,7 @@ public class PrefabPalette {
 				if(mistakes.size() > 0){
 					throw new SpriteLogicException("Sector group has no ID marker sprite but it DOES have a sprite with texture 0");
 				}
-				anonymousSectorGroups.add(SectorGroupBuilder.createSectorGroup(clipboard, props)); //new SectorGroup(clipboard));
+				anonymousSectorGroups.add(SectorGroupBuilder.createSectorGroup(clipboard, props, hints)); //new SectorGroup(clipboard));
 			}
 
 			if(strict){ // TODO - get rid of this strict thing
@@ -121,7 +129,7 @@ public class PrefabPalette {
 		for(Integer groupId : numberedSectorGroups.keySet()){
 			SectorGroup sg = numberedSectorGroups.get(groupId);
 			if(redwallChildren.containsKey(groupId)){
-			    numberedGroups2.put(groupId, sg.connectedToChildren(redwallChildren.get(groupId), tagGenerator));
+			    numberedGroups2.put(groupId, sg.connectedToChildren2(redwallChildren.get(groupId), tagGenerator));
 			}else{
 				numberedGroups2.put(groupId, sg);
 			}

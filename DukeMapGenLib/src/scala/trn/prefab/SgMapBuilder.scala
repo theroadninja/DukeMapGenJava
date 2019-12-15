@@ -16,6 +16,9 @@ class SgMapBuilder(private val map: DMap) extends TagGenerator {
   def getMap: ImmutableMap = map.readOnly
   def sectorCount: Int = map.getSectorCount
 
+  // TODO - improve ImmutableMap so that everything calling this can use that
+  def getMapTODO: DMap = map
+
   var hiTagCounter = 1
   // TODO - for now, if PSGs are modified (connecting teleporers, elevators...) just mark them as
   // unable to be removed (so a PSG can only be deleted if it hasn't been touched)
@@ -32,7 +35,7 @@ class SgMapBuilder(private val map: DMap) extends TagGenerator {
   def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap)  = {
     require(!markersCleared)
     val copyState = MapUtil.copySectorGroup(sg.map, map, 0, translate);
-    val tp = (PastedSectorGroup(map, copyState), copyState.idmap)
+    val tp = (PastedSectorGroup(map, copyState, sg.groupIdOpt), copyState.idmap)
     pastedSectorGroupsMutable.append(tp._1)
     tp
   }

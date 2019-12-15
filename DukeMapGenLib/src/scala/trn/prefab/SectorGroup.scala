@@ -32,32 +32,33 @@ object SectorGroup {
   /**
     * This should only be called by SectorGroupBuilder
     */
-  def newSG(map: DMap, sectorGroupId: Int, props: SectorGroupProperties): SectorGroup = {
-
+  def newSG(map: DMap, sectorGroupId: Int, props: SectorGroupProperties, hints: SectorGroupHints): SectorGroup = {
     val connectors = try {
       Connector.findConnectors(map)
-      //for(Connector c : Connector.findConnectors(map)){
-      //  addConnector(c);
-      //}
-      //}catch(SpriteLogicException ex){
     }catch{
       case ex: Exception => throw new SpriteLogicException(
         "exception while scanning connectors in sector group.  id=" + sectorGroupId,
         ex
       )
     }
-
-    new SectorGroup(map, sectorGroupId, props, connectors)
+    new SectorGroup(map, sectorGroupId, props, hints, connectors)
   }
 }
 
-class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupProperties, val connectors: java.util.List[Connector])
+class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupProperties, private var sghints: SectorGroupHints, val connectors: java.util.List[Connector])
   extends SectorGroupBase
     with ConnectorCollection
     with ISectorGroup
 {
   // val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
   val autoTexts: java.util.List[AutoText] = new java.util.ArrayList[AutoText]
+
+  def hints: SectorGroupHints = sghints
+
+  def groupIdOpt: Option[Int] = sectorGroupId match {
+    case i: Int if i != -1 => Some(i)
+    case _ => None
+  }
 
   protected def wallSeq: Seq[Wall] = {
     val walls = Seq.newBuilder[Wall]
@@ -66,6 +67,8 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     }
     walls.result
   }
+
+  def toBlueprint: BlueprintGroup = BlueprintGroup(boundingBox, fineBoundingBoxes, allRedwallConnectors.map(_.toBlueprint))
 
   // TODO - get rid of this
   override def getMap: DMap = map
@@ -94,7 +97,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   def sectorCount: Int = map.getSectorCount
 
   def copy(): SectorGroup = {
-    SectorGroupBuilder.createSectorGroup(map.copy, this.sectorGroupId, this.props)
+    SectorGroupBuilder.createSectorGroup(map.copy, this.sectorGroupId, this.props, this.hints)
     //new SectorGroup(map.copy, this.sectorGroupId);
   }
 
@@ -109,21 +112,29 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     */
   def flippedX(x: Int): SectorGroup = {
     //new SectorGroup(map.flippedX(x), this.sectorGroupId)
-    SectorGroupBuilder.createSectorGroup(map.flippedX(x), this.sectorGroupId, this.props)
+    SectorGroupBuilder.createSectorGroup(map.flippedX(x), this.sectorGroupId, this.props, this.hints)
   }
 
   def flippedX(): SectorGroup = flippedX(getAnchor.x)
 
   def flippedY(y: Int): SectorGroup = {
     //new SectorGroup(map.flippedY(y), this.sectorGroupId)
-    SectorGroupBuilder.createSectorGroup(map.flippedY(y), this.sectorGroupId, this.props)
+    SectorGroupBuilder.createSectorGroup(map.flippedY(y), this.sectorGroupId, this.props, this.hints)
   }
 
   def flippedY(): SectorGroup = flippedY(getAnchor.y)
 
   def rotateAroundCW(anchor: PointXY): SectorGroup = {
     //new SectorGroup(map.rotatedCW(anchor), this.sectorGroupId)
-    SectorGroupBuilder.createSectorGroup(map.rotatedCW(anchor), this.sectorGroupId, this.props)
+    SectorGroupBuilder.createSectorGroup(map.rotatedCW(anchor), this.sectorGroupId, this.props, this.hints)
+  }
+
+  // TODO - z
+  def translatedXY(translation: PointXY): SectorGroup = {
+    SectorGroupBuilder.createSectorGroup(map.translated(translation), this.sectorGroupId, this.props, this.hints)
+  }
+  def translated(translation: PointXYZ): SectorGroup = {
+    SectorGroupBuilder.createSectorGroup(map.translated(translation), this.sectorGroupId, this.props, this.hints)
   }
 
   def rotateCW: SectorGroup = rotateAroundCW(this.rotationAnchor)
@@ -254,12 +265,18 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     }
 
     result.updateConnectors()
+    result.sghints = SectorGroupHints(map)
     result
+  }
+
+  private def childConnectorsMatch(childPtr: ChildPointer, child: SectorGroup): Boolean = {
+    getRedwallConnectorsById(childPtr.connectorId).size == childPtr.connectorsJava.size
   }
 
   def connectedToChild(childPtr: ChildPointer, child: SectorGroup, tagGenerator: TagGenerator): SectorGroup = {
     // parent and child must have the same number of connectors
-    if(this.getRedwallConnectorsById(childPtr.connectorId).size != childPtr.connectorsJava.size){
+    //if(this.getRedwallConnectorsById(childPtr.connectorId).size != childPtr.connectorsJava.size){
+    if(! childConnectorsMatch(childPtr, child)){
       throw new SpriteLogicException("parent and child sector groups have different count of connectors with ID " + childPtr.connectorId);
     }
     // TODO - allow child sector groups to connect to other child sector groups with same parent (need to
@@ -289,6 +306,46 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     }else{
       result
     }
+  }
+
+  // TODO - merge with SpriteLogicException.throwIf()
+  def requireLogic(condition: Boolean, message: String): Unit = {
+    if(!condition){
+      throw new SpriteLogicException(message)
+    }
+  }
+
+  // TODO - write unit tests!!
+  def connectedToChildren2(children: java.util.List[SectorGroup], tagGenerator: TagGenerator): SectorGroup = {
+    requireLogic(sectorGroupId != -1, "cannot connect child to parent with no group id")
+    if(children.size == 0){
+      return this.copy
+    }
+
+    val childrenScala = children.asScala
+    val seenConnectorIds = new java.util.HashSet[Int](children.size())
+    val matches: Map[Boolean, Seq[SectorGroup]] = childrenScala.groupBy{ child =>
+      val childPtr = child.getChildPointer
+      require(sectorGroupId == childPtr.parentGroupId)
+      if(seenConnectorIds.contains(childPtr.connectorId)){
+        throw new SpriteLogicException("more than one child sector group is trying to use connector " + childPtr.connectorId)
+      }else{
+        seenConnectorIds.add(childPtr.connectorId)
+        // TODO is this right to comment out?:  seenConnectorIds.addAll(child.allConnectorIds.asScala.map(_.toInt).asJava)
+      }
+
+      childConnectorsMatch(childPtr, child)
+    }
+
+    val matched: Seq[SectorGroup] = matches.getOrElse(true, Seq())
+    val unmatched = matches.getOrElse(false, Seq())
+    if(matched.size == 0) {
+      requireLogic(matches(false).size == 0, "unable to connect all child sector groups")
+    }
+    val newParent = matched.foldLeft(this.copy) { case (parent, child) =>
+        parent.connectedToChild(child.getChildPointer, child, tagGenerator)
+    }
+    newParent.connectedToChildren2(unmatched.asJava, tagGenerator)
   }
 
   /**

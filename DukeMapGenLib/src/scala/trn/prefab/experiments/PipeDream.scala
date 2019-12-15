@@ -78,7 +78,7 @@ object PipeDream {
     // TODO - implement multi-wall-multi-sector connector
     // val sanityCheck = palette.getSectorGroup(13).getConnector(101).asInstanceOf[RedwallConnector]
     // val sanityCheck2 = palette.getSectorGroup(700).getConnector(101).asInstanceOf[RedwallConnector]
-    // require(sanityCheck.isMatch(sanityCheck2))
+    // throwIf(sanityCheck.isMatch(sanityCheck2))
 
     def randomItem[T](list: Seq[T]): T = {
       if(list.size < 1) throw new IllegalArgumentException
@@ -102,10 +102,11 @@ object PipeDream {
       }
     }
 
-    val stays = palette.getStaySectorGroups.asScala
-    stays.foreach { sg =>
-      builder.pasteSectorGroup(sg, PointXYZ.ZERO) // no translate == leave where it is
-    }
+    //val stays = palette.getStaySectorGroups.asScala
+    //stays.foreach { sg =>
+    //  builder.pasteSectorGroup(sg, PointXYZ.ZERO) // no translate == leave where it is
+    //}
+    builder.writer.pasteStays(palette)
 
     // TODO - check for existing sector groups also!
 

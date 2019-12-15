@@ -49,6 +49,24 @@ object MapImplicits {
       list
     }
 
+    def translated(translation: PointXY): DMap = {
+       val transform = Matrix2D.translate(translation.x, translation.y)
+       applyTransform(transform)
+    }
+    def translated(translation: PointXYZ): DMap = {
+      val transform = Matrix2D.translate(translation.x, translation.y)
+      val copy = applyTransform(transform)
+
+      copy.sectors.asScala.foreach { sector =>
+        sector.setFloorZ(sector.getFloorZ + translation.z)
+        sector.setCeilingZ(sector.getCeilingZ + translation.z)
+      }
+      copy.sprites.asScala.foreach { sprite =>
+        sprite.z = sprite.z + translation.z
+      }
+      copy
+    }
+
     def rotatedCW(anchor: PointXY): DMap = {
       val transform = Matrix2D.rotateAroundCCW(anchor) // CW to CCW translation on purpose
       val copy = map.copy()
@@ -66,6 +84,21 @@ object MapImplicits {
       copy
     }
 
+    // TODO - DRY with applyTransform(s)
+    // TODO - untested
+    def applyTransform( transform: Matrix2D ): DMap = {
+      val copy = map.copy()
+      copy.walls.asScala.foreach{ w =>
+        val translated = transform * w.getLocation
+        w.setLocation(translated)
+      }
+      copy.sprites.asScala.foreach{ s =>
+        val translated = transform * s.getLocation.asPointXY()
+        s.setLocation(translated)
+      }
+      copy
+    }
+    def translatedXY(dxy: PointXY): DMap = applyTransform(Matrix2D.translate(dxy.x, dxy.y))
 
     private def applyTransforms(
       transform: Matrix2D,

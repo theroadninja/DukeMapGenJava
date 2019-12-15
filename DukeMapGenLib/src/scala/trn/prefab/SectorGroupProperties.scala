@@ -24,10 +24,12 @@ object SectorGroupProperties {
     //public List<Sprite> findSprites(Integer picnum, Integer lotag, Integer sectorId){
     // List<Sprite> idSprite = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
     //map.findSprites(PrefabUtils.MARKER_SPRITE_TEX)
-    new SectorGroupProperties(hasMarker(map, PrefabUtils.MarkerSpriteLoTags.STAY))
+    val groupIds = findMarkers(map, PrefabUtils.MarkerSpriteLoTags.GROUP_ID).map(_.getHiTag.toInt)
+    SpriteLogicException.throwIf(groupIds.size > 1, s"too many group id sprites in group size=${groupIds.size}")
+    new SectorGroupProperties(groupIds.headOption, hasMarker(map, PrefabUtils.MarkerSpriteLoTags.STAY))
   }
 }
-class SectorGroupProperties(stay: Boolean) {
+class SectorGroupProperties(val groupId: Option[Int], stay: Boolean) {
 
   def stayFlag: Boolean = stay
 

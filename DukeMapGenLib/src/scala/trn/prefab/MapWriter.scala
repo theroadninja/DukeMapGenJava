@@ -3,10 +3,13 @@ package trn.prefab
 import java.util
 
 import trn.duke.PaletteList
-import trn.{ISpriteFilter, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{ISpriteFilter, IdMap, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 
+import scala.collection.JavaConverters._
 
+
+case class ConnMatch(newConn: RedwallConnector, existingConn: RedwallConnector)
 
 // creating this as an adapter for old (new?) code
 class MapBuilderAdapter(val outMap: DMap) extends MapBuilder {
@@ -14,6 +17,8 @@ class MapBuilderAdapter(val outMap: DMap) extends MapBuilder {
 }
 
 object MapWriter {
+  val MarkerTex = PrefabUtils.MARKER_SPRITE_TEX
+
   val WestConn = SimpleConnector.WestConnector
   val EastConn = SimpleConnector.EastConnector
   val NorthConn = SimpleConnector.NorthConnector
@@ -85,7 +90,8 @@ object MapWriter {
   * @param builder
   * @param sgBuilder
   */
-class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder) extends ISectorGroup {
+class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random: RandomX = new RandomX())
+  extends ISectorGroup {
 
   /** throws if the map has too many sectors */
   def checkSectorCount(): Unit = {
@@ -95,6 +101,11 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder) extends IS
     }
   }
 
+  def outMap: DMap = getMap
+
+  //
+  //  Pasting and Linking
+  //
   def pastedSectorGroups: Seq[PastedSectorGroup] = sgBuilder.pastedSectorGroups
 
   def pasteAndLink(
@@ -106,11 +117,26 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder) extends IS
     require(Option(newSg).isDefined)
     require(Option(newConn).isDefined)
     val cdelta = newConn.getTransformTo(existingConn)
-    val (psg, idmap) = builder.pasteSectorGroup2(newSg, cdelta)
-    val pastedConn2 = newConn.translateIds(idmap, cdelta)
 
-    //existingConn.linkConnectors(outMap, pastedConn2)
-    sgBuilder.linkConnectors(existingConn, pastedConn2)
+
+    pasteAndLink2(newSg, cdelta, Seq(ConnMatch(newConn, existingConn)))
+    // val (psg, idmap) = builder.pasteSectorGroup2(newSg, cdelta)
+    // val pastedConn2 = newConn.translateIds(idmap, cdelta)
+    // sgBuilder.linkConnectors(existingConn, pastedConn2)
+    // psg
+  }
+
+  def pasteAndLink2(
+    newSg: SectorGroup,
+    translate: PointXYZ,
+    conns: Seq[ConnMatch]
+  ): PastedSectorGroup = {
+    require(conns.size > 0)
+    val (psg, idmap) = builder.pasteSectorGroup2(newSg, translate)
+    conns.foreach { cmatch =>
+      val newConn = cmatch.newConn.translateIds(idmap, translate)
+      sgBuilder.linkConnectors(cmatch.existingConn, newConn)
+    }
     psg
   }
 
@@ -126,6 +152,20 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder) extends IS
     }
     count
   }
+
+  // TODO - get rid of this
+  def pasteStays(palette: PrefabPalette): Seq[PastedSectorGroup] = {
+    val stays = palette.getStaySectorGroups.asScala
+    stays.map { sg =>
+      builder.pasteSectorGroup(sg, PointXYZ.ZERO) // no translate == leave where it is
+    }
+  }
+
+  def pasteStays2(palette: PrefabPalette): Seq[(Option[Int], PastedSectorGroup)] = {
+    val stays = palette.getStaySectorGroups.asScala
+    stays.map(sg =>(sg.props.groupId, builder.pasteSectorGroup(sg, PointXYZ.ZERO)))
+  }
+
 
   /**
     * TODO - copied from PipeDream
@@ -223,4 +263,18 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder) extends IS
   override def findSprites(picnum: Int, lotag: Int, sectorId: Int): util.List[Sprite] = builder.findSprites(picnum, lotag, sectorId)
 
   override def findSprites(filters: ISpriteFilter*): util.List[Sprite] = builder.findSprites(filters:_*)
+
+
+  //
+  // Random
+  //
+  def randomElement[E](collection: Iterable[E]): E = random.randomElement(collection)
+
+  def randomElementOpt[E](collection: Iterable[E]): Option[E] = {
+    if(collection.isEmpty){
+      None
+    }else{
+      Some(random.randomElement(collection))
+    }
+  }
 }

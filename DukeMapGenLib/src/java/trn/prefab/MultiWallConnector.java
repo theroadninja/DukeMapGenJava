@@ -10,6 +10,7 @@ public class MultiWallConnector extends RedwallConnector {
 
     // dont put this in RedwallConnector because some redwall connectors might have multiple sectors
     private final int sectorId;
+    final List<Integer> allSectorIds;
     private final List<Integer> wallIds;
 
 
@@ -41,6 +42,8 @@ public class MultiWallConnector extends RedwallConnector {
     private MultiWallConnector(int connectorId, int sectorId, List<Integer> wallIds, PointXYZ anchor, PointXY wallAnchor1, PointXY wallAnchor2, int markerSpriteLotag, List<PointXY> relativePoints){
         super(connectorId);
         this.sectorId = sectorId;
+        this.allSectorIds = new ArrayList(1);
+        this.allSectorIds.add(this.sectorId);
         this.wallIds = Collections.unmodifiableList(new ArrayList<>(wallIds));
         if(this.wallIds.size() < 2) throw new IllegalArgumentException();
         this.anchor = anchor;
@@ -56,6 +59,8 @@ public class MultiWallConnector extends RedwallConnector {
         if(markerSprite == null || sector == null) throw new IllegalArgumentException();
         // if(wallIds == null || wallIds.size() < 2) throw new IllegalArgumentException();
         this.sectorId = markerSprite.getSectorId();
+        this.allSectorIds = new ArrayList(1);
+        this.allSectorIds.add(this.sectorId);
         //this.wallIds = new ArrayList<>(wallIds.size());
         wallIds = MapUtil.sortWallSection(wallIds, map);
 
@@ -140,6 +145,11 @@ public class MultiWallConnector extends RedwallConnector {
     }
 
     @Override
+    public List<Integer> getSectorIds(){
+        return this.allSectorIds;
+    }
+
+    @Override
     public boolean isLinked(Map map) {
         // return map.getWall(wallId).isRedWall();
         // return true if all the walls are red walls
@@ -195,25 +205,21 @@ public class MultiWallConnector extends RedwallConnector {
 
     @Override
     public boolean isMatch(RedwallConnector c){
-        System.out.println("MONKEY 0");
         if(!(c instanceof MultiWallConnector)){
             return false;
         }
-        System.out.println("MONKEY 1");
         MultiWallConnector other = (MultiWallConnector)c;
 
         // TODO - this has code duplicated from canLink()
         if(this.wallIds.size() != other.wallIds.size()){
             return false;
         }
-        System.out.println("MONKEY");
         PointXY p1 = this.wallAnchor1.subtractedBy(this.anchor);
         PointXY p2 = this.wallAnchor2.subtractedBy(this.anchor);
         PointXY otherP1 = other.wallAnchor1.subtractedBy(other.anchor);
         PointXY otherP2 = other.wallAnchor2.subtractedBy(other.anchor);
         if(! p1.equals(otherP2)) return false;
         if(! p2.equals(otherP1)) return false;
-        System.out.println("MADE IT HERE");
 
         List<PointXY> list1 = this.relativePoints;
         List<PointXY> list2 = other.relativePoints;

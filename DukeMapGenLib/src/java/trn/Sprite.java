@@ -249,6 +249,9 @@ public class Sprite {
 	public void setPal(short pallette){
 		this.pal = pallette;
 	}
+	public int getPal(){
+		return this.pal;
+	}
 	
 	public int getLotag(){
 		return this.lotag;
