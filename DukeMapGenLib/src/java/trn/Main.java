@@ -63,8 +63,8 @@ public class Main {
 		//deployTest(outMap);
 
 		//run(Hypercube3$.MODULE$);
-
-		run(JigsawPlacerMain$.MODULE$);
+		run(Hypercube4$.MODULE$);
+		//run(JigsawPlacerMain$.MODULE$);
 
 	}
 

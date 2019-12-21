@@ -25,6 +25,9 @@ object SectorGroupHints {
   val HypercubeGridZ = 6002
   val HypercubeGridW = 6003
 
+  // sector group with this marker must be on the edge of the cube (in the XY plane only)
+  val HyperCubeEdgeXY = 6004 // and hitag 1 means rotate so sprite points at edge
+
   private val AllLotags = Seq(LtMaxCopies, 6000, 6001, 6002, 6003)
 
 
@@ -38,24 +41,43 @@ object SectorGroupHints {
 
   def apply(sprites: Seq[Sprite]): SectorGroupHints = {
     var maxCopies: Option[Int] = None
+    var hypergridEdge = HypercubeEdge()
     val hypergridHints: mutable.Buffer[HypercubeGridHint] = mutable.Buffer()
     sprites.filter(isHint).foreach { _ match {
       case s: Sprite if s.getLotag == LtMaxCopies => maxCopies = Some(s.getHiTag)
       //case s: Sprite if s.getLotag >= HypercubeGridX && s.getLotag <= HypercubeGridW => {
+      case s: Sprite if s.getLotag == HyperCubeEdgeXY => hypergridEdge = HypercubeEdge(s)
       case s: Sprite if HypercubeGridHint.isGridHint(s) => {
         hypergridHints.append(HypercubeGridHint(s.getLotag, s.getHiTag))
       }
       case s: Sprite => throw new SpriteLogicException(s"invalid hint sprite (lotag=${s.getLotag}")
     } }
-    SectorGroupHints(maxCopies, hypergridHints)
+    SectorGroupHints(maxCopies, hypergridHints, hypergridEdge)
   }
 
   def apply(map: DMap): SectorGroupHints = apply(map.allSprites)
 
-  lazy val empty = SectorGroupHints(None, Seq())
+  lazy val empty = SectorGroupHints(None, Seq(), HypercubeEdge())
 }
 
 
+object HypercubeEdge {
+  def apply(s: Sprite): HypercubeEdge = {
+    require(SectorGroupHints.isHint(s))
+    val heading = if(s.getHiTag == 1){
+      val h = Option(Heading.fromDukeAngle(s.getAngle))
+      SpriteLogicException.throwIfSprite(h.isEmpty, "invalid sprite angle for edge rotation hint", s)
+      h.map(_.toInt)
+    }else{
+      None
+    }
+    HypercubeEdge(
+      true,
+      heading
+    )
+  }
+}
+case class HypercubeEdge(xyEdgeOnly: Boolean = false, xyEdgeAngle: Option[Int] = None)
 
 
 object PartialCell {
@@ -178,7 +200,9 @@ case class HypercubeGridHint(val axis: Int, val coord: Int)
   */
 case class SectorGroupHints(
   maxCopies: Option[Int],
-  hypercubeGridHints: Seq[HypercubeGridHint]
+  hypercubeGridHints: Seq[HypercubeGridHint],
+  //hypercubeEdgeXY: Boolean
+  hypercubeEdge: HypercubeEdge
 ) {
 
 }

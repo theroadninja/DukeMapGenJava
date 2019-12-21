@@ -20,8 +20,15 @@ case class Placement(newSg: SectorGroup, conns: Seq[ConnMatch])
 /**
   * Figures out how to place SectorGroups such that they match existing connections.
   *
+  * TODO: should I have a thing called ConnectorHints ?
+  *   - connector-specific and algorithm-specific hints for connectors
+  *
   * TODO:  support:
   *   - auto stretching for Z?
+  *
+  * TODO:  auto stairs??
+  *   - strait
+  *   - spiral?
   *
   * TODO:  stretching in X or Y
   *   - only along X or Y axis
@@ -30,15 +37,10 @@ case class Placement(newSg: SectorGroup, conns: Seq[ConnMatch])
   *   - may  need to figure out how to adjust textures
   *   - should it warn or fail on teleport/water sectors?
   *
-  * TODO - also a method to fit PSGs, (higher level), option to require fitting all open connectors, etc
-  *
-  * TODO - sector hint for allow rotation?
-  *
   * TODO - option to only allow rotation 90 degrees?
   *
   * TODO - stretch sectors!
   *
-  * TODO - ability to match lowest floor?
   */
 object JigsawPlacer {
 
@@ -108,7 +110,7 @@ object JigsawPlacer {
   }
 
   // it is simpler to get this "hallway" use case working first.  can make it more complicated later.
-  private[prefab] def findPlacements(
+  def findPlacements(
     sg: SectorGroup,
     existingGroup1: Seq[RedwallConnector],
     existingGroup2: Seq[RedwallConnector],

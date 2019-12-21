@@ -1,5 +1,7 @@
 package trn.prefab;
 
+import trn.AngleUtil;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -19,12 +21,24 @@ public class Heading {
 
     public static List<Integer> all = Arrays.asList(EAST, SOUTH, WEST, NORTH);
 
+    // this map is protected by a unit test -- see AngleUtilScalaTests.scala
+    private static Map<Integer, Integer> dukeAngleToHeading = new TreeMap<Integer, Integer>(){{
+        put(AngleUtil.ANGLE_RIGHT, E);
+        put(AngleUtil.ANGLE_DOWN, S);
+        put(AngleUtil.ANGLE_LEFT, W);
+        put(AngleUtil.ANGLE_UP, N);
+    }};
+
     private static Map<Integer, Integer> opposites = new TreeMap<Integer, Integer>(){{
         put(E, W);
         put(W, E);
         put(N, S);
         put(S, N);
     }};
+
+    public static Integer fromDukeAngle(int dukeAng){
+        return dukeAngleToHeading.get(dukeAng);
+    }
 
     public static int opposite(int heading){
         return opposites.get(heading);

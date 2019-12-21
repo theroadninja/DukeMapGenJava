@@ -33,6 +33,10 @@ public class PrefabPalette {
 		return numberedSectorGroups.keySet();
 	}
 
+	public final Iterable<SectorGroup> anonSectorGroups(){
+		return anonymousSectorGroups;
+	}
+
 	// NOTE: you can do asScala on this
 	public Iterable<SectorGroup> allSectorGroups(){
 		return new MultiIterable<SectorGroup>(numberedSectorGroups.values(), anonymousSectorGroups);

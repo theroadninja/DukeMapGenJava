@@ -58,6 +58,22 @@ object MapWriter {
     sg2
   }
 
+  // this includes the floors
+  // TODO - see if we can merge with painted()
+  def painted2(sg: SectorGroup, colorPalette: Int, excludeTextures: Seq[Int] = Seq.empty): SectorGroup = {
+    val sg2 = sg.copy
+    sg2.getMap.allWalls.foreach { w=>
+      if (! excludeTextures.contains(w.getTexture)){
+        w.setPal(colorPalette)
+      }
+    }
+    sg2.allSectorIds.map(sg2.getMap.getSector(_)).foreach { sector =>
+      sector.setFloorPalette(colorPalette)
+      sector.setCeilingPalette(colorPalette)
+    }
+    sg2
+  }
+
   def withElevatorsLinked(
     sg: SectorGroup,
     lowerConn: ElevatorConnector,

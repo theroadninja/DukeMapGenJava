@@ -10,6 +10,12 @@ import java.util.List;
 
 public class PrefabUtils {
 
+	public static class MarkerHiTags {
+
+		/** for ANCHOR markers:  use the lowest floor instead of the z of this sprite */
+		public static int USE_SECTOR_FLOOR = 1;
+	}
+
 	public static class MarkerSpriteLoTags {
 		
 		/**

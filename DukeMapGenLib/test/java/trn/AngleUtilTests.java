@@ -3,6 +3,9 @@ package trn;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * See also AngleUtilScalaTests
+ */
 public class AngleUtilTests {
 
     final int R = AngleUtil.RANGE;

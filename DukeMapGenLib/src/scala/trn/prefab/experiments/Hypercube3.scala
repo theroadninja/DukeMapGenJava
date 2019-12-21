@@ -280,8 +280,28 @@ object Hypercube3 extends PrefabExperiment {
     run(palette)
   }
 
-
   def run(palette: PrefabPalette): DMap = {
+    // TODO - how do we learn these?
+    val gridCellDist = 1024 * 8  // distance between the center of each cell
+    val gridCellDistZ = 1024 * 6  // distance between the center of each cell
+    val oneDimRoomCount = 3 // number of rooms on the side of the grid (e.g. 3 for a 3x3x3x3 grid)
+
+    val gridManager = trn.prefab.hypercube.GridManager.apply(gridCellDist, oneDimRoomCount, Some(gridCellDistZ))
+    val builder = new Hyper3MapBuilder(DMap.createNew(), palette, gridManager)
+    val writer = builder.writer
+
+    val sg = palette.getSectorGroup(1)
+    builder.placeInGrid(sg)
+
+    //
+    // -- standard stuff below --
+    writer.sgBuilder.autoLinkRedwalls()
+    writer.builder.setAnyPlayerStart()
+    writer.sgBuilder.clearMarkers()
+    writer.outMap
+  }
+
+  def runOld(palette: PrefabPalette): DMap = {
 
     // TODO - how do we learn these?
     val gridCellDist = 1024 * 8  // distance between the center of each cell
@@ -315,7 +335,6 @@ object Hypercube3 extends PrefabExperiment {
     //builder.markOccupied(placedMeasure, (1, 0, 2, 0))
     //builder.connectRooms((0, 0, 1, 0), (1, 0, 1, 0))
 
-
     //
     // Fills below here
     //
@@ -329,18 +348,13 @@ object Hypercube3 extends PrefabExperiment {
         s.setFloorPalette(PaletteList.BLUE_TO_RED)
       }
     }
-    //builder.fillFloor(sg6W, 1, 1)
-
-
 
     // TODO - have a strict mode where both construction and hint sprites Throw if they have unexpected lotags
 
     builder.connectRooms() // TODO - make this work
 
-
     val cells1 = HypercubeGridHint.calculateCells(palette.getSectorGroup(1).hints.hypercubeGridHints)
     println(cells1)
-
 
     // -- standard stuff below --
     writer.sgBuilder.autoLinkRedwalls()
