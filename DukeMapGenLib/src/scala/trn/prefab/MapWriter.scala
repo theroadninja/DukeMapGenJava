@@ -286,6 +286,8 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
   //
   def randomElement[E](collection: Iterable[E]): E = random.randomElement(collection)
 
+  def randomShuffle[E](collection: Iterable[E]): TraversableOnce[E] = random.shuffle(collection)
+
   def randomElementOpt[E](collection: Iterable[E]): Option[E] = {
     if(collection.isEmpty){
       None

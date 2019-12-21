@@ -6,6 +6,21 @@ import trn.prefab.hypercube.GridManager.Cell
 
 import scala.collection.mutable
 
+object GridCell {
+  def apply(cell: Cell): GridCell = GridCell(cell._1, cell._2, cell._3, cell._4)
+}
+
+case class GridCell(x: Int, y: Int, z: Int, w: Int){
+  def add(cell: Cell): GridCell = GridCell(
+    x + cell._1,
+    y + cell._2,
+    z + cell._3,
+    w + cell._4
+  )
+
+  def asTuple: Cell = (x, y, z, w)
+}
+
 object GridManager {
   type Cell = (Int, Int, Int, Int)
 

@@ -148,9 +148,19 @@ object Hypercube4 extends PrefabExperiment {
     // lift
     // builder.tryPlaceInGrid(palette.getSG(13), (1, 0, MidFloor, 0), Seq((1, 0, HighFloor, 0)))
 
+    def placeAt(sg: SectorGroup, spot: Cell): Option[PastedSectorGroup] = {
+      val otherSpots = sg.hints.otherCells(spot).map(_.asTuple)
+      println(spot)
+      builder.tryPlaceInGrid(sg, spot, sg.hints.otherCells(spot).map(_.asTuple))
+    }
+
     //stairs
-    builder.tryPlaceInGrid(palette.getSG(14), (2, 0, LowFloor, 0), Seq((2, 0, MidFloor, 0)))
-    builder.tryPlaceInGrid(palette.getSG(14).rotate180, (0, 2, MidFloor, 0), Seq((0, 2, HighFloor, 0)))
+    val DoubleStairs = 20
+    // builder.tryPlaceInGrid(palette.getSG(14), (2, 0, LowFloor, 0), Seq((2, 0, MidFloor, 0)))
+    // builder.tryPlaceInGrid(palette.getSG(14).rotate180, (0, 2, MidFloor, 0), Seq((0, 2, HighFloor, 0)))
+    require(palette.getSG(DoubleStairs).hints.roomHeight == 3)
+    placeAt(palette.getSG(DoubleStairs), (2, 0, LowFloor, 0))
+    placeAt(palette.getSG(DoubleStairs).rotate180, (0, 2, LowFloor, 0))
 
     // top floor slanted stuff
     builder.tryPlaceInGrid(palette.getSG(15), (0, 1, HighFloor, 0))
@@ -159,37 +169,51 @@ object Hypercube4 extends PrefabExperiment {
     // top floor center
     builder.tryPlaceInGrid(palette.getSG(16), (1, 1, HighFloor, 0))
 
+
+
+
+
     def placeOnEdge(sg: SectorGroup, floor: Int, w: Int): Option[PastedSectorGroup] = {
       val availableSpots = gridManager.allCells.filter(c => gridManager.isEdgeXY(c) && !builder.grid.contains(c))
-      val spot = writer.randomElement(availableSpots.filter(c => c._3 == floor && c._4 == w))
-      var sg2 = sg
-      sg2.hints.hypercubeEdge.xyEdgeAngle.foreach { currentHeading =>
-        val count = gridManager.edgeRotationCount(spot, currentHeading)
-        (0 until count).foreach { _ =>
-          sg2 = sg2.rotateCW
+      val spots = writer.randomShuffle(availableSpots.filter(c => c._3 == floor && c._4 == w))
+      //val spot = writer.randomElement(availableSpots.filter(c => c._3 == floor && c._4 == w))
+      spots.foreach { spot =>
+        var sg2 = sg
+        // TODO
+        sg2.hints.hypercubeEdge.xyEdgeAngle.headOption.foreach { currentHeading =>
+          val count = gridManager.edgeRotationCount(spot, currentHeading)
+          (0 until count).foreach { _ =>
+            sg2 = sg2.rotateCW
+          }
         }
-
+        val x = placeAt(sg2, spot)
+        // val x = builder.tryPlaceInGrid(sg2, spot, sg2.hints.otherCells(spot).map(_.asTuple))
+        if(x.isDefined){
+          return x
+        }
       }
-      builder.tryPlaceInGrid(sg2, spot)
-
+      None
     }
+
 
     val WizardRoom = 17
     val Bridge = 19
     // top floor wizard tower
     val wizardTower = palette.getSG(WizardRoom)
     require(wizardTower.hints.hypercubeEdge.xyEdgeOnly)
-    require(wizardTower.hints.hypercubeEdge.xyEdgeAngle.isDefined)
+    require(wizardTower.hints.hypercubeEdge.xyEdgeAngle.size > 0)
     require(placeOnEdge(wizardTower, HighFloor, BluW).isDefined)
 
     // TODO - this can be MidFloor or LowFloor
     // builder.tryPlaceInGrid(palette.getSG(19), (2, 1, MidFloor, BluW))
     //println(s"required angle: ${palette.getSG(19).hints.hypercubeEdge.xyEdgeAngle.get}")
+    require(palette.getSG(Bridge).hints.roomHeight == 2)
     require(placeOnEdge(palette.getSG(Bridge), MidFloor, BluW).isDefined)
 
+    require(Option(palette.getSG(20)).isDefined)
 
 
-    // builder.fillFloor(palette.getSG(18), LowFloor, 0)
+    builder.fillFloor(palette.getSG(18), LowFloor, 0)
     builder.fillFloor(palette.getSG(10), MidFloor, 0)
     builder.fillFloor(palette.getSG(10), HighFloor, 0)
 
@@ -200,7 +224,7 @@ object Hypercube4 extends PrefabExperiment {
     builder.fillFloor(greenRoom, MidFloor, 2)
 
     val hallways = palette.anonSectorGroups().asScala.toSeq
-    builder.connectRooms(hallways, true)
+    builder.connectRooms(hallways, false)
 
     //
     // -- standard stuff below --

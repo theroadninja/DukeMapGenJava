@@ -45,7 +45,7 @@ public class MultiWallConnector extends RedwallConnector {
         this.allSectorIds = new ArrayList(1);
         this.allSectorIds.add(this.sectorId);
         this.wallIds = Collections.unmodifiableList(new ArrayList<>(wallIds));
-        if(this.wallIds.size() < 2) throw new IllegalArgumentException();
+        // if(this.wallIds.size() < 2) throw new IllegalArgumentException();
         this.anchor = anchor;
         this.wallAnchor1 = wallAnchor1;
         this.wallAnchor2 = wallAnchor2;
@@ -200,7 +200,9 @@ public class MultiWallConnector extends RedwallConnector {
                         && s.getSectorId() == sectorId
                         && s.getLotag() == this.markerSpriteLotag
         );
-        if(d != 1) throw new SpriteLogicException();
+        // TODO - this happens when a child connects to a parent group, and the parent groups connector
+        // is in a sector with more than 1 connector
+        if(d != 1) throw new SpriteLogicException("TODO");
     }
 
     @Override

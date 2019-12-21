@@ -116,16 +116,25 @@ public class PrefabPalette {
 					throw new SpriteLogicException("more than one anchor sprite in group");
 				}
 			}
-			// make sure all children have parents
-			for(Integer parentId: redwallChildren.keySet()){
-				if(! numberedSectorGroups.containsKey(parentId)){
-					int count = redwallChildren.get(parentId).size();
-					throw new SpriteLogicException("There is no sector group with ID " + parentId + ", referenced by " + count + " child sectors");
-				}
-			}
+			// // make sure all children have parents
+			// for(Integer parentId: redwallChildren.keySet()){
+			// 	if(! numberedSectorGroups.containsKey(parentId)){
+			// 		int count = redwallChildren.get(parentId).size();
+			// 		throw new SpriteLogicException("There is no sector group with ID " + parentId + ", referenced by " + count + " child sectors");
+			// 	}
+			// }
 			
 			sector++;
 		} // while
+
+		// make sure all children have parents
+		for(Integer parentId: redwallChildren.keySet()){
+			if(! numberedSectorGroups.containsKey(parentId)){
+				int count = redwallChildren.get(parentId).size();
+				throw new SpriteLogicException("There is no sector group with ID " + parentId + ", referenced by " + count + " child sectors");
+			}
+		}
+
 
 		TagGenerator tagGenerator = new SimpleTagGenerator(500);
 		// now process the children

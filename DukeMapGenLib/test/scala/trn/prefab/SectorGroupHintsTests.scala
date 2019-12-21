@@ -1,6 +1,8 @@
 package trn.prefab
 
 import org.junit.{Assert, Test}
+import trn.prefab.hypercube.GridCell
+
 import scala.collection.JavaConverters._
 
 class SectorGroupHintsTests {
@@ -108,5 +110,18 @@ class SectorGroupHintsTests {
 
     Assert.assertEquals(pc(X -> 1, Z -> 3, W -> 4), pc(X -> 1, Y -> 2, Z -> 3, W -> 4).union(pc(Y -> 1)))
 
+  }
+
+  @Test
+  def testOtherCells(): Unit = {
+    def gc(x: Int, y: Int, z: Int, w: Int) = GridCell.apply(x, y, z, w)
+    val hint = SectorGroupHints.Empty
+
+    Assert.assertEquals(Seq(), hint.otherCells(gc(0, 0, 0, 0)))
+    Assert.assertEquals(Seq(), hint.copy(roomHeight = 1).otherCells(gc(0, 0, 0, 0)))
+    Assert.assertEquals(Seq(gc(0, 0, 1, 0)), hint.copy(roomHeight = 2).otherCells(gc(0, 0, 0, 0)))
+    Assert.assertEquals(Seq(gc(1, 2, 4, 4), gc(1, 2, 5, 4)), hint.copy(roomHeight = 3).otherCells(gc(1, 2, 3, 4)))
+
+    Assert.assertEquals(Seq(gc(2, 0, 1, 0)), hint.copy(roomHeight = 2).otherCells(gc(2, 0, 0, 0)))
   }
 }

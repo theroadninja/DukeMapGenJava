@@ -2,12 +2,15 @@ package trn.prefab
 
 import trn.{Sprite, Map => DMap}
 import trn.MapImplicits._
+import trn.prefab.hypercube.GridCell
 
 import scala.collection.mutable
 
 object SectorGroupHints {
   val HintTex = 355 // construction sprite
   val HintPalette = 2
+
+  lazy val Empty = SectorGroupHints(None, Seq(), HypercubeEdge(), 1)
 
   //
   // LOTAG VALUES:  General
@@ -28,6 +31,11 @@ object SectorGroupHints {
   // sector group with this marker must be on the edge of the cube (in the XY plane only)
   val HyperCubeEdgeXY = 6004 // and hitag 1 means rotate so sprite points at edge
 
+  // manually specify the size, in rooms, of this room in the Z dimension (starting from the anchor)
+  // hitag:  0 is ignore, 1 is normal, 2 means two rooms high, etc
+  // NOTE:  this is the TOTAL height
+  val HypercubeRoomHeightZ = 6005
+
   private val AllLotags = Seq(LtMaxCopies, 6000, 6001, 6002, 6003)
 
 
@@ -41,43 +49,63 @@ object SectorGroupHints {
 
   def apply(sprites: Seq[Sprite]): SectorGroupHints = {
     var maxCopies: Option[Int] = None
-    var hypergridEdge = HypercubeEdge()
+
+    //var hypergridEdge = HypercubeEdge()
+    var xyEdgeOnly: Boolean = false
+    val hypergridEdgeAngles = mutable.Buffer[Int]()
+
     val hypergridHints: mutable.Buffer[HypercubeGridHint] = mutable.Buffer()
+    var roomHeight: Int = 1
     sprites.filter(isHint).foreach { _ match {
       case s: Sprite if s.getLotag == LtMaxCopies => maxCopies = Some(s.getHiTag)
       //case s: Sprite if s.getLotag >= HypercubeGridX && s.getLotag <= HypercubeGridW => {
-      case s: Sprite if s.getLotag == HyperCubeEdgeXY => hypergridEdge = HypercubeEdge(s)
+      case s: Sprite if s.getLotag == HyperCubeEdgeXY => {
+        xyEdgeOnly = true
+        hypergridEdgeAngles ++= HypercubeEdge.heading(s)
+        //hypergridEdge = HypercubeEdge(s)
+      }
       case s: Sprite if HypercubeGridHint.isGridHint(s) => {
         hypergridHints.append(HypercubeGridHint(s.getLotag, s.getHiTag))
       }
+      case s: Sprite if s.getLotag == HypercubeRoomHeightZ && s.getHiTag > 1 => roomHeight = s.getHiTag
       case s: Sprite => throw new SpriteLogicException(s"invalid hint sprite (lotag=${s.getLotag}")
     } }
-    SectorGroupHints(maxCopies, hypergridHints, hypergridEdge)
+    SectorGroupHints(maxCopies, hypergridHints, HypercubeEdge(xyEdgeOnly, hypergridEdgeAngles), roomHeight)
   }
 
   def apply(map: DMap): SectorGroupHints = apply(map.allSprites)
-
-  lazy val empty = SectorGroupHints(None, Seq(), HypercubeEdge())
 }
 
 
 object HypercubeEdge {
-  def apply(s: Sprite): HypercubeEdge = {
+
+  def heading(s: Sprite): Option[Int] = {
     require(SectorGroupHints.isHint(s))
-    val heading = if(s.getHiTag == 1){
+    if(s.getHiTag == 1){
       val h = Option(Heading.fromDukeAngle(s.getAngle))
       SpriteLogicException.throwIfSprite(h.isEmpty, "invalid sprite angle for edge rotation hint", s)
       h.map(_.toInt)
     }else{
       None
     }
-    HypercubeEdge(
-      true,
-      heading
-    )
   }
+
+  // def apply(s: Sprite): HypercubeEdge = {
+  //   require(SectorGroupHints.isHint(s))
+  //   val heading = if(s.getHiTag == 1){
+  //     val h = Option(Heading.fromDukeAngle(s.getAngle))
+  //     SpriteLogicException.throwIfSprite(h.isEmpty, "invalid sprite angle for edge rotation hint", s)
+  //     h.map(_.toInt)
+  //   }else{
+  //     None
+  //   }
+  //   HypercubeEdge(
+  //     true,
+  //     heading.toSeq
+  //   )
+  // }
 }
-case class HypercubeEdge(xyEdgeOnly: Boolean = false, xyEdgeAngle: Option[Int] = None)
+case class HypercubeEdge(xyEdgeOnly: Boolean = false, xyEdgeAngle: Seq[Int] = Seq.empty)
 
 
 object PartialCell {
@@ -190,6 +218,7 @@ object HypercubeGridHint {
 
 case class HypercubeGridHint(val axis: Int, val coord: Int)
 
+
 /**
   * Similar to sector group properties, but these are optional and depend on the algorithm
   *
@@ -201,8 +230,19 @@ case class HypercubeGridHint(val axis: Int, val coord: Int)
 case class SectorGroupHints(
   maxCopies: Option[Int],
   hypercubeGridHints: Seq[HypercubeGridHint],
-  //hypercubeEdgeXY: Boolean
-  hypercubeEdge: HypercubeEdge
+  hypercubeEdge: HypercubeEdge,
+  roomHeight: Int
 ) {
+
+  // give the bottom location of the room, return all the others
+  def otherCells(cell: GridCell): Seq[GridCell] = {
+    if(roomHeight < 2){
+      Seq()
+    }else{
+      (1 to roomHeight - 1).map(dz => cell.add((0, 0, dz, 0)))
+    }
+  }
+
+  def otherCells(cell: (Int, Int, Int, Int)): Seq[GridCell] = otherCells(GridCell(cell))
 
 }
