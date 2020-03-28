@@ -69,7 +69,7 @@ class PastedSectorGroup private (
   final def isConnectorLinked(c: Connector): Boolean = c.isLinked(map)
 
   final def unlinkedConnectors: Seq[Connector] = {
-    connectors.asScala.filter(c => !isConnectorLinked(c))
+    connectors.asScala.filter(c => !isConnectorLinked(c)).toSeq
   }
 
   final def redwallConnectors: Seq[RedwallConnector] = {
@@ -78,7 +78,7 @@ class PastedSectorGroup private (
         case rw: RedwallConnector => Some(rw)
         case _ => None
       }
-    }
+    }.toSeq
   }
 
 

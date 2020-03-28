@@ -113,7 +113,7 @@ object ConnectorFactory2 {
     // TODO:  get distinct tuples of (connectorId, sectorId, spriteId, (wallId, Wall))
     // (if more than one sprite points at the same wall, error
 
-    val multiSectorSprites: Seq[Sprite] = map.findSprites(PrefabUtils.MARKER_SPRITE).asScala.filter(_.getLotag == ConnectorType.MULTI_SECTOR)
+    val multiSectorSprites: Seq[Sprite] = map.findSprites(PrefabUtils.MARKER_SPRITE).asScala.filter(_.getLotag == ConnectorType.MULTI_SECTOR).toSeq
 
 
     val y = multiSectorSprites.map { sprite =>

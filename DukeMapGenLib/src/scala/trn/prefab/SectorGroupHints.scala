@@ -15,7 +15,7 @@ object SectorGroupHints {
   //
   // LOTAG VALUES:  General
   //
-  val LtMaxCopies = 5000
+  val LtMaxCopies = 5000 // hitag is the max number of copies
   // I think the max value of a lotag (unsigned short) is 32767
 
 

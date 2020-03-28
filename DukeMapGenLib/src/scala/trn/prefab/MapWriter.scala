@@ -174,12 +174,12 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     val stays = palette.getStaySectorGroups.asScala
     stays.map { sg =>
       builder.pasteSectorGroup(sg, PointXYZ.ZERO) // no translate == leave where it is
-    }
+    }.toSeq
   }
 
   def pasteStays2(palette: PrefabPalette): Seq[(Option[Int], PastedSectorGroup)] = {
     val stays = palette.getStaySectorGroups.asScala
-    stays.map(sg =>(sg.props.groupId, builder.pasteSectorGroup(sg, PointXYZ.ZERO)))
+    stays.map(sg =>(sg.props.groupId, builder.pasteSectorGroup(sg, PointXYZ.ZERO))).toSeq
   }
 
 

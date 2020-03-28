@@ -38,7 +38,7 @@ object MapImplicits {
       for(i <- 0 until map.getSpriteCount){
         list += map.getSprite(i)
       }
-      list
+      list.toSeq
     }
 
     def allWalls: Seq[Wall] = {
@@ -46,7 +46,7 @@ object MapImplicits {
       for(i <- 0 until map.getWallCount){
         list += map.getWall(i)
       }
-      list
+      list.toSeq
     }
 
     def translated(translation: PointXY): DMap = {

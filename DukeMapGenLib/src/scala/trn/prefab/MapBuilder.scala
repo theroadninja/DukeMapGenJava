@@ -200,7 +200,7 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
   def getWaterConns(psg: PastedSectorGroup): Seq[TeleportConnector] = {
     val conns = psg.findConnectorsByType(ConnectorType.TELEPORTER).asScala.map(_.asInstanceOf[TeleportConnector])
     val waterConns = conns.filter(_.isWater).map(w => (w, w.getSELocation(psg))).sortBy(t => MapBuilder.waterSortKey(t._2))
-    waterConns.unzip._1
+    waterConns.unzip._1.toSeq
   }
 
 

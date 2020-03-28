@@ -12,7 +12,7 @@ import trn.MapImplicits._
 
 
 /** TODO - this is copied from Hypercube3 */
-object HyperUtils {
+object HyperUtils2 {
 
   /** we look at only the hings in the same sector as the connector */
   def gridHintsForConn(conn: RedwallConnector, map: DMap): Option[PartialCell] = {
@@ -73,7 +73,7 @@ class Hyper4MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
     }
 
     def matchesW(c: RedwallConnector, psg: PastedSectorGroup, currentW: Int): Boolean = {
-      HyperUtils.gridHintsForConn(c, psg.getMap).flatMap(_.w.map(w => w == currentW)).getOrElse(true)
+      HyperUtils2.gridHintsForConn(c, psg.getMap).flatMap(_.w.map(w => w == currentW)).getOrElse(true)
     }
 
     val n1conns = grid(n1).redwallConnectors.filter(c => matchesW(c, grid(n1), n1._4))
@@ -111,6 +111,9 @@ class Hyper4MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
 
     } }
   }
+  def availableSpots: Iterable[Cell] = {
+    gridManager.allCells.filter(c => !grid.contains(c))
+  }
 }
 
 /**
@@ -141,6 +144,8 @@ object Hypercube4 extends PrefabExperiment {
     val HighFloor = 2
 
     val BluW = 0
+    val RedW = 1
+    val GrnW = 2
 
     val sg = palette.getSectorGroup(1)
     builder.tryPlaceInGrid(sg, (1, 1, MidFloor, 0), Seq((1, 1, MidFloor, 1), (1, 1, MidFloor, 2)))
@@ -148,33 +153,15 @@ object Hypercube4 extends PrefabExperiment {
     // lift
     // builder.tryPlaceInGrid(palette.getSG(13), (1, 0, MidFloor, 0), Seq((1, 0, HighFloor, 0)))
 
+
     def placeAt(sg: SectorGroup, spot: Cell): Option[PastedSectorGroup] = {
       val otherSpots = sg.hints.otherCells(spot).map(_.asTuple)
       println(spot)
       builder.tryPlaceInGrid(sg, spot, sg.hints.otherCells(spot).map(_.asTuple))
     }
-
-    //stairs
-    val DoubleStairs = 20
-    // builder.tryPlaceInGrid(palette.getSG(14), (2, 0, LowFloor, 0), Seq((2, 0, MidFloor, 0)))
-    // builder.tryPlaceInGrid(palette.getSG(14).rotate180, (0, 2, MidFloor, 0), Seq((0, 2, HighFloor, 0)))
-    require(palette.getSG(DoubleStairs).hints.roomHeight == 3)
-    placeAt(palette.getSG(DoubleStairs), (2, 0, LowFloor, 0))
-    placeAt(palette.getSG(DoubleStairs).rotate180, (0, 2, LowFloor, 0))
-
-    // top floor slanted stuff
-    builder.tryPlaceInGrid(palette.getSG(15), (0, 1, HighFloor, 0))
-    builder.tryPlaceInGrid(palette.getSG(15).rotate180, (2, 1, HighFloor, 0))
-
-    // top floor center
-    builder.tryPlaceInGrid(palette.getSG(16), (1, 1, HighFloor, 0))
-
-
-
-
-
     def placeOnEdge(sg: SectorGroup, floor: Int, w: Int): Option[PastedSectorGroup] = {
-      val availableSpots = gridManager.allCells.filter(c => gridManager.isEdgeXY(c) && !builder.grid.contains(c))
+      // val availableSpots = gridManager.allCells.filter(c => gridManager.isEdgeXY(c) && !builder.grid.contains(c))
+      val availableSpots = builder.availableSpots.filter(c => gridManager.isEdgeXY(c))
       val spots = writer.randomShuffle(availableSpots.filter(c => c._3 == floor && c._4 == w))
       //val spot = writer.randomElement(availableSpots.filter(c => c._3 == floor && c._4 == w))
       spots.foreach { spot =>
@@ -195,9 +182,60 @@ object Hypercube4 extends PrefabExperiment {
       None
     }
 
+    val BasicRoom = 10
 
+    val DoubleStairs = 20
     val WizardRoom = 17
     val Bridge = 19
+    val RotateRoom = 21 // TODO - put this in a few centers (optional hole to drop down to lower?)
+    val YellowCardTemple = 22
+    val YellowLockedDoor = 23
+    val TwistyRoom = 24
+    val SewerStart = 25
+    val Pit = 26
+    val SurpriseHallway = 27
+    val ShotgunHallway = 28
+
+    placeOnEdge(palette.getSG(SewerStart), LowFloor, BluW)
+    placeAt(palette.getSG(Pit), (1, 1, LowFloor, BluW))
+
+
+    // TODO - surprise hallway has max set to 1 -- how do we use that?
+    // random fill method?
+    //val spot = writer.randomElement(builder.availableSpots.filter(s => s._3 == LowFloor && s._4 == BluW))
+
+    Seq(SurpriseHallway, ShotgunHallway).foreach { i =>
+      placeOnEdge(palette.getSG(i), LowFloor, BluW)
+    }
+    //placeAt
+
+    //stairs
+    // builder.tryPlaceInGrid(palette.getSG(14), (2, 0, LowFloor, 0), Seq((2, 0, MidFloor, 0)))
+    // builder.tryPlaceInGrid(palette.getSG(14).rotate180, (0, 2, MidFloor, 0), Seq((0, 2, HighFloor, 0)))
+    require(palette.getSG(DoubleStairs).hints.roomHeight == 3)
+    placeAt(palette.getSG(DoubleStairs), (2, 0, LowFloor, 0))
+    placeAt(palette.getSG(DoubleStairs).rotate180, (0, 2, LowFloor, 0))
+
+    // top floor slanted stuff
+    builder.tryPlaceInGrid(palette.getSG(15), (0, 1, HighFloor, 0))
+    builder.tryPlaceInGrid(palette.getSG(15).rotate180, (2, 1, HighFloor, 0))
+
+    // top floor center
+    builder.tryPlaceInGrid(palette.getSG(16), (1, 1, HighFloor, 0))
+
+    // rotateroom
+    builder.tryPlaceInGrid(palette.getSG(RotateRoom), (0, 1, MidFloor, 0))
+    builder.tryPlaceInGrid(palette.getSG(RotateRoom), (1, 0, MidFloor, 0))
+
+
+
+
+
+
+    // yellow card temple
+    placeOnEdge(palette.getSG(YellowCardTemple), MidFloor, RedW)
+
+
     // top floor wizard tower
     val wizardTower = palette.getSG(WizardRoom)
     require(wizardTower.hints.hypercubeEdge.xyEdgeOnly)
@@ -210,18 +248,20 @@ object Hypercube4 extends PrefabExperiment {
     require(palette.getSG(Bridge).hints.roomHeight == 2)
     require(placeOnEdge(palette.getSG(Bridge), MidFloor, BluW).isDefined)
 
-    require(Option(palette.getSG(20)).isDefined)
+    require(Option(palette.getSG(DoubleStairs)).isDefined)
 
 
     builder.fillFloor(palette.getSG(18), LowFloor, 0)
-    builder.fillFloor(palette.getSG(10), MidFloor, 0)
-    builder.fillFloor(palette.getSG(10), HighFloor, 0)
+    builder.fillFloor(palette.getSG(BasicRoom), MidFloor, 0)
+    builder.fillFloor(palette.getSG(BasicRoom), HighFloor, 0)
 
     val redRoom = MapWriter.painted2(palette.getSG(10), PaletteList.BLUE_TO_RED)
-    builder.fillFloor(redRoom, MidFloor, 1)
+    builder.fillFloor(redRoom, MidFloor, RedW)
 
-    val greenRoom = MapWriter.painted2(palette.getSG(10), PaletteList.BLUE_TO_GREEN)
-    builder.fillFloor(greenRoom, MidFloor, 2)
+    //val greenRoom = MapWriter.painted2(palette.getSG(10), PaletteList.BLUE_TO_GREEN)
+    //builder.fillFloor(greenRoom, MidFloor, GrnW)
+    builder.fillFloor(palette.getSG(TwistyRoom), MidFloor, GrnW)
+
 
     val hallways = palette.anonSectorGroups().asScala.toSeq
     builder.connectRooms(hallways, false)

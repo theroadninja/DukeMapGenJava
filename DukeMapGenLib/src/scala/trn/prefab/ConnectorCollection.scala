@@ -16,7 +16,7 @@ trait ConnectorCollection {
   }
 
   final def allRedwallConnectors: Seq[RedwallConnector] = {
-    connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType)).map(_.asInstanceOf[RedwallConnector])
+    connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType)).map(_.asInstanceOf[RedwallConnector]).toSeq
   }
 
   final def getConnector(connectorId: Int): Connector = {
@@ -42,12 +42,12 @@ trait ConnectorCollection {
   final def getRedwallConnectorsById(connectorId: Int): Seq[RedwallConnector] = {
     if(connectorId < 0) throw new IllegalArgumentException
     val c = connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType) && c.connectorId == connectorId)
-    c.map(_.asInstanceOf[RedwallConnector])
+    c.map(_.asInstanceOf[RedwallConnector]).toSeq
   }
 
   final def getElevatorConnectorsById(connectorId: Int): Seq[ElevatorConnector] = {
     if(connectorId < 0) throw new IllegalArgumentException
-    connectors.asScala.filter(_.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector])
+    connectors.asScala.filter(_.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector]).toSeq
   }
 
   final def getChildPointer(): ChildPointer = {
@@ -76,7 +76,7 @@ trait ConnectorCollection {
     ChildPointer(
       marker,
       mainConn.connectorId,
-      groupedConns.getOrElse(20, Seq()).map(_.asInstanceOf[RedwallConnector]),
+      groupedConns.getOrElse(20, Seq()).map(_.asInstanceOf[RedwallConnector]).toSeq,
       //groupedConns.getOrElse(ConnectorType.TELEPORTER, Seq()).map(_.asInstanceOf[TeleportConnector]),
       //groupedConns.getOrElse(ConnectorType.ELEVATOR, Seq()).map(_.asInstanceOf[ElevatorConnector])
     )
