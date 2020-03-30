@@ -39,8 +39,9 @@ public class Main {
 
 		//run(SoundListMap$.MODULE$);
 		//run(PipeDream$.MODULE$);
-		run(PoolExperiment$.MODULE$);
-		//Map outMap = Sushi.run(new MapLoader(DOSPATH));
+		//run(PoolExperiment$.MODULE$);
+		run(Sushi$.MODULE$);
+		//= Sushi.run(new MapLoader(DOSPATH));
 
 		// writeAndOpenMapPng(outMap);
 		//deployTest(outMap);

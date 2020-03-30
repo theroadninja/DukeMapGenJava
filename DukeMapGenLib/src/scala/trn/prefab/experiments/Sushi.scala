@@ -73,8 +73,8 @@ class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = n
 
 }
 
-object Sushi {
-  val FILENAME = "sushi.map"
+object Sushi extends PrefabExperiment {
+  override val Filename = "sushi.map"
 
 
   val PlainHall = 1
@@ -101,8 +101,8 @@ object Sushi {
   val Doorway1_alternate = 18 // this one is just for hacking
 
 
-  def run(mapLoader: MapLoader): DMap = {
-    val sourceMap = mapLoader.load(FILENAME)
+  override def run(mapLoader: MapLoader): DMap = {
+    val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val builder = new SushiBuilder(DMap.createNew(), palette)
 
