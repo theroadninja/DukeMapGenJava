@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class GameLogic {
 
-    private static final Set<Integer> SE_SPECIAL_ANGLE = new HashSet<>(Arrays.asList(new Integer[]{0, 21, 31, 32}));
+    private static final Set<Integer> SE_SPECIAL_ANGLE = new HashSet<>(Arrays.asList(new Integer[]{0, 11, 13, 21, 31, 32}));
 
     /**
      * When a sector is rotated or flipped, most of the sprites should be rotated or flipped with it, which really just

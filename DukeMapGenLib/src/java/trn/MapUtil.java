@@ -272,7 +272,7 @@ public class MapUtil {
 		// System.out.println("\tunit vector: " + sv);
 		PointXY p1 = w1.getLocation();
 		// System.out.println("\twall segment: " + p1 + ", " + w2.getLocation() + " delta: " + w2.getLocation().subtractedBy(p1));
-		return PointXY.raySegmentIntersect(s.getLocation().asXY(), sv, p1, w2.getLocation().subtractedBy(p1));
+		return PointXY.raySegmentIntersect(s.getLocation().asXY(), sv, p1, w2.getLocation().subtractedBy(p1), false);
 	}
 
 	/**
@@ -323,12 +323,25 @@ public class MapUtil {
 	}
 
 	/**
-	 * Most sprites have angles that don't matter.
-	 * @param s
-	 * @return true if a sprite angle does not have a special up-or-down meaning.
+	 *
+	 * @returns the sum of the cross product of every wall with the next wall.
 	 */
-	public static boolean shouldRotate(Sprite s){
-	    throw new RuntimeException("not implemented yet");
+	public static long sumOfCrossProduct(Collection<WallView> wallLoop){
+		long sum = 0;
+		List<WallView> wallLoop2 = new ArrayList<WallView>(wallLoop);
+		for(int i = 0; i < wallLoop.size() - 1; ++i){
+		    int j = (i+1) % wallLoop.size();
+			sum += wallLoop2.get(i).getVector().crossProduct2d(wallLoop2.get(j).getVector());
+		}
+		return sum;
+	}
 
+	/**
+	 * @param wallLoop
+	 * @returns true if `wallLoop` is the OUTER wall loop of a sector (that is, the sector exists inside it).
+	 * 		it returns false if wallLoop is an inner loop, for example a column, where nothing exists inside.
+	 */
+	public static boolean isOuterWallLoop(Collection<WallView> wallLoop){
+		return sumOfCrossProduct(wallLoop) > 0;
 	}
 }

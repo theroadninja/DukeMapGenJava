@@ -4,10 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 import org.junit.Assert;
 import org.junit.Test;
+import trn.prefab.PrefabUtils;
 
 public class MapTests {
 
@@ -105,5 +106,61 @@ public class MapTests {
 
 			Assert.assertEquals(startingSectorCount - 1, checkSerialization(map).sectorCount);
 		}
+	}
+
+
+	private long sumOfCrossProduct(Collection<WallView> wallLoop){
+		List<WallView> list = new ArrayList<>(wallLoop);
+		return MapUtil.sumOfCrossProduct(list);
+	}
+
+	@Test
+	public void testGetAllWallLoops() throws Exception {
+		Map map = JavaTestUtils.readTestMap(JavaTestUtils.JUNIT1);
+
+		HashMap<Integer, Integer> testSectors = new HashMap<>();
+		for(Sprite s: map.sprites){
+			if(s.getTexture() == 49 || s.getTexture() == 37){
+				// shotgun texture
+			}else{
+				Assert.assertEquals(s.getTexture(), PrefabUtils.MARKER_SPRITE_TEX);
+				Assert.assertEquals(s.getLotag(), PrefabUtils.MarkerSpriteLoTags.GROUP_ID);
+				testSectors.put((int)s.getHiTag(), (int)s.getSectorId());
+			}
+		}
+
+		// sector 1, one wall loop
+        int sectorId = testSectors.get(1);
+		Assert.assertEquals(1, map.getAllWallLoops(sectorId).size());
+		Assert.assertEquals(1, map.getAllWallLoopsAsViews(sectorId).size());
+		Assert.assertTrue(0 < sumOfCrossProduct(map.getAllWallLoopsAsViews(sectorId).get(0)));
+		Assert.assertTrue(MapUtil.isOuterWallLoop(map.getAllWallLoopsAsViews(sectorId).get(0)));
+
+		// sector 2:  the outer loop as 5 walls; the inner has 4
+		sectorId = testSectors.get(2);
+		Assert.assertEquals(2, map.getAllWallLoops(sectorId).size());
+		List<Collection<WallView>> allLoops = map.getAllWallLoopsAsViews(sectorId);
+		for(Collection<WallView> wallLoop : allLoops){
+		    if(wallLoop.size() == 4){
+		        Assert.assertTrue(0 > MapUtil.sumOfCrossProduct(wallLoop));
+		        Assert.assertFalse(MapUtil.isOuterWallLoop(wallLoop));
+			}else if(wallLoop.size() == 5){
+				Assert.assertTrue(0 < MapUtil.sumOfCrossProduct(wallLoop));
+				Assert.assertTrue(MapUtil.isOuterWallLoop(wallLoop));
+			}else{
+		    	Assert.fail();
+			}
+		}
+
+		sectorId = testSectors.get(3);
+		Assert.assertEquals(4, map.getAllWallLoops(sectorId).size());
+
+		// This only has 4, because the bottom wall of the peninsula belongs to the
+		// other sector entirely.
+		sectorId = testSectors.get(4);
+		Assert.assertEquals(4, map.getAllWallLoops(sectorId).size());
+		Assert.assertEquals(4, map.getAllWallLoopsAsViews(sectorId).size());
+
+
 	}
 }

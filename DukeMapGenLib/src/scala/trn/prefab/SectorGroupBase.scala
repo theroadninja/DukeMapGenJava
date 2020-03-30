@@ -1,6 +1,7 @@
 package trn.prefab
 
-import trn.{Wall, Map => DMap}
+import trn.{LineSegmentXY, MapUtil, PointXY, Wall, WallView, Map => DMap}
+
 import scala.collection.JavaConverters._ // this is the good one
 
 /**
@@ -37,6 +38,39 @@ trait SectorGroupBase {
     }
     boundingBoxes.get
   }
+
+  /**
+    * @return true if `xy` exists inside any sector of the group
+    */
+  def contains(xy: PointXY): Boolean = ???
+
+  /**
+    * TODO see also MapWriter.spaceAvailable
+    *
+    * @param other
+    * @return
+    */
+  def intersectsWith(other: SectorGroupBase): Boolean = {
+    val coarseIntersect = boundingBox.intersect(other.boundingBox).map(_.area).getOrElse(0) > 0
+    lazy val fineIntersect = BoundingBox.nonZeroOverlap(fineBoundingBoxes, other.fineBoundingBoxes)
+    lazy val polyIntersect = {
+      val wallLoops1 = allSectorIds.toSeq.flatMap(getAllWallLoopsAsViews).map(_.map(_.getLineSegment))
+      val wallLoops2 = other.allSectorIds.toSeq.flatMap(other.getAllWallLoopsAsViews).map(_.map(_.getLineSegment))
+      Polygon.guessGroupsOverlap(wallLoops1, wallLoops2)
+    }
+    coarseIntersect && fineIntersect && polyIntersect
+  }
+
+  def getAllWallLoopsAsViews(sectorId: Int): Seq[Seq[WallView]] = {
+    map.getAllWallLoopsAsViews(sectorId).asScala.map(_.asScala.toSeq)
+  }
+
+  def getOuterWallLoop(sectorId: Int): Seq[WallView] = {
+    val outerLoops = map.getAllWallLoopsAsViews(sectorId).asScala.filter(MapUtil.isOuterWallLoop)
+    require(outerLoops.size == 1, s"sector ${sectorId} has more than one outer wall loop")
+    outerLoops.head.asScala.toSeq
+  }
+
 
 }
 

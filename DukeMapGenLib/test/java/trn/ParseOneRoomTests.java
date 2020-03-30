@@ -12,7 +12,8 @@ import org.junit.Test;
 
 public class ParseOneRoomTests {
 
-	
+
+	// TODO - see JavaTestUtils
 	public static String oneRoomFilename(){
 		String fname =  "ONEROOM.MAP";
 		String filepath = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata" + File.separator + fname;

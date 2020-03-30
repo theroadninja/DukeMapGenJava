@@ -184,4 +184,47 @@ public class PointXYTests {
         Assert.assertTrue(rsi(p(0, 0), p(-2, -1), p3, p4b));
         Assert.assertFalse(rsi(p(0, 0), p(-4, -3), p3, p4b));
     }
+
+    @Test
+    public void testRayCircleIntersect(){
+        Assert.assertTrue(PointXY.rayCircleIntersect(p(0, 0), p(1, 0), p(5, 0), 1));
+        Assert.assertTrue(PointXY.rayCircleIntersect(p(0, 0), p(1, 0), p(5, 1), 1));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(1, 0), p(5, 2), 1));
+        Assert.assertTrue(PointXY.rayCircleIntersect(p(0, 0), p(1, 0), p(5, 2), 2));
+
+        // perpendicular
+        Assert.assertTrue(PointXY.rayCircleIntersect(p(0, 0), p(1, 0), p(0, 1), 1));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(1, 0), p(0, 2), 1));
+        Assert.assertTrue(PointXY.rayCircleIntersect(p(0, 0), p(1, 0), p(0, -1), 1));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(1, 0), p(0, -2), 1));
+
+        // behind
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(1, 0), p(-5, 0), 1));
+
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(-1, 0), p(5, 0), 1));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(1, 1), p(5, 0), 1));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(-1, 1), p(5, 0), 1));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(-1, -1), p(5, 0), 1));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(0, -1), p(5, 0), 1));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(0, 0), p(0, 1), p(5, 0), 1));
+
+        Assert.assertTrue(PointXY.rayCircleIntersect(p(-4, -3), p(4, 8), p(1, 4), 4));
+        Assert.assertTrue(PointXY.rayCircleIntersect(p(-4, -3), p(3, 8), p(1, 4), 4));
+        Assert.assertTrue(PointXY.rayCircleIntersect(p(-4, -3), p(5, 8), p(1, 4), 4));
+
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(-4, -3), p(7, 4), p(1, 4), 3));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(-4, -3), p(-7, 4), p(1, 4), 3));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(-4, -3), p(7, -4), p(1, 4), 3));
+        Assert.assertFalse(PointXY.rayCircleIntersect(p(-4, -3), p(0, 1), p(1, 4), 3));
+
+        Assert.assertTrue(PointXY.rayCircleIntersect(p(-17920, -58368), p(-1, -9), p(-18432, -62976), 2));
+    }
+
+    @Test
+    public void testIntersectSegmentsForPoly(){
+        LineSegmentXY line1 = new LineSegmentXY(new PointXY(-15365, -46083), new PointXY(-15371, -34819));
+        LineSegmentXY line2 = new LineSegmentXY(new PointXY(-18435, -38914), new PointXY(-11264, -38912));
+        Assert.assertTrue(PointXY.segmentsIntersect(line1.getP1(), line1.getVector(), line2.getP1(), line2.getVector()));
+        Assert.assertTrue(PointXY.intersectSementsForPoly(line1.getP1(), line1.getVector(), line2.getP1(), line2.getVector(), false, false));
+    }
 }

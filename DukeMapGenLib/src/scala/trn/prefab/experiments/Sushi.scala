@@ -4,16 +4,6 @@ import trn.prefab._
 import trn.{MapLoader, PointXY, PointXYZ, Wall, Map => DMap}
 import scala.collection.JavaConverters._ // this is the good one
 
-/**
-  *
-  * @param existing connector in an existing, PastedSectorGroup
-  * @param newConn connector in a new SectorGroup that has not been pasted yet
-  * @param newSg the new SectorGroup that has not been pasted yet, which contains newConn
-  */
-case class Placement(existing: RedwallConnector, newConn: RedwallConnector, newSg: SectorGroup) {
-
-}
-
 class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = new RandomX()) extends MapBuilder {
 
   val writer = new MapWriter(this, sgBuilder) // TODO
@@ -34,50 +24,7 @@ class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = n
   def autoLink: Unit = sgBuilder.autoLinkRedwalls()
 
 
-  def pasteOptions(existing: PastedSectorGroup, newGroup: SectorGroup): Seq[Placement] = {
-    def isMatch(existing: RedwallConnector, newConn: RedwallConnector, newGroup: SectorGroup): Boolean = {
-      if(existing.isMatch(newConn)){
-        val t = newConn.getTransformTo(existing)
-        //spaceAvailable(newGroup.boundingBox.translate(t.asXY()))
-        writer.spaceAvailable(newGroup, t.asXY)
-      }else{
-        false
-      }
-    }
 
-    def possibleConnections(g1: PastedSectorGroup, g2: SectorGroup) = {
-      val conns1 = g1.unlinkedRedwallConnectors
-      val conns2 = g2.allRedwallConnectors
-      conns1.flatMap(c1 => conns2.map(c2 => Placement(c1, c2, g2))).filter { p =>
-        //case (c1, c2, _) => isMatch(c1, c2, g2)
-        isMatch(p.existing, p.newConn, p.newSg)
-      }
-    }
-
-    // TODO TODO TODO - add a feature c1.isMatch(c2, allowRotation=True) and it tells you what rotation to use!
-    // TODO - for now, hacking this together ...
-    //val allOptions = possibleConnections(existing, newGroup) ++ possibleConnections(existing, newGroup.rotateCW)
-    Seq(newGroup, newGroup.rotateCW, newGroup.rotate180, newGroup.rotateCCW).flatMap { g =>
-      possibleConnections(existing, g)
-    }
-  }
-
-
-  /**
-    * paste using ANY connection that fits
-    */
-  def tryPasteConnectedTo(existing: PastedSectorGroup, newGroup: SectorGroup): Option[PastedSectorGroup] = {
-
-    val allOptions = pasteOptions(existing, newGroup)
-    if(allOptions.size < 1){
-      None
-    }else{
-      //val (c1, c2, g) = random.randomElement(allOptions)
-      val p = random.randomElement(allOptions)
-      //Some(pasteAndLink(c1, g, c2))
-      Some(writer.pasteAndLink(p.existing, p.newSg, p.newConn))
-    }
-  }
 
   def pasteConnectedTo(existing: PastedSectorGroup, newGroup: SectorGroup): PastedSectorGroup = {
     // tryPasteConnectedTo(existing, newGroup)
@@ -85,6 +32,9 @@ class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = n
     tryPasteConnectedTo(Seq(existing), newGroup)
       .getOrElse(throw new RuntimeException("cannot find a valid connector to attach new group"))
   }
+
+  def tryPasteConnectedTo(existing: PastedSectorGroup, newGroup: SectorGroup): Option[PastedSectorGroup] =
+    ExperimentalWriter.tryPasteConnectedTo(writer, random, existing, newGroup)
 
   def tryPasteConnectedTo(existing: Seq[PastedSectorGroup], newGroup: SectorGroup): Option[PastedSectorGroup] = {
     existing.foreach { psg =>

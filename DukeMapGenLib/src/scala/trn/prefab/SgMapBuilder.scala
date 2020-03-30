@@ -44,12 +44,13 @@ class SgMapBuilder(private val map: DMap) extends TagGenerator {
     * Paste all of the sectors with "stay" markers.
     * @param palette
     */
-  def pasteAllStaySectors(palette: PrefabPalette): Unit = {
+  def pasteAllStaySectors(palette: PrefabPalette): Seq[PastedSectorGroup] = {
     require(!pastedStays.isDefined)
     pastedStays = Some(palette.getStaySectorGroups.asScala.map { sg =>
       val (psg, _) = pasteSectorGroup2(sg, PointXYZ.ZERO)  // no translate == leave where it is
       psg
     })
+    pastedStays.getOrElse(Seq.empty)
   }
 
   /**

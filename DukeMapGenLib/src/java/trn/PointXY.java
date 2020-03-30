@@ -1,10 +1,5 @@
 package trn;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import scala.Int;
-import scala.Tuple2;
-
 /**
  * For xy coordinates.
  *
@@ -95,6 +90,14 @@ public class PointXY {
 	}
 
 	/**
+	 * Treating this object as a vector,
+	 * @return its magnitude
+	 */
+	public double vectorMagnitude(){
+	    return Math.sqrt(x * x + y * y);
+	}
+
+	/**
 	 * Implementation of the "2d" special case of cross product.
 	 * The result is supposed to be an integer that is positive or negative, representing whether the new vector
 	 * is coming out of or going into the screen.
@@ -111,6 +114,10 @@ public class PointXY {
 	    return this.x * other.y - this.y * other.x;
 	}
 
+	public int dotProduct(PointXY other){
+		return this.x * other.x + this.y * other.y;
+	}
+
 	/**
 	 * Tests intersection between segments (a, a+b) and (c, c+d).
 	 * WARNING:  returns false for perfect overlap
@@ -125,7 +132,7 @@ public class PointXY {
 	 * @return true IFF the segments intersect -- BUT it returns false if the segments overlap!
 	 */
 	public static boolean segmentsIntersect(PointXY a, PointXY b, PointXY c, PointXY d) {
-		return intersect(a, b, c, d, false, false);
+		return intersectInclusive(a, b, c, d, false, false);
 	}
 
 	/**
@@ -140,11 +147,42 @@ public class PointXY {
 	 * @param d the vector between point 1 and point 2 of the segment (i.e. NOT point 2)
 	 * @return
 	 */
+	public static boolean raySegmentIntersect(PointXY rayPoint, PointXY rayVector, PointXY c, PointXY d, boolean endingExclusive){
+		return intersect(rayPoint, rayVector, c, d, true, false, endingExclusive);
+	}
 	public static boolean raySegmentIntersect(PointXY rayPoint, PointXY rayVector, PointXY c, PointXY d){
-		return intersect(rayPoint, rayVector, c, d, true, false);
+	    return raySegmentIntersect(rayPoint, rayVector, c, d, false);
 	}
 
-	static boolean intersect(PointXY a, PointXY b, PointXY c, PointXY d, boolean isRay1, boolean isRay2) {
+	public static boolean rayCircleIntersect(PointXY rayPoint, PointXY rayVector, PointXY circleCenter, int circleRadius){
+		// a^2 + b^2 = c^2, where
+		// a = projection of circleVector onto rayVector
+		// b = shortest line from rayVector to circleCenter
+		// c = circleVector
+		PointXY circleVector = circleCenter.subtractedBy(rayPoint);
+		int d = rayVector.dotProduct(circleVector);
+		if(d < 0){
+			return false;
+		}else if(d == 0){
+			// they are already at 90 degree angles
+			return circleVector.vectorMagnitude() <= circleRadius;
+		}else{
+			// the dot project is the length of the projection X magnitude of rayVector
+			double a = ((double)d)/rayVector.vectorMagnitude();
+			double c = circleVector.vectorMagnitude();
+			double b = Math.sqrt(c * c - a * a);
+			return b <= (double)circleRadius;
+		}
+	}
+
+	public static boolean vectorsParallel(PointXY v1, PointXY v2){
+		return v1.crossProduct2d(v2) == 0;
+	}
+
+	/**
+	 * being on either endpoint counts as being on the line
+	 */
+	static boolean intersectInclusive(PointXY a, PointXY b, PointXY c, PointXY d, boolean isRay1, boolean isRay2) {
 		int bd = b.crossProduct2d(d);
 		if(0 == bd) return false;
 		// Explanation:
@@ -164,6 +202,42 @@ public class PointXY {
 		// return (0.0 <= t && t <= 1.0) && (0.0 <= u && u <= 1.0); // simple, line segments only
         return (0.0 <= t && (isRay1 || t <= 1.0))
 				&& (0.0 <= u && (isRay2 || u <= 1.0));
+	}
+
+	/**
+	 * TODO - DRY
+	 */
+	static boolean intersect(PointXY a, PointXY b, PointXY c, PointXY d, boolean isRay1, boolean isRay2, boolean endingExclusive) {
+		int bd = b.crossProduct2d(d);
+		if(0 == bd) return false;
+		PointXY ca = c.subtractedBy(a);
+		double t = ca.crossProduct2d(d) / (double)bd;
+		double u = ca.crossProduct2d(b) / (double)bd; // -bxd = dxb
+        if(endingExclusive){
+            // if the intersection happens at the beginning of the segment, in counts, but not at the other end
+			// used for polygon math so that we don't double count when crossing vertexes
+			return (0.0 <= t && (isRay1 || t < 1.0)) // <-- this is whats different
+					&& (0.0 <= u && (isRay2 || u < 1.0));
+		}else{
+			return (0.0 <= t && (isRay1 || t <= 1.0))
+					&& (0.0 <= u && (isRay2 || u <= 1.0));
+		}
+
+	}
+
+	/**
+	 * TODO - DRY
+	 */
+	public static boolean intersectSementsForPoly(PointXY a, PointXY b, PointXY c, PointXY d, boolean isRay1, boolean isRay2){
+		int bd = b.crossProduct2d(d);
+		if(0 == bd) return false;
+		PointXY ca = c.subtractedBy(a);
+		double t = ca.crossProduct2d(d) / (double)bd;
+		double u = ca.crossProduct2d(b) / (double)bd; // -bxd = dxb
+		// if the intersection happens at the beginning of the segment, in counts, but not at the other end
+		// used for polygon math so that we don't double count when crossing vertexes
+		return (0.0 < t && (isRay1 || t < 1.0)) // <-- this is whats different
+				&& (0.0 < u && (isRay2 || u < 1.0));
 
 	}
 }

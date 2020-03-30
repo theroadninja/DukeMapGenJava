@@ -18,6 +18,9 @@ object TestUtils {
 
   def load(filename: String): DMap = TestUtils.loadTestMap(s"scala/trn.prefab/${filename}")
 
+  // load a map originally intended for the java code
+  def loadJavaMap(filename: String): DMap = TestUtils.loadTestMap(s"${filename}")
+
   def loadPalette(filename: String): PrefabPalette = PrefabPalette.fromMap(TestUtils.load(filename), true)
 
 }

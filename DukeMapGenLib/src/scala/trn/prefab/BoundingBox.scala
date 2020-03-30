@@ -5,6 +5,17 @@ import trn.PointXY
 object BoundingBox {
 
   /**
+    * @return a bounding box containing all the points
+    */
+  def apply(points: Seq[PointXY]): BoundingBox = {
+    require(points.size > 0)
+    points.foldLeft(BoundingBox(points(0))){ case (bb, p) => bb.add(p) }
+  }
+
+  def apply(p: PointXY): BoundingBox = BoundingBox(p.x, p.y, p.x, p.y)
+
+
+  /**
     * merges the given bounding box into the set, discarding it if it fits inside any existing box,
     * or any boxes that fit inside the newcomer.
     *
@@ -63,6 +74,8 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
       math.max(yMax, y)
     )
   }
+
+  def add(p: PointXY): BoundingBox = add(p.x, p.y)
 
   def points: Set[PointXY] = Set(
     new PointXY(xMin, yMin),
@@ -123,6 +136,8 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
       None
     }
   }
+
+  def intersects(b: BoundingBox): Boolean = intersect(b).map(_.area).getOrElse(0) > 0
 
   /**
     * Tests for overlap, but does not count overlap if only the edges overlap.

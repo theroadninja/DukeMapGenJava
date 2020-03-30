@@ -183,26 +183,34 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
   }
 
 
-  /**
-    * TODO - copied from PipeDream
-    * TODO - making this one more advanced
-    * Tests if there is space for the given sector group AFTER being moved by tx
-    */
+  // /**
+  //   * Tests if there is space for the given sector group AFTER being moved by tx
+  //   */
+  // def spaceAvailable(sg: SectorGroup, tx: PointXY): Boolean = {
+  //   def conflict(psg: PastedSectorGroup, bb: BoundingBox): Boolean ={
+  //     psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0
+  //   }
+
+  //   val bb = sg.boundingBox.translate(tx)
+  //   lazy val sgBoxes = sg.fineBoundingBoxes.map(_.translate(tx))
+
+  //   if(!bb.isInsideInclusive(MapBuilder.mapBounds)){
+  //     false
+  //   }else{
+  //     val conflicts = pastedSectorGroups.filter { psg =>
+  //       conflict(psg, bb) && BoundingBox.nonZeroOverlap(psg.fineBoundingBoxes, sgBoxes)
+  //     }
+  //     conflicts.isEmpty
+  //   }
+  // }
+
   def spaceAvailable(sg: SectorGroup, tx: PointXY): Boolean = {
-    def conflict(psg: PastedSectorGroup, bb: BoundingBox): Boolean ={
-      psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0
-    }
-
     val bb = sg.boundingBox.translate(tx)
-    lazy val sgBoxes = sg.fineBoundingBoxes.map(_.translate(tx))
-
-    if(!bb.isInsideInclusive(MapBuilder.mapBounds)){
-      false
-    }else{
-      val conflicts = pastedSectorGroups.filter { psg =>
-        conflict(psg, bb) && BoundingBox.nonZeroOverlap(psg.fineBoundingBoxes, sgBoxes)
+    lazy val translatedSg = sg.translatedXY(tx)
+    bb.isInsideInclusive(MapBuilder.mapBounds) && {
+      !pastedSectorGroups.exists{ psg =>
+        psg.boundingBox.intersects(bb) && psg.intersectsWith(translatedSg)
       }
-      conflicts.isEmpty
     }
   }
 
@@ -215,7 +223,19 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     */
   def spaceAvailable(bb: BoundingBox): Boolean = {
     bb.isInsideInclusive(MapBuilder.mapBounds) &&
-      pastedSectorGroups.filter(psg => psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0).isEmpty
+      pastedSectorGroups.filter(psg => psg.boundingBox.intersects(bb)).isEmpty
+  }
+
+  /**
+    * @param existingConn a connect that was already pasted to the map
+    * @param newConn a connection on the new sector group, newSg
+    * @param newSg the sector group we are interested in pasted to the map
+    * @return true if newSg can be placed on the map, with its connection `newConn` connecting to `existingConn` which
+    *         is already on the map.
+    */
+  def canPlaceAndConnect(existingConn: RedwallConnector, newConn: RedwallConnector, newSg: SectorGroup, checkSpace: Boolean = true): Boolean = {
+    val skipSpaceCheck = !checkSpace
+    existingConn.isMatch(newConn) && (skipSpaceCheck || spaceAvailable(newSg, newConn.getTransformTo(existingConn).asXY))
   }
 
 

@@ -309,5 +309,21 @@ class BoundingBoxTests {
 
   }
 
+  @Test
+  def testAlternateConstructors: Unit = {
+
+    Assert.assertEquals(b(0, 0, 0, 0), BoundingBox(p(0, 0)))
+    Assert.assertNotEquals(b(0, 0, 0, 0), BoundingBox(p(0, 1)))
+
+    Assert.assertEquals(b(1, 0, 1, 0), BoundingBox(p(1, 0)))
+    Assert.assertEquals(b(1, 2, 1, 2), BoundingBox(p(1, 2)))
+    Assert.assertEquals(b(-1, 2, -1, 2), BoundingBox(p(-1, 2)))
+
+    Assert.assertEquals(b(0, 0, 0, 0), BoundingBox(Seq(p(0, 0))))
+    Assert.assertEquals(b(0, 0, 1, 0), BoundingBox(Seq(p(0, 0), p(1, 0))))
+    Assert.assertEquals(b(-1, 0, 1, 5), BoundingBox(Seq(p(0, 0), p(1, 0), p(-1, 5))))
+    Assert.assertEquals(b(-1, 0, 1, 5), BoundingBox(Seq(p(0, 0), p(1, 0), p(-1, 5), p(1, 1))))
+  }
+
 
 }

@@ -145,6 +145,8 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
   def rotateAroundCW(anchor: PointXYZ): SectorGroup = rotateAroundCW(anchor.asXY)
 
+  def allRotations: Seq[SectorGroup] = Seq(this, rotateCW, rotate180, rotateCCW)
+
   // TODO - mutable; get rid of this is we move all java stuff to scala
   def addAutoText(at: AutoText): Unit ={
     this.autoTexts.add(at)

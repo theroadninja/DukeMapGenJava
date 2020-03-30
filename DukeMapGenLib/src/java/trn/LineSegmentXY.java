@@ -24,6 +24,10 @@ public class LineSegmentXY {
         return this.p1.equals(line2.p1) && this.p2.equals(line2.p2);
     }
 
+    public PointXY getP1(){
+        return this.p1;
+    }
+
 
     /**
      * @return the vector from p1 to p2
@@ -41,6 +45,26 @@ public class LineSegmentXY {
         return PointXY.segmentsIntersect(this.p1, this.getVector(), line2.p1, line2.getVector());
     }
 
+    /**
+     * Tests intersect between a ray (or half line, a line starting from a point and going infinitely in one direction)
+     * and a segment.
+     *
+     * @param rayPoint starting point of the ray
+     * @param rayVector a vector (unit or not) indicating the direction of the ray
+     * @return
+     */
+    public boolean intersectsRay(PointXY rayPoint, PointXY rayVector, boolean endingExclusive){
+        return PointXY.raySegmentIntersect(rayPoint, rayVector, this.p1, this.getVector(), endingExclusive);
+    }
+
+    public boolean isParallel(PointXY vector){
+        return PointXY.vectorsParallel(getVector(), vector);
+    }
+
+    @Override
+    public String toString(){
+        return this.p1.toString() + "--" + this.p2.toString();
+    }
 
 
 }

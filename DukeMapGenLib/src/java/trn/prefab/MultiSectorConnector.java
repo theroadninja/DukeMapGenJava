@@ -38,7 +38,7 @@ public class MultiSectorConnector extends RedwallConnector {
     }
 
     @Override
-    public long totalManhattanLength(Map map) {
+    public long totalManhattanLength() {
         throw new RuntimeException("Not implemented yet");
     }
 

@@ -8,6 +8,9 @@ import java.io.IOException;
 
 public class JavaTestUtils {
 
+    // making it easy to find all the tests that use a certain map.
+    public static final String JUNIT1 = "JUNIT1.MAP";
+
     private static String testFilePath(String fname){
         String filepath = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata" + File.separator + fname;
         return filepath;

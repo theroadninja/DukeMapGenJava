@@ -410,7 +410,7 @@ public class Sprite {
 	 */
 	public boolean intersectsSegment(PointXY p1, PointXY p2){
 		PointXY sv = AngleUtil.unitVector(this.getAngle());
-		return PointXY.raySegmentIntersect(getLocation().asXY(), sv, p1, p2.subtractedBy(p1));
+		return PointXY.raySegmentIntersect(getLocation().asXY(), sv, p1, p2.subtractedBy(p1), false);
 	}
 	
 	

@@ -11,6 +11,12 @@ import trn.prefab.JigsawPlacerMain$;
 import trn.prefab.experiments.*;
 import javax.imageio.ImageIO;
 
+
+/**
+ * Main entry point for map compiler.
+ *
+ * For a reference to my sprite logic @see trn.prefab.PrefabUtils
+ */
 public class Main {
 
 	//found this, looks like a good resource for the build map format:
@@ -54,8 +60,9 @@ public class Main {
 
 		//Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
 		//Map outMap = ReferenceTestExperiment.run(new MapLoader(DOSPATH));
-		//Map outMap = PipeDream.run(new MapLoader(DOSPATH));
+		//run(PipeDream$.MODULE$);
 		//Map outMap = PoolExperiment.run(new MapLoader(DOSPATH));
+		//run(PoolExperiment$.MODULE$);
 		//Map outMap = Sushi.run(new MapLoader(DOSPATH));
 		//Map outMap = runDeleteSectorTest(5, new MapLoader(DOSPATH));
 
@@ -63,9 +70,10 @@ public class Main {
 		//deployTest(outMap);
 
 		//run(Hypercube3$.MODULE$);
-		run(Hypercube4$.MODULE$);
+		//run(Hypercube4$.MODULE$);
 		//run(JigsawPlacerMain$.MODULE$);
 
+		run(PersonalStorage$.MODULE$);
 	}
 
 

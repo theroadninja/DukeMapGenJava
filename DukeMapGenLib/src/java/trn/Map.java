@@ -126,6 +126,21 @@ public class Map implements WallContainer {
 		return this.walls.get(i);
 	}
 
+	public WallView getWallView(int wallId){
+		Wall w = getWall(wallId);
+		Wall w2 = getWall(w.getPoint2Id());
+		LineSegmentXY line = new LineSegmentXY(w.getLocation(), w2.getLocation());
+		return new WallView(w, wallId, line);
+	}
+
+	public List<WallView> getWallViews(Collection<Integer> wallIds){
+		List<WallView> results = new ArrayList<>(wallIds.size());
+		for(int wallId : wallIds){
+			results.add(getWallView(wallId));
+		}
+		return results;
+	}
+
 	// public List<Wall> getWalls(List<Integer> wallIds){
 	// 	List<Wall> results = new ArrayList<>();
 	// 	for(int i : wallIds){
@@ -170,37 +185,37 @@ public class Map implements WallContainer {
 		return walls;
 	}
 	
-	/* - TODO - only useful if walls know their own ids...
-	public Collection<Wall> getWalls(Iterable<Integer> wallIds){
-		List<Wall> results = new ArrayList<Wall>();
-		for(int i : wallIds){
-			results.add(this.walls.get(i));
-		}
-		return results;
-	}*/
-	
 	public List<Integer> getFirstWallLoop(final Sector sector){
 		return this.getWallLoop(sector.getFirstWall());
 	}
-	
-	
-	// TODO: !!!! i'm an idiot; the sector could have many wall loops...
-	// public List<Integer> getSecondWallLoop(final Sector sector){
-	//
-	// 	int loop1size = getFirstWallLoop(sector).size();
-	// 	if(loop1size > sector.getWallCount()){
-	// 		throw new RuntimeException("something went very wrong");
-	// 	}else if(loop1size == sector.getWallCount()){
-	// 		return null; // it has no second loop;
-	// 	}
-	// 	int loop2start = (loop1size + sector.getFirstWall());
-	//
-	// 	return this.getWallLoop(loop2start);
-	// }
-	
+
 	public Iterator<Collection<Integer>> wallLoopIterator(int sectorId){
 		return new WallLoopIterator(this, sectorId);
 	}
+
+	/**
+	 * Returns the wall Ids
+	 * @param sectorId
+	 * @return
+	 */
+	public List<Collection<Integer>> getAllWallLoops(int sectorId){
+		Iterator<Collection<Integer>> it = wallLoopIterator(sectorId);
+		List<Collection<Integer>> result = new ArrayList<>();
+		while(it.hasNext()){
+			result.add(it.next());
+		}
+		return result;
+	}
+
+	public List<Collection<WallView>> getAllWallLoopsAsViews(int sectorId){
+		Iterator<Collection<Integer>> it = wallLoopIterator(sectorId);
+		List<Collection<WallView>> result = new ArrayList<>();
+		while(it.hasNext()){
+			result.add(getWallViews(it.next()));
+		}
+		return result;
+	}
+
 	
 	
 	/**

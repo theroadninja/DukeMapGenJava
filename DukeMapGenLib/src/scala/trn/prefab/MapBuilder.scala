@@ -69,6 +69,7 @@ trait AnywhereBuilder { // TODO rename to AnywhereWriter or something
 }
 
 /**
+  * TODO - put a comment here saying where I can find a basic, vanilla builder
   * TODO - this should go away in favor of SgMapBuilder + MapWriter
   */
 trait MapBuilder extends ISectorGroup with TagGenerator {

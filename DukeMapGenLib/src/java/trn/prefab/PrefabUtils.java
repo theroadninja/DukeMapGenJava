@@ -16,6 +16,9 @@ public class PrefabUtils {
 		public static int USE_SECTOR_FLOOR = 1;
 	}
 
+	/**
+	 * The marker sprite tex is 355
+	 */
 	public static class MarkerSpriteLoTags {
 		
 		/**

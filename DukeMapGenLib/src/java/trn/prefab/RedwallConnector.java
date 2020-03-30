@@ -32,10 +32,13 @@ public abstract class RedwallConnector extends Connector {
     /**
      * @returns the sum of the manhattan-distance length of each wall in the group
      */
-    public abstract long totalManhattanLength(Map map);
+    public abstract long totalManhattanLength();
 
+    /**
+     * @deprecated
+     */
     public final long totalManhattanLength(SectorGroup sg) {
-        return totalManhattanLength(sg.getMap());
+        return totalManhattanLength();
     }
 
     /**
@@ -68,6 +71,18 @@ public abstract class RedwallConnector extends Connector {
      * @return
      */
     public abstract boolean isMatch(RedwallConnector c);
+
+    /**
+     * The connector is on the left side of the sector, will connect to another sector to the west.
+     * @return
+     */
+    public final boolean isWestConn(){
+        return SimpleConnector.WestConnector.matches(this);
+    }
+
+    public final boolean isEastConn(){
+        return SimpleConnector.EastConnector.matches(this);
+    }
 
     /**
      * meant to be used for two connectors that have already been pasted, to see if they are in the same place

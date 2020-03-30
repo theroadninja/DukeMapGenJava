@@ -75,6 +75,8 @@ public class SimpleConnector extends RedwallConnector {
 
 	final BlueprintConnector blueprint;
 
+	final long totalLength;
+
 	public int getWallId(){
 		return this.wallId;
 	}
@@ -151,6 +153,8 @@ public class SimpleConnector extends RedwallConnector {
         this.markerSpriteLotag = markerSprite.getLotag();
 
         this.blueprint = BlueprintConnector.apply(new BlueprintWall(wall.getLocation(), nextWallInLoop.getLocation()));
+
+        this.totalLength = totalManhattanLength(map);
     }
 
     public int getHeading(){
@@ -174,7 +178,8 @@ public class SimpleConnector extends RedwallConnector {
 
 
 
-	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType, int markerSpriteLotag, long length, BlueprintConnector bp){
+	private SimpleConnector(int connectorId, int sectorId, int wallId, int connectorType, int markerSpriteLotag, long length, BlueprintConnector bp,
+							long totalLength){
 	    super(connectorId);
 		//TODO add more fields ...
         this.sectorId = sectorId;
@@ -186,6 +191,7 @@ public class SimpleConnector extends RedwallConnector {
         this.markerSpriteLotag = markerSpriteLotag;
         this.length = length;
         this.blueprint = bp;
+        this.totalLength = totalLength;
 	}
 
 	@Override
@@ -196,7 +202,8 @@ public class SimpleConnector extends RedwallConnector {
                 this.connectorType,
 				this.markerSpriteLotag,
 				this.length,
-				this.blueprint);
+				this.blueprint,
+				this.totalLength);
 	}
 
 	public static long wallLength(int wallId, Map map){
@@ -212,11 +219,12 @@ public class SimpleConnector extends RedwallConnector {
 	}
 
 	@Override
+	public long totalManhattanLength(){
+		return this.totalLength;
+	}
+
 	public long totalManhattanLength(Map map){
 		return wallLength(this.wallId, map);
-	    // Wall w1 = map.getWall(this.wallId);
-	    // Wall w2 = map.getWall(w1.getNextWallInLoop());
-	    // return w1.getLocation().manhattanDistanceTo(w2.getLocation());
 	}
 
 	/**

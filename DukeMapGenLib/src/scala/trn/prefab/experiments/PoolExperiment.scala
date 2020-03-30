@@ -68,16 +68,16 @@ class PoolBuilder(val outMap: DMap) extends MapBuilder {
 
 
 // TODO - this is for testing the blueprint stuff -- make the prefab file also a unit test input!
-object PoolExperiment {
-  val FILENAME = "pool.map"
+object PoolExperiment extends PrefabExperiment {
+  val Filename = "pool.map"
 
   def hasPlayerStart(psg: PastedSectorGroup): Boolean = psg.allSprites.exists { s =>
     s.getTexture == MapWriter.MarkerTex && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
   }
 
 
-  def run(mapLoader: MapLoader): DMap = {
-    val sourceMap = mapLoader.load(FILENAME)
+  override def run(mapLoader: MapLoader): DMap = {
+    val sourceMap = mapLoader.load(Filename)
 
     // TODO - a map with a SG that is a box with 4 sides, all with lotag 1, causes this to run out of memory:
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);

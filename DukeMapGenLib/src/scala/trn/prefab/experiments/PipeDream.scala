@@ -59,16 +59,16 @@ class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
 }
 
 
-object PipeDream {
-  val FILENAME = "pipe.map"
+object PipeDream extends PrefabExperiment {
+  val Filename = "pipe.map"
 
   // TODO - next: support multiwall connectors
 
   // TODO - idea: priorities connectors on groups with more open connectors?
   // (i.e. check ratio)
 
-  def run(mapLoader: MapLoader): DMap = {
-    val sourceMap = mapLoader.load(FILENAME)
+  override def run(mapLoader: MapLoader): DMap = {
+    val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val builder = new PipeBuilder(DMap.createNew(), palette)
 

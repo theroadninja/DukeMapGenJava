@@ -39,7 +39,13 @@ public class MultiWallConnector extends RedwallConnector {
      */
     private final List<PointXY> relativePoints;
 
-    private MultiWallConnector(int connectorId, int sectorId, List<Integer> wallIds, PointXYZ anchor, PointXY wallAnchor1, PointXY wallAnchor2, int markerSpriteLotag, List<PointXY> relativePoints){
+    /**
+     * Total manhattan length
+     */
+    private final long totalLength;
+
+    private MultiWallConnector(int connectorId, int sectorId, List<Integer> wallIds, PointXYZ anchor, PointXY wallAnchor1, PointXY wallAnchor2, int markerSpriteLotag, List<PointXY> relativePoints,
+                               long totalLength){
         super(connectorId);
         this.sectorId = sectorId;
         this.allSectorIds = new ArrayList(1);
@@ -51,6 +57,7 @@ public class MultiWallConnector extends RedwallConnector {
         this.wallAnchor2 = wallAnchor2;
         this.markerSpriteLotag = markerSpriteLotag;
         this.relativePoints = relativePoints;
+        this.totalLength = totalLength;
     }
 
     public MultiWallConnector(Sprite markerSprite, Sector sector, List<Integer> wallIds, Map map){
@@ -102,6 +109,8 @@ public class MultiWallConnector extends RedwallConnector {
         this.wallIds = Collections.unmodifiableList(wallIds);
         if(this.wallIds.size() < 1) throw new RuntimeException();
         this.relativePoints = allRelativeConnPoints(this.wallIds, map, this.anchor, this.wallAnchor2);
+
+        this.totalLength = totalManhattanLength(map);
     }
 
 
@@ -130,7 +139,8 @@ public class MultiWallConnector extends RedwallConnector {
                 this.wallAnchor1.add(delta.asXY()),
                 this.wallAnchor2.add(delta.asXY()),
                 this.markerSpriteLotag,
-                this.relativePoints
+                this.relativePoints,
+                this.totalLength
         );
     }
 
@@ -173,6 +183,10 @@ public class MultiWallConnector extends RedwallConnector {
     }
 
     @Override
+    public long totalManhattanLength(){
+        return this.totalLength;
+    }
+
     public long totalManhattanLength(Map map){
         long sum = 0;
         for(int wallId: this.wallIds){

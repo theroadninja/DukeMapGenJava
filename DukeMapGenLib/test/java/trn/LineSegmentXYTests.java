@@ -69,4 +69,17 @@ public class LineSegmentXYTests {
             Assert.assertTrue(line(p(-20, 5), p(19, 6)).intersects(line(p(x, -500), p(-x, 500))));
         }
     }
+
+    @Test
+    public void testIntersectRay(){
+        Assert.assertTrue(line(p(1,0), p(1, 1)).intersectsRay(p(0, 0), p(1, 0), false));
+        Assert.assertTrue(line(p(1,0), p(-10, 1)).intersectsRay(p(0, 0), p(1, 0), false));
+        Assert.assertTrue(line(p(1,0), p(10, 1)).intersectsRay(p(0, 0), p(1, 0), false));
+
+        Assert.assertFalse(line(p(1,0), p(1, 1)).intersectsRay(p(0, 0), p(-1, 0), false));
+        Assert.assertFalse(line(p(1,0), p(1, 1)).intersectsRay(p(0, 0), p(0, 1), false));
+        Assert.assertFalse(line(p(1,0), p(1, 1)).intersectsRay(p(0, 0), p(0, -1), false));
+        Assert.assertFalse(line(p(1,1), p(1, 2)).intersectsRay(p(0, 0), p(1, 0), false));
+        Assert.assertFalse(line(p(-10,1), p(1, 2)).intersectsRay(p(0, 0), p(1, 0), false));
+    }
 }
