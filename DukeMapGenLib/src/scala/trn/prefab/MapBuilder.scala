@@ -133,15 +133,20 @@ trait MapBuilder extends ISectorGroup with TagGenerator {
   //   tp
   // }
 
-  /** sets the player start of the map to the location of the first player start marker sprite it finds */
+  /**
+    * If the map does not have a player start set yet,
+    * sets the player start of the map to the location of the first player start marker sprite it finds
+    */
   def setAnyPlayerStart(): Unit = {
-    val playerStarts = outMap.allSprites.filter(s =>
-      s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
-    )
-    if(playerStarts.size < 1) {
-      throw new SpriteLogicException("cannot set player start - there are no player start markers")
+    if(!outMap.hasPlayerStart){
+      val playerStarts = outMap.allSprites.filter(s =>
+        s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
+      )
+      if(playerStarts.size < 1) {
+        throw new SpriteLogicException("cannot set player start - there are no player start markers")
+      }
+      outMap.setPlayerStart(new PlayerStart(playerStarts(0)))
     }
-    outMap.setPlayerStart(new PlayerStart(playerStarts(0)))
   }
 
   /**

@@ -31,7 +31,7 @@ object AutoText {
 }
 
 /**
-  * This is a logical object make of a group of text sprites.
+  * This is a logical object made of a group of text sprites.
   */
 case class AutoText(autoTextId: Int, sectorIds: Set[Int]) {
 

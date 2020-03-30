@@ -9,7 +9,7 @@ import trn.PlayerStart;
 import trn.PointXY;
 import trn.Sector;
 import trn.Wall;
-import trn.WallPrefab;
+import trn.duke.experiments.WallPrefab;
 import trn.duke.experiments.gridblock.AbstractBlock;
 import trn.duke.experiments.gridblock.Block;
 import trn.duke.experiments.gridblock.Connector;

@@ -3,9 +3,9 @@ package trn.duke.experiments.gridblock;
 import org.apache.commons.lang3.tuple.Pair;
 
 import trn.Sector;
-import trn.SectorPrefab;
+import trn.duke.experiments.SectorPrefab;
 import trn.Wall;
-import trn.WallPrefab;
+import trn.duke.experiments.WallPrefab;
 import trn.maze.Heading;
 
 /**

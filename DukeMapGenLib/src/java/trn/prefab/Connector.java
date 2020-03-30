@@ -73,8 +73,8 @@ public abstract class Connector {
         return findConnectors(map, cf);
     }
 
+    /** if the sprite has a hitag > 0, then returns the hitag, otherwise -1 */
     public static final int idOf(Sprite markerSprite){
-        //return (markerSprite != null && markerSprite.getHiTag() > 0) ? markerSprite.getHiTag() : -1;
         return PrefabUtils.hitagToId(markerSprite);
     }
 

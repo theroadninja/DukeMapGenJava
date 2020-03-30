@@ -4,7 +4,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import trn.Sector;
 import trn.Wall;
-import trn.WallPrefab;
+import trn.duke.experiments.WallPrefab;
 import trn.duke.experiments.gridblock.AbstractBlock;
 import trn.duke.experiments.gridblock.Connector;
 import trn.duke.experiments.gridblock.EastWestConnector;

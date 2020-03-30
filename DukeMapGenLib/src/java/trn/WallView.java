@@ -1,7 +1,7 @@
 package trn;
 
 /**
- * A read-only view of a wall.
+ * A read-only view of a wall that includes things a normal `Wall` object doesnt have, like wall id.
  *
  * If you want to know if a wall loop is the outer loop or not, see MapUtil
  */

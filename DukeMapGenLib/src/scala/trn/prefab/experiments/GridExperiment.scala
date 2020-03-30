@@ -195,10 +195,11 @@ class GridMapBuilder(val outMap: DMap, val random: RandomX = new RandomX()) exte
   * Uses the prefabs in cptest3.map which are mostly designed to fit inside a 5x5 (*1024) grid, which
   * redwall connectors 1(*1024) wide on the outer edges.
   */
-object GridExperiment {
-  val FILENAME = "cptest3.map"
+object GridExperiment extends PrefabExperiment {
+  override val Filename = "cptest3.map"
 
-  def run(mapWithPrefabs: DMap): DMap = {
+  override def run(mapLoader: MapLoader): DMap = {
+    val mapWithPrefabs = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(mapWithPrefabs);
     val allGroups:Seq[SectorGroup] = palette.allSectorGroups().asScala.filter(GridMapBuilder.compatibleSg).toSeq
 

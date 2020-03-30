@@ -1,8 +1,8 @@
 package trn.duke.experiments.stonetunnels;
 
 import trn.Sector;
-import trn.SectorPrefab;
-import trn.WallPrefab;
+import trn.duke.experiments.SectorPrefab;
+import trn.duke.experiments.WallPrefab;
 
 public class StoneConstants {
 

@@ -3,7 +3,7 @@ package trn.prefab.experiments
 import trn.MapImplicits._
 import trn.duke.{MusicSFXList, TextureList}
 import trn.prefab._
-import trn.{PointXY, Wall, Map => DMap}
+import trn.{MapLoader, PointXY, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -112,8 +112,8 @@ object SoundListRoom {
   }
 }
 
-object SoundListMap {
-  val FILENAME = "sound.map"
+object SoundListMap extends PrefabExperiment {
+  override val Filename = "sound.map"
 
   def toSet(list: java.util.List[java.lang.Integer]): Set[Int] = list.asScala.map(_.toInt).toSet
 
@@ -140,7 +140,8 @@ object SoundListMap {
       fatCommander, bossEp1, bossEp2, bossEp3, secretLevel, weapons, inventory)
   }
 
-  def run(sourceMap: DMap): DMap = {
+  override def run(mapLoader: MapLoader): DMap = {
+    val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val builder = new SoundMapBuilder(DMap.createNew(), palette)
     run2(builder, palette, getLabels)

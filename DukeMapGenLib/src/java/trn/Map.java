@@ -400,6 +400,8 @@ public class Map implements WallContainer {
 
 	/**
 	 * Removes a sector AND everything in it.
+	 *
+	 * TODO: does this work?
 	 */
 	public void deleteSector(int sectorId){
 

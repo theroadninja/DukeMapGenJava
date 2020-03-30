@@ -1,4 +1,6 @@
-package trn;
+package trn.duke.experiments;
+
+import trn.Sector;
 
 /**
  * Like wall prefab, but for sectors.

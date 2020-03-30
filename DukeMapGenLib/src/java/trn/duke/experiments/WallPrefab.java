@@ -1,4 +1,6 @@
-package trn;
+package trn.duke.experiments;
+
+import trn.Wall;
 
 /**
  * Spec that describes a wall to create, to make it easier to create multiple walls.

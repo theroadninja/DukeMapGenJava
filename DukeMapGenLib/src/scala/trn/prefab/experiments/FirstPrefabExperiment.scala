@@ -60,19 +60,18 @@ class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder
   *
   * The code was in trn.duke.experiments.prefab.PrefabExperiment.
   */
-object FirstPrefabExperiment {
+object FirstPrefabExperiment extends PrefabExperiment {
 
-  def run(fromMap: DMap): DMap = {
+  override val Filename: String = "cptest3.map"
+
+  override def run(mapLoader: MapLoader): DMap = {
+    val fromMap = mapLoader.load(Filename)
+
     val palette: PrefabPalette = PrefabPalette.fromMap(fromMap);
     val builder = new PrefabBuilder(DMap.createNew(), palette)
 
-
-
-
     val psg1:PastedSectorGroup  = builder.pasteSectorGroup(10, new PointXYZ(-1024*30, -1024*50, 0));
     val psg2: PastedSectorGroup = {
-      //SimpleConnector conn2 = psg1.getConnector(123);
-      //psg2 = mb.pasteAndLink(12, conn2);
       val conn2:Connector = psg1.findFirstConnector(SimpleConnector.WestConnector);
       builder.pasteAndLink(12, SimpleConnector.EastConnector, conn2);
     }

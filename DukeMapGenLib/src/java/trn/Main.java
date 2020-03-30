@@ -31,40 +31,16 @@ public class Main {
 			throw new Exception(DOSPATH + " does not exist");
 		}
 
-		// Reference Styles
-		// 1. copy test 3
-		// 2. hyper 1
-		// 3. hyper 2
-		// 4. sound test
 		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));
-
-		//Map outMap = FirstPrefabExperiment.run(MapLoader.loadMap(DOSPATH + "cptest3.map"));
-		//Map outMap = GridExperiment.run(MapLoader.loadMap(DOSPATH + GridExperiment.FILENAME()));
-
+		//run(FirstPrefabExperiment$.MODULE$);
+		//run(GridExperiment$.MODULE$);
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
 		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
-		//TODO - Hypercube3 -- some rooms span multiple vertical levels (and multiple w levels?)
-            //navigation:  box in the center is special (corners/edges stick out?)
-        					// location numbers on walls
 
-        	// twisting center room that goes through W
-        	// use sprites for floors to save on sectors!
-				// or better, use sprites for walls
-			// implement sector joins (get rid of red wall) to further conserve sectors?
-				// room that is double length in x or w directions
-			// bottom level is "outside" of the cube, so you only see the 4 corners, rest is shared area
-				// covered by:  water, lava, slime ...
-			// one room always locked in each W, different color key ...
-
-
-
-		//Map outMap = SoundListMap.run(MapLoader.loadMap(DOSPATH + SoundListMap.FILENAME()));
-		//Map outMap = ReferenceTestExperiment.run(new MapLoader(DOSPATH));
+		//run(SoundListMap$.MODULE$);
 		//run(PipeDream$.MODULE$);
-		//Map outMap = PoolExperiment.run(new MapLoader(DOSPATH));
-		//run(PoolExperiment$.MODULE$);
+		run(PoolExperiment$.MODULE$);
 		//Map outMap = Sushi.run(new MapLoader(DOSPATH));
-		//Map outMap = runDeleteSectorTest(5, new MapLoader(DOSPATH));
 
 		// writeAndOpenMapPng(outMap);
 		//deployTest(outMap);
@@ -73,32 +49,13 @@ public class Main {
 		//run(Hypercube4$.MODULE$);
 		//run(JigsawPlacerMain$.MODULE$);
 
-		run(PersonalStorage$.MODULE$);
+		// run(PersonalStorage$.MODULE$);
 	}
 
 
 	private static void run(PrefabExperiment exp) throws IOException {
 		Map outMap = exp.run(new MapLoader(DOSPATH));
 		deployTest(outMap);
-	}
-
-	static Map runDeleteSectorTest(int spriteLotag, MapLoader mapLoader) throws IOException {
-	    // TODO - this is copied from JavaTestUtils ...
-		String fname = "DS.MAP";
-		String filepath = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata" + File.separator + fname;
-		Map map = MapLoader.loadMap(filepath);
-		//Map map = mapLoader.load("DS2.MAP");
-
-
-		int sectorId = -1;
-		for(int i = 0; i < map.spriteCount; ++i){
-			if(map.getSprite(i).lotag == spriteLotag){
-				sectorId = map.getSprite(i).sectnum;
-			}
-		}
-
-		map.deleteSector(sectorId);
-		return map;
 	}
 
 	public static void writeAndOpenMapPng(Map map) throws IOException {

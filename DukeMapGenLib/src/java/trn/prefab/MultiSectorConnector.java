@@ -6,6 +6,7 @@ import trn.PointXYZ;
 
 import java.util.List;
 
+// TODO - implement this using a `2` instead of a `1` for the wall lotag
 public class MultiSectorConnector extends RedwallConnector {
 
     protected MultiSectorConnector(int connectorId) {

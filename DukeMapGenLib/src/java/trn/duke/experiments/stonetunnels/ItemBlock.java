@@ -11,7 +11,7 @@ import trn.Sector;
 import trn.Sprite;
 import trn.SpritePrefab;
 import trn.Wall;
-import trn.WallPrefab;
+import trn.duke.experiments.WallPrefab;
 import trn.duke.experiments.gridblock.OrdinalConnector;
 import trn.duke.experiments.gridblock.SimpleBlock;
 

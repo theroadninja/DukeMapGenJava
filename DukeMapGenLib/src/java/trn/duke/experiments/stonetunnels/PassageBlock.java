@@ -2,8 +2,8 @@ package trn.duke.experiments.stonetunnels;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import trn.SectorPrefab;
-import trn.WallPrefab;
+import trn.duke.experiments.SectorPrefab;
+import trn.duke.experiments.WallPrefab;
 import trn.duke.experiments.gridblock.SimpleBlock;
 
 public class PassageBlock extends SimpleBlock {

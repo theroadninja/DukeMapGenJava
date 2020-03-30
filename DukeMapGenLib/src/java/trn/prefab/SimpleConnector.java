@@ -9,19 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 
 
-// TODO - maybe this should turn into the simple orginal (North, South, East, West) abstraction
+// TODO - maybe this should turn into the simple ordinal (North, South, East, West) abstraction
 // TODO - on top of the redwall connector, which could use a wall of any angle.
 public class SimpleConnector extends RedwallConnector {
-
-    // @Deprecated // use Heading instead
-	// public static class Direction {
-	// 	public static int EAST = 0;
-	// 	public static int SOUTH = 1;
-	// 	public static int WEST = 2;
-	// 	public static int NORTH = 3;
-
-	// 	public static List<Integer> all = Arrays.asList(EAST, SOUTH, WEST, NORTH);
-	// }
 
 	public static int connectorTypeForHeading(int heading){
     	if(Heading.E == heading){

@@ -14,11 +14,11 @@ object ExperimentalWriter {
 
   /**
     * paste using ANY connection that fits
-    * @param ignoreOverlap - a temp hack for putting sectors over sectors.  TODO check z floor/ceil instead
+    * @param allowOverlap - a temp hack for putting sectors over sectors.  TODO check z floor/ceil instead
     */
   def tryPasteConnectedTo(
     writer: MapWriter,
-    random: RandomX,
+    random: RandomX, // TODO - just pull from the writer
     existing: PastedSectorGroup,
     newGroup: SectorGroup,
     allowOverlap: Boolean = false

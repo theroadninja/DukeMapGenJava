@@ -214,12 +214,6 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     connectors.asScala.filter(c => c.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector])
   }
 
-  def connectedTo(joinType: RedwallJoinType, group2: SectorGroup): SectorGroup = {
-    val conn1 = getRedwallConnector(joinType.connectorType1)
-    val conn2 = group2.getRedwallConnector(joinType.connectorType2, false)
-    connectedTo(conn1, group2, conn2)
-  }
-
   // Merging
   //  - what do we do about two anchors?
   //  - can we remove the redwall connectors?

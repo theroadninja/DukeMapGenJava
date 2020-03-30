@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import trn.duke.MapErrorException;
+import trn.duke.experiments.WallPrefab;
 
 public class Wall {
 	
