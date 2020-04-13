@@ -5,6 +5,7 @@ import java.io.{ByteArrayInputStream, File, FileInputStream}
 import org.apache.commons.io.IOUtils
 import trn.{Map => DMap};
 object TestUtils {
+  val MapWriterMap: String = "JUNIT2.MAP"
 
   val TEST_DATA_PATH = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata"
 

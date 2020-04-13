@@ -6,13 +6,6 @@ import trn.{DukeConstants, Main, MapLoader, MapUtil, PointXY, PointXYZ, Map => D
 import scala.collection.JavaConverters._
 
 
-object Node {
-  def neighboors(gridX: Int, gridY: Int): Seq[(Int,Int)] = {
-    Seq((gridX+1, gridY), (gridX-1, gridY), (gridX, gridY+1), (gridX, gridY-1))
-  }
-  def neighboors(loc: (Int, Int)): Seq[(Int, Int)] = neighboors(loc._1, loc._2)
-}
-
 trait Node {
   def gridX: Int
   def gridY: Int
@@ -23,7 +16,7 @@ trait Node {
   def north: Option[RedwallConnector]
   def south: Option[RedwallConnector]
 
-  def neighboors: Seq[(Int, Int)] = Node.neighboors(gridX, gridY)
+  def neighboors: Seq[(Int, Int)] = GridUtil.neighboors(gridX, gridY)
 
   /**
     * @param n2
@@ -140,7 +133,7 @@ class GridMapBuilder(val outMap: DMap, val random: RandomX = new RandomX()) exte
 
   def findEmptyConnectableNeighboors: Set[((Int, Int))] = {
     def hasOpenConnector(loc: (Int, Int)): Boolean = {
-      val reverseNeighboors = Node.neighboors(loc).flatMap(n => grid.get(n))
+      val reverseNeighboors = GridUtil.neighboors(loc).flatMap(n => grid.get(n))
       reverseNeighboors.filter(_.matchingConnector(loc).nonEmpty).nonEmpty
     }
     if(grid.isEmpty) throw new IllegalStateException("grid is empty")

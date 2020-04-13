@@ -62,6 +62,25 @@ public abstract class RedwallConnector extends Connector {
     @Override
     public abstract int getConnectorType();
 
+    // convenience method
+    public final boolean isEast() {
+        return getConnectorType() == ConnectorType.HORIZONTAL_EAST;
+    }
+
+    public final boolean isWest() {
+        return getConnectorType() == ConnectorType.HORIZONTAL_WEST;
+    }
+
+    public final boolean isNorth(){
+        return getConnectorType() == ConnectorType.VERTICAL_NORTH;
+    }
+
+    public final boolean isSouth(){
+        return getConnectorType() == ConnectorType.VERTICAL_SOUTH;
+    }
+
+
+
     /**
      * Tests if the connectors match, i.e. if they could mate.
      * The sector groups dont have to be already lined up, but there must exist
@@ -73,6 +92,7 @@ public abstract class RedwallConnector extends Connector {
     public abstract boolean isMatch(RedwallConnector c);
 
     /**
+     * @deprecated
      * The connector is on the left side of the sector, will connect to another sector to the west.
      * @return
      */
@@ -80,6 +100,7 @@ public abstract class RedwallConnector extends Connector {
         return SimpleConnector.WestConnector.matches(this);
     }
 
+    /** @deprecated */
     public final boolean isEastConn(){
         return SimpleConnector.EastConnector.matches(this);
     }

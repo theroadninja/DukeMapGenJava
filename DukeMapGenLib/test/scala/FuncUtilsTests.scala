@@ -6,6 +6,20 @@ import trn.FuncImplicits._
 class FuncUtilsTests {
 
   @Test
+  def testMaxByOption(): Unit = {
+
+    Assert.assertEquals(Some(3), FuncUtils.maxByOption(Seq(1,2,3)){i => i})
+    Assert.assertEquals(Some(3), Seq(1,2,3).maxByOption(i => i))
+    Assert.assertEquals(Some(3), Seq(1,2,3).maxOption)
+
+    Assert.assertEquals(Some(1), FuncUtils.maxByOption(Seq(1,2,3)){i => -i})
+    Assert.assertEquals(Some(2), FuncUtils.maxByOption(Seq(1,2,3)){i => -(i%2)})
+    Assert.assertEquals(None, FuncUtils.maxByOption(Seq[Int]()){i => i})
+    Assert.assertEquals(None, Seq.empty[Int].maxByOption(i => i))
+    Assert.assertEquals(None, Seq.empty[Int].maxOption)
+  }
+
+  @Test
   def histogramTests(): Unit = {
 
     Assert.assertEquals(

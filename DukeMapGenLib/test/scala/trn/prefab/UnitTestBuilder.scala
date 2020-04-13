@@ -4,6 +4,10 @@ import trn.prefab.{MapBuilder, PrefabPalette}
 import trn.{DukeConstants, Main, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 import scala.collection.JavaConverters._
 
+object UnitTestBuilder {
+  def apply(): UnitTestBuilder = new UnitTestBuilder(DMap.createNew())
+}
+
 class UnitTestBuilder(val outMap: DMap) extends MapBuilder with AnywhereBuilder {
 
   val sgPacker: SectorGroupPacker = new SimpleSectorGroupPacker(

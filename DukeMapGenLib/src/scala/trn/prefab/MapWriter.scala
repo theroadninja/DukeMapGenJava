@@ -4,8 +4,9 @@ import java.util
 
 import trn.duke.PaletteList
 import trn.{ISpriteFilter, IdMap, PointXY, PointXYZ, Sprite, Map => DMap}
-import trn.MapImplicits._
 
+import trn.MapImplicits._
+import trn.FuncImplicits._
 import scala.collection.JavaConverters._
 
 
@@ -17,6 +18,8 @@ class MapBuilderAdapter(val outMap: DMap) extends MapBuilder {
 }
 
 object MapWriter {
+  val MapBounds = BoundingBox(DMap.MIN_X, DMap.MIN_Y, DMap.MAX_X, DMap.MAX_Y)
+
   val MarkerTex = PrefabUtils.MARKER_SPRITE_TEX
 
   val WestConn = SimpleConnector.WestConnector
@@ -31,6 +34,7 @@ object MapWriter {
   def eastConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
   def northConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
   def southConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
+
 
   def east(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(EastConn).map(_.asInstanceOf[RedwallConnector])
   def west(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(WestConn).map(_.asInstanceOf[RedwallConnector])
@@ -47,6 +51,11 @@ object MapWriter {
   def west(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(WestConn)
   def north(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(NorthConn)
   def south(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(SouthConn)
+
+  def farthestEast(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isEast).maxByOption(_.getAnchorPoint.x)
+  def farthestWest(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isWest).maxByOption(_.getAnchorPoint.x * -1)
+  def farthestNorth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isNorth).maxByOption(_.getAnchorPoint.y * -1)
+  def farthestSouth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isSouth).maxByOption(_.getAnchorPoint.y)
 
   def painted(sg: SectorGroup, colorPalette: Int, excludeTextures: Seq[Int] = Seq.empty): SectorGroup = {
     val sg2 = sg.copy
@@ -99,6 +108,11 @@ object MapWriter {
   }
 
   def apply(builder: MapBuilder): MapWriter = new MapWriter(builder, builder.sgBuilder)
+
+  def apply(): MapWriter = {
+    val builder = new MapBuilderAdapter(DMap.createNew())
+    new MapWriter(builder, builder.sgBuilder)
+  }
 }
 /**
   * TODO - write unit tests for this class
@@ -116,6 +130,8 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
       throw new Exception("too many sectors") // I think maps are limited to 1024 sectors
     }
   }
+
+  def sectorCount: Int = builder.outMap.getSectorCount
 
   def outMap: DMap = getMap
 
