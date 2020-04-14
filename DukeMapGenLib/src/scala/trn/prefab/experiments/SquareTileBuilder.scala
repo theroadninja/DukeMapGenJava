@@ -5,6 +5,15 @@ import trn.FuncImplicits._
 
 import scala.collection.JavaConverters._
 
+/**
+  * @param maxCellsX maximum width of grid in number of cells
+  * @param maxCellsY maximum height of grid in number of cells
+  */
+case class GridBuilderInput(
+  maxCellsX: Int = 8,
+  maxCellsY: Int = 8,
+)
+
 object GridParams2D {
   // Note:  the resulting bounding box will not match `bb` perfectly
   def fillMap(bb: BoundingBox, alignXY: PointXY, sideLength: Int): GridParams2D = {
@@ -215,7 +224,10 @@ object SquareTileBuilder {
   *
   * @param Filename
   */
-class SquareTileBuilder(val Filename: String) extends PrefabExperiment {
+class SquareTileBuilder(
+  val Filename: String,
+  gridBuilderInput: GridBuilderInput = GridBuilderInput(),
+) extends PrefabExperiment {
 
   // TODO - things like which tile number is end sprite, or which SE lotags cant be rotated, should be part of
   // some kind of "game options" to make it easier to support other games in the future.
@@ -227,7 +239,11 @@ class SquareTileBuilder(val Filename: String) extends PrefabExperiment {
     val stays = writer.pasteStays(palette)
 
     val gridParams = SquareTileBuilder.guessGridParams(MapWriter.MapBounds, palette, stays)
-    val grid = new Grid2D(gridParams)
+    val gridParams2 = gridParams.copy(
+      cellCountX = Math.min(gridParams.cellCountX, gridBuilderInput.maxCellsX),
+      cellCountY = Math.min(gridParams.cellCountY, gridBuilderInput.maxCellsY),
+    )
+    val grid = new Grid2D(gridParams2)
 
     // mark off all locations already occupied by a "stay" sector group
     stays.foreach { staySg =>
