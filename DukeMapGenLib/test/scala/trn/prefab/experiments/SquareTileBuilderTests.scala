@@ -128,7 +128,17 @@ class SquareTileBuilderTests {
 
     Assert.assertEquals(Seq((9, 9)).toSet, gp1.cellsIntersectedBy(BoundingBox(90, 90, 100, 100)).toSet)
     Assert.assertEquals(Seq((9, 9)).toSet, gp1.cellsIntersectedBy(BoundingBox(90, 90, 110, 120)).toSet)
+  }
 
+  @Test
+  def testCellBoundingBox(): Unit = {
+    val gp1 = GridParams2D(PointXY.ZERO, 10, 10, 10)
+    Assert.assertEquals(BoundingBox(0, 0, 10, 10), gp1.cellBoundingBox(0, 0))
+    Assert.assertEquals(BoundingBox(40, 50, 50, 60), gp1.cellBoundingBox(4, 5))
+
+    val gp2 = GridParams2D(new PointXY(5, 6), 10, 10, 10)
+    Assert.assertEquals(BoundingBox(5, 6, 15, 16), gp2.cellBoundingBox(0, 0))
+    Assert.assertEquals(BoundingBox(45, 56, 55, 66), gp2.cellBoundingBox(4, 5))
   }
 
 }

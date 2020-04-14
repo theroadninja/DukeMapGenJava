@@ -1,6 +1,6 @@
 package trn.prefab.experiments
 import trn.{FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
-import trn.prefab.{BoundingBox, MapWriter, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.prefab.{BoundingBox, MapWriter, Matrix2D, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
 
 import scala.collection.JavaConverters._
@@ -31,6 +31,12 @@ case class GridParams2D(
 
   def toMapCoords(cellx: Int, celly: Int): PointXY = {
     new PointXY(cellx * sideLength, celly * sideLength).add(originMapCoords)
+  }
+
+  /** @returns the bounding box of the cell in map coordinates */
+  def cellBoundingBox(cellx: Int, celly: Int): BoundingBox = {
+    val bb = BoundingBox(cellx, celly, cellx + 1, celly + 1).transform(Matrix2D.scale(sideLength, sideLength))
+    bb.transform(Matrix2D.translate(originMapCoords.x, originMapCoords.y))
   }
 
   /**
@@ -107,7 +113,7 @@ object SquareTileBuilder {
     // 2. and the bounding box of the group must be inside the connectors
 
     // TODO - need to measure the farthest connectors, to make sure sg isn't sticking past
-    sg.boundingBox.w <= cellSideLength && sg.boundingBox.h <= cellSideLength
+    sg.boundingBox.fitsInside(cellSideLength, cellSideLength)
   }
 
   /**
@@ -124,7 +130,7 @@ object SquareTileBuilder {
     val dx = e.flatMap(x2 => w.map(x1 => x2 - x1)).filter(_ > 0)
     val dy = s.flatMap(y2 => n.map(y1 => y2 - y1)).filter(_ > 0)
     val lengths: Seq[Int] = Seq(dx, dy).collect { case Some(i) => i }
-    lengths.maxOption // TODO - should this just return the bounding box? - no, because we might not have both axis' of connectors...
+    lengths.maxOption // cant return bounding box because we might not have both axis' of connectors...
   }
 
   /** find the side length of the most common square-shaped bounding box that is drawn based on assuming the ordinal
@@ -170,6 +176,35 @@ object SquareTileBuilder {
     val alignXY = SquareTileBuilder.guessAlignment(gridArea, stays.flatMap(_.unlinkedRedwallConnectors), cellSize)
     GridParams2D.fillMap(gridArea, alignXY, cellSize)
   }
+
+  // TODO - make these fully private
+  private[experiments] def snapH(sg: SectorGroup, dest: BoundingBox): Int = {
+    (MapWriter.east(sg).isDefined, MapWriter.west(sg).isDefined) match {
+      case (_, true) => dest.xMin  // align left
+      case (true, false) => dest.xMin + (dest.w - sg.boundingBox.w) // align right
+      case (false, false) => (dest.xMin + dest.w/2) - sg.boundingBox.w/2 // align center
+    }
+  }
+
+  private[experiments] def snapV(sg: SectorGroup, dest: BoundingBox): Int = {
+    (MapWriter.north(sg).isDefined, MapWriter.south(sg).isDefined) match {
+      case (true, _) => dest.yMin // align top
+      case (false, true) => dest.yMin + (dest.h - sg.boundingBox.h) // align bottom
+      case (false, false) => (dest.yMin + dest.h/2) - sg.boundingBox.h/2 // align center
+    }
+  }
+
+  /**
+    *
+    * @param sg
+    * @param bb
+    * @return the absolute (not relative to BBox) point to place the sector group so it will be properly aligned to
+    *         the cell.
+    */
+  def alignToBox(sg: SectorGroup, bb: BoundingBox): PointXY = {
+    require(sg.boundingBox.fitsInsideBox(bb))
+    new PointXY(snapH(sg, bb), snapV(sg, bb))
+  }
 }
 
 /**
@@ -213,7 +248,12 @@ class SquareTileBuilder(val Filename: String) extends PrefabExperiment {
         val sg = writer.randomElement(availableSgs)
 
         if(writer.sectorCount + sg.sectorCount <= 1024){
-          writer.builder.pasteSectorGroupAt(sg, grid.params.toMapCoords(cellx, celly).withZ(0))
+          //val cellTopLeft = grid.params.toMapCoords(cellx, celly).withZ(0)
+          val cellBox = grid.params.cellBoundingBox(cellx, celly)
+          val target = SquareTileBuilder.alignToBox(sg, cellBox)
+          //writer.builder.pasteSectorGroupAt(sg, cellTopLeft)
+          // TODO: also support anchor
+          writer.builder.pasteSectorGroupAt(sg, target.withZ(0))
         }
       }
     }

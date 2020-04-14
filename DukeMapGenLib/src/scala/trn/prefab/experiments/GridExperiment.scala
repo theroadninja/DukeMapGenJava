@@ -113,21 +113,23 @@ class GridMapBuilder(val outMap: DMap, val random: RandomX = new RandomX()) exte
 
   def randomElement[E](collection: Iterable[E]): E = random.randomElement(collection)
 
-  private def snapH(sg: SectorGroup, dest: BoundingBox): Int = {
-    (MapWriter.east(sg).isDefined, MapWriter.west(sg).isDefined) match {
-      case (_, true) => dest.xMin  // align left
-      case (true, false) => dest.xMin + (dest.w - sg.boundingBox.w) // align right
-      case (false, false) => (dest.xMin + dest.w/2) - sg.boundingBox.w/2 // align center
-    }
-  }
+  private def snapH(sg: SectorGroup, dest: BoundingBox): Int = SquareTileBuilder.snapH(sg, dest)
+  // private def snapH(sg: SectorGroup, dest: BoundingBox): Int = {
+  //   (MapWriter.east(sg).isDefined, MapWriter.west(sg).isDefined) match {
+  //     case (_, true) => dest.xMin  // align left
+  //     case (true, false) => dest.xMin + (dest.w - sg.boundingBox.w) // align right
+  //     case (false, false) => (dest.xMin + dest.w/2) - sg.boundingBox.w/2 // align center
+  //   }
+  // }
 
-  private def snapV(sg: SectorGroup, dest: BoundingBox): Int = {
-    (MapWriter.north(sg).isDefined, MapWriter.south(sg).isDefined) match {
-      case (true, _) => dest.yMin // align top
-      case (false, true) => dest.yMin + (dest.h - sg.boundingBox.h) // align bottom
-      case (false, false) => (dest.yMin + dest.h/2) - sg.boundingBox.h/2 // align center
-    }
-  }
+  private def snapV(sg: SectorGroup, dest: BoundingBox): Int = SquareTileBuilder.snapV(sg, dest)
+  // private def snapV(sg: SectorGroup, dest: BoundingBox): Int = {
+  //   (MapWriter.north(sg).isDefined, MapWriter.south(sg).isDefined) match {
+  //     case (true, _) => dest.yMin // align top
+  //     case (false, true) => dest.yMin + (dest.h - sg.boundingBox.h) // align bottom
+  //     case (false, false) => (dest.yMin + dest.h/2) - sg.boundingBox.h/2 // align center
+  //   }
+  // }
 
   def snapToGridCell(sg: SectorGroup, dest: BoundingBox): PointXY = new PointXY(snapH(sg, dest), snapV(sg, dest))
 

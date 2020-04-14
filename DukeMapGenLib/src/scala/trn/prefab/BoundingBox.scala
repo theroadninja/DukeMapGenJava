@@ -102,6 +102,9 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
     w <= width && h <= height
   }
 
+  /** Tests whether this COULD fit inside bb (ignores location) */
+  def fitsInsideBox(bb: BoundingBox): Boolean = fitsInside(bb.w, bb.h)
+
   /**
     * Tests whether this bounding box IS inside `b`.  Note that this tests both position and location.
     * @param b
@@ -174,6 +177,13 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
   def getTranslateTo(point: PointXY): PointXY = {
     val p1 = topLeft
     p1.translateTo(point)
+  }
+
+  def transform(matrix2: Matrix2D): BoundingBox = {
+    val (xMin2, yMin2) = matrix2 * (xMin, yMin)
+    val (xMax2, yMax2) = matrix2 * (xMax, yMax)
+    require(xMin2 <= xMax2 && yMin2 <= yMax2) // we could automatically adjust these, but not sure if thats necessary
+    BoundingBox(xMin2, yMin2, xMax2, yMax2)
   }
 
 }

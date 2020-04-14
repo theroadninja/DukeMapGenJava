@@ -44,6 +44,14 @@ object Matrix2D {
     )
   }
 
+  def scale(scalex: Int, scaley: Int): Matrix2D = {
+    Matrix2D(
+      Seq(scalex, 0, 0),
+      Seq(0, scaley, 0),
+      Seq(0, 0, 1)
+    )
+  }
+
   /**
     * Translate usings the point's x and y values as the delta.  In other words,
     * translate such that a point at the origin would move to the given point.

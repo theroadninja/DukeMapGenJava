@@ -311,7 +311,6 @@ class BoundingBoxTests {
 
   @Test
   def testAlternateConstructors: Unit = {
-
     Assert.assertEquals(b(0, 0, 0, 0), BoundingBox(p(0, 0)))
     Assert.assertNotEquals(b(0, 0, 0, 0), BoundingBox(p(0, 1)))
 
@@ -325,5 +324,10 @@ class BoundingBoxTests {
     Assert.assertEquals(b(-1, 0, 1, 5), BoundingBox(Seq(p(0, 0), p(1, 0), p(-1, 5), p(1, 1))))
   }
 
+  @Test
+  def testTransform: Unit = {
+    Assert.assertEquals(b(10, 5, 20, 15), b(0, 0, 10, 10).transform(Matrix2D.translate(10, 5)))
+    Assert.assertEquals(b(2, 15, 40, 300), b(1, 5, 20, 100).transform(Matrix2D.scale(2, 3)))
+  }
 
 }
