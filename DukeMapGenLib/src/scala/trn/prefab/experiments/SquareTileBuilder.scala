@@ -1,6 +1,6 @@
 package trn.prefab.experiments
 import trn.{FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
-import trn.prefab.{BoundingBox, MapWriter, Matrix2D, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.prefab.{BoundingBox, Heading, MapWriter, Matrix2D, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
 
 import scala.collection.JavaConverters._
@@ -40,6 +40,15 @@ case class GridParams2D(
 
   def toMapCoords(cellx: Int, celly: Int): PointXY = {
     new PointXY(cellx * sideLength, celly * sideLength).add(originMapCoords)
+  }
+
+  /** @returns the cell indexes of the corners */
+  lazy val cornerCells: Seq[(Int, Int)] = Seq((0, 0), (0, cellCountY-1), (cellCountX-1, 0), (cellCountX-1, cellCountY-1))
+
+  def borderCells: Seq[(Int, Int)] = {
+    val topBottom = (0 until cellCountX).flatMap(x => Seq((x, 0),(x, cellCountY-1)))
+    val leftRight = (1 until cellCountY-1).flatMap(y => Seq((0, y), (cellCountX-1, y)))
+    topBottom ++ leftRight
   }
 
   /** @returns the bounding box of the cell in map coordinates */
@@ -91,6 +100,8 @@ class Grid2D(val params: GridParams2D) {
       f(x, y)
     }
   }
+
+  def corners: Seq[(Int, Int)] = params.cornerCells
 }
 
 
@@ -255,26 +266,118 @@ class SquareTileBuilder(
     // figure out which sector groups will fit in the grid
     val availableSgs = palette.allSectorGroups().asScala.filter(SquareTileBuilder.isCompatible(_, gridParams.sideLength))
 
-    // super naive - for now, just fill every grid
-    grid.eachCell{(cellx, celly) =>
-      val psg = grid.get((cellx, celly))
-      if(psg.isEmpty){
+    // // super naive - for now, just fill every grid
+    // grid.eachCell{(cellx, celly) =>
+    // //grid.params.borderCells.foreach { case (cellx, celly) =>
+    //   val psg = grid.get((cellx, celly))
+    //   if(psg.isEmpty){
 
-        // TODO - need to align inside the cell
-        val sg = writer.randomElement(availableSgs)
+    //     // TODO - need to align inside the cell
+    //     val sg = writer.randomElement(availableSgs)
 
-        if(writer.sectorCount + sg.sectorCount <= 1024){
-          //val cellTopLeft = grid.params.toMapCoords(cellx, celly).withZ(0)
-          val cellBox = grid.params.cellBoundingBox(cellx, celly)
-          val target = SquareTileBuilder.alignToBox(sg, cellBox)
-          //writer.builder.pasteSectorGroupAt(sg, cellTopLeft)
-          // TODO: also support anchor
-          writer.builder.pasteSectorGroupAt(sg, target.withZ(0))
-        }
-      }
+    //     if(writer.sectorCount + sg.sectorCount <= 1024){
+    //       //val cellTopLeft = grid.params.toMapCoords(cellx, celly).withZ(0)
+    //       val cellBox = grid.params.cellBoundingBox(cellx, celly)
+    //       val target = SquareTileBuilder.alignToBox(sg, cellBox)
+    //       //writer.builder.pasteSectorGroupAt(sg, cellTopLeft)
+    //       // TODO: also support anchor
+    //       writer.builder.pasteSectorGroupAt(sg, target.withZ(0))
+    //     }
+    //   }
+    // }
+
+
+    def sidesWithConnectors(sg: SectorGroup): Int = {
+      Seq(
+        MapWriter.east(sg).map(_ => 1).getOrElse(0),
+        MapWriter.west(sg).map(_ => 1).getOrElse(0),
+        MapWriter.north(sg).map(_ => 1).getOrElse(0),
+        MapWriter.south(sg).map(_ => 1).getOrElse(0),
+      ).sum
     }
 
 
+
+    val Orphan = 0
+    val Single = 1
+    val Corner = 2
+    val Straight = 3
+    val TJunction = 4
+    val Plus = 5
+
+    def gridPieceType(sg: SectorGroup): Int = sidesWithConnectors(sg) match {
+      case 0 => Orphan
+      case 1 => Single
+      case 2 => {
+        if((MapWriter.east(sg).isDefined && MapWriter.west(sg).isDefined) || (MapWriter.north(sg).isDefined && MapWriter.south(sg).isDefined)){
+          Straight
+        }else{
+          Corner
+        }
+      }
+      case 3 => TJunction
+      case 4 => Plus
+      case _ => throw new RuntimeException
+    }
+
+
+    val cornerSgs = availableSgs.filter(gridPieceType(_) == Corner) // TODO - not good enough; also cant accept straights
+
+    // TODO instead of coming up for separate logic for each corner, write generic function for both corners and border
+    // that simply looks if x and y is on the edge, and calls a new function, rotateWayFrom()
+
+    def rotateConnectorsAwayFrom(sg: SectorGroup, headings: Seq[Int], attempts: Int = 3): Option[SectorGroup] = {
+      if(headings.isEmpty){
+        Some(sg)
+      }else if(! headings.exists(h => MapWriter.firstConnWithHeading(sg, h).isDefined)){
+        Some(sg)
+      }else if(attempts > 0){
+        rotateConnectorsAwayFrom(sg.rotateCW, headings, attempts - 1)
+      }else{
+        None
+      }
+    }
+
+    def pasteToCell(cellx: Int, celly: Int, sg: SectorGroup): Option[PastedSectorGroup] = {
+      val avoid = if(cellx == 0){
+        Seq(Heading.W)
+      }else if(cellx == grid.params.cellCountX - 1){
+        Seq(Heading.E)
+      }else{
+        Seq.empty
+      }
+      val avoid2 = if(celly == 0){
+        Seq(Heading.N)
+      }else if(celly == grid.params.cellCountY - 1){
+        Seq(Heading.S)
+      }else{
+        Seq.empty
+      }
+      val sg2 = rotateConnectorsAwayFrom(sg, avoid ++ avoid2)
+      sg2.map { sg3 =>
+        val cellBox = grid.params.cellBoundingBox(cellx, celly)
+        val target = SquareTileBuilder.alignToBox(sg3, cellBox)
+        val psg = writer.builder.pasteSectorGroupAt(sg3, target.withZ(0))
+        grid.put((cellx, celly), psg)
+        psg
+      }
+    }
+
+    grid.params.cornerCells.foreach { case (cellx, celly) =>
+      val sg = writer.randomElement(cornerSgs)
+      if(grid.get((cellx, celly)).isEmpty && (writer.canFitSectors(sg))){
+        pasteToCell(cellx, celly, sg)
+      }
+    }
+
+    // TODO - subtract corners
+    val borderSgs = availableSgs.filter(sg => sidesWithConnectors(sg) < 4)
+    grid.params.borderCells.foreach { case (cellx, celly) =>
+      val sg = writer.randomElement(borderSgs)
+      if(grid.get((cellx, celly)).isEmpty && writer.canFitSectors(sg)){
+        pasteToCell(cellx, celly, sg)
+      }
+    }
 
     // major types of sector groups:
     // - invalid:  sector bounding box extends past farthest ordinal (ok for stays though)
@@ -293,6 +396,5 @@ class SquareTileBuilder(
     writer.sgBuilder.clearMarkers()
     writer.outMap
   }
-
 
 }

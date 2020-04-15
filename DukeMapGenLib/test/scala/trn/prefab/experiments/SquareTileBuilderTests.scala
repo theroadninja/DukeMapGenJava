@@ -141,4 +141,11 @@ class SquareTileBuilderTests {
     Assert.assertEquals(BoundingBox(45, 56, 55, 66), gp2.cellBoundingBox(4, 5))
   }
 
+  @Test
+  def testCornersAndBorders(): Unit = {
+    val gp1 = GridParams2D(PointXY.ZERO, 3, 3, 10)
+    Assert.assertTrue(Seq((0, 0), (2, 0), (0, 2), (2, 2)).toSet == gp1.cornerCells.toSet)
+    Assert.assertTrue(Seq((0, 0), (1, 0), (2, 0), (0, 1), (2, 1), (0, 2), (1, 2), (2, 2)).toSet == gp1.borderCells.toSet)
+  }
+
 }

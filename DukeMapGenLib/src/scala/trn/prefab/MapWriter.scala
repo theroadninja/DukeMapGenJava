@@ -18,6 +18,7 @@ class MapBuilderAdapter(val outMap: DMap) extends MapBuilder {
 }
 
 object MapWriter {
+  val MaxSectors = 1024 // more than this and Build will crash
   val MapBounds = BoundingBox(DMap.MIN_X, DMap.MIN_Y, DMap.MAX_X, DMap.MAX_Y)
 
   val MarkerTex = PrefabUtils.MARKER_SPRITE_TEX
@@ -41,6 +42,14 @@ object MapWriter {
   def north(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(NorthConn).map(_.asInstanceOf[RedwallConnector])
   def south(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(SouthConn).map(_.asInstanceOf[RedwallConnector])
 
+  def firstConnWithHeading(sg: SectorGroup, heading: Int) = heading match {
+    case Heading.E => east(sg)
+    case Heading.W => west(sg)
+    case Heading.N => north(sg)
+    case Heading.S => south(sg)
+    case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
+  }
+
   // TODO - should not need different methods for SectorGroup and PastedSectorGroup
   def westConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(WestConn).asInstanceOf[RedwallConnector]
   def eastConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
@@ -56,6 +65,7 @@ object MapWriter {
   def farthestWest(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isWest).maxByOption(_.getAnchorPoint.x * -1)
   def farthestNorth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isNorth).maxByOption(_.getAnchorPoint.y * -1)
   def farthestSouth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isSouth).maxByOption(_.getAnchorPoint.y)
+
 
   def painted(sg: SectorGroup, colorPalette: Int, excludeTextures: Seq[Int] = Seq.empty): SectorGroup = {
     val sg2 = sg.copy
@@ -132,6 +142,8 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
   }
 
   def sectorCount: Int = builder.outMap.getSectorCount
+
+  def canFitSectors(sg: SectorGroup): Boolean = sectorCount + sg.sectorCount < MapWriter.MaxSectors
 
   def outMap: DMap = getMap
 

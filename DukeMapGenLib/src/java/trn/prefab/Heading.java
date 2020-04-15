@@ -9,15 +9,15 @@ import java.util.TreeMap;
 
 // TODO - i guess this should be a full enum
 public class Heading {
-    public static int EAST = 0;
-    public static int SOUTH = 1;
-    public static int WEST = 2;
-    public static int NORTH = 3;
+    public static final int EAST = 0;
+    public static final int SOUTH = 1;
+    public static final int WEST = 2;
+    public static final int NORTH = 3;
 
-    public static int E = EAST;
-    public static int S = SOUTH;
-    public static int W = WEST;
-    public static int N = NORTH;
+    public static final int E = EAST;
+    public static final int S = SOUTH;
+    public static final int W = WEST;
+    public static final int N = NORTH;
 
     public static List<Integer> all = Arrays.asList(EAST, SOUTH, WEST, NORTH);
 
