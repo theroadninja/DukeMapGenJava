@@ -1,6 +1,7 @@
 package trn.prefab.experiments
 
 import org.junit.{Assert, Test}
+import trn.prefab.Heading
 
 class GridUtilTests {
 
@@ -27,4 +28,15 @@ class GridUtilTests {
     ).toSet)
   }
 
+  @Test
+  def testHeading(): Unit = {
+    (-10 until 10).foreach { i =>
+      Assert.assertEquals(None, GridUtil.heading(0, 0, 0, 0))
+    }
+    Assert.assertEquals(Some(Heading.E), GridUtil.heading(0, 0, 1, 0))
+    Assert.assertEquals(Some(Heading.W), GridUtil.heading(0, 0, -2, 0))
+    Assert.assertEquals(None, GridUtil.heading(0, 0, 1, 1))
+    Assert.assertEquals(Some(Heading.N), GridUtil.heading(4, 0, 4, -1))
+    Assert.assertEquals(Some(Heading.S), GridUtil.heading(4, 0, 4, 1))
+  }
 }

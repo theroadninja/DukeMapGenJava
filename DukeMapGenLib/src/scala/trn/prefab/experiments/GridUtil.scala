@@ -1,5 +1,7 @@
 package trn.prefab.experiments
 
+import trn.prefab.Heading
+
 object GridUtil {
 
   /**
@@ -19,5 +21,27 @@ object GridUtil {
 
   def neighboors(gridX: Int, gridY: Int): Seq[(Int,Int)] = adj(gridX, gridY).map(list => (list(0), list(1)))
   def neighboors(loc: (Int, Int)): Seq[(Int, Int)] = adj(loc._1, loc._2).map(list => (list(0), list(1)))
+
+  /**
+    * Given two grid cells, return the Heading to go from start to end.  Only works with cells
+    * that are on an axis.
+    * @param startX
+    * @param startY
+    * @param endX
+    * @param endY
+    * @return
+    */
+  def heading(startX: Int, startY: Int, endX: Int, endY: Int): Option[Int] = {
+    // val xaxis = (startX == endX)
+    // val yaxis = (startY == endY)
+    (startX == endX, startY == endY) match {
+      case (true, true) => None
+      case (false, true) => if(startX < endX){ Some(Heading.E) }else{ Some(Heading.W) }
+      case (true, false) => if(startY < endY){ Some(Heading.S) }else{ Some(Heading.N) }
+      case _ => None
+    }
+  }
+
+  def heading(start: Cell2D, end: Cell2D): Option[Int] = heading(start.x, start.y, end.x, end.y)
 
 }

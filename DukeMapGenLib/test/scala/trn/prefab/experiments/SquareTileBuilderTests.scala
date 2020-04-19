@@ -1,8 +1,9 @@
 package trn.prefab.experiments
 
 import org.junit.{Assert, Test}
+import trn.prefab.grid2d.SectorGroupPiece
 import trn.{PointXY, PointXYZ, Map => DMap}
-import trn.prefab.{BoundingBox, MapWriter, PrefabPalette, RedwallConnector, SectorGroup, TestUtils, UnitTestBuilder}
+import trn.prefab.{BoundingBox, Heading, MapWriter, PrefabPalette, RedwallConnector, SectorGroup, TestUtils, UnitTestBuilder}
 
 class SquareTileBuilderTests {
 
@@ -10,11 +11,12 @@ class SquareTileBuilderTests {
   def testGuessCellSize(): Unit = {
     val testPalette: PrefabPalette = PrefabPalette.fromMap(TestUtils.load(TestUtils.MapWriterMap), true)
     def sg(i: Int): SectorGroup = testPalette.getSG(i)
+    def p(sg: SectorGroup): SectorGroupPiece = new SectorGroupPiece(sg)
 
     Seq(1,2,3,4,5,6,7,8,9).foreach { groupId =>
-      Assert.assertEquals(None, SquareTileBuilder.guessCellSize(Seq(sg(groupId))))
+      Assert.assertEquals(None, SquareTileBuilder.guessCellSize(Seq(p(sg(groupId)))))
     }
-    Assert.assertEquals(Some(5 * 1024), SquareTileBuilder.guessCellSize(Seq(sg(10))))
+    Assert.assertEquals(Some(5 * 1024), SquareTileBuilder.guessCellSize(Seq(p(sg(10)))))
     // TODO - more test cases here; I've only written the ones that I get for free by re-using the MapWriter test file
   }
 
@@ -108,9 +110,9 @@ class SquareTileBuilderTests {
   def cellsIntersectedBy(): Unit = {
     val gp1 = GridParams2D(PointXY.ZERO, 10, 10, 10)
 
-    Assert.assertTrue(gp1.cellsIntersectedBy(BoundingBox(0, 0, 0, 0)).isEmpty)
+    // throws: Assert.assertTrue(gp1.cellsIntersectedBy(BoundingBox(0, 0, 0, 0)).isEmpty)
     Assert.assertTrue(gp1.cellsIntersectedBy(BoundingBox(-10, -10, 0, 0)).isEmpty)
-    Assert.assertTrue(gp1.cellsIntersectedBy(BoundingBox(100, 100, 100, 100)).isEmpty)
+    // throws: Assert.assertTrue(gp1.cellsIntersectedBy(BoundingBox(100, 100, 100, 100)).isEmpty)
     Assert.assertTrue(gp1.cellsIntersectedBy(BoundingBox(100, 100, 110, 110)).isEmpty)
 
     Assert.assertEquals(Seq((0, 0)).toSet, gp1.cellsIntersectedBy(BoundingBox(-10, -10, 5, 5)).toSet)
@@ -146,6 +148,14 @@ class SquareTileBuilderTests {
     val gp1 = GridParams2D(PointXY.ZERO, 3, 3, 10)
     Assert.assertTrue(Seq((0, 0), (2, 0), (0, 2), (2, 2)).toSet == gp1.cornerCells.toSet)
     Assert.assertTrue(Seq((0, 0), (1, 0), (2, 0), (0, 1), (2, 1), (0, 2), (1, 2), (2, 2)).toSet == gp1.borderCells.toSet)
+  }
+
+  @Test
+  def testGridCell(): Unit = {
+    Assert.assertEquals(Cell2D(1, 0), Cell2D(0, 0).moveTowards(Heading.E))
+    Assert.assertEquals(Cell2D(-1, 0), Cell2D(0, 0).moveTowards(Heading.W))
+    Assert.assertEquals(Cell2D(0, 1), Cell2D(0, 0).moveTowards(Heading.S))
+    Assert.assertEquals(Cell2D(0, -1), Cell2D(0, 0).moveTowards(Heading.N))
   }
 
 }

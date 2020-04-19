@@ -92,6 +92,13 @@ public abstract class RedwallConnector extends Connector {
     public abstract boolean isMatch(RedwallConnector c);
 
     /**
+     * copy of isMatch() but with a more obvious name
+     */
+    public final boolean couldMatch(RedwallConnector c){
+        return this.isMatch(c);
+    }
+
+    /**
      * @deprecated
      * The connector is on the left side of the sector, will connect to another sector to the west.
      * @return

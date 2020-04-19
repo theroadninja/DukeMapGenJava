@@ -60,11 +60,25 @@ object MapWriter {
   def west(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(WestConn)
   def north(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(NorthConn)
   def south(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(SouthConn)
+  def firstConnWithHeading(sg: PastedSectorGroup, heading: Int): Option[RedwallConnector] = heading match {
+    case Heading.E => east(sg)
+    case Heading.W => west(sg)
+    case Heading.N => north(sg)
+    case Heading.S => south(sg)
+    case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
+  }
 
   def farthestEast(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isEast).maxByOption(_.getAnchorPoint.x)
   def farthestWest(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isWest).maxByOption(_.getAnchorPoint.x * -1)
   def farthestNorth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isNorth).maxByOption(_.getAnchorPoint.y * -1)
   def farthestSouth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isSouth).maxByOption(_.getAnchorPoint.y)
+  def farthestConn(conns: Seq[RedwallConnector], heading: Int): Option[RedwallConnector] = heading match {
+    case Heading.E => farthestEast(conns)
+    case Heading.W => farthestWest(conns)
+    case Heading.N => farthestNorth(conns)
+    case Heading.S => farthestSouth(conns)
+    case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
+  }
 
 
   def painted(sg: SectorGroup, colorPalette: Int, excludeTextures: Seq[Int] = Seq.empty): SectorGroup = {
