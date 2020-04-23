@@ -36,6 +36,7 @@ object GridPiece {
     }
   }
 
+  // TODO - get rid of this
   def withBlockedSides(headings: Seq[Int]): SimpleGridPiece = SimpleGridPiece(
     if(headings.contains(Heading.E)){ Side.Blocked }else{ Side.Unknown },
     if(headings.contains(Heading.S)){ Side.Blocked }else{ Side.Unknown },
@@ -75,6 +76,9 @@ trait GridPiece {
 
   /** @return how many sides have connectors */
   final def sidesWithConnectors: Int = Heading.all.asScala.map(side(_)).count(_ == 1)
+
+  /** @return the number of sides marked with Conn OR Unknown (only relevant for match tiles */
+  final def maxConnectors: Int = Heading.all.asScala.map(side(_)).count(s => s != Side.Blocked)
 
   final def gridPieceType: Int = sidesWithConnectors match {
     case 0 => GridPiece.Orphan

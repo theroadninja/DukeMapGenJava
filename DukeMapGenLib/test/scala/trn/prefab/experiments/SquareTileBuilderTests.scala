@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import org.junit.{Assert, Test}
-import trn.prefab.grid2d.{SectorGroupPiece, Side, SimpleGridPiece}
+import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
 import trn.{PointXY, PointXYZ, Map => DMap}
 import trn.prefab.{BoundingBox, Heading, MapWriter, PrefabPalette, RedwallConnector, SectorGroup, TestUtils, UnitTestBuilder}
 
@@ -161,6 +161,8 @@ class SquareTileBuilderTests {
 
   @Test
   def testDescribeAvailConnectors(): Unit = {
+    val topLeft = Cell2D(-1, -1)
+    val bottomRight = Cell2D(3, 4)
     def sgp(e: Int, s: Int, w: Int, n: Int) = SimpleGridPiece(e, s, w, n)
     val C = Side.Conn
     val U = Side.Unknown
@@ -178,16 +180,16 @@ class SquareTileBuilderTests {
       (0, 2) -> blocked, (1, 2) -> blocked, (2, 2) -> blocked
     ).map{ case (xy, v) => Cell2D(xy) -> v }
 
-    Assert.assertEquals(SimpleGridPiece(U, U, U, U), TilePainter.describeAvailConnectors(grid0, Cell2D(1, 1)))
-    Assert.assertEquals(blocked, TilePainter.describeAvailConnectors(grid1, Cell2D(1, 1)))
-    Assert.assertEquals(SimpleGridPiece(Side.Unknown, B, B, B), TilePainter.describeAvailConnectors(grid2, Cell2D(1, 1)))
+    Assert.assertEquals(SimpleGridPiece(U, U, U, U), TilePainter.describeAvailConnectors(grid0, Cell2D(1, 1), topLeft, bottomRight))
+    Assert.assertEquals(blocked, TilePainter.describeAvailConnectors(grid1, Cell2D(1, 1), topLeft, bottomRight))
+    Assert.assertEquals(SimpleGridPiece(Side.Unknown, B, B, B), TilePainter.describeAvailConnectors(grid2, Cell2D(1, 1), topLeft, bottomRight))
 
     val grid3 = Map(
       (0, 0) -> blocked,         (1, 0) -> sgp(U, C, U, U ), (2, 0) -> blocked,
       (0, 1) -> sgp(C, U, U, U),                             (2, 1) -> sgp(U, U, C, U),
       (0, 2) -> blocked,         (1, 2) -> sgp(U, U, U, C), (2, 2) -> blocked
     ).map{ case (xy, v) => Cell2D(xy) -> v }
-    Assert.assertEquals(SimpleGridPiece(C, C, C, C), TilePainter.describeAvailConnectors(grid3, Cell2D(1, 1)))
+    Assert.assertEquals(SimpleGridPiece(C, C, C, C), TilePainter.describeAvailConnectors(grid3, Cell2D(1, 1), topLeft, bottomRight))
 
     val unknown = SimpleGridPiece(U, U, U, U)
     val conns = SimpleGridPiece(C, C, C, C)
@@ -196,6 +198,36 @@ class SquareTileBuilderTests {
       (0, 1) -> conns,                    (2, 1) -> conns,
       (0, 2) -> blocked, (1, 2) -> unknown, (2, 2) -> blocked
     ).map{ case (xy, v) => Cell2D(xy) -> v }
-    Assert.assertEquals(SimpleGridPiece(C, U, C, B), TilePainter.describeAvailConnectors(grid4, Cell2D(1, 1)))
+    Assert.assertEquals(SimpleGridPiece(C, U, C, B), TilePainter.describeAvailConnectors(grid4, Cell2D(1, 1), topLeft, bottomRight))
+
+    // border
+    Assert.assertEquals(sgp(U, U, B, B), TilePainter.describeAvailConnectors(grid0, Cell2D(0, 0), topLeft, bottomRight))
+    Assert.assertEquals(sgp(U, U, U, B), TilePainter.describeAvailConnectors(grid0, Cell2D(1, 0), topLeft, bottomRight))
+    Assert.assertEquals(sgp(B, U, U, B), TilePainter.describeAvailConnectors(grid0, Cell2D(2, 0), topLeft, bottomRight))
+    Assert.assertEquals(sgp(B, U, U, U), TilePainter.describeAvailConnectors(grid0, Cell2D(2, 1), topLeft, bottomRight))
+    Assert.assertEquals(sgp(B, U, U, U), TilePainter.describeAvailConnectors(grid0, Cell2D(2, 2), topLeft, bottomRight))
+    Assert.assertEquals(sgp(B, B, U, U), TilePainter.describeAvailConnectors(grid0, Cell2D(2, 3), topLeft, bottomRight))
+    Assert.assertEquals(sgp(U, B, U, U), TilePainter.describeAvailConnectors(grid0, Cell2D(1, 3), topLeft, bottomRight))
+    Assert.assertEquals(sgp(U, B, B, U), TilePainter.describeAvailConnectors(grid0, Cell2D(0, 3), topLeft, bottomRight))
+    Assert.assertEquals(sgp(U, U, B, U), TilePainter.describeAvailConnectors(grid0, Cell2D(0, 2), topLeft, bottomRight))
+    Assert.assertEquals(sgp(U, U, B, U), TilePainter.describeAvailConnectors(grid0, Cell2D(0, 1), topLeft, bottomRight))
+  }
+
+  @Test
+  def testSingleSituation(): Unit = {
+    def sgp(e: Int, s: Int, w: Int, n: Int) = SimpleGridPiece(e, s, w, n)
+    val C = Side.Conn
+    val U = Side.Unknown
+    val B = Side.Blocked
+    val grid0 = Map(
+      (2, 1) -> sgp(U, U, C, U),
+    ).map{ case (xy, v) => Cell2D(xy) -> v }
+
+    val topLeft = Cell2D(-1, -1)
+    val bottomRight = Cell2D(3, 4)
+    val cell = Cell2D(1, 1)
+    val matchTile = TilePainter.describeAvailConnectors(grid0, cell, topLeft, bottomRight)
+    Assert.assertTrue(grid0.get(cell.moveTowards(Heading.E)).get.gridPieceType == GridPiece.Single)
+    Assert.assertTrue(TilePainter.singleSituation(grid0, cell, matchTile))
   }
 }

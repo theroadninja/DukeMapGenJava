@@ -69,6 +69,8 @@ case class GridParams2D(
   /** @returns the cell indexes of the corners */
   lazy val cornerCells: Seq[(Int, Int)] = Seq((0, 0), (0, cellCountY-1), (cellCountX-1, 0), (cellCountX-1, cellCountY-1))
 
+  def isCorner(cell: Cell2D): Boolean = cornerCells.contains(cell.asTuple)
+
   lazy val borderCells: Seq[(Int, Int)] = {
     val topBottom = (0 until cellCountX).flatMap(x => Seq((x, 0),(x, cellCountY-1)))
     val leftRight = (1 until cellCountY-1).flatMap(y => Seq((0, y), (cellCountX-1, y)))
@@ -273,11 +275,26 @@ object SquareTileBuilder {
 
 
 object TilePainter {
-  def describeAvailConnectors(grid: scala.collection.immutable.Map[Cell2D, GridPiece], cell: Cell2D): GridPiece = {
+  def describeAvailConnectors(
+    grid: scala.collection.immutable.Map[Cell2D, GridPiece],
+    cell: Cell2D,
+    topLeftBorder: Cell2D, //exclusive
+    bottomRightBorder: Cell2D // exclusive
+  ): GridPiece = {
+    def readBorder(heading: Int): Option[Int] = heading match {
+      case Heading.E => if(bottomRightBorder.x == cell.x + 1){ Some(Side.Blocked) }else{ None }
+      case Heading.S => if(bottomRightBorder.y == cell.y + 1){ Some(Side.Blocked) }else{ None }
+      case Heading.W => if(topLeftBorder.x == cell.x - 1){ Some(Side.Blocked) }else{ None }
+      case Heading.N => if(topLeftBorder.y == cell.y - 1){ Some(Side.Blocked) }else{ None }
+      case _ => ???
+    }
+
     def readSide(heading: Int): Int = {
-      val ncell = cell.moveTowards(heading)
-      grid.get(ncell).map { neighboorTile =>
-        neighboorTile.side(GridUtil.heading(ncell, cell).get)
+      readBorder(heading).orElse{
+        val ncell = cell.moveTowards(heading)
+        grid.get(ncell).map { neighboorTile =>
+          neighboorTile.side(GridUtil.heading(ncell, cell).get)
+        }
       }.getOrElse(Side.Unknown)
     }
     SimpleGridPiece(
@@ -288,60 +305,34 @@ object TilePainter {
     )
   }
 
+  def singleSituation(grid: Map[Cell2D, GridPiece], cell: Cell2D, matchTile: GridPiece): Boolean = matchTile.sidesWithConnectors == 1 && {
+    val h = Heading.all.asScala.find(h => matchTile.side(h) == Side.Conn).get
+    require(Heading.all.contains(h))
+    grid.get(cell.moveTowards(h)).get.gridPieceType == GridPiece.Single
+  }
+
   def paintTiles(writer: MapWriter, gridParams: GridParams2D, tiles: Iterable[SectorGroupPiece]): scala.collection.immutable.Map[Cell2D, GridPiece] = {
-    val cornerTiles = tiles.filter(_.gridPieceType == GridPiece.Corner)
+    val topLeft = Cell2D(-1, -1)
+    val bottomRight = Cell2D(gridParams.cellCountX, gridParams.cellCountY)
 
     val grid = scala.collection.mutable.Map[Cell2D, GridPiece]()
 
-    gridParams.cornerCells.map(Cell2D(_)).foreach { case cell =>
-      val tile = writer.randomElement(cornerTiles)
-      if(grid.get(cell).isEmpty && (writer.canFitSectors(tile.sg))){
-        val matchTile = GridPiece.withBlockedSides(gridParams.adjacentEdgeHeadings(cell.x, cell.y))
-        tile.rotateToMatch(matchTile).map { sg2 => grid.put(cell, sg2) }
+    gridParams.allCells.map(Cell2D(_)).foreach { cell =>
+      val matchTile = describeAvailConnectors(grid.toMap, cell, topLeft, bottomRight)
+
+      if(grid.get(cell).isEmpty){
+
+        val tiles2 = writer.randomShuffle(tiles.filter(t => t.sidesWithConnectors >= matchTile.sidesWithConnectors && t.sidesWithConnectors <= matchTile.maxConnectors))
+        val tiles3 = if(gridParams.isCorner(cell)){ tiles2.filter(_.gridPieceType == GridPiece.Corner)}else{ tiles2 }
+        val tiles4 = if(singleSituation(grid.toMap, cell, matchTile)){
+          println("single detected")
+          tiles3.filter(_.gridPieceType != GridPiece.Single)
+        }else{tiles3}
+        val tile = tiles4.find(t => writer.canFitSectors(t.sg) && t.couldMatch(matchTile))
+
+        tile.flatMap(_.rotateToMatch(matchTile)).foreach { t => grid.put(cell, t)}
       }
     }
-
-    val borderTiles = tiles.filter(_.sidesWithConnectors < 4).filterNot(_.gridPieceType == GridPiece.Orphan)
-    val border = gridParams.borderCells.toSet.diff(gridParams.cornerCells.toSet).map(Cell2D(_))
-    border.foreach { case cell =>
-      val tile = writer.randomElement(borderTiles)
-      if(grid.get(cell).isEmpty && writer.canFitSectors(tile.sg)){
-
-        val matchTile = GridPiece.withBlockedSides(gridParams.adjacentEdgeHeadings(cell.x, cell.y))
-        tile.rotateToMatch(matchTile).map { sg2 => grid.put(cell, sg2) }
-      }
-    }
-
-    val inner = gridParams.allCells.diff(gridParams.borderCells)
-    inner.foreach { case (cellx, celly) =>
-      val neighboorConns = GridUtil.neighboors(cellx, celly).flatMap { n=>
-        val neighboorCell = Cell2D(n)
-        grid.get(neighboorCell) match {
-          case Some(tile) => {
-            GridUtil.heading(neighboorCell.x, neighboorCell.y, cellx, celly).flatMap{ h =>
-              if(tile.side(h) == Side.Conn){
-                Some(neighboorCell, 1)
-              }else{
-                None
-              }
-            }
-          }
-          case None => None
-        }
-      }
-      require(neighboorConns.size >= 0 && neighboorConns.size < 5)
-
-      val matchTile = TilePainter.describeAvailConnectors(grid.toMap, Cell2D(cellx, celly))
-
-      val tiles2 = writer.randomShuffle(tiles.filter(_.sidesWithConnectors >= neighboorConns.size))
-      if(grid.get(Cell2D(cellx, celly)).isEmpty){
-        val tile = tiles2.find{p: SectorGroupPiece => writer.canFitSectors(p.sg) && p.couldMatch(matchTile)}
-        tile.flatMap(_.rotateToMatch(matchTile)).foreach { t =>
-          grid.put(Cell2D(cellx, celly), t)
-        }
-      }
-    }
-
     grid.toMap
   }
 
