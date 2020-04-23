@@ -1,8 +1,10 @@
 package trn.prefab.grid2d
 
+import org.junit.{Assert, Test}
 import trn.prefab.{Heading, MapWriter, RedwallConnector, SectorGroup}
-
 import trn.FuncImplicits._
+import trn.prefab.experiments.{Cell2D, TilePainter}
+
 import scala.collection.JavaConverters._
 
 object Side {

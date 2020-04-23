@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import org.junit.{Assert, Test}
-import trn.prefab.grid2d.SectorGroupPiece
+import trn.prefab.grid2d.{SectorGroupPiece, Side, SimpleGridPiece}
 import trn.{PointXY, PointXYZ, Map => DMap}
 import trn.prefab.{BoundingBox, Heading, MapWriter, PrefabPalette, RedwallConnector, SectorGroup, TestUtils, UnitTestBuilder}
 
@@ -158,4 +158,44 @@ class SquareTileBuilderTests {
     Assert.assertEquals(Cell2D(0, -1), Cell2D(0, 0).moveTowards(Heading.N))
   }
 
+
+  @Test
+  def testDescribeAvailConnectors(): Unit = {
+    def sgp(e: Int, s: Int, w: Int, n: Int) = SimpleGridPiece(e, s, w, n)
+    val C = Side.Conn
+    val U = Side.Unknown
+    val B = Side.Blocked
+    val blocked = SimpleGridPiece(B, B, B, B)
+    val grid0 = Map.empty[Cell2D, SimpleGridPiece]
+    val grid1 = Map(
+      (0, 0) -> blocked, (1, 0) -> blocked, (2, 0) -> blocked,
+      (0, 1) -> blocked,                    (2, 1) -> blocked,
+      (0, 2) -> blocked, (1, 2) -> blocked, (2, 2) -> blocked
+    ).map{ case (xy, v) => Cell2D(xy) -> v }
+    val grid2 = Map(
+      (0, 0) -> blocked, (1, 0) -> blocked, (2, 0) -> blocked,
+      (0, 1) -> blocked,                    // missing
+      (0, 2) -> blocked, (1, 2) -> blocked, (2, 2) -> blocked
+    ).map{ case (xy, v) => Cell2D(xy) -> v }
+
+    Assert.assertEquals(SimpleGridPiece(U, U, U, U), TilePainter.describeAvailConnectors(grid0, Cell2D(1, 1)))
+    Assert.assertEquals(blocked, TilePainter.describeAvailConnectors(grid1, Cell2D(1, 1)))
+    Assert.assertEquals(SimpleGridPiece(Side.Unknown, B, B, B), TilePainter.describeAvailConnectors(grid2, Cell2D(1, 1)))
+
+    val grid3 = Map(
+      (0, 0) -> blocked,         (1, 0) -> sgp(U, C, U, U ), (2, 0) -> blocked,
+      (0, 1) -> sgp(C, U, U, U),                             (2, 1) -> sgp(U, U, C, U),
+      (0, 2) -> blocked,         (1, 2) -> sgp(U, U, U, C), (2, 2) -> blocked
+    ).map{ case (xy, v) => Cell2D(xy) -> v }
+    Assert.assertEquals(SimpleGridPiece(C, C, C, C), TilePainter.describeAvailConnectors(grid3, Cell2D(1, 1)))
+
+    val unknown = SimpleGridPiece(U, U, U, U)
+    val conns = SimpleGridPiece(C, C, C, C)
+    val grid4 = Map(
+      (0, 0) -> blocked, (1, 0) -> blocked, (2, 0) -> blocked,
+      (0, 1) -> conns,                    (2, 1) -> conns,
+      (0, 2) -> blocked, (1, 2) -> unknown, (2, 2) -> blocked
+    ).map{ case (xy, v) => Cell2D(xy) -> v }
+    Assert.assertEquals(SimpleGridPiece(C, U, C, B), TilePainter.describeAvailConnectors(grid4, Cell2D(1, 1)))
+  }
 }
