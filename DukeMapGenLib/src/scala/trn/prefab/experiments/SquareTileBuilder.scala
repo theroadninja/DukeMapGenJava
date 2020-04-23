@@ -285,30 +285,6 @@ class SquareTileBuilder(
       }
     }
 
-    def sidesWithConnectors(sg: SectorGroup): Int = {
-      Seq(
-        MapWriter.east(sg).map(_ => 1).getOrElse(0),
-        MapWriter.west(sg).map(_ => 1).getOrElse(0),
-        MapWriter.north(sg).map(_ => 1).getOrElse(0),
-        MapWriter.south(sg).map(_ => 1).getOrElse(0),
-      ).sum
-    }
-
-    def gridPieceType(sg: SectorGroup): Int = sidesWithConnectors(sg) match {
-      case 0 => GridPiece.Orphan
-      case 1 => GridPiece.Single
-      case 2 => {
-        if((MapWriter.east(sg).isDefined && MapWriter.west(sg).isDefined) || (MapWriter.north(sg).isDefined && MapWriter.south(sg).isDefined)){
-          GridPiece.Straight
-        }else{
-          GridPiece.Corner
-        }
-      }
-      case 3 => GridPiece.TJunction
-      case 4 => GridPiece.Plus
-      case _ => throw new RuntimeException
-    }
-
     /**
       * Creates a GridPiece with sides that match the connectors available in neighboors of `cell`
       */
@@ -328,60 +304,13 @@ class SquareTileBuilder(
       )
     }
 
-
     // figure out which sector groups will fit in the grid
-    val availableSgs = palette.allSectorGroups().asScala.filter(SquareTileBuilder.isCompatible(_, gridParams.sideLength)).filterNot(sg => gridPieceType(sg) == GridPiece.Orphan)
+    val availableTiles = palette.allSectorGroups().asScala.filter(SquareTileBuilder.isCompatible(_, gridParams.sideLength))
+      .map(new SectorGroupPiece(_)).filterNot(_.gridPieceType == GridPiece.Orphan)
 
-    val cornerSgs = availableSgs.filter(gridPieceType(_) == GridPiece.Corner) // TODO - not good enough; also cant accept straights
-
-    // TODO - the grid piece types, and rotations and other things should be cached using case classes with lazy vals
-
-    def rotateConnectorsAwayFrom(sg: SectorGroup, headings: Seq[Int], attempts: Int = 3): Option[SectorGroup] = {
-      if(headings.isEmpty){
-        Some(sg)
-      }else if(! headings.exists(h => MapWriter.firstConnWithHeading(sg, h).isDefined)){
-        Some(sg)
-      }else if(attempts > 0){
-        rotateConnectorsAwayFrom(sg.rotateCW, headings, attempts - 1)
-      }else{
-        None
-      }
-    }
-
-    // rotate to maximum the number of connections made (this one is best effort
-    // TODO - this method is broken!!
-    def rotateToBestMatch(sg: SectorGroup, sgCell: Cell2D, neighboors: Seq[((Int, Int), RedwallConnector)]): SectorGroup = {
-      val neighboorCells = neighboors.map(_._1)
-      sg.allRotations.map { sgRotation =>
-        // how well it matches neighboors
-
-        val (sat, unsat) = neighboors.partition {
-          case ((_, _), conn) => sgRotation.allRedwallConnectors.exists(sgConn => conn.couldMatch(sgConn))
-        }
-        val score1 = sat.size
-
-
-        val emptyNeighboors = GridUtil.neighboors(sgCell.x, sgCell.y).toSet.diff(neighboors.map(_._1).toSet)
-
-        // whether it is point a connector at a blank wall
-        // TODO - this is duplicate work.  Maybe make a case class called "GridPiece" with rotations and connectors marked
-        // (and make it so that we can write algorithms to match pieces without messing with sector groups)
-        val score2 = Heading.all.asScala.flatMap{heading =>
-          MapWriter.farthestConn(sg.allRedwallConnectors, heading).map(c => (heading, c))
-        }.map{ case (heading, conn) =>
-          val x = sgCell.moveTowards(heading).asTuple
-          if(emptyNeighboors.contains(x)){
-            -1 // it has a connection pointing towards a neighboor
-          }else{
-            0
-          }
-        }.sum
-        (score1 * 2 + score2, sgRotation)
-      }.maxBy{ case (score, _) => score }._2
-    }
+    val cornerTiles = availableTiles.filter(_.gridPieceType == GridPiece.Corner)
 
     def pasteToCell(cellx: Int, celly: Int, sg: SectorGroup): Option[PastedSectorGroup] = {
-      //val sg2 = rotateConnectorsAwayFrom(sg, grid.params.adjacentEdgeHeadings(cellx, celly))
       val sg2 = Some(sg) // TODO clean up
       sg2.map { sg3 =>
         val cellBox = grid.params.cellBoundingBox(cellx, celly)
@@ -394,43 +323,34 @@ class SquareTileBuilder(
 
     // 1. corners
     grid.params.cornerCells.foreach { case (cellx, celly) =>
-      val sg = writer.randomElement(cornerSgs)
-      if(grid.get((cellx, celly)).isEmpty && (writer.canFitSectors(sg))){
+      val tile = writer.randomElement(cornerTiles)
+      if(grid.get((cellx, celly)).isEmpty && (writer.canFitSectors(tile.sg))){
         val matchTile = GridPiece.withBlockedSides(grid.params.adjacentEdgeHeadings(cellx, celly))
-        val piece = new SectorGroupPiece(sg).rotateToMatch(matchTile).map { sg2 =>
+        tile.rotateToMatch(matchTile).map { sg2 =>
           pasteToCell(cellx, celly, sg2.getSg.get)
         }
 
-        // rotateConnectorsAwayFrom(sg, grid.params.adjacentEdgeHeadings(cellx, celly)).map { sg2 =>
-        //   pasteToCell(cellx, celly, sg2)
-        // }
       }
     }
 
     // 2. borders
-    val borderSgs = availableSgs.filter(sg => sidesWithConnectors(sg) < 4).filterNot(gridPieceType(_) == GridPiece.Orphan)
+    // val borderSgs = availableSgs.filter(sg => sidesWithConnectors(sg) < 4).filterNot(gridPieceType(_) == GridPiece.Orphan)
+    val borderTiles = availableTiles.filter(_.sidesWithConnectors < 4).filterNot(_.gridPieceType == GridPiece.Orphan)
     val border = grid.params.borderCells.toSet.diff(grid.params.cornerCells.toSet)
     border.foreach { case (cellx, celly) =>
-      val sg = writer.randomElement(borderSgs)
-      if(grid.get((cellx, celly)).isEmpty && writer.canFitSectors(sg)){
+      val tile = writer.randomElement(borderTiles)
+      if(grid.get((cellx, celly)).isEmpty && writer.canFitSectors(tile.sg)){
 
         val matchTile = GridPiece.withBlockedSides(grid.params.adjacentEdgeHeadings(cellx, celly))
-        val piece = new SectorGroupPiece(sg).rotateToMatch(matchTile).map { sg2 =>
+        tile.rotateToMatch(matchTile).map { sg2 =>
           pasteToCell(cellx, celly, sg2.getSg.get)
         }
-        // rotateConnectorsAwayFrom(sg, grid.params.adjacentEdgeHeadings(cellx, celly)).map { sg2 =>
-        //   pasteToCell(cellx, celly, sg2)
-        // }
-
       }
     }
 
     // 3. interior
     val inner = grid.params.allCells.diff(grid.params.borderCells)
     inner.foreach { case (cellx, celly) =>
-
-
-
       val neighboorConns = GridUtil.neighboors(cellx, celly).flatMap { neighboorCell =>
         grid.get(neighboorCell) match {
           case Some(psg) => {
@@ -443,23 +363,14 @@ class SquareTileBuilder(
       }
       require(neighboorConns.size >= 0 && neighboorConns.size < 5)
 
-
-
       val matchTile = describeAvailConnectors(Cell2D(cellx, celly))
 
-      //val sg = writer.randomElement(availableSgs)
-      // TODO - if the user doesnt provide all types of grid pieces, this will fail; need better error msg
-      val sg = writer.randomElement(availableSgs.filter(sidesWithConnectors(_) >= neighboorConns.size))
-      if(grid.get((cellx, celly)).isEmpty && writer.canFitSectors(sg)){
-
-        new SectorGroupPiece(sg).rotateToMatch(matchTile).map { p2 =>
-          pasteToCell(cellx, celly, p2.getSg.get)
-        }
-        // val sg2 = rotateToBestMatch(sg, Cell2D(cellx, celly), neighboorConns)
-        // pasteToCell(cellx, celly, sg2)
+      val tiles = writer.randomShuffle(availableTiles.filter(_.sidesWithConnectors >= neighboorConns.size))
+      if(grid.get((cellx, celly)).isEmpty){
+        val tile = tiles.find{p: SectorGroupPiece => writer.canFitSectors(p.sg) && p.couldMatch(matchTile)}
+        tile.flatMap(_.rotateToMatch(matchTile)).foreach { t => pasteToCell(cellx, celly, t.getSg.get) }
       }
     }
-
 
     writer.sgBuilder.autoLinkRedwalls()
     writer.builder.setAnyPlayerStart()

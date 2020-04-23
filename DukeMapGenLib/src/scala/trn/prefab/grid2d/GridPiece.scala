@@ -71,6 +71,24 @@ trait GridPiece {
     Seq(this, r90, r180, r270).find(this2 => this2.matches(other))
   }
 
+  /** @return how many sides have connectors */
+  final def sidesWithConnectors: Int = Heading.all.asScala.map(side(_)).count(_ == 1)
+
+  final def gridPieceType: Int = sidesWithConnectors match {
+    case 0 => GridPiece.Orphan
+    case 1 => GridPiece.Single
+    case 2 => {
+      if((side(Heading.E) == 1 && side(Heading.W) == 1) || (side(Heading.N) == 1 && side(Heading.S) == 1)){
+        GridPiece.Straight
+      }else{
+        GridPiece.Corner
+      }
+    }
+    case 3 => GridPiece.TJunction
+    case 4 => GridPiece.Plus
+    case _ => throw new RuntimeException
+  }
+
 }
 
 /** abstract version of a grid piece that we can use for matching */
@@ -120,5 +138,6 @@ class SectorGroupPiece(val sg: SectorGroup) extends GridPiece {
     val lengths: Seq[Int] = Seq(width, height).collect { case Some(i) => i }
     lengths.maxOption // cant return bounding box because we might not have both axis' of connectors...
   }
+
 
 }
