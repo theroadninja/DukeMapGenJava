@@ -145,7 +145,7 @@ object MapWriter {
   * @param sgBuilder
   */
 class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random: RandomX = new RandomX())
-  extends ISectorGroup {
+  extends ISectorGroup with EntropyProvider {
 
   /** throws if the map has too many sectors */
   def checkSectorCount(): Unit = {
@@ -341,20 +341,4 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
   override def findSprites(picnum: Int, lotag: Int, sectorId: Int): util.List[Sprite] = builder.findSprites(picnum, lotag, sectorId)
 
   override def findSprites(filters: ISpriteFilter*): util.List[Sprite] = builder.findSprites(filters:_*)
-
-
-  //
-  // Random
-  //
-  def randomElement[E](collection: Iterable[E]): E = random.randomElement(collection)
-
-  def randomShuffle[E](collection: Iterable[E]): TraversableOnce[E] = random.shuffle(collection)
-
-  def randomElementOpt[E](collection: Iterable[E]): Option[E] = {
-    if(collection.isEmpty){
-      None
-    }else{
-      Some(random.randomElement(collection))
-    }
-  }
 }

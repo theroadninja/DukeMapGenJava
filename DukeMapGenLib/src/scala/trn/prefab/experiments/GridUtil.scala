@@ -21,6 +21,14 @@ object GridUtil {
 
   def neighboors(gridX: Int, gridY: Int): Seq[(Int,Int)] = adj(gridX, gridY).map(list => (list(0), list(1)))
   def neighboors(loc: (Int, Int)): Seq[(Int, Int)] = adj(loc._1, loc._2).map(list => (list(0), list(1)))
+  def neighboors(cell: Cell2D): Seq[Cell2D] = adj(cell.x, cell.y).map(loc => Cell2D(loc(0), loc(1)))
+
+  def isAdj(left: Seq[Int], right: Seq[Int]): Boolean = {
+    require(left.size > 0 && left.size == right.size)
+    (0 until left.size).map(i => Math.abs(left(i) - right(i))).sum == 1
+  }
+
+  def isAdj(left: Cell2D, right: Cell2D): Boolean = isAdj(left.toSeq, right.toSeq)
 
   /**
     * Given two grid cells, return the Heading to go from start to end.  Only works with cells

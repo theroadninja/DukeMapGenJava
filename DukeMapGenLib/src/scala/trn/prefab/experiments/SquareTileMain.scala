@@ -1,6 +1,6 @@
 package trn.prefab.experiments
 import trn.{FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
-import trn.prefab.{BoundingBox, Heading, MapWriter, Matrix2D, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.prefab.{BoundingBox, EntropyProvider, Heading, MapWriter, Matrix2D, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
 import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
 
@@ -23,6 +23,7 @@ object Cell2D {
 
 case class Cell2D(x: Int, y: Int){
   lazy val asTuple: (Int, Int) = (x, y)
+  lazy val toSeq: Seq[Int] = Seq(x, y)
 
   def moveTowards(heading: Int): Cell2D = heading match {
     case Heading.E => Cell2D(x + 1, y)
@@ -159,7 +160,7 @@ class Grid2D(val params: GridParams2D) {
     val sg2 = Some(sg) // TODO clean up
     sg2.map { sg3 =>
       val cellBox = params.cellBoundingBox(cellx, celly)
-      val target = SquareTileBuilder.alignToBox(sg3, cellBox)
+      val target = SquareTileMain.alignToBox(sg3, cellBox)
       val psg = writer.builder.pasteSectorGroupAt(sg3, target.withZ(0))
       grid.put((cellx, celly), psg)
       psg
@@ -168,7 +169,7 @@ class Grid2D(val params: GridParams2D) {
 }
 
 
-object SquareTileBuilder {
+object SquareTileMain {
 
   val TestFile1 = GridExperiment.Filename
 
@@ -234,12 +235,12 @@ object SquareTileBuilder {
   }
 
   def guessGridParams(gridArea: BoundingBox, palette: PrefabPalette, stays: Traversable[PastedSectorGroup]): GridParams2D = {
-    val cellSize = SquareTileBuilder.guessCellSize(palette.allSectorGroups().asScala.map(sg => new SectorGroupPiece(sg))).getOrElse{
+    val cellSize = SquareTileMain.guessCellSize(palette.allSectorGroups().asScala.map(sg => new SectorGroupPiece(sg))).getOrElse{
       println("unable to guess cell size")
-      SquareTileBuilder.DefaultCellSize
+      SquareTileMain.DefaultCellSize
     }
     println(s"Using cell size ${cellSize} (${cellSize/1024} * 1024)")
-    val alignXY = SquareTileBuilder.guessAlignment(gridArea, stays.flatMap(_.unlinkedRedwallConnectors), cellSize)
+    val alignXY = SquareTileMain.guessAlignment(gridArea, stays.flatMap(_.unlinkedRedwallConnectors), cellSize)
     GridParams2D.fillMap(gridArea, alignXY, cellSize)
   }
 
@@ -311,7 +312,10 @@ object TilePainter {
     grid.get(cell.moveTowards(h)).get.gridPieceType == GridPiece.Single
   }
 
-  def paintTiles(writer: MapWriter, gridParams: GridParams2D, tiles: Iterable[SectorGroupPiece]): scala.collection.immutable.Map[Cell2D, GridPiece] = {
+  /**
+    * this results in a grid full of subgraphs that are disconnected from each other.
+    */
+  def paintRandomTiles(writer: MapWriter, gridParams: GridParams2D, tiles: Iterable[SectorGroupPiece]): scala.collection.immutable.Map[Cell2D, GridPiece] = {
     val topLeft = Cell2D(-1, -1)
     val bottomRight = Cell2D(gridParams.cellCountX, gridParams.cellCountY)
 
@@ -325,7 +329,6 @@ object TilePainter {
         val tiles2 = writer.randomShuffle(tiles.filter(t => t.sidesWithConnectors >= matchTile.sidesWithConnectors && t.sidesWithConnectors <= matchTile.maxConnectors))
         val tiles3 = if(gridParams.isCorner(cell)){ tiles2.filter(_.gridPieceType == GridPiece.Corner)}else{ tiles2 }
         val tiles4 = if(singleSituation(grid.toMap, cell, matchTile)){
-          println("single detected")
           tiles3.filter(_.gridPieceType != GridPiece.Single)
         }else{tiles3}
         val tile = tiles4.find(t => writer.canFitSectors(t.sg) && t.couldMatch(matchTile))
@@ -337,6 +340,119 @@ object TilePainter {
   }
 
 
+  def paintStrategy1(writer: MapWriter, gridParams: GridParams2D, tiles: Iterable[SectorGroupPiece]): scala.collection.immutable.Map[Cell2D, GridPiece] = {
+    val pass1 = TilePainter.paintRandomTiles(writer, gridParams, tiles)
+    val grid = scala.collection.mutable.Map(pass1.toSeq: _*)
+
+    val components = TilePainter.connectedComponents(grid.toMap)// .filterNot(_.size == 1)
+    val results = mergeComponents(components, grid,  tiles, writer)
+    require(results.size == 1)
+
+    grid.toMap
+  }
+
+  def forceConnection(rand: EntropyProvider, cell1: Cell2D, cell2: Cell2D, grid: scala.collection.mutable.Map[Cell2D, GridPiece], tiles: Iterable[SectorGroupPiece]): Unit = {
+    require(GridUtil.isAdj(cell1, cell2))
+    val (match1, match2) = GridPiece.connectedMatchPiecees(grid(cell1), cell1, grid(cell2), cell2).get
+
+    val matches1 = tiles.flatMap(_.rotateToMatch(match1))
+    val matches2 = tiles.flatMap(_.rotateToMatch(match2))
+    require(matches1.nonEmpty, s"cant find any tile to match: ${match1} # tiles = ${tiles.size}")
+    require(matches2.nonEmpty, s"cant find any tile to match: ${match2}")
+    val tile1 = rand.randomElement(matches1)
+    val tile2 = rand.randomElement(matches2)
+    // immutable verson: grid + (cell1 -> tile1) + (cell2 -> tile2)
+    grid.put(cell1, tile1)
+    grid.put(cell2, tile2)
+  }
+
+  def mergeComponents(components: Seq[Set[Cell2D]], grid: scala.collection.mutable.Map[Cell2D, GridPiece], tiles: Iterable[SectorGroupPiece], writer: MapWriter): Seq[Set[Cell2D]] = {
+    require(components.size > 0)
+    if(components.size == 1){
+      components
+    }else{
+      val first::tail = writer.randomShuffle(components)
+      var second: Option[Set[Cell2D]] = None
+      var adjacent: Option[Set[(Cell2D, Cell2D)]] = None
+
+      val tail2 = scala.collection.mutable.ArrayBuffer[Set[Cell2D]]()
+
+      for(i <- 0 until tail.size){ // basically a partitionFirst
+        if(second.isEmpty){
+          val adj = allAdjacent(first, tail(i))
+          if(adj.size > 0){
+            second = Some(tail(i))
+            adjacent = Some(adj)
+          }else{
+            tail2 += tail(i)
+          }
+        }else{
+          tail2 += tail(i)
+        }
+      }
+
+      require(second.isDefined, "TODO") // TODO this is a legit possibilty; handle more gracefully
+
+      // pick one of the adjacent ones at random, and change the tiles
+      val (cell1, cell2) = writer.randomElement(adjacent.get)
+      forceConnection(writer, cell1, cell2, grid, tiles)
+
+      val merged: Set[Cell2D] = first ++ second.get
+
+      val newComponents: Seq[Set[Cell2D]] = Seq(merged) ++ tail2
+      require(newComponents.size == components.size - 1)
+      mergeComponents(newComponents, grid, tiles, writer)
+    }
+  }
+
+  /** find all the pairs of cells that are adjacent to each other */
+  def allAdjacent(set1: Iterable[Cell2D], set2: Iterable[Cell2D]): Set[(Cell2D, Cell2D)] = {
+    set1.flatMap { left =>
+      set2.flatMap { right =>
+        if(GridUtil.isAdj(left.toSeq, right.toSeq)){
+          Some((left, right))
+        }else{
+          None
+        }
+      }
+    }.toSet
+  }
+
+  /**
+    * takes one or more unconnected graphs, splits them into connected components (sub graphs) and returns them
+    * as a set
+    * @param grid the graph, where each cell coordinate is a node, and edges are defined by matching GridPiece conns.
+    * @return set of connected components (a connected component is itself a set of Cell2D's)
+    */
+  def connectedComponents(grid: Map[Cell2D, GridPiece]): Seq[Set[Cell2D]] = {
+    if(grid.isEmpty){
+      return Seq.empty
+    }
+    def pop[T](set: scala.collection.mutable.Set[T]): T = {
+      val t = set.head
+      set -= t
+      t
+    }
+
+    val closedList = scala.collection.mutable.Set[Cell2D]()
+    val openList = scala.collection.mutable.Set[Cell2D]()
+    openList += grid.keys.head
+
+    while(openList.size > 0){
+      val current = pop(openList)
+      if(!closedList.contains(current)){
+        closedList.add(current)
+        val neighboors = GridUtil.neighboors(current).map(n => (n -> grid.get(n))).collect {
+          case (loc, Some(piece)) => (loc, piece)
+        }
+        openList ++= neighboors.collect {
+          case (nloc, n) if(GridPiece.connected(grid(current), current, n, nloc)) => nloc
+        }.filterNot(closedList.contains)
+      }
+    }
+    Seq(closedList.toSet) ++ connectedComponents(grid -- closedList)
+  }
+
 }
 
 /**
@@ -347,7 +463,7 @@ object TilePainter {
   *
   * @param Filename
   */
-class SquareTileBuilder(
+class SquareTileMain(
   val Filename: String,
   gridBuilderInput: GridBuilderInput = GridBuilderInput(),
 ) extends PrefabExperiment {
@@ -361,7 +477,7 @@ class SquareTileBuilder(
 
     val stays = writer.pasteStays(palette)
 
-    val gridParams = SquareTileBuilder.guessGridParams(MapWriter.MapBounds, palette, stays).withMaxCellCounts(
+    val gridParams = SquareTileMain.guessGridParams(MapWriter.MapBounds, palette, stays).withMaxCellCounts(
       gridBuilderInput.maxCellsX,
       gridBuilderInput.maxCellsY
     )
@@ -375,12 +491,15 @@ class SquareTileBuilder(
     }
 
     // figure out which sector groups will fit in the grid
-    val availableTiles = palette.allSectorGroups().asScala.filter(SquareTileBuilder.isCompatible(_, gridParams.sideLength))
+    val availableTiles = palette.allSectorGroups().asScala.filter(SquareTileMain.isCompatible(_, gridParams.sideLength))
       .map(new SectorGroupPiece(_)).filterNot(_.gridPieceType == GridPiece.Orphan)
 
     val grid = new Grid2D(gridParams)
 
-    val tilesToPaint = TilePainter.paintTiles(writer, gridParams, availableTiles)
+    val tilesToPaint = TilePainter.paintStrategy1(writer, gridParams, availableTiles)
+
+
+
     tilesToPaint.foreach { case (cell, tile) =>
       grid.pasteToCell(writer, cell.x, cell.y, tile.getSg.get)
     }

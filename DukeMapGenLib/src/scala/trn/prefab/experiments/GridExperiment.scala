@@ -113,7 +113,7 @@ class GridMapBuilder(val outMap: DMap, val random: RandomX = new RandomX()) exte
 
   def randomElement[E](collection: Iterable[E]): E = random.randomElement(collection)
 
-  private def snapH(sg: SectorGroup, dest: BoundingBox): Int = SquareTileBuilder.snapH(sg, dest)
+  private def snapH(sg: SectorGroup, dest: BoundingBox): Int = SquareTileMain.snapH(sg, dest)
   // private def snapH(sg: SectorGroup, dest: BoundingBox): Int = {
   //   (MapWriter.east(sg).isDefined, MapWriter.west(sg).isDefined) match {
   //     case (_, true) => dest.xMin  // align left
@@ -122,7 +122,7 @@ class GridMapBuilder(val outMap: DMap, val random: RandomX = new RandomX()) exte
   //   }
   // }
 
-  private def snapV(sg: SectorGroup, dest: BoundingBox): Int = SquareTileBuilder.snapV(sg, dest)
+  private def snapV(sg: SectorGroup, dest: BoundingBox): Int = SquareTileMain.snapV(sg, dest)
   // private def snapV(sg: SectorGroup, dest: BoundingBox): Int = {
   //   (MapWriter.north(sg).isDefined, MapWriter.south(sg).isDefined) match {
   //     case (true, _) => dest.yMin // align top

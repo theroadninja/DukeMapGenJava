@@ -29,6 +29,26 @@ class GridUtilTests {
   }
 
   @Test
+  def testIsAdj(): Unit = {
+    Assert.assertFalse(GridUtil.isAdj(Seq(0, 0), Seq(0, 0)))
+    Assert.assertFalse(GridUtil.isAdj(Seq(1, 1), Seq(1, 1)))
+
+    Assert.assertTrue(GridUtil.isAdj(Seq(0, 0), Seq(1, 0)))
+    Assert.assertTrue(GridUtil.isAdj(Seq(5, 50), Seq(6, 50)))
+    Assert.assertFalse(GridUtil.isAdj(Seq(5, 50), Seq(7, 50)))
+    Assert.assertFalse(GridUtil.isAdj(Seq(5, 50), Seq(6, 51)))
+
+    Assert.assertTrue(GridUtil.isAdj(Seq(5, 5), Seq(6, 5)))
+    Assert.assertTrue(GridUtil.isAdj(Seq(5, 5), Seq(4, 5)))
+    Assert.assertTrue(GridUtil.isAdj(Seq(5, 5), Seq(5, 6)))
+    Assert.assertTrue(GridUtil.isAdj(Seq(5, 5), Seq(5, 4)))
+    Assert.assertFalse(GridUtil.isAdj(Seq(5, 5), Seq(6, 6)))
+    Assert.assertFalse(GridUtil.isAdj(Seq(5, 5), Seq(6, 4)))
+    Assert.assertFalse(GridUtil.isAdj(Seq(5, 5), Seq(4, 6)))
+    Assert.assertFalse(GridUtil.isAdj(Seq(5, 5), Seq(4, 4)))
+  }
+
+  @Test
   def testHeading(): Unit = {
     (-10 until 10).foreach { i =>
       Assert.assertEquals(None, GridUtil.heading(0, 0, 0, 0))

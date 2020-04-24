@@ -5,7 +5,11 @@ import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
 import trn.{PointXY, PointXYZ, Map => DMap}
 import trn.prefab.{BoundingBox, Heading, MapWriter, PrefabPalette, RedwallConnector, SectorGroup, TestUtils, UnitTestBuilder}
 
-class SquareTileBuilderTests {
+class SquareTileMainTests {
+  def c(x: Int, y: Int): Cell2D = Cell2D(x, y)
+  def sgp(e: Int, s: Int, w: Int, n: Int) = SimpleGridPiece(e, s, w, n)
+  val C = Side.Conn
+  val B = Side.Blocked
 
   @Test
   def testGuessCellSize(): Unit = {
@@ -14,9 +18,9 @@ class SquareTileBuilderTests {
     def p(sg: SectorGroup): SectorGroupPiece = new SectorGroupPiece(sg)
 
     Seq(1,2,3,4,5,6,7,8,9).foreach { groupId =>
-      Assert.assertEquals(None, SquareTileBuilder.guessCellSize(Seq(p(sg(groupId)))))
+      Assert.assertEquals(None, SquareTileMain.guessCellSize(Seq(p(sg(groupId)))))
     }
-    Assert.assertEquals(Some(5 * 1024), SquareTileBuilder.guessCellSize(Seq(p(sg(10)))))
+    Assert.assertEquals(Some(5 * 1024), SquareTileMain.guessCellSize(Seq(p(sg(10)))))
     // TODO - more test cases here; I've only written the ones that I get for free by re-using the MapWriter test file
   }
 
@@ -37,15 +41,15 @@ class SquareTileBuilderTests {
       builder.pastedSectorGroups.flatMap(_.unlinkedRedwallConnectors)
     }
 
-    def align(bb: BoundingBox, groups: (SectorGroup, PointXYZ) *): PointXY = SquareTileBuilder.guessAlignment(bb, stayConns(groups), CellSize)
+    def align(bb: BoundingBox, groups: (SectorGroup, PointXYZ) *): PointXY = SquareTileMain.guessAlignment(bb, stayConns(groups), CellSize)
 
     val topLeftXY = new PointXY(DMap.MIN_X, DMap.MIN_Y)
     val topLeftXYZ = topLeftXY.withZ(0)
     val gridArea = BoundingBox(0, 0, 8192, 8192)
     val MapBounds = MapWriter.MapBounds
 
-    Assert.assertEquals(new PointXY(DMap.MIN_X, DMap.MIN_Y), SquareTileBuilder.guessAlignment(MapWriter.MapBounds, Seq(), 1024))
-    Assert.assertEquals(new PointXY(0, 0), SquareTileBuilder.guessAlignment(gridArea, Seq(), 1024))
+    Assert.assertEquals(new PointXY(DMap.MIN_X, DMap.MIN_Y), SquareTileMain.guessAlignment(MapWriter.MapBounds, Seq(), 1024))
+    Assert.assertEquals(new PointXY(0, 0), SquareTileMain.guessAlignment(gridArea, Seq(), 1024))
 
     Assert.assertEquals(topLeftXY, align(MapBounds, (sgWest, topLeftXYZ)))
     Assert.assertEquals(
@@ -163,10 +167,7 @@ class SquareTileBuilderTests {
   def testDescribeAvailConnectors(): Unit = {
     val topLeft = Cell2D(-1, -1)
     val bottomRight = Cell2D(3, 4)
-    def sgp(e: Int, s: Int, w: Int, n: Int) = SimpleGridPiece(e, s, w, n)
-    val C = Side.Conn
     val U = Side.Unknown
-    val B = Side.Blocked
     val blocked = SimpleGridPiece(B, B, B, B)
     val grid0 = Map.empty[Cell2D, SimpleGridPiece]
     val grid1 = Map(
@@ -215,10 +216,7 @@ class SquareTileBuilderTests {
 
   @Test
   def testSingleSituation(): Unit = {
-    def sgp(e: Int, s: Int, w: Int, n: Int) = SimpleGridPiece(e, s, w, n)
-    val C = Side.Conn
     val U = Side.Unknown
-    val B = Side.Blocked
     val grid0 = Map(
       (2, 1) -> sgp(U, U, C, U),
     ).map{ case (xy, v) => Cell2D(xy) -> v }
@@ -229,5 +227,55 @@ class SquareTileBuilderTests {
     val matchTile = TilePainter.describeAvailConnectors(grid0, cell, topLeft, bottomRight)
     Assert.assertTrue(grid0.get(cell.moveTowards(Heading.E)).get.gridPieceType == GridPiece.Single)
     Assert.assertTrue(TilePainter.singleSituation(grid0, cell, matchTile))
+  }
+
+  @Test
+  def testConnectedComponents(): Unit = {
+    Assert.assertTrue(TilePainter.connectedComponents(Map.empty).isEmpty)
+
+    val grid0 = Seq(Cell2D(120, 400) -> sgp(C, C, C, C)).toMap
+    Assert.assertTrue(TilePainter.connectedComponents(grid0).size == 1)
+
+    // two pieces, not connected
+    val grid1 = Seq(
+      Cell2D(5, 5) -> sgp(B, B, B, B),
+      Cell2D(6, 5) -> sgp(B, B, B, B),
+    ).toMap
+    Assert.assertEquals(2, TilePainter.connectedComponents(grid1).size)
+
+    // two pieces, connected
+    val grid2 = Seq(
+      Cell2D(5, 5) -> sgp(C, B, B, B),
+      Cell2D(6, 5) -> sgp(B, B, C, B),
+    ).toMap
+    Assert.assertEquals(1, TilePainter.connectedComponents(grid2).size)
+
+    // unconnected again
+    val grid3 = Seq(
+      Cell2D(5, 5) -> sgp(C, B, B, B),
+      Cell2D(7, 5) -> sgp(B, B, C, B),
+    ).toMap
+    Assert.assertEquals(2, TilePainter.connectedComponents(grid3).size)
+
+    // three pieces
+    // +  +--+
+    // |
+    // +--+--+
+    //       |
+    // +--+  +
+    val grid4 = Seq(
+      c(0, 0) -> sgp(B, C, C, C), c(1, 0) -> sgp(C, B, B, C), c(2, 0) -> sgp(C, B, C, C),
+      c(0, 1) -> sgp(C, B, C, C), c(1, 1) -> sgp(C, B, C, B), c(2, 1) -> sgp(C, C, C, B),
+      c(0, 2) -> sgp(C, C, C, B), c(1, 2) -> sgp(B, C, C, B), c(2, 2) -> sgp(C, C, B, C),
+    ).toMap
+    val results4 = TilePainter.connectedComponents(grid4)
+    Assert.assertEquals(3, results4.size)
+    Assert.assertTrue(results4.map(_.size).sorted == Seq(2, 2, 5))
+  }
+
+  @Test
+  def testAllAdjacent(): Unit = {
+    Assert.assertTrue(TilePainter.allAdjacent(Seq(c(0, 0), c(0, 1)), Seq(c(2, 1), c(2, 2))) == Seq.empty)
+    Assert.assertTrue(TilePainter.allAdjacent(Seq(c(0, 0), c(0, 1)), Seq(c(1, 1), c(1, 2))) == Seq((c(0, 1), c(1, 1))))
   }
 }
