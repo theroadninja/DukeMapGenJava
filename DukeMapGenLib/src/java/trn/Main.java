@@ -34,7 +34,7 @@ public class Main {
 		//run(FirstPrefabExperiment$.MODULE$);
 
 		// run(GridExperiment$.MODULE$);
-		run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.apply(8, 8)));
+		run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
 
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
 		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));

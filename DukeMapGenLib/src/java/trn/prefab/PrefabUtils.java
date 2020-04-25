@@ -8,6 +8,7 @@ import trn.SpriteFilter;
 import java.util.Arrays;
 import java.util.List;
 
+// TODO - for the hint sprites, see: SectorGroupHints
 public class PrefabUtils {
 
 	public static class MarkerHiTags {

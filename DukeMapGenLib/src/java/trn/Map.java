@@ -350,7 +350,9 @@ public class Map implements WallContainer {
 		if(w1.getStat().blockPlayer()) throw new RuntimeException("wall has blocking enabled");
 		Wall w1End = getWall(w1.getPoint2Id());
 		Wall w2 = getWall(wallIndex2);
-		if(w2.getStat().blockPlayer()) throw new RuntimeException("wall has blocking enabled");
+		// TODO - ok the below condition can easily happen as soon as any red wall in the sector group has blocking,
+		// even the solid walls seem to inherit it somehow.  Might want to consider automatically removing the blocking
+		if(w2.getStat().blockPlayer()) throw new RuntimeException("wall has blocking enabled " + w2.getLocation());
 		Wall w2End = getWall(w2.getPoint2Id());
 		if(w1.isRedWall()) throw new IllegalArgumentException("wall " + wallIndex + " is already a red wall");
 		if(w2.isRedWall()) throw new IllegalArgumentException("wall " + wallIndex2 + " is already a red wall");

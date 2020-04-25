@@ -7,13 +7,19 @@ import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
 import scala.collection.JavaConverters._
 import scala.collection.immutable
 
+object GridBuilderInput {
+  def defaultInput: GridBuilderInput = GridBuilderInput(5, 5, 2)
+}
 /**
   * @param maxCellsX maximum width of grid in number of cells
   * @param maxCellsY maximum height of grid in number of cells
   */
 case class GridBuilderInput(
-  maxCellsX: Int = 8,
-  maxCellsY: Int = 8,
+  maxCellsX: Int,
+  maxCellsY: Int,
+
+  /** minimum manhattan distance between start and end */
+  startEndDist: Int,
 )
 
 
@@ -32,6 +38,8 @@ case class Cell2D(x: Int, y: Int){
     case Heading.S => Cell2D(x, y + 1)
     case _ => throw new RuntimeException(s"invalid heading ${heading}")
   }
+
+  def manhattanDist(other: Cell2D): Int = Math.abs(x - other.x) + Math.abs(y - other.y)
 }
 
 object GridParams2D {
@@ -166,6 +174,42 @@ class Grid2D(val params: GridParams2D) {
       psg
     }
   }
+}
+
+object MaxCopyTracker {
+  def countAll(groups: Iterable[SectorGroup]): MaxCopyTracker = {
+    val tracker = new MaxCopyTracker()
+    groups.foreach(tracker.record(_, 1))
+    tracker
+  }
+}
+
+/**
+  * Tracks counts of sector groups used, for the Max Copy hint.
+  * Does not work with anonymous sector groups
+  */
+class MaxCopyTracker {
+  // map of sector group id -> count
+  val copies = scala.collection.mutable.Map[Int, Int]()
+
+  def count(groupId: Int): Int = copies.get(groupId).getOrElse(0)
+
+  def canPaste(sg: SectorGroup): Boolean = (sg.groupIdOpt, sg.hints.maxCopies) match {
+    case (Some(groupId), Some(maxCopies)) => count(groupId) < maxCopies
+    case _ => true
+  }
+
+  def canPasteTile(piece: SectorGroupPiece): Boolean = canPaste(piece.sg)
+
+  def recordId(groupId: Int, n: Int = 1): Unit = copies.put(groupId, Math.max(0, count(groupId) + n))
+
+  /** record the fact that this piece was just added */
+  def record(sg: SectorGroup, n: Int = 1): Unit = (sg.groupIdOpt, sg.hints.maxCopies) match {
+    case (Some(groupId), Some(_)) => recordId(groupId, n)
+    case _ => {}
+  }
+
+  override def toString: String = s"{CopyTracker ${copies} }"
 }
 
 
@@ -306,6 +350,12 @@ object TilePainter {
     )
   }
 
+  def describeAvailConnectors(
+    grid: scala.collection.immutable.Map[Cell2D, GridPiece],
+    cell: Cell2D,
+    params: GridParams2D,
+  ): GridPiece = describeAvailConnectors(grid, cell, Cell2D(-1, -1), Cell2D(params.cellCountX, params.cellCountY) )
+
   def singleSituation(grid: Map[Cell2D, GridPiece], cell: Cell2D, matchTile: GridPiece): Boolean = matchTile.sidesWithConnectors == 1 && {
     val h = Heading.all.asScala.find(h => matchTile.side(h) == Side.Conn).get
     require(Heading.all.contains(h))
@@ -315,58 +365,127 @@ object TilePainter {
   /**
     * this results in a grid full of subgraphs that are disconnected from each other.
     */
-  def paintRandomTiles(writer: MapWriter, gridParams: GridParams2D, tiles: Iterable[SectorGroupPiece]): scala.collection.immutable.Map[Cell2D, GridPiece] = {
-    val topLeft = Cell2D(-1, -1)
-    val bottomRight = Cell2D(gridParams.cellCountX, gridParams.cellCountY)
+  def paintRandomTiles(
+    writer: MapWriter,
+    gridParams: GridParams2D,
+    tiles: Iterable[SectorGroupPiece],
+    startingGrid: Map[Cell2D, GridPiece],
+    copyTracker: MaxCopyTracker
+  ): scala.collection.immutable.Map[Cell2D, GridPiece] = {
+    // val topLeft = Cell2D(-1, -1)
+    // val bottomRight = Cell2D(gridParams.cellCountX, gridParams.cellCountY)
 
-    val grid = scala.collection.mutable.Map[Cell2D, GridPiece]()
+    val grid = scala.collection.mutable.Map[Cell2D, GridPiece](startingGrid.toSeq: _*)
 
     gridParams.allCells.map(Cell2D(_)).foreach { cell =>
-      val matchTile = describeAvailConnectors(grid.toMap, cell, topLeft, bottomRight)
+      // val matchTile = describeAvailConnectors(grid.toMap, cell, topLeft, bottomRight)
+      val matchTile = describeAvailConnectors(grid.toMap, cell, gridParams)
 
       if(grid.get(cell).isEmpty){
 
-        val tiles2 = writer.randomShuffle(tiles.filter(t => t.sidesWithConnectors >= matchTile.sidesWithConnectors && t.sidesWithConnectors <= matchTile.maxConnectors))
+        val tiles1 = tiles.filter(copyTracker.canPasteTile)
+        val tiles2 = writer.randomShuffle(tiles1.filter(t => t.sidesWithConnectors >= matchTile.sidesWithConnectors && t.sidesWithConnectors <= matchTile.maxConnectors))
         val tiles3 = if(gridParams.isCorner(cell)){ tiles2.filter(_.gridPieceType == GridPiece.Corner)}else{ tiles2 }
         val tiles4 = if(singleSituation(grid.toMap, cell, matchTile)){
           tiles3.filter(_.gridPieceType != GridPiece.Single)
         }else{tiles3}
         val tile = tiles4.find(t => writer.canFitSectors(t.sg) && t.couldMatch(matchTile))
 
-        tile.flatMap(_.rotateToMatch(matchTile)).foreach { t => grid.put(cell, t)}
+        tile.flatMap(_.rotateToMatch(matchTile)).foreach { t =>
+          grid.put(cell, t)
+          copyTracker.record(t.getSg.get)
+        }
       }
     }
     grid.toMap
   }
 
 
-  def paintStrategy1(writer: MapWriter, gridParams: GridParams2D, tiles: Iterable[SectorGroupPiece]): scala.collection.immutable.Map[Cell2D, GridPiece] = {
-    val pass1 = TilePainter.paintRandomTiles(writer, gridParams, tiles)
+  def paintStrategy1(
+    input: GridBuilderInput,
+    writer: MapWriter,
+    gridParams: GridParams2D, allTiles: Iterable[SectorGroupPiece]): scala.collection.immutable.Map[Cell2D, GridPiece] = {
+
+    val copyTracker = new MaxCopyTracker()
+
+    // 1. choose start and end
+    // start and end cannot share an axis
+    // manhattan distance must be greater than 4  (total size / 4)
+    val playerStart = Cell2D(writer.randomElement(gridParams.allCells))
+    val playerStartMatch = describeAvailConnectors(Map.empty, playerStart, gridParams)
+    val startTile = writer.randomElement(
+      allTiles.filter(_.sg.hasPlayerStart).filter(copyTracker.canPasteTile).flatMap(t => t.rotateToMatch(playerStartMatch))
+    )
+    copyTracker.record(startTile.getSg.get)
+
+    val endPos = Cell2D(writer.randomElement(gridParams.allCells.filter{
+      case (x, y) => (x != playerStart.x && y != playerStart.y && playerStart.manhattanDist(Cell2D(x,y)) > input.startEndDist)
+    }))
+    val endMatch = describeAvailConnectors(Map.empty, endPos, gridParams)
+    val endTile = writer.randomElement(
+      allTiles.filter(_.sg.hasEndGame).filter(copyTracker.canPasteTile).flatMap(t => t.rotateToMatch(endMatch))
+    )
+    copyTracker.record(endTile.getSg.get)
+
+    // 2. fill in the rest
+    val startGrid = Map(playerStart -> startTile, endPos -> endTile)
+    val tiles = allTiles.filterNot(_.sg.hasEndGame)
+
+    val pass1 = TilePainter.paintRandomTiles(writer, gridParams, tiles, startGrid, copyTracker)
     val grid = scala.collection.mutable.Map(pass1.toSeq: _*)
 
+    // 3. connect the separate pieces
     val components = TilePainter.connectedComponents(grid.toMap)// .filterNot(_.size == 1)
-    val results = mergeComponents(components, grid,  tiles, writer)
+    // TODO - open issue where important features are overwritten (like player start?)
+    val results = mergeComponents(components, grid,  tiles, writer, copyTracker, playerStart)
     require(results.size == 1)
+
+    println(copyTracker)
+    println(s"player start: ${playerStart}")
+    println(s"end: ${endPos}")
 
     grid.toMap
   }
 
-  def forceConnection(rand: EntropyProvider, cell1: Cell2D, cell2: Cell2D, grid: scala.collection.mutable.Map[Cell2D, GridPiece], tiles: Iterable[SectorGroupPiece]): Unit = {
+  def forceConnection(
+    rand: EntropyProvider,
+    cell1: Cell2D,
+    cell2: Cell2D,
+    grid: scala.collection.mutable.Map[Cell2D, GridPiece],
+    tiles: Iterable[SectorGroupPiece],
+    copyTracker: MaxCopyTracker,
+  ): Unit = {
     require(GridUtil.isAdj(cell1, cell2))
-    val (match1, match2) = GridPiece.connectedMatchPiecees(grid(cell1), cell1, grid(cell2), cell2).get
 
-    val matches1 = tiles.flatMap(_.rotateToMatch(match1))
-    val matches2 = tiles.flatMap(_.rotateToMatch(match2))
+    val existing1 = grid(cell1)
+    val existing2 = grid(cell2)
+    copyTracker.record(existing1.getSg.get, -1)
+    copyTracker.record(existing2.getSg.get, -1)
+    val (match1, match2) = GridPiece.connectedMatchPiecees(existing1, cell1, existing2, cell2).get
+
+    val matches1 = tiles.filter(copyTracker.canPasteTile).flatMap(_.rotateToMatch(match1))
     require(matches1.nonEmpty, s"cant find any tile to match: ${match1} # tiles = ${tiles.size}")
-    require(matches2.nonEmpty, s"cant find any tile to match: ${match2}")
     val tile1 = rand.randomElement(matches1)
+    copyTracker.record(tile1.getSg.get, -1)
+
+    val matches2 = tiles.filter(copyTracker.canPasteTile).flatMap(_.rotateToMatch(match2))
+    require(matches2.nonEmpty, s"cant find any tile to match: ${match2}")
     val tile2 = rand.randomElement(matches2)
-    // immutable verson: grid + (cell1 -> tile1) + (cell2 -> tile2)
+    copyTracker.record(tile2.getSg.get, -1)
+
+    // immutable version: grid + (cell1 -> tile1) + (cell2 -> tile2)
     grid.put(cell1, tile1)
     grid.put(cell2, tile2)
   }
 
-  def mergeComponents(components: Seq[Set[Cell2D]], grid: scala.collection.mutable.Map[Cell2D, GridPiece], tiles: Iterable[SectorGroupPiece], writer: MapWriter): Seq[Set[Cell2D]] = {
+  def mergeComponents(
+    components: Seq[Set[Cell2D]],
+    grid: scala.collection.mutable.Map[Cell2D, GridPiece],
+    tiles: Iterable[SectorGroupPiece],
+    writer: MapWriter,
+    copyTracker: MaxCopyTracker,
+    playerStart: Cell2D
+  ): Seq[Set[Cell2D]] = {
     require(components.size > 0)
     if(components.size == 1){
       components
@@ -379,7 +498,11 @@ object TilePainter {
 
       for(i <- 0 until tail.size){ // basically a partitionFirst
         if(second.isEmpty){
-          val adj = allAdjacent(first, tail(i))
+          val adj = allAdjacent(first, tail(i)).filterNot{
+            case (cell1, cell2) => Seq(cell1, cell2).exists{ cell =>
+              grid(cell).getSg.map(_.hasEndGame).getOrElse(false) || cell == playerStart
+            }
+          }
           if(adj.size > 0){
             second = Some(tail(i))
             adjacent = Some(adj)
@@ -391,17 +514,23 @@ object TilePainter {
         }
       }
 
-      require(second.isDefined, "TODO") // TODO this is a legit possibilty; handle more gracefully
-
-      // pick one of the adjacent ones at random, and change the tiles
-      val (cell1, cell2) = writer.randomElement(adjacent.get)
-      forceConnection(writer, cell1, cell2, grid, tiles)
-
-      val merged: Set[Cell2D] = first ++ second.get
-
-      val newComponents: Seq[Set[Cell2D]] = Seq(merged) ++ tail2
+      // /B\
+      // C+C
+      // \C/
+      val newComponents: Seq[Set[Cell2D]] = if(second.isEmpty){
+        println("WARNING:  UNABLE TO MERGE COMPONENTS")
+        tail2 ++ Seq.empty // just keep going
+      }else{
+        // pick one of the adjacent ones at random, and change the tiles
+        val (cell1, cell2) = writer.randomElement(adjacent.get)
+        forceConnection(writer, cell1, cell2, grid, tiles, copyTracker)
+        val merged: Set[Cell2D] = first ++ second.get
+        val newComponents: Seq[Set[Cell2D]] = Seq(merged) ++ tail2
+        newComponents
+      }
       require(newComponents.size == components.size - 1)
-      mergeComponents(newComponents, grid, tiles, writer)
+      val newComponents2 = Seq(newComponents: _*) // having problems with ArrayBuffer, need to force to immutable
+      mergeComponents(newComponents2, grid, tiles, writer, copyTracker, playerStart)
     }
   }
 
@@ -465,7 +594,7 @@ object TilePainter {
   */
 class SquareTileMain(
   val Filename: String,
-  gridBuilderInput: GridBuilderInput = GridBuilderInput(),
+  gridBuilderInput: GridBuilderInput = GridBuilderInput.defaultInput
 ) extends PrefabExperiment {
 
   // TODO - things like which tile number is end sprite, or which SE lotags cant be rotated, should be part of
@@ -494,9 +623,15 @@ class SquareTileMain(
     val availableTiles = palette.allSectorGroups().asScala.filter(SquareTileMain.isCompatible(_, gridParams.sideLength))
       .map(new SectorGroupPiece(_)).filterNot(_.gridPieceType == GridPiece.Orphan)
 
+
+    require(availableTiles.find(_.sg.sectorGroupId == 24).get.sg.hints.maxCopies.get == 1)
+
+
+
+
     val grid = new Grid2D(gridParams)
 
-    val tilesToPaint = TilePainter.paintStrategy1(writer, gridParams, availableTiles)
+    val tilesToPaint = TilePainter.paintStrategy1(gridBuilderInput, writer, gridParams, availableTiles)
 
 
 
