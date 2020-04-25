@@ -97,6 +97,12 @@ public class PrefabUtils {
 		// /** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the north edge of the sector */
 		// public static int VERTICAL_CONNECTOR_NORTH = 19;
 
+
+		/**
+		 * Sprite marks a good location for an enemy.
+		 */
+		public static int ENEMY = 8;
+
 		/**
 		 * Elevator Connector
 		 *
@@ -145,6 +151,7 @@ public class PrefabUtils {
 				REDWALL_CHILD,
 				AUTO_TEXT,
 				STAY,
+				ENEMY,
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
 				TELEPORT_CONNECTOR

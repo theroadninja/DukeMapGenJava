@@ -1,7 +1,8 @@
 package trn.prefab.experiments
-import trn.{FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
-import trn.prefab.{BoundingBox, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.{DukeConstants, FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
+import trn.prefab.{BoundingBox, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
+import trn.duke.TextureList
 import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
 
 import scala.collection.JavaConverters._
@@ -165,7 +166,7 @@ class Grid2D(val params: GridParams2D) {
     }
   }
 
-  def corners: Seq[(Int, Int)] = params.cornerCells
+  def allPsg: Iterable[PastedSectorGroup] = grid.values
 
   def pasteToCell(writer: MapWriter, cellx: Int, celly: Int, sg: SectorGroup): Option[PastedSectorGroup] = {
     val sg2 = Some(sg) // TODO clean up
@@ -644,6 +645,18 @@ class SquareTileMain(
 
     tilesToPaint.foreach { case (cell, tile) =>
       grid.pasteToCell(writer, cell.x, cell.y, tile.getSg.get)
+    }
+
+    grid.allPsg.foreach { psg =>
+      val enemyTags = psg.allSprites.filter(s => PrefabUtils.isMarker(s) && s.getLotag == PrefabUtils.MarkerSpriteLoTags.ENEMY)
+      if(enemyTags.nonEmpty){
+        println("printing enemy")
+        val s = writer.randomElement(enemyTags)
+        // TODO - textures should be part of a "GameInput" object that lists textures for enemies
+        s.setTexture(TextureList.Enemies.LIZTROOP)
+        s.setLotag(0)
+        s.setHiTag(0)
+      }
     }
 
     writer.sgBuilder.autoLinkRedwalls()
