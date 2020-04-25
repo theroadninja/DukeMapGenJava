@@ -1,6 +1,6 @@
 package trn.prefab.experiments
 import trn.{FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
-import trn.prefab.{BoundingBox, EntropyProvider, Heading, MapWriter, Matrix2D, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.prefab.{BoundingBox, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
 import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
 
@@ -8,7 +8,10 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 
 object GridBuilderInput {
-  def defaultInput: GridBuilderInput = GridBuilderInput(5, 5, 2)
+  // seems the most playable
+  def defaultInput: GridBuilderInput = GridBuilderInput(6, 6, 2)
+
+  // def defaultInput: GridBuilderInput = GridBuilderInput(8, 8, 2)
 }
 /**
   * @param maxCellsX maximum width of grid in number of cells
@@ -176,9 +179,9 @@ class Grid2D(val params: GridParams2D) {
   }
 }
 
-object MaxCopyTracker {
-  def countAll(groups: Iterable[SectorGroup]): MaxCopyTracker = {
-    val tracker = new MaxCopyTracker()
+object MaxCopyTracker2 {
+  def countAll(groups: Iterable[SectorGroup]): MaxCopyTracker2 = {
+    val tracker = new MaxCopyTracker2()
     groups.foreach(tracker.record(_, 1))
     tracker
   }
@@ -187,8 +190,10 @@ object MaxCopyTracker {
 /**
   * Tracks counts of sector groups used, for the Max Copy hint.
   * Does not work with anonymous sector groups
+  *
+  * TODO - replace with the other stand alone one
   */
-class MaxCopyTracker {
+class MaxCopyTracker2 {
   // map of sector group id -> count
   val copies = scala.collection.mutable.Map[Int, Int]()
 
@@ -210,6 +215,7 @@ class MaxCopyTracker {
   }
 
   override def toString: String = s"{CopyTracker ${copies} }"
+
 }
 
 
@@ -370,7 +376,7 @@ object TilePainter {
     gridParams: GridParams2D,
     tiles: Iterable[SectorGroupPiece],
     startingGrid: Map[Cell2D, GridPiece],
-    copyTracker: MaxCopyTracker
+    copyTracker: MaxCopyTracker2
   ): scala.collection.immutable.Map[Cell2D, GridPiece] = {
     // val topLeft = Cell2D(-1, -1)
     // val bottomRight = Cell2D(gridParams.cellCountX, gridParams.cellCountY)
@@ -403,10 +409,11 @@ object TilePainter {
 
   def paintStrategy1(
     input: GridBuilderInput,
+    maxCopyHint: MaxCopyHint,
     writer: MapWriter,
     gridParams: GridParams2D, allTiles: Iterable[SectorGroupPiece]): scala.collection.immutable.Map[Cell2D, GridPiece] = {
 
-    val copyTracker = new MaxCopyTracker()
+    val copyTracker = new MaxCopyTracker2()
 
     // 1. choose start and end
     // start and end cannot share an axis
@@ -436,9 +443,14 @@ object TilePainter {
 
     // 3. connect the separate pieces
     val components = TilePainter.connectedComponents(grid.toMap)// .filterNot(_.size == 1)
-    // TODO - open issue where important features are overwritten (like player start?)
     val results = mergeComponents(components, grid,  tiles, writer, copyTracker, playerStart)
     require(results.size == 1)
+
+
+    // TODO:  4. fill in gaps with singles!
+
+
+    maxCopyHint.assertMaxCopies(grid.values.map(_.getSg.get))
 
     println(copyTracker)
     println(s"player start: ${playerStart}")
@@ -453,7 +465,7 @@ object TilePainter {
     cell2: Cell2D,
     grid: scala.collection.mutable.Map[Cell2D, GridPiece],
     tiles: Iterable[SectorGroupPiece],
-    copyTracker: MaxCopyTracker,
+    copyTracker: MaxCopyTracker2,
   ): Unit = {
     require(GridUtil.isAdj(cell1, cell2))
 
@@ -483,7 +495,7 @@ object TilePainter {
     grid: scala.collection.mutable.Map[Cell2D, GridPiece],
     tiles: Iterable[SectorGroupPiece],
     writer: MapWriter,
-    copyTracker: MaxCopyTracker,
+    copyTracker: MaxCopyTracker2,
     playerStart: Cell2D
   ): Seq[Set[Cell2D]] = {
     require(components.size > 0)
@@ -602,6 +614,7 @@ class SquareTileMain(
   override def run(mapLoader: MapLoader): trn.Map = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true)
+    val maxCopyHint = MaxCopyHint.fromPalette(palette)
     val writer = MapWriter()
 
     val stays = writer.pasteStays(palette)
@@ -623,17 +636,11 @@ class SquareTileMain(
     val availableTiles = palette.allSectorGroups().asScala.filter(SquareTileMain.isCompatible(_, gridParams.sideLength))
       .map(new SectorGroupPiece(_)).filterNot(_.gridPieceType == GridPiece.Orphan)
 
-
     require(availableTiles.find(_.sg.sectorGroupId == 24).get.sg.hints.maxCopies.get == 1)
-
-
-
 
     val grid = new Grid2D(gridParams)
 
-    val tilesToPaint = TilePainter.paintStrategy1(gridBuilderInput, writer, gridParams, availableTiles)
-
-
+    val tilesToPaint = TilePainter.paintStrategy1(gridBuilderInput, maxCopyHint, writer, gridParams, availableTiles)
 
     tilesToPaint.foreach { case (cell, tile) =>
       grid.pasteToCell(writer, cell.x, cell.y, tile.getSg.get)

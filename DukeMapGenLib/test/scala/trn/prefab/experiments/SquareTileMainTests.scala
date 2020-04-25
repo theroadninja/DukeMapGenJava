@@ -281,7 +281,7 @@ class SquareTileMainTests {
 
   @Test
   def testMaxCopyTracker(): Unit = {
-    val tracker = new MaxCopyTracker()
+    val tracker = new MaxCopyTracker2()
 
     tracker.recordId(1, -1)
     Assert.assertEquals(0, tracker.count(1))
