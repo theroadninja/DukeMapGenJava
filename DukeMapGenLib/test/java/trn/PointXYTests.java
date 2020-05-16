@@ -227,4 +227,21 @@ public class PointXYTests {
         Assert.assertTrue(PointXY.segmentsIntersect(line1.getP1(), line1.getVector(), line2.getP1(), line2.getVector()));
         Assert.assertTrue(PointXY.intersectSementsForPoly(line1.getP1(), line1.getVector(), line2.getP1(), line2.getVector(), false, false));
     }
+
+    @Test
+    public void testMidpoint(){
+        Assert.assertEquals(p(5, 0), PointXY.midpoint(p(0, 0), p(10, 0)));
+        Assert.assertEquals(p(6, 5), PointXY.midpoint(p(6, 0), p(6, 10)));
+        Assert.assertEquals(p(6, 5), PointXY.midpoint(p(6, 10), p(6, 0)));
+        Assert.assertEquals(p(0, 0), PointXY.midpoint(p(10, 10), p(-10, -10)));
+    }
+
+    @Test
+    public void testMultipliedBy(){
+        Assert.assertEquals(p(0, 0), p(0, 0).multipliedBy(0));
+        Assert.assertEquals(p(0, 0), p(0, 0).multipliedBy(100));
+        Assert.assertEquals(p(0, 0), p(100, 100).multipliedBy(0));
+
+        Assert.assertEquals(p(1, 2).multipliedBy(3), p(3, 6));
+    }
 }

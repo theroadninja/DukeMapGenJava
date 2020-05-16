@@ -304,9 +304,11 @@ public class Map implements WallContainer {
 	
 	/**
 	 * adds the walls and the new sector object.
+	 *
+	 * TODO - the walls always need to be either CW or CCW....?
 	 * 
 	 * @param wallsToAdd
-	 * @return
+	 * @return sectorId
 	 */
 	public int createSectorFromLoop(Wall ... wallsToAdd){
 		return addSector(new Sector(addLoop(wallsToAdd), wallsToAdd.length));

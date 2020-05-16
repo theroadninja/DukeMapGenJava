@@ -3,9 +3,7 @@ package trn.javax;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 public class MultiIteratorTests {
 
@@ -55,5 +53,14 @@ public class MultiIteratorTests {
         Assert.assertEquals(Integer.valueOf(3), mi.next());
 
         Assert.assertFalse(mi.hasNext());
+    }
+
+    @Test
+    public void firstIsEmpty(){
+        Collection<Integer> list1 = new HashMap<Integer, Integer>().values();
+        List<Integer> list2 = Arrays.asList(new Integer[]{1,2,3});
+        MultiIterator<Integer> mi = new MultiIterator<>(list1, list2);
+        Assert.assertTrue(mi.hasNext());
+
     }
 }

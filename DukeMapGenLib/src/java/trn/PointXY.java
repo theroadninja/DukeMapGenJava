@@ -13,10 +13,14 @@ public class PointXY {
 
 	public final int x;
 	public final int y;
-	
+
 	public PointXY(int x, int y){
 		this.x = x;
 		this.y = y;
+	}
+
+	public static PointXY fromDouble(double x, double y){
+		return new PointXY((int)Math.round(x), (int)Math.round(y));
 	}
 
 	public PointXY(Wall w){
@@ -87,6 +91,10 @@ public class PointXY {
 
 	public PointXY subtractedBy(PointXYZ other){
 		return subtractedBy(other.asXY());
+	}
+
+	public PointXY multipliedBy(int f){
+		return new PointXY(x * f, y * f);
 	}
 
 	/**
@@ -239,5 +247,9 @@ public class PointXY {
 		return (0.0 < t && (isRay1 || t < 1.0)) // <-- this is whats different
 				&& (0.0 < u && (isRay2 || u < 1.0));
 
+	}
+
+	public static PointXY midpoint(PointXY p0, PointXY p1){
+		return new PointXY((p0.x + p1.x)/2, (p0.y + p1.y)/2);
 	}
 }

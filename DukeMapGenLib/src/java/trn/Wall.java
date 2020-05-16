@@ -273,6 +273,14 @@ public class Wall {
 	public void setXRepeat(short s){
 		this.xrepeat = s;
 	}
+	public int getXRepeat(){
+		return this.xrepeat;
+	}
+	public int getYRepeat(){
+		return this.yrepeat;
+	}
+
+	// TODO - add explanation for how to use this
 	public void setXRepeat(int i){ setXRepeat((short)i); }
 	
 	public void setYRepeat(short yr){

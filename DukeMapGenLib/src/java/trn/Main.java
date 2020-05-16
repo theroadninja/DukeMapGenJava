@@ -8,6 +8,8 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import trn.duke.MapImageWriter;
 import trn.prefab.experiments.*;
+import trn.render.StairPrinter;
+
 import javax.imageio.ImageIO;
 
 
@@ -33,8 +35,7 @@ public class Main {
 		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));
 		//run(FirstPrefabExperiment$.MODULE$);
 
-		// run(GridExperiment$.MODULE$);
-		run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
+		// run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
 
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
 		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
@@ -53,6 +54,9 @@ public class Main {
 		//run(JigsawPlacerMain$.MODULE$);
 
 		// run(PersonalStorage$.MODULE$);
+
+
+		StairPrinter.quickTest(new MapLoader(DOSPATH));
 	}
 
 

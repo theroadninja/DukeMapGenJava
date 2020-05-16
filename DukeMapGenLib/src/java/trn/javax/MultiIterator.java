@@ -21,12 +21,14 @@ public class MultiIterator<T> implements Iterator<T> {
         if(itemIterator != null && itemIterator.hasNext()){
             return true;
         } else {
-            if(collectionIterator.hasNext()){
+            // need to loop because collections could be empty
+            while(collectionIterator.hasNext()){
                 itemIterator = collectionIterator.next().iterator();
-                return itemIterator.hasNext();
-            }else{
-                return false;
+                if(itemIterator.hasNext()){
+                    return true;
+                }
             }
+            return false;
         }
     }
 
@@ -35,12 +37,13 @@ public class MultiIterator<T> implements Iterator<T> {
         if(itemIterator != null && itemIterator.hasNext()){
             return itemIterator.next();
         } else {
-            if(collectionIterator.hasNext()){
+            while(collectionIterator.hasNext()){
                 itemIterator = collectionIterator.next().iterator();
-                return itemIterator.next();
-            } else {
-                throw new NoSuchElementException();
+                if(itemIterator.hasNext()){
+                    return itemIterator.next();
+                }
             }
+            throw new NoSuchElementException();
         }
     }
 }

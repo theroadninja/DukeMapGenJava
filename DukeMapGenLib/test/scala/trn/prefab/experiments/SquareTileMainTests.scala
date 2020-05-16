@@ -275,8 +275,8 @@ class SquareTileMainTests {
 
   @Test
   def testAllAdjacent(): Unit = {
-    Assert.assertTrue(TilePainter.allAdjacent(Seq(c(0, 0), c(0, 1)), Seq(c(2, 1), c(2, 2))) == Seq.empty)
-    Assert.assertTrue(TilePainter.allAdjacent(Seq(c(0, 0), c(0, 1)), Seq(c(1, 1), c(1, 2))) == Seq((c(0, 1), c(1, 1))))
+    Assert.assertTrue(TilePainter.allAdjacent(Seq(c(0, 0), c(0, 1)), Seq(c(2, 1), c(2, 2))).isEmpty)
+    Assert.assertTrue(TilePainter.allAdjacent(Seq(c(0, 0), c(0, 1)), Seq(c(1, 1), c(1, 2))) == Seq((c(0, 1), c(1, 1))).toSet)
   }
 
   @Test
