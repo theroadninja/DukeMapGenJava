@@ -25,9 +25,24 @@ public class WallView {
         return wallSegment;
     }
 
+    public final double length(){
+        return wallSegment.getLength();
+    }
+
     public WallView(Wall wall, int wallId, LineSegmentXY wallSegement){
         this.wall = wall;
         this.wallId = wallId;
         this.wallSegment = wallSegement;
+    }
+
+
+
+    // ----------------------------------
+    public final int tex(){
+        return wall.getTexture();
+    }
+
+    public final int xRepeat(){
+        return wall.getXRepeat();
     }
 }

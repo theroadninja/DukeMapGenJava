@@ -61,6 +61,10 @@ trait SectorGroupBase {
     coarseIntersect && fineIntersect && polyIntersect
   }
 
+  def getAllWallViews: Iterable[WallView] = {
+    allSectorIds.flatMap(id => getAllWallLoopsAsViews(id).flatten)
+  }
+
   def getAllWallLoopsAsViews(sectorId: Int): Seq[Seq[WallView]] = {
     map.getAllWallLoopsAsViews(sectorId).asScala.map(_.asScala.toSeq)
   }

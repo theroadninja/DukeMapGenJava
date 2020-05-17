@@ -7,11 +7,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import trn.duke.MapImageWriter;
+import trn.prefab.DukeConfig;
+import trn.prefab.GameConfig;
 import trn.prefab.experiments.*;
-import trn.render.StairPrinter;
 
 import javax.imageio.ImageIO;
-
 
 /**
  * Main entry point for map compiler.
@@ -23,9 +23,12 @@ public class Main {
 	//found this, looks like a good resource for the build map format:
 	// http://www.shikadi.net/moddingwiki/MAP_Format_%28Build%29
 	
-	public static String DOSPATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
+	//public static String DOSPATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
+	public static String DOSPATH = HardcodedConfig.DOSPATH;
 	
 	public static void main(String[] args) throws Exception {
+
+		GameConfig gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile());
 
 		File f = new File(DOSPATH);
 		if(!(f.exists() && f.isDirectory())){
@@ -56,7 +59,13 @@ public class Main {
 		// run(PersonalStorage$.MODULE$);
 
 
-		StairPrinter.quickTest(new MapLoader(DOSPATH));
+		//StairPrinter.quickTest(new MapLoader(DOSPATH));
+
+        //java.util.List<String> files = ArtFileReader.findArtFiles(HardcodedConfig.PATH_WITH_ART);
+		//for(String ff : files){
+		//	ArtFileReader.runTest(ff);
+		//}
+		System.out.println(gameCfg.textureWidth(354));
 	}
 
 

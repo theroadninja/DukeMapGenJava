@@ -8,6 +8,9 @@ import trn.duke.MapErrorException;
 import trn.duke.experiments.WallPrefab;
 
 public class Wall {
+
+	/** See XRepeat.md for an explanation */
+	public static int TEX_SCALING_FACTOR = 16;
 	
 	public static final class CSTAT_FLAGS {
 		
@@ -269,10 +272,13 @@ public class Wall {
 		// TODO - throw if i is out of range
 		this.pal = (short)i;
 	}
-	
+
+	/** X-repeat controls the scaling factor.  See XRepeat.md for an explanation */
 	public void setXRepeat(short s){
 		this.xrepeat = s;
 	}
+
+	/** X-repeat controls the scaling factor.  See XRepeat.md for an explanation */
 	public int getXRepeat(){
 		return this.xrepeat;
 	}
@@ -280,8 +286,13 @@ public class Wall {
 		return this.yrepeat;
 	}
 
-	// TODO - add explanation for how to use this
+	/** X-repeat controls the scaling factor.  See XRepeat.md for an explanation */
 	public void setXRepeat(int i){ setXRepeat((short)i); }
+
+	// TODO
+	// public double getXScale(int wallLength){
+	// 	return ((double)wallLength)/(128.0 * (double)xrepeat);
+	// }
 	
 	public void setYRepeat(short yr){
 		this.yrepeat = yr;

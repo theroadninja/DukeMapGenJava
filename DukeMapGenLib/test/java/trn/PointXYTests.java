@@ -22,6 +22,31 @@ public class PointXYTests {
         Assert.assertEquals(new PointXY(0, 2048), new PointXY(0, 2048));
     }
 
+    private boolean equals(double a, double b){
+        final double EPSILON = 0.00001;
+        return Math.abs(a - b) < EPSILON;
+    }
+    @Test
+    public void testDistance(){
+        Assert.assertTrue(equals(10, p(0, 0).distanceTo(p(10, 0))));
+        Assert.assertTrue(equals(10, p(0, 0).distanceTo(p(-10, 0))));
+        Assert.assertTrue(equals(10, p(0, 0).distanceTo(p(0, 10))));
+        Assert.assertTrue(equals(10, p(0, 0).distanceTo(p(0, -10))));
+        Assert.assertFalse(equals(10, p(0, 0).distanceTo(p(9, 0))));
+        Assert.assertFalse(equals(10, p(0, 0).distanceTo(p(-9, 0))));
+        Assert.assertFalse(equals(10, p(0, 0).distanceTo(p(0, 9))));
+        Assert.assertFalse(equals(10, p(0, 0).distanceTo(p(0, -9))));
+
+        Assert.assertTrue(equals(5.0, p(0, 0).distanceTo(p(3, 4))));
+        Assert.assertTrue(equals(5.0, p(0, 0).distanceTo(p(-3, 4))));
+        Assert.assertTrue(equals(5.0, p(0, 0).distanceTo(p(3, -4))));
+        Assert.assertTrue(equals(5.0, p(0, 0).distanceTo(p(4, 3))));
+        Assert.assertTrue(equals(5.0, p(0, 0).distanceTo(p(-4, 3))));
+        Assert.assertTrue(equals(5.0, p(0, 0).distanceTo(p(4, -3))));
+
+        Assert.assertTrue(equals(5.0, p(-1, 0).distanceTo(p(3, -3))));
+    }
+
     @Test
     public void testManhattanDistance(){
         Assert.assertEquals(10, new PointXY(0, 0).manhattanDistanceTo(new PointXY(10, 0)));

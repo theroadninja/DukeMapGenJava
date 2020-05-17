@@ -74,6 +74,12 @@ public class PointXY {
 		return dx  + dy;
 	}
 
+	public double distanceTo(PointXY dest){
+		double dx = (dest.x - this.x);
+		double dy = (dest.y - this.y);
+		return Math.sqrt(dx*dx + dy*dy);
+	}
+
 	public PointXY translateTo(PointXY dest){
 		return new PointXY(dest.x - this.x, dest.y - this.y);
 	}

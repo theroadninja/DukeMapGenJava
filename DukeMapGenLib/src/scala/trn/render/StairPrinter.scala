@@ -21,28 +21,56 @@ object Bezier {
 
 object StairPrinter {
 
+
   // TODO - constants for number of steps duke can walk without jumping, and max number he can jump
   val ZStepHeight = BuildConstants.ZStepHeight
+
+
+  def setWallXScale(wallLoop: Seq[Wall], scale: Double = 1.0): Unit = {
+    for(i <- 0 until wallLoop.size){
+      val j = (i + 1) % wallLoop.size
+      val wallLength = wallLoop(i).getLocation.distanceTo(wallLoop(j).getLocation)
+      val xrepeat = wallLength / (128.0 * scale)
+      wallLoop(i).setXRepeat(Math.round(xrepeat.toInt))
+    }
+  }
+
+  def setWallXRepeatCount(wallLoop: Seq[Wall], repeatCount: Int): Unit = {
+    // TODO - generalize this to a function that will give you each wall and its next point...
+    // like you pass it a f(wall, point2) => B
+    for(i <- 0 until wallLoop.size){
+      val j = (i + 1) % wallLoop.size
+      val wallLength = wallLoop(i).getLocation.distanceTo(wallLoop(j).getLocation)
+      //val xrepeat = repeatCount *
+      //wallLoop(i).setXRepeat(Math.round(xrepeat.toInt))
+    }
+
+    /// TODO TODO TODO - docs for art file format: https://fabiensanglard.net/duke3d/BUILDINF.TXT
+
+
+    ???
+
+  }
 
   // TODO - when interpolating; add an extra check to make sure the integer vertexes are actually different
 
   def quickTest(loader: MapLoader): Unit = {
     val sourceMap = loader.load("stairs.map")
+    // val sourceMap = loader.load("xrepeat.map")
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
 
-    palette.allSectorGroups().asScala.flatMap(sg => sg.allWalls).foreach(w => println(w.getXRepeat()))
+    // For measuring x-repeat:
+    // val allWalls2 = palette.allSectorGroups().asScala.flatMap(sg => sg.getAllWallViews).toSeq
+    // allWalls2.filter(_.tex() != 0).foreach(w => println(s"${w.tex}, xrepeat=${w.xRepeat} length=${w.length}"))
 
     def w(p: PointXY): Wall = {
       val wall = new Wall(p.x, p.y)
       wall.setXRepeat(8)
       wall.setYRepeat(8)
+      wall.setTexture(1097) // 791, 1097
       wall
     }
     def p(x: Int, y: Int): PointXY = new PointXY(x, y)
-
-    // def midpoint(p0: PointXY, p1: PointXY): PointXY = {
-    // }
-
 
     // Notes on approximating a half circle with a bezier curve
     // http://digerati-illuminatus.blogspot.com/2008/05/approximating-semicircle-with-cubic.html
@@ -118,6 +146,7 @@ object StairPrinter {
     // val loop = Seq(leftP0, leftP1) ++ /*rightLoop ++*/ leftLoop.reverse
     // val loop = Seq(leftP0) ++ leftLoop ++  Seq(rightP1, rightP0) ++ rightLoop.reverse
     val loop2: Seq[Wall] = loop.map(w)
+    setWallXScale(loop2, scale = 1.0)
     map.createSectorFromLoop(loop2: _*)
 
 

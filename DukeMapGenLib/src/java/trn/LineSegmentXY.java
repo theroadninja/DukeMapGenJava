@@ -36,6 +36,10 @@ public class LineSegmentXY {
         return p2.subtractedBy(p1);
     }
 
+    public double getLength(){
+        return p1.distanceTo(p2);
+    }
+
     /**
      * Tests line segment intersection.  Note: returns true of overlapping and same lines
      * @param line2 the other line

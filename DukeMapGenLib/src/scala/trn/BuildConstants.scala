@@ -1,5 +1,7 @@
 package trn
 
+// this info was found by experiment
+// TODO - incorporate this info also http://infosuite.duke4.net/index.php?page=references_dimensions
 object BuildConstants {
   /** Height in z units of a single PGUP / PGDOWN action in the build editor */
   val ZStepHeight = 1024

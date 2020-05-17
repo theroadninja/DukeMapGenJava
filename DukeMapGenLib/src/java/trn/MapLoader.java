@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+// See also ArtFileReader
 public class MapLoader {
 
     private final String path;
@@ -35,6 +36,6 @@ public class MapLoader {
     public static Map loadMap(File mapfile) throws IOException {
         FileInputStream bs = new FileInputStream(mapfile);
         Map map = Map.readMap(bs);
-        return map;
+        return map; // TODO - am I seriously not closing the stream??
     }
 }
