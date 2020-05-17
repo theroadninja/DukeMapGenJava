@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 // see also MapLoader and Map.readMap()
+/// TODO - docs for art file format: https://fabiensanglard.net/duke3d/BUILDINF.TXT
 public class ArtFileReader {
 
     public static List<String> findArtFiles(String folder){

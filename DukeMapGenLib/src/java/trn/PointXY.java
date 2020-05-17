@@ -23,6 +23,14 @@ public class PointXY {
 		return new PointXY((int)Math.round(x), (int)Math.round(y));
 	}
 
+	public FVectorXY toFVectorXY(){
+		return new FVectorXY(x, y);
+	}
+
+	public FVectorXY toF(){
+		return toFVectorXY();
+	}
+
 	public PointXY(Wall w){
 		this.x = w.getX();
 		this.y = w.getY();
@@ -78,6 +86,15 @@ public class PointXY {
 		double dx = (dest.x - this.x);
 		double dy = (dest.y - this.y);
 		return Math.sqrt(dx*dx + dy*dy);
+	}
+
+	/**
+	 * Treating this object as a point, describe a vector that will go from this point to dest
+	 * @param dest the point
+	 * @return
+	 */
+	public PointXY vectorTo(PointXY dest){
+		return dest.subtractedBy(this);
 	}
 
 	public PointXY translateTo(PointXY dest){

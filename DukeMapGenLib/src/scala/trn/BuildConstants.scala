@@ -2,6 +2,7 @@ package trn
 
 // this info was found by experiment
 // TODO - incorporate this info also http://infosuite.duke4.net/index.php?page=references_dimensions
+// TODO - should this be merged with GameConfig ?
 object BuildConstants {
   /** Height in z units of a single PGUP / PGDOWN action in the build editor */
   val ZStepHeight = 1024
@@ -16,4 +17,7 @@ object BuildConstants {
     * that the player can still jump over).
     */
   val MaxStepsJump = 20
+
+  /** See XRepeat.md for an explanation.  multiplied by tex coordinates to get tex world coordinates */
+  val TexScalingFactorX = 16;
 }

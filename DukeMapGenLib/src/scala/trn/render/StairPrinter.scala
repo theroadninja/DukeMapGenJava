@@ -2,7 +2,7 @@ package trn.render
 
 import trn.math.Interpolate
 import trn.{BuildConstants, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Wall, Map => DMap}
-import trn.prefab.PrefabPalette
+import trn.prefab.{GameConfig, PrefabPalette}
 
 import scala.collection.JavaConverters._
 
@@ -21,133 +21,155 @@ object Bezier {
 
 object StairPrinter {
 
-
   // TODO - constants for number of steps duke can walk without jumping, and max number he can jump
   val ZStepHeight = BuildConstants.ZStepHeight
 
-
-  def setWallXScale(wallLoop: Seq[Wall], scale: Double = 1.0): Unit = {
-    for(i <- 0 until wallLoop.size){
-      val j = (i + 1) % wallLoop.size
-      val wallLength = wallLoop(i).getLocation.distanceTo(wallLoop(j).getLocation)
-      val xrepeat = wallLength / (128.0 * scale)
-      wallLoop(i).setXRepeat(Math.round(xrepeat.toInt))
-    }
-  }
-
-  def setWallXRepeatCount(wallLoop: Seq[Wall], repeatCount: Int): Unit = {
-    // TODO - generalize this to a function that will give you each wall and its next point...
-    // like you pass it a f(wall, point2) => B
-    for(i <- 0 until wallLoop.size){
-      val j = (i + 1) % wallLoop.size
-      val wallLength = wallLoop(i).getLocation.distanceTo(wallLoop(j).getLocation)
-      //val xrepeat = repeatCount *
-      //wallLoop(i).setXRepeat(Math.round(xrepeat.toInt))
-    }
-
-    /// TODO TODO TODO - docs for art file format: https://fabiensanglard.net/duke3d/BUILDINF.TXT
-
-
-    ???
-
-  }
-
-  // TODO - when interpolating; add an extra check to make sure the integer vertexes are actually different
-
-  def quickTest(loader: MapLoader): Unit = {
-    val sourceMap = loader.load("stairs.map")
-    // val sourceMap = loader.load("xrepeat.map")
+  // reads a test map and prints stuff, for reverse engineering xrepeat and xpan
+  def xrepeatTest(loader: MapLoader, gameCfg: GameConfig): Unit = {
+    val sourceMap = loader.load("xrepeat.map")
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
 
     // For measuring x-repeat:
-    // val allWalls2 = palette.allSectorGroups().asScala.flatMap(sg => sg.getAllWallViews).toSeq
-    // allWalls2.filter(_.tex() != 0).foreach(w => println(s"${w.tex}, xrepeat=${w.xRepeat} length=${w.length}"))
-
-    def w(p: PointXY): Wall = {
-      val wall = new Wall(p.x, p.y)
-      wall.setXRepeat(8)
-      wall.setYRepeat(8)
-      wall.setTexture(1097) // 791, 1097
-      wall
+    val allWalls = palette.allSectorGroups().asScala.flatMap(sg => sg.getAllWallViews).toSeq
+    // allWalls.filter(_.tex() != 0).foreach(w => println(s"${w.tex}, xrepeat=${w.xRepeat} length=${w.length}"))
+    allWalls.filter(_.tex != 0).foreach { w =>
+      println(s"tex=${w.tex} xrepeat=${w.xRepeat} xpan=${w.xPan()}")
     }
-    def p(x: Int, y: Int): PointXY = new PointXY(x, y)
+  }
 
-    // Notes on approximating a half circle with a bezier curve
-    // http://digerati-illuminatus.blogspot.com/2008/05/approximating-semicircle-with-cubic.html
+  // TODO - DRY with FVectorXY
+  def rotateCWAndScale(x: Double, y: Double, scale: Int): PointXY = {
+    // Normally:
+    // clockwize = (y, -x)
+    // counter = (-y, x)
+    // however:  because the Build editor shows Y+ going "down", this flips everything.
+    // Build CW = (-y, x)
+    // Build CCW = (y, -x)
+    PointXY.fromDouble(-y * scale, x * scale)
+  }
+  def rotateCCWAndScale(x: Double, y: Double, scale: Int): PointXY = {
+    // Normally:
+    // clockwize = (y, -x)
+    // counter = (-y, x)
+    // however:  because the Build editor shows Y+ going "down", this flips everything.
+    // Build CW = (-y, x)
+    // Build CCW = (y, -x)
+    PointXY.fromDouble(y * scale, -x * scale)
+  }
 
-    val map: DMap = DMap.createNew
 
-    // // This code makes the north wall a curved dome
-    // val nw = new PointXY(0, 0)
-    // val ne = new PointXY(2048, 0)
-    // val sw = new PointXY(0, 1024)
-    // val se = new PointXY(2048, 1024)
-    // // i want the curve to be a half circle if my "control arms" are facing straight out
-    // // multiplying the "arm" length by 2/3 seems to do the trick
-    // val handleWidth = 2048 * 2 / 3
-    // val handle = new PointXY(0, -handleWidth)
-    // val topRow = Interpolate.cubic(nw, nw.add(handle), ne.add(handle), ne, 8)
-    // val loop = topRow.map(p => w(p)) ++ Seq(w(se), w(sw))
-    // val sectorId = map.createSectorFromLoop(loop: _*)
-
-    val leftP0 = p(0, 0)
-    val leftP1 = p(2048, 0)
-    val rightP0 = p(4096, 0)
-    val rightP1 = p(6144, 0)
-
+  /**
+    * So, I was hoping that straight stairs could be a special case of curved stairs, but with bezier curvers that
+    * just doesnt work (stairs are uneven sizes)
+    *
+    * @param map
+    * @param leftP0
+    * @param leftP1
+    * @param rightP0
+    * @param rightP1
+    * @param tex
+    * @param gameCfg
+    */
+  def writeCurvedStairs(
+    map: DMap,
+    leftP0: PointXY,
+    leftP1: PointXY,
+    rightP0: PointXY,
+    rightP1: PointXY,
+    tex: Int,
+    gameCfg: GameConfig
+  ): Unit = {
     val w0 = 2048 // width
     val w1 = 2048
 
-    val guide0 = p(1024, 0)
-    val guide0vector = p(0, 1)
-    val guide1 = p(5120, 0)
-    val guide1vector = p(0, 1)
+    val guide0 = PointXY.midpoint(leftP0, leftP1)
+    val guide1 = PointXY.midpoint(rightP0, rightP1)
 
-    val handleLength = guide0.manhattanDistanceTo(guide1) * 2 / 3
-    //val guide0h = guide0vector.multipliedBy(handleLength.toInt)
-    //val guide1h = guide1vector.multipliedBy(handleLength.toInt)
-    val guide0h = guide0.add(new PointXY(0, -handleLength.toInt))
-    val guide1h = guide1.add(new PointXY(0, -handleLength.toInt))
+    // TODO - this should probably be distance, not manhattan distance
+    val handleLength = guide0.distanceTo(guide1).toInt * 2/3  // 2/3 is best for approximating circles?
+    // val handleLength = guide0.distanceTo(guide1).toInt * 1/10
+    // val handleLength = guide0.distanceTo(guide1).toInt * 1/2
+    //val handleLength = guide0.distanceTo(guide1).toInt * 2/5
+
+    val guide0h_vector = leftP0.vectorTo(leftP1).toF.rotatedCCW.normalized.scaled(handleLength).toPointXY
+    val guide0h = guide0.add(guide0h_vector)
+    //val guide0h = guide0.add(new PointXY(0, -handleLength.toInt))
+
+    val guide1h_vector = rightP0.vectorTo(rightP1).toF.rotatedCCW.normalized.scaled(handleLength).toPointXY
+    val guide1h = guide1.add(guide1h_vector)
+    // val guide1h = guide1.add(new PointXY(0, -handleLength.toInt))
 
     val guideLoop = Interpolate.cubicWithTangents(guide0, guide0h, guide1h, guide1, 16)
     val loops = (1 until guideLoop.size - 1).map { pointId =>
       val p = guideLoop(pointId)
 
-      // val prev = guideLoop(pointId-1).p
-      // val next = guideLoop(pointId+1).p
-
       // TODO - interpolate width
       val width = w0
-      val w = width/2
 
       val (tanx, tany) = p.tangent
-
-      // Normally:
-      // clockwize = (y, -x)
-      // counter = (-y, x)
-      // however:  because the Build editor shows Y+ going "down", this flips everything.
-      // Build CW = (-y, x)
-      // Build CCW = (y, -x)
-      val leftVec = PointXY.fromDouble(tany * w, -tanx * w) // CW
-      val rightVec = PointXY.fromDouble(-tany * w, tanx * w) // CCW
+      val leftVec = rotateCCWAndScale(tanx, tany, width/2)
+      val rightVec = rotateCWAndScale(tanx, tany, width/2)
 
       val rightPoint = p.p.add(rightVec)
       val leftPoint = p.p.add(leftVec)
       (leftPoint, rightPoint)
     }
 
-    // val (leftLoop, rightLoop) = (Seq((leftP0, leftP1)) ++ loops ++ Seq((rightP1, rightP0))).unzip
     val (leftLoop, rightLoop) = (Seq((leftP0, leftP1)) ++ loops ++ Seq((rightP1, rightP0))).unzip
 
-
-    // TODO - i think walls need to be specified CCW -- wait, no, CW, as you are looking at the build screen?
+    def w(p: PointXY): Wall = {
+      val wall = new Wall(p.x, p.y)
+      wall.setXRepeat(8)
+      wall.setYRepeat(8)
+      wall.setTexture(tex)
+      wall
+    }
 
     val loop = leftLoop ++  rightLoop.reverse // works
-    // val loop = Seq(leftP0, leftP1) ++ /*rightLoop ++*/ leftLoop.reverse
-    // val loop = Seq(leftP0) ++ leftLoop ++  Seq(rightP1, rightP0) ++ rightLoop.reverse
     val loop2: Seq[Wall] = loop.map(w)
-    setWallXScale(loop2, scale = 1.0)
+
+    TextureUtil.lineUpTextures(loop2, 1.0, gameCfg.textureWidth(tex))
+
+
+
     map.createSectorFromLoop(loop2: _*)
+
+
+  }
+
+  def quickTest(loader: MapLoader, gameCfg: GameConfig): Unit = {
+    val sourceMap = loader.load("stairs.map")
+    // val sourceMap = loader.load("xrepeat.map")
+    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
+
+
+    def p(x: Int, y: Int): PointXY = new PointXY(x, y)
+
+    // Notes on approximating a half circle with a bezier curve
+    // http://digerati-illuminatus.blogspot.com/2008/05/approximating-semicircle-with-cubic.html
+
+    // TODO - support auomatic light intersection (like in curved stairwell: one side of inner colum is a light...)
+    // TODO - when interpolating; add an extra check to make sure the integer vertexes are actually different
+    val map: DMap = DMap.createNew
+
+
+
+
+
+    // nice half-circle
+    // val leftP0 = p(0, 0)
+    // val leftP1 = p(2048, 0)
+    // val rightP0 = p(4096 + 1024, 0)
+    // val rightP1 = p(6144 + 1024, 0)
+
+    val leftP0 = p(0, 0)
+    val leftP1 = p(0, 2048)
+
+    val rightP0 = p(4096, 2048)
+    val rightP1 = p(4096, 0)
+
+    val WallTex = 1097 // or 791, 1097
+    writeCurvedStairs(map, leftP0, leftP1, rightP0, rightP1, 791, gameCfg)
 
 
     map.setPlayerStart(new PlayerStart(512, 512, 0, PlayerStart.NORTH))

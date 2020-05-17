@@ -71,6 +71,7 @@ object Interpolate {
     }
   }
 
+  // TODO - migrate to using FPointXY, which i created for this stuff
   def normalize(x: Double, y: Double): (Double, Double) = {
     val length: Double = Math.sqrt(x*x + y*y)
     (x/length, y/length)

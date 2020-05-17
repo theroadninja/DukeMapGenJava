@@ -45,4 +45,8 @@ public class WallView {
     public final int xRepeat(){
         return wall.getXRepeat();
     }
+
+    public final int xPan(){
+        return wall.getXPanning();
+    }
 }

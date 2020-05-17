@@ -9,9 +9,6 @@ import trn.duke.experiments.WallPrefab;
 
 public class Wall {
 
-	/** See XRepeat.md for an explanation */
-	public static int TEX_SCALING_FACTOR = 16;
-	
 	public static final class CSTAT_FLAGS {
 		
 		public static final int BIT_2_ALIGN_TEX_ON_BOTTOM = 4;
@@ -285,9 +282,26 @@ public class Wall {
 	public int getYRepeat(){
 		return this.yrepeat;
 	}
+	public int getXPanning(){
+		return this.xpanning;
+	}
+
+	public void setXPanning(int xpan){
+		this.xpanning = (short)xpan;
+	}
 
 	/** X-repeat controls the scaling factor.  See XRepeat.md for an explanation */
 	public void setXRepeat(int i){ setXRepeat((short)i); }
+
+	/**
+	 *
+	 * @param scale factor (1 for normal, 2 for double the size, 0.5 for half size...)
+	 * @param wallLength length of THIS wall, in world units.
+	 */
+	public void setXScale(double scale, double wallLength){
+	    double xr = wallLength / (128.0 * scale);
+	    setXRepeat((short)Math.round(xr));
+	}
 
 	// TODO
 	// public double getXScale(int wallLength){
