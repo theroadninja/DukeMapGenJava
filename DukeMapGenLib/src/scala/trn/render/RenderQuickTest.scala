@@ -2,7 +2,7 @@ package trn.render
 
 import trn.prefab.{GameConfig, PrefabPalette}
 import trn.render.StairPrinter.writeCurvedStairs
-import trn.{BuildConstants, Main, MapLoader, PlayerStart, PointXY, Map => DMap}
+import trn.{BuildConstants, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, Map => DMap}
 import trn.BuildConstants._
 
 import scala.collection.JavaConverters._
@@ -63,14 +63,41 @@ object RenderQuickTest {
     // writeCurvedStairs(map, leftP0, leftP1, rightP0, rightP1, WallTex)
 
 
-    val e0 = StairEntrance(p(0, 0), p(0, 2048), DefaultFloorZ)
-    val floor2 = DefaultFloorZ - DefaultSectorHeight * 2
-    val e1 = StairEntrance(p(4096, 2048), p(4096, 0), floor2)
+    // // Strait Stair Test
+    // val floor0 = BuildConstants.DefaultFloorZ
+    // val ceil0 = BuildConstants.DefaultCeilZ
+    // val floor2 = DefaultFloorZ - DefaultSectorHeight * 2
+    // val ceil2 = floor2 - BuildConstants.DefaultSectorHeight
+    val floor2 = BuildConstants.DefaultFloorZ
+    val ceil2 = BuildConstants.DefaultCeilZ
+    val floor0 = DefaultFloorZ - DefaultSectorHeight * 2
+    val ceil0 = floor0 - BuildConstants.DefaultSectorHeight
 
-    // TODO - need a wrapper function that takes two sector and wall ids,
-    // because this thing is just interpolating the inner stairs and we need to see the start and end level.
+    val sector0 = MiscPrinter.box(map, p(-2048, 0), p(0, 2048), floor0, ceil0)
+    val e0 = StairEntrance(p(0, 0), p(0, 2048), map.getSector(sector0))
+
+
+    val sector1 = MiscPrinter.box(map, p(4096, 0), p(4096 + 2048, 2048), floor2, ceil2)
+    // val e1 = StairEntrance(p(4096, 2048), p(4096, 0), floor2, ceil2, None)
+    val e1 = StairEntrance(p(4096, 2048), p(4096, 0), map.getSector(sector1))
     StairPrinter.straightStairs(map, e0, e1, WallTex)
 
+    MiscPrinter.lazyAutoLinkEverything(map)
+
+    // TODO - idea: separate construction of sectors and walls from how they are painted?
+
+
+    //val sector0 = MiscPrinter.box(map, p(-2048, -2048), p(0, 0), BuildConstants.DefaultFloorZ, BuildConstants.DefaultCeilZ)
+    //val wall0 = map.getAllWallLoopsAsViews(sector0).asScala.flatMap(_.asScala).find{ w =>
+    //  w.getLineSegment.equals(new LineSegmentXY(p(0, -2048), p(0, 0)))
+    //}.get.getWallId
+
+    //val floor = BuildConstants.DefaultFloorZ - BuildConstants.ZStepHeight * 40
+    //val sector1 = MiscPrinter.box(map, p(4096, -2048), p(4096 + 2048, 0), floor, floor - BuildConstants.DefaultSectorHeight)
+    //val wall1 = map.getAllWallLoopsAsViews(sector1).asScala.flatMap(_.asScala).find{ w =>
+    //  w.getLineSegment.equals(new LineSegmentXY(p(4096, 0), p(4096, -2048)))
+    //}.get.getWallId
+    //StairPrinter.straightStairs(map, sector0, wall0, sector1, wall1, StairTextures(WallTex))
 
 
     map.setPlayerStart(new PlayerStart(512, 512, 0, PlayerStart.NORTH))

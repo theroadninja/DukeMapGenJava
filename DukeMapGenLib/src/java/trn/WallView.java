@@ -41,6 +41,14 @@ public class WallView {
 
 
     // ----------------------------------
+
+    public final boolean isRedwall(){
+        return wall.isRedWall();
+    }
+    public final int otherWallId(){
+        return wall.nextWall;
+    }
+
     public final int tex(){
         return wall.getTexture();
     }
