@@ -1,5 +1,7 @@
 package trn;
 
+import javax.sound.sampled.Line;
+
 public class LineSegmentXY {
 
     private final PointXY p1;
@@ -26,6 +28,13 @@ public class LineSegmentXY {
 
     public PointXY getP1(){
         return this.p1;
+    }
+    public PointXY getP2(){
+        return this.p2;
+    }
+
+    public LineSegmentXY reversed(){
+        return new LineSegmentXY(p2, p1);
     }
 
 

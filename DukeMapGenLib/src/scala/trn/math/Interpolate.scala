@@ -45,6 +45,10 @@ object Interpolate {
     (0 until count).map(i => i * stepSize).map(t => interpInt(p0, p1, t))
   }
 
+  def linear(start: Int, end: Int, count: Int): Seq[Int] = {
+    linear(new PointXY(start, 0), new PointXY(end, 0), count).map(_.x)
+  }
+
 
   private def cubicAtT(p0: PointXY, p1: PointXY, p2: PointXY, p3: PointXY, t: Double): (Double, Double) = {
     // linear

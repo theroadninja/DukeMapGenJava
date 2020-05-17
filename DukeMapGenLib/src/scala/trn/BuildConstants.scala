@@ -7,6 +7,10 @@ object BuildConstants {
   /** Height in z units of a single PGUP / PGDOWN action in the build editor */
   val ZStepHeight = 1024
 
+  /** minimum sector height, in PgUp/PgDown steps, that duke can enter without ducking */
+  val MinStandingSectorHeightSteps = 11
+  val MinStandSectHeight = MinStandingSectorHeightSteps * ZStepHeight
+
   /** Max number of PgUp / PgDown z-steps of height difference that player can walk over */
   val MaxStepsWalk = 4
 
@@ -20,4 +24,14 @@ object BuildConstants {
 
   /** See XRepeat.md for an explanation.  multiplied by tex coordinates to get tex world coordinates */
   val TexScalingFactorX = 16;
+
+
+
+  /** default sector height, in PgUp/PgDown steps */
+  val DefaultSectorHeightStep = 16
+  val DefaultSectorHeight = DefaultSectorHeightStep * ZStepHeight
+
+  // remember, positize Z points down, for some reason
+  val DefaultFloorZ = 8192
+  val DefaultCeilZ = -8192
 }

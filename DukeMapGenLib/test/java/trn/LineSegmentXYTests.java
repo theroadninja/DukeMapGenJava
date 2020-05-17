@@ -82,4 +82,9 @@ public class LineSegmentXYTests {
         Assert.assertFalse(line(p(1,1), p(1, 2)).intersectsRay(p(0, 0), p(1, 0), false));
         Assert.assertFalse(line(p(-10,1), p(1, 2)).intersectsRay(p(0, 0), p(1, 0), false));
     }
+
+    @Test
+    public void testReversed(){
+        Assert.assertTrue(line(p(1365, 2048), p(1365, 0)).equals(line(p(1365, 0), p(1365, 2048)).reversed()));
+    }
 }

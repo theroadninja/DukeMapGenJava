@@ -10,6 +10,7 @@ import trn.duke.MapImageWriter;
 import trn.prefab.DukeConfig;
 import trn.prefab.GameConfig;
 import trn.prefab.experiments.*;
+import trn.render.RenderQuickTest;
 import trn.render.StairPrinter;
 
 import javax.imageio.ImageIO;
@@ -61,7 +62,7 @@ public class Main {
 
 
 		// StairPrinter.xrepeatTest(new MapLoader(DOSPATH), gameCfg);
-		StairPrinter.quickTest(new MapLoader(DOSPATH), gameCfg);
+		RenderQuickTest.quickTest(new MapLoader(DOSPATH), gameCfg);
 
         //java.util.List<String> files = ArtFileReader.findArtFiles(HardcodedConfig.PATH_WITH_ART);
 		//for(String ff : files){

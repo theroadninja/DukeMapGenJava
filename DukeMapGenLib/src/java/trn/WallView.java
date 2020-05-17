@@ -35,6 +35,9 @@ public class WallView {
         this.wallSegment = wallSegement;
     }
 
+    public final int getWallId(){
+        return this.wallId;
+    }
 
 
     // ----------------------------------
