@@ -34,4 +34,13 @@ object BuildConstants {
   // remember, positize Z points down, for some reason
   val DefaultFloorZ = 8192
   val DefaultCeilZ = -8192
+
+
+  /**
+    * transforms z coordinates into the same scale as xy coordinates.
+    *
+    * @param z
+    * @return
+    */
+  def ztoxy(z: Int): Int = z >> 4
 }

@@ -15,7 +15,7 @@ object MiscPrinter {
             map.linkRedWallsStrict(sectorId0, w0.getWallId, sectorId1, w1.getWallId)
           }
         }else{
-          println(s"${w0.getLineSegment()} vs ${w1.getLineSegment}")
+          //println(s"${w0.getLineSegment()} vs ${w1.getLineSegment}")
         }
       }
     }

@@ -42,6 +42,13 @@ public class WallView {
 
     // ----------------------------------
 
+    /** @return true if this wall is vertical, aligned to the y axis */
+    public final boolean isAlignedY(){
+        PointXY p1 = getLineSegment().getP1();
+        PointXY p2 = getLineSegment().getP2();
+        return p1.x == p2.x && p1.y != p2.y;
+    }
+
     public final boolean isRedwall(){
         return wall.isRedWall();
     }
