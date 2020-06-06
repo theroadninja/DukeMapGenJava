@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
+import trn.bespoke.MoonBase1$;
 import trn.duke.MapImageWriter;
 import trn.prefab.DukeConfig;
 import trn.prefab.GameConfig;
@@ -62,12 +63,14 @@ public class Main {
 
 
 		// StairPrinter.xrepeatTest(new MapLoader(DOSPATH), gameCfg);
-		RenderQuickTest.quickTest(new MapLoader(DOSPATH), gameCfg);
+		// RenderQuickTest.quickTest(new MapLoader(DOSPATH), gameCfg);
 
         //java.util.List<String> files = ArtFileReader.findArtFiles(HardcodedConfig.PATH_WITH_ART);
 		//for(String ff : files){
 		//	ArtFileReader.runTest(ff);
 		//}
+
+		MoonBase1$.MODULE$.run(gameCfg);
 	}
 
 

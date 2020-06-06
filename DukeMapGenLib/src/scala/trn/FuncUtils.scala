@@ -1,11 +1,12 @@
 package trn
 
+import scala.math.Ordering
 import scala.collection.mutable
 
 object FuncUtils {
 
   // This is native to scala 2.13
-  def maxByOption[E, C](list: Traversable[E])(f: (E) => C)(implicit cmp: math.Ordering[C]): Option[E] = {
+  def maxByOption[E, C](list: Traversable[E])(f: (E) => C)(implicit cmp: Ordering[C]): Option[E] = {
     if(list.isEmpty){
       None
     }else{
@@ -13,7 +14,7 @@ object FuncUtils {
     }
   }
 
-  def maxOption[E](list: Traversable[E])(implicit cmp: math.Ordering[E]): Option[E] = maxByOption(list)(e => e)
+  def maxOption[E](list: Traversable[E])(implicit cmp: Ordering[E]): Option[E] = maxByOption(list)(e => e)
 
   def defaultHistoFn[U, V](item: U): V = item.asInstanceOf[V]
 
@@ -50,9 +51,9 @@ object FuncImplicits {
 
     def duplicates: Iterable[A] = FuncUtils.duplicates(s)
 
-    def maxByOption[B](f: (A) => B)(implicit cmp: math.Ordering[B]): Option[A] = FuncUtils.maxByOption(s)(f)
+    def maxByOption[B](f: (A) => B)(implicit cmp: Ordering[B]): Option[A] = FuncUtils.maxByOption(s)(f)
 
-    def maxOption(implicit cmp: math.Ordering[A]):  Option[A] = FuncUtils.maxOption(s)
+    def maxOption(implicit cmp: Ordering[A]):  Option[A] = FuncUtils.maxOption(s)
   }
 
 }

@@ -12,6 +12,20 @@ public final class HardcodedConfig {
         return System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "data" + File.separator + "atomictexwidths.txt";
     }
 
+    /**
+     * @return the full path to a file in the MapData/ folder in this project.
+     */
+    public static final String getMapDataPath(String filename){
+        return System.getProperty("user.dir") + "/DukeMapGenLib/mapdata/" + filename;
+    }
+
+    /**
+     * @return the full path to a file in my Duke3d folder in dosbox (not part of this project)
+     */
+    public static final String getDosboxPath(String filename){
+        return DOSPATH + filename;
+    }
+
     // TODO - there is also a path in MapLoader
 
     // TODO - also in Testutils.scala (and probably the java one) - util class for loading unit test files

@@ -1,9 +1,12 @@
 package trn;
 
+import trn.prefab.PrefabPalette;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+// TODO - DRY with HardcodedConfig
 // See also ArtFileReader
 public class MapLoader {
 
@@ -21,6 +24,10 @@ public class MapLoader {
     public static Map loadLocalMap(String filename) throws IOException {
         // TODO - try to load from project first
         return loadMap(Main.DOSPATH + filename);
+    }
+
+    public static PrefabPalette loadPalette(String filename) throws IOException {
+        return PrefabPalette.fromMap(loadMap(filename), true);
     }
 
     public static Map loadMap(String filename) throws IOException {
