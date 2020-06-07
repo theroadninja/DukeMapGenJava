@@ -3,6 +3,9 @@ package trn.bespoke
 import trn.{BuildConstants, HardcodedConfig, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sector, WallView, Map => DMap}
 import trn.prefab.{GameConfig, MapWriter, PrefabPalette}
 
+object Space {
+  val Door = 1 // sector group of split door with circles
+}
 /**
   * This creates a "moon base" themed map, aiming to recreat the levels in Duke3D Episode 2, especially L6, L7, L8.
   *
@@ -26,7 +29,10 @@ object MoonBase1 {
 
     val writer = MapWriter()
 
-    writer.sgBuilder.pasteSectorGroup2(moonPalette.getSectorGroup(1), PointXYZ.ZERO)
+    val (center, _) = writer.sgBuilder.pasteSectorGroup2(moonPalette.getSectorGroup(1), PointXYZ.ZERO)
+
+    writer.tryPasteConnectedTo(center, spacePalette.getSG(Space.Door))
+
 
     writer.builder.setAnyPlayerStart(force = true)
     writer.sgBuilder.clearMarkers()

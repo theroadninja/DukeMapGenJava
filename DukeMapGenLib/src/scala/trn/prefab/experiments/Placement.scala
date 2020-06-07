@@ -2,7 +2,7 @@ package trn.prefab.experiments
 
 import trn.prefab.{MapWriter, PastedSectorGroup, RedwallConnector, SectorGroup}
 
-case class PlacementOps(allowRotation: Boolean, allowOverlap: Boolean)
+// case class PlacementOps(allowRotation: Boolean, allowOverlap: Boolean)
 
 object Placement {
 
@@ -35,7 +35,7 @@ object Placement {
     existing: PastedSectorGroup,
     newGroup: SectorGroup,
     allowRotation: Boolean = true, // TODO - create a PlacementArgs object(?)
-    allowOverlap: Boolean = false
+    allowOverlap: Boolean = false // TODO - check Z instead of just a yes/no for overlap
   ): Seq[Placement] = {
     val conns1 = existing.unlinkedRedwallConnectors
 

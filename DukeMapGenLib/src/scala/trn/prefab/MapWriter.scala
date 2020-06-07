@@ -4,9 +4,10 @@ import java.util
 
 import trn.duke.PaletteList
 import trn.{ISpriteFilter, IdMap, PointXY, PointXYZ, Sprite, Map => DMap}
-
 import trn.MapImplicits._
 import trn.FuncImplicits._
+import trn.prefab.experiments._
+
 import scala.collection.JavaConverters._
 
 
@@ -145,7 +146,9 @@ object MapWriter {
   * @param sgBuilder
   */
 class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random: RandomX = new RandomX())
-  extends ISectorGroup with EntropyProvider {
+  extends ISectorGroup
+    with EntropyProvider
+    with MapWriter2 {
 
   /** throws if the map has too many sectors */
   def checkSectorCount(): Unit = {
@@ -166,7 +169,7 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
   //
   def pastedSectorGroups: Seq[PastedSectorGroup] = sgBuilder.pastedSectorGroups
 
-  def pasteAndLink(
+  override def pasteAndLink(
     existingConn: RedwallConnector,
     newSg: SectorGroup,
     newConn: RedwallConnector
@@ -280,9 +283,29 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     existingConn.isMatch(newConn) && (skipSpaceCheck || spaceAvailable(newSg, newConn.getTransformTo(existingConn).asXY))
   }
 
+  // you care which existing group, but dont care which connector for either of them
+  // TODO - use the new MapWriter2 methods
+  def tryPasteConnectedTo(
+    existing: PastedSectorGroup,
+    newGroup: SectorGroup,
+    allowOverlap: Boolean = false   // TODO - check Z of the overlapping sectors
+  ): Option[PastedSectorGroup] = {
+
+    // Placement.allPasteOptions(this, existing, newGroup, allowRotation = true, allowOverlap = allowOverlap)
+    val allOptions = Placement.pasteOptions(this, existing, newGroup)
+    if(allOptions.size < 1){
+      None
+    }else{
+      //val (c1, c2, g) = random.randomElement(allOptions)
+      val p = random.randomElement(allOptions)
+      //Some(pasteAndLink(c1, g, c2))
+      Some(pasteAndLink(p.existing, p.newSg, p.newConn))
+    }
+  }
+
 
   //
-  //  ORDINAL DIRECTION METHODS BELOW
+  //  COMPASS DIRECTION METHODS BELOW
   //
   private def pasteAndLinkNextTo(
     existingGroup: PastedSectorGroup,

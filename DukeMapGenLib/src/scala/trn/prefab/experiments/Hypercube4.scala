@@ -9,6 +9,7 @@ import trn.prefab.hypercube.GridManager.Cell
 
 import scala.collection.JavaConverters._
 import trn.MapImplicits._
+import trn.prefab.abandoned.JigsawPlacer
 
 
 /** TODO - this is copied from Hypercube3 */

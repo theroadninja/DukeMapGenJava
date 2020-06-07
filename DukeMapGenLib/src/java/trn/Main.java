@@ -10,9 +10,8 @@ import trn.bespoke.MoonBase1$;
 import trn.duke.MapImageWriter;
 import trn.prefab.DukeConfig;
 import trn.prefab.GameConfig;
+import trn.prefab.abandoned.JigsawPlacerMain$;
 import trn.prefab.experiments.*;
-import trn.render.RenderQuickTest;
-import trn.render.StairPrinter;
 
 import javax.imageio.ImageIO;
 
@@ -48,8 +47,8 @@ public class Main {
 
 		//run(SoundListMap$.MODULE$);
 		//run(PipeDream$.MODULE$);
-		//run(PoolExperiment$.MODULE$);
-		//run(Sushi$.MODULE$);
+		// run(PoolExperiment$.MODULE$);
+		run(Sushi$.MODULE$);
 		//= Sushi.run(new MapLoader(DOSPATH));
 
 		// writeAndOpenMapPng(outMap);
@@ -70,7 +69,7 @@ public class Main {
 		//	ArtFileReader.runTest(ff);
 		//}
 
-		MoonBase1$.MODULE$.run(gameCfg);
+		// MoonBase1$.MODULE$.run(gameCfg);
 	}
 
 

@@ -1,9 +1,8 @@
-package trn.prefab
+package trn.prefab.abandoned
 
-import trn.{DukeConstants, ImmutableMap, Main, MapLoader, MapUtil, MathUtil, PlayerStart, PointXY, PointXYZ, Sector, Sprite, Map => DMap}
+import trn.prefab._
 import trn.prefab.experiments.PrefabExperiment
-
-import scala.collection.JavaConverters._
+import trn.{ImmutableMap, MapLoader, MathUtil, PointXY, PointXYZ, Sector, Map => DMap}
 
 
 
