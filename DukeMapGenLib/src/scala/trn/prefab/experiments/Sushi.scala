@@ -34,7 +34,7 @@ class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = n
   }
 
   def tryPasteConnectedTo(existing: PastedSectorGroup, newGroup: SectorGroup): Option[PastedSectorGroup] =
-    ExperimentalWriter.tryPasteConnectedTo(writer, random, existing, newGroup)
+    writer.tryPasteConnectedTo(existing, newGroup, PasteOptions())
 
   def tryPasteConnectedTo(existing: Seq[PastedSectorGroup], newGroup: SectorGroup): Option[PastedSectorGroup] = {
     existing.foreach { psg =>

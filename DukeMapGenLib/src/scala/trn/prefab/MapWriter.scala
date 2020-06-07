@@ -283,25 +283,25 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     existingConn.isMatch(newConn) && (skipSpaceCheck || spaceAvailable(newSg, newConn.getTransformTo(existingConn).asXY))
   }
 
-  // you care which existing group, but dont care which connector for either of them
-  // TODO - use the new MapWriter2 methods
-  def tryPasteConnectedTo(
-    existing: PastedSectorGroup,
-    newGroup: SectorGroup,
-    allowOverlap: Boolean = false   // TODO - check Z of the overlapping sectors
-  ): Option[PastedSectorGroup] = {
+  // // you care which existing group, but dont care which connector for either of them
+  // // TODO - use the new MapWriter2 methods
+  // def tryPasteConnectedTo(
+  //   existing: PastedSectorGroup,
+  //   newGroup: SectorGroup,
+  //   allowOverlap: Boolean = false   // TODO - check Z of the overlapping sectors
+  // ): Option[PastedSectorGroup] = {
 
-    // Placement.allPasteOptions(this, existing, newGroup, allowRotation = true, allowOverlap = allowOverlap)
-    val allOptions = Placement.pasteOptions(this, existing, newGroup)
-    if(allOptions.size < 1){
-      None
-    }else{
-      //val (c1, c2, g) = random.randomElement(allOptions)
-      val p = random.randomElement(allOptions)
-      //Some(pasteAndLink(c1, g, c2))
-      Some(pasteAndLink(p.existing, p.newSg, p.newConn))
-    }
-  }
+  //   // Placement.allPasteOptions(this, existing, newGroup, allowRotation = true, allowOverlap = allowOverlap)
+  //   val allOptions = Placement.pasteOptions(this, existing, newGroup)
+  //   if(allOptions.size < 1){
+  //     None
+  //   }else{
+  //     //val (c1, c2, g) = random.randomElement(allOptions)
+  //     val p = random.randomElement(allOptions)
+  //     //Some(pasteAndLink(c1, g, c2))
+  //     Some(pasteAndLink(p.existing, p.newSg, p.newConn))
+  //   }
+  // }
 
 
   //

@@ -15,9 +15,6 @@ case class Placement2(
   newSg: SectorGroup,
   newConn: RedwallConnector
 )
-// existing
-// extant
-// pasted
 
 /**
   * Yet another class for copy and pasting prefabs.  This one should finally have a decent interface.
@@ -26,10 +23,6 @@ case class Placement2(
   * - SgMapBuilder
   * - JigsawPlacer
   * - MapWriter
-  * - ExperimentalWriter
-  * - FirstPrefabExperiment builder
-  * - PipeDream builder
-  * - PoolExperiment builder
   * - SquareTileMain builder
   */
 trait MapWriter2 {
@@ -89,6 +82,39 @@ trait MapWriter2 {
     }
   }
 
+  def tryPasteConnectedTo(
+    psg: PastedSectorGroup,
+    sg: SectorGroup,
+    options: PasteOptions
+  ): Option[PastedSectorGroup] = {
+
+    val allOptions = findPlacementsForSg(psg, sg, options)
+    if(allOptions.size < 1){
+      None
+    }else{
+      val p = random.randomElement(allOptions)
+      Some(pasteAndConnect(p))
+    }
+  }
+
+  // Was trying to write this for FirstPrefabExperiment
+  //def tryPastedConnectedTo(
+  //  psg: PastedSectorGroup,
+  //  psgConn: RedwallConnector,
+  //  sg: SectorGroup,
+  //  sgConn: RedwallConnector
+  //  // TODO - param for allowOverlap?
+  //): Option[PastedSectorGroup] = {
+  //  if(canPlaceAndConnect(psgConn, sgConn, sg)){
+  //    Some(pasteAndLink(psgConn, sg, sgConn))
+  //  }else{
+  //    None
+  //  }
+  //}
+
+  // -------------------------------------
+  // CODE BELOW HERE -- trying to find a better API
+  // (this is complicated by the fact that we have to rescan connectors after rotating the sg)
   // -------------------------------------
 
   // any SG to any PSG

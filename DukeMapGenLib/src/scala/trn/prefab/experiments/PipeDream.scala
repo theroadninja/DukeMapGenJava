@@ -16,8 +16,8 @@ class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
 
   def spaceAvailable(b: BoundingBox): Boolean = writer.spaceAvailable(b)
 
-  def pasteAndLink(existing: RedwallConnector, newSg: SectorGroup, newConn: RedwallConnector): PastedSectorGroup =
-    writer.pasteAndLink(existing, newSg, newConn)
+  //def pasteAndLink(existing: RedwallConnector, newSg: SectorGroup, newConn: RedwallConnector): PastedSectorGroup =
+  //  writer.pasteAndLink(existing, newSg, newConn)
 
   // -----------------
 
@@ -131,7 +131,8 @@ object PipeDream extends PrefabExperiment {
         //3. paste the SG
         if(matchingSgs.nonEmpty){
           val (newSg, newSgConn) = randomItem(matchingSgs.toSeq)
-          val psg = builder.pasteAndLink(c, newSg, newSgConn)
+          val psg = builder.writer.pasteAndLink(c, newSg, newSgConn)
+          //val psg = builder.pasteAndLink(c, newSg, newSgConn)
 
           // 4. see if any open connectors happen to be next to each other
           // linked0 += psg.unlinkedRedwallConnectors.map(builder.findAndLinkMatch(_)).sum

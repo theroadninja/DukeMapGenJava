@@ -75,7 +75,7 @@ class SectorGroupTests {
 
     val palette: PrefabPalette = PrefabPalette.fromMap(map, true);
     println(s"palette sector groups: ${palette.numberedSectorGroupIds().asScala}")
-    val builder = new abandoned.TestBuilder(DMap.createNew())
+    val builder = new TestBuilder(DMap.createNew())
     builder.pasteSectorGroup(palette.getSectorGroup(100), new PointXYZ(0, 0, 0))
     builder.setAnyPlayerStart()
     builder.clearMarkers()

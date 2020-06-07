@@ -119,7 +119,19 @@ class MapWriter2Tests {
 
     hasConnectors(writer1.findPlacementsForSg(room1, palette.getSG(2), PasteOptions(allowRotate = false)), Set(5))
     hasConnectors(writer1.findPlacementsForSg(room1, palette.getSG(2)), Set(1, 3, 5, 7))
+  }
 
+  @Test
+  def testTryPasteConnectedTo1: Unit = {
+    val writer1 = MapWriter()
+    val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO)
 
+    Assert.assertTrue(writer1.tryPasteConnectedTo(room1, palette.getSG(2), PasteOptions(allowRotate = false)).isDefined)
+    Assert.assertTrue(writer1.tryPasteConnectedTo(room1, palette.getSG(2), PasteOptions(allowRotate = false)).isEmpty)
+
+    Assert.assertTrue(writer1.tryPasteConnectedTo(room1, palette.getSG(2), PasteOptions()).isDefined)
+    Assert.assertTrue(writer1.tryPasteConnectedTo(room1, palette.getSG(2), PasteOptions()).isDefined)
+    Assert.assertTrue(writer1.tryPasteConnectedTo(room1, palette.getSG(2), PasteOptions()).isDefined)
+    Assert.assertTrue(writer1.tryPasteConnectedTo(room1, palette.getSG(2), PasteOptions()).isEmpty)
   }
 }

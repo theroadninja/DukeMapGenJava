@@ -52,11 +52,11 @@ object JigsawPlacer {
   /**
     * @returns true if the sectors overlap in the z dimension
     */
-  def overlapZ(s1: Sector, s2: Sector): Boolean = {
+  private def overlapZ(s1: Sector, s2: Sector): Boolean = {
     MathUtil.overlaps(s1.getFloorZ, s1.getCeilingZ, s2.getFloorZ, s2.getCeilingZ)
   }
 
-  def inPlaceMatch(
+  private def inPlaceMatch(
     sg: SectorGroup,
     newConn: RedwallConnector,
     b: RedwallConnector,
@@ -84,13 +84,6 @@ object JigsawPlacer {
     }
   }
 
-  private def allRotations(sg: SectorGroup): Seq[SectorGroup] = {
-    val sg2 = sg.rotateCW
-    val sg3 = sg2.rotateCW
-    val sg4 = sg3.rotateCW
-    Seq(sg, sg2, sg3, sg4)
-  }
-
   private def inPlaceMatches(
     partialFit: PartialFit,
     existingConns2: Seq[RedwallConnector],
@@ -109,6 +102,7 @@ object JigsawPlacer {
   }
 
   // it is simpler to get this "hallway" use case working first.  can make it more complicated later.
+  // TODO - this is used by hypercube
   def findPlacements(
     sg: SectorGroup,
     existingGroup1: Seq[RedwallConnector],
@@ -118,7 +112,7 @@ object JigsawPlacer {
     zMatch: Int
   ): Seq[Placement] = {
     if(allowRotation){
-      allRotations(sg).flatMap(rotated => findPlacements(rotated, existingGroup1, existingGroup2, map, false, zMatch))
+      sg.allRotations.flatMap(rotated => findPlacements(rotated, existingGroup1, existingGroup2, map, false, zMatch))
     }else{
       val available1 = existingGroup1.filterNot(_.isLinked(map))
       val available2 = existingGroup2.filterNot(_.isLinked(map))
@@ -136,7 +130,7 @@ object JigsawPlacer {
     }
   }
 
-  def findPlacements(
+  private[abandoned] def findPlacements(
     sg: SectorGroup,
     psg1: PastedSectorGroup,
     psg2: PastedSectorGroup,

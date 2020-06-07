@@ -1,7 +1,7 @@
 package trn.bespoke
 
 import trn.{BuildConstants, HardcodedConfig, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sector, WallView, Map => DMap}
-import trn.prefab.{GameConfig, MapWriter, PrefabPalette}
+import trn.prefab.{GameConfig, MapWriter, PasteOptions, PrefabPalette}
 
 object Space {
   val Door = 1 // sector group of split door with circles
@@ -31,7 +31,7 @@ object MoonBase1 {
 
     val (center, _) = writer.sgBuilder.pasteSectorGroup2(moonPalette.getSectorGroup(1), PointXYZ.ZERO)
 
-    writer.tryPasteConnectedTo(center, spacePalette.getSG(Space.Door))
+    writer.tryPasteConnectedTo(center, spacePalette.getSG(Space.Door), PasteOptions())
 
 
     writer.builder.setAnyPlayerStart(force = true)

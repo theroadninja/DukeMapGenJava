@@ -5,20 +5,7 @@ import trn.{DukeConstants, Main, MapLoader, MapUtil, PointXY, PointXYZ, Map => D
 import scala.collection.JavaConverters._
 
 class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
-
-  val pastedGroups: java.util.List[PastedSectorGroup]  = new java.util.ArrayList[PastedSectorGroup]()
   val writer = MapWriter(this)
-
-  // this does not need to be more generic
-  def pasteSectorGroup(sgId: Int, translate: PointXYZ): PastedSectorGroup = {
-    val psg = pasteSectorGroup(palette.getSectorGroup(sgId), translate)
-    add(psg)
-  }
-
-  private def add(psg: PastedSectorGroup ): PastedSectorGroup = {
-    pastedGroups.add(psg)
-    psg
-  }
 
   def pasteAndLink(
       sectorGroupId: Int,
@@ -29,13 +16,14 @@ class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder
     if(destConnector.isLinked(outMap)){
       throw new IllegalArgumentException("connector already connected");
     }
-    // val paletteConnector = sg.findFirstConnector(paletteConnectorFilter).asInstanceOf[RedwallConnector]
     val paletteConnector = MapWriter.firstConnector(sg, paletteConnectorFilter)
-    return add(writer.pasteAndLink(destConnector.asInstanceOf[RedwallConnector], sg, paletteConnector))
+
+    writer.pasteAndLink(destConnector.asInstanceOf[RedwallConnector], sg, paletteConnector)
   }
 
   def findFirstUnlinkedConnector(cf: ConnectorFilter): Connector = {
-    pastedGroups.asScala.foreach { psg =>
+    writer.sgBuilder.pastedSectorGroups.foreach { psg =>
+    //pastedGroups.asScala.foreach { psg =>
       psg.connectors.asScala.foreach { c: Connector =>
         if(cf.matches(c) && !psg.isConnectorLinked(c)) {
           return c;
@@ -44,15 +32,6 @@ class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder
     }
     return null;
   }
-
-  def unlinkedConnectors: Seq[Connector] = {
-    pastedGroups.asScala.flatMap { psg =>
-      psg.connectors.asScala.filter { c =>
-        !psg.isConnectorLinked(c)
-      }
-    }
-  }
-
 }
 /**
   * This is a scala version of the "copy test 3" java code, which was the first real experiment with prefab sesctor
@@ -70,7 +49,8 @@ object FirstPrefabExperiment extends PrefabExperiment {
     val palette: PrefabPalette = PrefabPalette.fromMap(fromMap);
     val builder = new PrefabBuilder(DMap.createNew(), palette)
 
-    val psg1:PastedSectorGroup  = builder.pasteSectorGroup(10, new PointXYZ(-1024*30, -1024*50, 0));
+    val psg1: PastedSectorGroup = builder.pasteSectorGroupAt(palette.getSG(10), new PointXYZ(-1024*30, -1024*50, 0))
+
     val psg2: PastedSectorGroup = {
       val conn2:Connector = psg1.findFirstConnector(SimpleConnector.WestConnector);
       builder.pasteAndLink(12, SimpleConnector.EastConnector, conn2);
@@ -81,7 +61,6 @@ object FirstPrefabExperiment extends PrefabExperiment {
 
     // add exit
     {
-      //SimpleConnector c = psg3.findFirstConnector(SimpleConnector.EastConnector);
       val c: Connector = builder.findFirstUnlinkedConnector(SimpleConnector.EastConnector);
       if(c == null) throw new RuntimeException("some thing went wrong")
       builder.pasteAndLink(14, SimpleConnector.WestConnector, c);

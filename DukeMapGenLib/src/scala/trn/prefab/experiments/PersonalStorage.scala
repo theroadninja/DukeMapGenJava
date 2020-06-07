@@ -39,11 +39,13 @@ class BasicBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder 
   //   ExperimentalWriter.tryPasteConnectedTo(writer, writer.random, existing, newSg, allowOverlap = allowOverlap)
   // }
   def tryPastedConnectedTo(existing: PastedSectorGroup, newSg: SectorGroup): Option[PastedSectorGroup] = {
-    ExperimentalWriter.tryPasteConnectedTo(writer, writer.random, existing, newSg)
+    writer.tryPasteConnectedTo(existing, newSg, PasteOptions())
+    // ExperimentalWriter.tryPasteConnectedTo(writer, writer.random, existing, newSg)
   }
 
   def pasteConnectedTo(existingPsg: PastedSectorGroup, newSg: SectorGroup, allowOverlap: Boolean = false): PastedSectorGroup =
-    ExperimentalWriter.tryPasteConnectedTo(writer, writer.random, existingPsg, newSg, allowOverlap).getOrElse(throw new Exception("couldnt paste sg"))
+    writer.tryPasteConnectedTo(existingPsg, newSg, PasteOptions(allowOverlap = allowOverlap)).getOrElse(throw new Exception("couldnt paste sg"))
+    //ExperimentalWriter.tryPasteConnectedTo(writer, writer.random, existingPsg, newSg, allowOverlap).getOrElse(throw new Exception("couldnt paste sg"))
 
 
   def pasteOptions(existingPsg: PastedSectorGroup, newSg: SectorGroup, rotate: Boolean): Seq[Placement] = {

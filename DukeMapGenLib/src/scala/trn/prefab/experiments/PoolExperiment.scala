@@ -49,7 +49,7 @@ object PoolExperiment extends PrefabExperiment {
       val sg = randomAvailable(palette.allSectorGroups.asScala).get
       val spots = writer.random.shuffle(writer.sgBuilder.pastedSectorGroups)
       spots.find { psg =>
-        ExperimentalWriter.tryPasteConnectedTo(writer, writer.random, psg, sg).isDefined
+        writer.tryPasteConnectedTo(psg, sg, PasteOptions()).isDefined
       }
     }
 
