@@ -2,7 +2,7 @@ package trn.prefab.experiments
 
 import org.junit.{Assert, Test}
 import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
-import trn.{PointXY, PointXYZ, Map => DMap}
+import trn.{BuildConstants, PointXY, PointXYZ, Map => DMap}
 import trn.prefab.{BoundingBox, Heading, MapWriter, PrefabPalette, RedwallConnector, SectorGroup, TestUtils, UnitTestBuilder}
 
 class SquareTileMainTests {
@@ -36,9 +36,9 @@ class SquareTileMainTests {
       val builder = UnitTestBuilder()
       groups.foreach {
         // this uses top left as the anchor
-        case (group, loc) => builder.pasteSectorGroupAt(group, loc)
+        case (group, loc) => builder.writer.pasteSectorGroupAt(group, loc)
       }
-      builder.pastedSectorGroups.flatMap(_.unlinkedRedwallConnectors)
+      builder.writer.pastedSectorGroups.flatMap(_.unlinkedRedwallConnectors)
     }
 
     def align(bb: BoundingBox, groups: (SectorGroup, PointXYZ) *): PointXY = SquareTileMain.guessAlignment(bb, stayConns(groups), CellSize)
@@ -46,9 +46,9 @@ class SquareTileMainTests {
     val topLeftXY = new PointXY(DMap.MIN_X, DMap.MIN_Y)
     val topLeftXYZ = topLeftXY.withZ(0)
     val gridArea = BoundingBox(0, 0, 8192, 8192)
-    val MapBounds = MapWriter.MapBounds
+    val MapBounds = BuildConstants.MapBounds
 
-    Assert.assertEquals(new PointXY(DMap.MIN_X, DMap.MIN_Y), SquareTileMain.guessAlignment(MapWriter.MapBounds, Seq(), 1024))
+    Assert.assertEquals(new PointXY(DMap.MIN_X, DMap.MIN_Y), SquareTileMain.guessAlignment(BuildConstants.MapBounds, Seq(), 1024))
     Assert.assertEquals(new PointXY(0, 0), SquareTileMain.guessAlignment(gridArea, Seq(), 1024))
 
     Assert.assertEquals(topLeftXY, align(MapBounds, (sgWest, topLeftXYZ)))

@@ -1,0 +1,67 @@
+package trn.prefab
+
+import trn.FuncImplicits._
+
+/**
+  * Provides methods for dealing with axis-aligned redwall connectors that are at the edges of sector groups, named
+  * after compass directions, e.g. north, east, south, west.  May be useful for grids and hypercubes.
+  */
+object CompassWriter {
+  val WestConn = SimpleConnector.WestConnector
+  val EastConn = SimpleConnector.EastConnector
+  val NorthConn = SimpleConnector.NorthConnector
+  val SouthConn = SimpleConnector.SouthConnector
+
+  /** @deprecated */
+  def firstConnector(sg: SectorGroup, cf: ConnectorFilter): RedwallConnector = sg.findFirstConnector(cf).asInstanceOf[RedwallConnector]
+
+  def westConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(WestConn).asInstanceOf[RedwallConnector]
+  def eastConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
+  def northConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
+  def southConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
+
+
+  def east(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(EastConn).map(_.asInstanceOf[RedwallConnector])
+  def west(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(WestConn).map(_.asInstanceOf[RedwallConnector])
+  def north(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(NorthConn).map(_.asInstanceOf[RedwallConnector])
+  def south(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(SouthConn).map(_.asInstanceOf[RedwallConnector])
+
+  def firstConnWithHeading(sg: SectorGroup, heading: Int) = heading match {
+    case Heading.E => east(sg)
+    case Heading.W => west(sg)
+    case Heading.N => north(sg)
+    case Heading.S => south(sg)
+    case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
+  }
+
+  // TODO - should not need different methods for SectorGroup and PastedSectorGroup
+  def westConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(WestConn).asInstanceOf[RedwallConnector]
+  def eastConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
+  def northConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
+  def southConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
+
+  def east(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(EastConn)
+  def west(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(WestConn)
+  def north(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(NorthConn)
+  def south(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(SouthConn)
+  def firstConnWithHeading(sg: PastedSectorGroup, heading: Int): Option[RedwallConnector] = heading match {
+    case Heading.E => east(sg)
+    case Heading.W => west(sg)
+    case Heading.N => north(sg)
+    case Heading.S => south(sg)
+    case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
+  }
+
+  def farthestEast(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isEast).maxByOption(_.getAnchorPoint.x)
+  def farthestWest(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isWest).maxByOption(_.getAnchorPoint.x * -1)
+  def farthestNorth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isNorth).maxByOption(_.getAnchorPoint.y * -1)
+  def farthestSouth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isSouth).maxByOption(_.getAnchorPoint.y)
+  def farthestConn(conns: Seq[RedwallConnector], heading: Int): Option[RedwallConnector] = heading match {
+    case Heading.E => farthestEast(conns)
+    case Heading.W => farthestWest(conns)
+    case Heading.N => farthestNorth(conns)
+    case Heading.S => farthestSouth(conns)
+    case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
+  }
+
+}

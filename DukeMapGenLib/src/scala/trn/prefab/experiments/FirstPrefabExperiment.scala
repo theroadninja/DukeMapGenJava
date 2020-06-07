@@ -16,7 +16,7 @@ class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder
     if(destConnector.isLinked(outMap)){
       throw new IllegalArgumentException("connector already connected");
     }
-    val paletteConnector = MapWriter.firstConnector(sg, paletteConnectorFilter)
+    val paletteConnector = CompassWriter.firstConnector(sg, paletteConnectorFilter)
 
     writer.pasteAndLink(destConnector.asInstanceOf[RedwallConnector], sg, paletteConnector)
   }
@@ -49,7 +49,7 @@ object FirstPrefabExperiment extends PrefabExperiment {
     val palette: PrefabPalette = PrefabPalette.fromMap(fromMap);
     val builder = new PrefabBuilder(DMap.createNew(), palette)
 
-    val psg1: PastedSectorGroup = builder.pasteSectorGroupAt(palette.getSG(10), new PointXYZ(-1024*30, -1024*50, 0))
+    val psg1: PastedSectorGroup = builder.writer.pasteSectorGroupAt(palette.getSG(10), new PointXYZ(-1024*30, -1024*50, 0))
 
     val psg2: PastedSectorGroup = {
       val conn2:Connector = psg1.findFirstConnector(SimpleConnector.WestConnector);
@@ -91,7 +91,7 @@ object FirstPrefabExperiment extends PrefabExperiment {
     //try sector group 18 - teleporter
     builder.pasteAndLink(18, SimpleConnector.NorthConnector, builder.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
 
-    builder.setPlayerStart()
+    builder.writer.setAnyPlayerStart()
     //builder.clearMarkers()
     builder.outMap
   }

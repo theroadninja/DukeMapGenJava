@@ -11,7 +11,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
   val writer = new MapWriter(this, sgBuilder)
 
   val mainHall = 2
-  val pastedMainHall = pasteSectorGroupAt(palette.getSG(mainHall), new PointXY(0, DMap.MIN_Y).withZ(0))
+  val pastedMainHall = writer.pasteSectorGroupAt(palette.getSG(mainHall), new PointXY(0, DMap.MIN_Y).withZ(0))
 
   var currentPsgRight: Option[PastedSectorGroup] = None
   var rowRight = 1 // 1-based because hitag 0 means no connector id
@@ -40,7 +40,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
     val econn = currentPsgRight match {
       case None => getRowStart(rowRight)
       case Some(psg) =>
-        val econn = MapWriter.eastConnector(psg)
+        val econn = CompassWriter.eastConnector(psg)
         if(econn.getAnchorPoint.x < DMap.MAX_X - (1024 * 5)){
           econn
         }else{
@@ -48,7 +48,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
           getRowStart(rowRight)
         }
     } // match
-    val pastedRoom = writer.pasteAndLink(econn, room, MapWriter.westConnector(room))
+    val pastedRoom = writer.pasteAndLink(econn, room, CompassWriter.westConnector(room))
     currentPsgRight = Some(pastedRoom)
   }
 
@@ -56,7 +56,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
     val wconn = currentPsgLeft match {
       case None => getLeftRowStart(rowLeft)
       case Some(psg) =>
-        val wconn = MapWriter.westConnector(psg)
+        val wconn = CompassWriter.westConnector(psg)
         if(wconn.getAnchorPoint.x > DMap.MIN_Y + (1025 * 5)){
           wconn
         }else{
@@ -64,7 +64,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
           getLeftRowStart(rowLeft)
         }
     }
-    val pastedRoom = writer.pasteAndLink(wconn, room, MapWriter.eastConnector(room))
+    val pastedRoom = writer.pasteAndLink(wconn, room, CompassWriter.eastConnector(room))
     currentPsgLeft = Some(pastedRoom)
   }
 }
@@ -146,8 +146,8 @@ object SoundListMap extends PrefabExperiment {
     val builder = new SoundMapBuilder(DMap.createNew(), palette)
     run2(builder, palette, getLabels)
     println(s"Sector count: ${builder.outMap.getSectorCount}")
-    builder.setAnyPlayerStart()
-    builder.clearMarkers()
+    builder.writer.setAnyPlayerStart()
+    builder.writer.clearMarkers()
     builder.outMap
   }
 

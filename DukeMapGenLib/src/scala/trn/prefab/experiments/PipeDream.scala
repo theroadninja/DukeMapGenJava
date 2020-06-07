@@ -22,7 +22,7 @@ class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
   // -----------------
 
   // TODO - does this belong in a more generic place?
-  def openConnectors: Seq[RedwallConnector] = pastedSectorGroups.flatMap{ psg =>
+  def openConnectors: Seq[RedwallConnector] = writer.pastedSectorGroups.flatMap{ psg =>
     psg.unlinkedConnectors.collect{case cc: RedwallConnector => cc}
   }
 
@@ -146,8 +146,8 @@ object PipeDream extends PrefabExperiment {
     println(s"linked ${linked} connectors by new method")
 
     println(s"Sector count: ${builder.outMap.getSectorCount}")
-    builder.setAnyPlayerStart()
-    builder.clearMarkers()
+    builder.writer.setAnyPlayerStart()
+    builder.writer.clearMarkers()
     builder.outMap
   }
 }

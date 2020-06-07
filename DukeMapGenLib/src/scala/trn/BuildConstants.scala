@@ -1,9 +1,21 @@
 package trn
 
+import trn.prefab.BoundingBox
+
 // this info was found by experiment
 // TODO - incorporate this info also http://infosuite.duke4.net/index.php?page=references_dimensions
 // TODO - should this be merged with GameConfig ?
 object BuildConstants {
+
+  // These are duplicated in Map.java, but I don't want to created a reference to it
+  val MAX_X = 65536
+  val MIN_X: Int = -65536
+  val MAX_Y = 65536
+  val MIN_Y: Int = -65536
+
+  val MapBounds = BoundingBox(MIN_X, MIN_Y, MAX_X, MAX_Y)
+  val MaxSectors = 1024 // more than this and Build will crash
+
   /** Height in z units of a single PGUP / PGDOWN action in the build editor */
   val ZStepHeight = 1024
 

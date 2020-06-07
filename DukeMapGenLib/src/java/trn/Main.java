@@ -40,14 +40,15 @@ public class Main {
 		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));
 		//run(FirstPrefabExperiment$.MODULE$);
 
-		// run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
+		//run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
 
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
 		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
+		//deployTest(outMap);
 
 		//run(SoundListMap$.MODULE$);
 		//run(PipeDream$.MODULE$);
-		run(PoolExperiment$.MODULE$);
+		//run(PoolExperiment$.MODULE$);
 		//run(Sushi$.MODULE$);
 		//= Sushi.run(new MapLoader(DOSPATH));
 
@@ -55,11 +56,10 @@ public class Main {
 		//deployTest(outMap);
 
 		//run(Hypercube3$.MODULE$);
-		//run(Hypercube4$.MODULE$);
+		run(Hypercube4$.MODULE$);
 		//run(JigsawPlacerMain$.MODULE$);
 
 		// run(PersonalStorage$.MODULE$);
-
 
 		// StairPrinter.xrepeatTest(new MapLoader(DOSPATH), gameCfg);
 		// RenderQuickTest.quickTest(new MapLoader(DOSPATH), gameCfg);

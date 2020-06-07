@@ -10,10 +10,10 @@ class MapWriterTests {
   def testOrdinalHelpers(): Unit = {
     def allConns(groupId: Int): Seq[RedwallConnector] = testPalette.getSG(groupId).allRedwallConnectors
 
-    def eastId(sgId: Int): Option[Int] = MapWriter.farthestEast(allConns(sgId)).map(_.getConnectorId)
-    def westId(sgId: Int): Option[Int] = MapWriter.farthestWest(allConns(sgId)).map(_.getConnectorId)
-    def northId(sgId: Int): Option[Int] = MapWriter.farthestNorth(allConns(sgId)).map(_.getConnectorId)
-    def southId(sgId: Int): Option[Int] = MapWriter.farthestSouth(allConns(sgId)).map(_.getConnectorId)
+    def eastId(sgId: Int): Option[Int] = CompassWriter.farthestEast(allConns(sgId)).map(_.getConnectorId)
+    def westId(sgId: Int): Option[Int] = CompassWriter.farthestWest(allConns(sgId)).map(_.getConnectorId)
+    def northId(sgId: Int): Option[Int] = CompassWriter.farthestNorth(allConns(sgId)).map(_.getConnectorId)
+    def southId(sgId: Int): Option[Int] = CompassWriter.farthestSouth(allConns(sgId)).map(_.getConnectorId)
 
     val EastId = 6
     val WestId = 4

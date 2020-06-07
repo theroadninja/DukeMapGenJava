@@ -7,6 +7,7 @@ case class PasteOptions(
   allowOverlap: Boolean = false,
   allowRotate: Boolean = true,
   // exactHeightMatch = false // TODO implement this?
+  // TODO add option to reject connections between below water and above water sectors
 )
 
 case class Placement2(
@@ -21,7 +22,7 @@ case class Placement2(
   *
   * Compare to (and maybe replace a lot of):
   * - SgMapBuilder
-  * - JigsawPlacer
+  * - JigsawPlacer (provides stuff for adding a sector between TWO existing sectors)
   * - MapWriter
   * - SquareTileMain builder
   */
@@ -111,6 +112,40 @@ trait MapWriter2 {
   //    None
   //  }
   //}
+
+  // ------------------
+  // Compass Directions
+  // ------------------
+
+  def pasteAndLinkNextTo(
+    existingGroup: PastedSectorGroup,
+    existingConn: ConnectorFilter,
+    newGroup: SectorGroup,
+    newConn: ConnectorFilter
+  ): PastedSectorGroup = {
+    val conn1 = existingGroup.findFirstConnector(existingConn).asInstanceOf[RedwallConnector]
+    pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(newConn).asInstanceOf[RedwallConnector])
+  }
+
+  def pasteSouthOf(
+    existing: PastedSectorGroup,
+    newGroup: SectorGroup
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, CompassWriter.SouthConn, newGroup, CompassWriter.NorthConn)
+
+  def pasteEastOf(
+    existing: PastedSectorGroup,
+    newGroup: SectorGroup
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, CompassWriter.EastConn, newGroup, CompassWriter.WestConn)
+
+  def pasteWestOf(
+    existing: PastedSectorGroup,
+    newGroup: SectorGroup
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, CompassWriter.WestConn, newGroup, CompassWriter.EastConn)
+
+  def pasteNorthOf(
+    existing: PastedSectorGroup,
+    newGroup: SectorGroup
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, CompassWriter.NorthConn, newGroup, CompassWriter.SouthConn)
 
   // -------------------------------------
   // CODE BELOW HERE -- trying to find a better API

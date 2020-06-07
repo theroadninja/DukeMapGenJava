@@ -54,7 +54,7 @@ class BasicBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder 
 
   }
 
-  def findFirstPsg(psgId: Int): PastedSectorGroup = pastedSectorGroups.find(_.groupId == Some(psgId)).get
+  def findFirstPsg(psgId: Int): PastedSectorGroup = writer.pastedSectorGroups.find(_.groupId == Some(psgId)).get
 }
 
 object PersonalStorage extends PrefabExperiment {
@@ -66,7 +66,7 @@ object PersonalStorage extends PrefabExperiment {
     val builder = new BasicBuilder(DMap.createNew(), palette)
     try{
       run(builder, palette)
-      builder.clearMarkers()
+      builder.writer.clearMarkers()
     }catch{
       case ex: Exception => {
         ex.printStackTrace()
@@ -112,7 +112,7 @@ object PersonalStorage extends PrefabExperiment {
 
 
 
-    val lowerPsg = builder.pastedSectorGroups.find(_.groupId == Some(LowerFloor)).get
+    val lowerPsg = builder.writer.pastedSectorGroups.find(_.groupId == Some(LowerFloor)).get
     val smallStorage = palette.getSectorGroup(SmallStorage)
 
     // ExperimentalWriter.tryPasteConnectedTo(builder.writer, builder.writer.random, lowerPsg, smallStorage)
@@ -143,7 +143,7 @@ object PersonalStorage extends PrefabExperiment {
     builder.pasteConnectedTo(builder.findFirstPsg(ExplosiveWall), palette.getSG(NukeButton), allowOverlap = true)
 
 
-    builder.setPlayerStart(builder.findFirstPsg(Garage))
+    builder.writer.setPlayerStart(builder.findFirstPsg(Garage))
     // builder.setAnyPlayerStart()
 
     // TODO - add an optional "duke logic check" that will warn for obvious issues with SE sprites

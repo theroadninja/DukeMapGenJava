@@ -9,6 +9,9 @@ object UnitTestBuilder {
 }
 
 class UnitTestBuilder(val outMap: DMap) extends MapBuilder with AnywhereBuilder {
+  val writer = new MapWriter(this, this.sgBuilder)
+
+  override def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = writer.pasteSectorGroup(sg, translate)
 
   val sgPacker: SectorGroupPacker = new SimpleSectorGroupPacker(
     new PointXY(DMap.MIN_X, 0),

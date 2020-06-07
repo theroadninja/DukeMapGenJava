@@ -34,13 +34,13 @@ class SectorGroupTests {
     val builder = new UnitTestBuilder(DMap.createNew())
     builder.placeAnywhere(palette.getSectorGroup(1))
     try{
-      builder.setAnyPlayerStart()
+      builder.writer.setAnyPlayerStart()
       Assert.fail("exception should have been thrown")
     }catch{
       case _: Exception => {}
     }
     builder.placeAnywhere(palette.getSectorGroup(2))
-    builder.setAnyPlayerStart()
+    builder.writer.setAnyPlayerStart()
   }
 
   @Test
@@ -52,14 +52,14 @@ class SectorGroupTests {
     palette.getSectorGroup(4).getAnchor
 
     // the anchor sprites are placed such that they will be 2048 apart when the sectors are linked
-    val left = builder.pasteSectorGroupAt(palette.getSectorGroup(3), new PointXYZ(0, 0, 0))
-    val right = builder.pasteSectorGroupAt(palette.getSectorGroup(4), new PointXYZ(2048, 0, 0))
+    val left = builder.writer.pasteSectorGroupAt(palette.getSectorGroup(3), new PointXYZ(0, 0, 0))
+    val right = builder.writer.pasteSectorGroupAt(palette.getSectorGroup(4), new PointXYZ(2048, 0, 0))
     //builder.joinWalls(eastConn(left), westConn(right))
     SimpleConnector.linkConnectors(eastConn(left), westConn(right), builder.outMap)
 
     // more of a sanity check, to test this test
-    val left2 = builder.pasteSectorGroupAt(palette.getSectorGroup(3), new PointXYZ(0, 1024 * 10, 0))
-    val right2 = builder.pasteSectorGroupAt(palette.getSectorGroup(4), new PointXYZ(0, 1024 * 10, 0))
+    val left2 = builder.writer.pasteSectorGroupAt(palette.getSectorGroup(3), new PointXYZ(0, 1024 * 10, 0))
+    val right2 = builder.writer.pasteSectorGroupAt(palette.getSectorGroup(4), new PointXYZ(0, 1024 * 10, 0))
     try {
       //builder.joinWalls(eastConn(left2), westConn(right2))
       SimpleConnector.linkConnectors(eastConn(left2), westConn(right2), builder.outMap)
@@ -76,9 +76,9 @@ class SectorGroupTests {
     val palette: PrefabPalette = PrefabPalette.fromMap(map, true);
     println(s"palette sector groups: ${palette.numberedSectorGroupIds().asScala}")
     val builder = new TestBuilder(DMap.createNew())
-    builder.pasteSectorGroup(palette.getSectorGroup(100), new PointXYZ(0, 0, 0))
-    builder.setAnyPlayerStart()
-    builder.clearMarkers()
+    builder.writer.pasteSectorGroup(palette.getSectorGroup(100), new PointXYZ(0, 0, 0))
+    builder.writer.setAnyPlayerStart()
+    builder.writer.clearMarkers()
   }
 
 

@@ -112,13 +112,13 @@ object Sushi extends PrefabExperiment {
     builder.autoLink
 
     println(s"Sector count: ${builder.outMap.getSectorCount}")
-    builder.setAnyPlayerStart()
-    builder.clearMarkers()
+    builder.writer.setAnyPlayerStart()
+    builder.writer.clearMarkers()
     builder.outMap
   }
 
   def original(builder: SushiBuilder, palette: PrefabPalette): Unit = {
-    val entrance = builder.pastedSectorGroups.head
+    val entrance = builder.writer.pastedSectorGroups.head
 
     val corner = builder.pasteEastOf(entrance, palette.getSectorGroup(Corner))
     val psg = builder.pasteSouthOf(corner, palette.getSectorGroup(HallLeftPR))
@@ -143,7 +143,7 @@ object Sushi extends PrefabExperiment {
 
 
   def run2(builder: SushiBuilder, palette: PrefabPalette): Unit = {
-    val entrance = builder.pastedSectorGroups.head
+    val entrance = builder.writer.pastedSectorGroups.head
 
     val corner = builder.pasteEastOf(entrance, palette.getSectorGroup(Corner))
 

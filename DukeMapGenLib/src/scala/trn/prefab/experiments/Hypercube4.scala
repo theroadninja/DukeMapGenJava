@@ -49,7 +49,7 @@ class Hyper4MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
       None
     }else{
       val p = gridManager.toCoordinates(primaryLocation)
-      val psg = pasteSectorGroupAt(sg, p, anchorOnly = true)
+      val psg = writer.pasteSectorGroupAt(sg, p, anchorOnly = true)
       allLocations.foreach { cell =>
         require(!grid.contains(cell))
         grid.put(cell, psg)
@@ -270,7 +270,7 @@ object Hypercube4 extends PrefabExperiment {
     //
     // -- standard stuff below --
     writer.sgBuilder.autoLinkRedwalls()
-    writer.builder.setAnyPlayerStart()
+    writer.setAnyPlayerStart()
     writer.sgBuilder.clearMarkers()
     writer.outMap
   }

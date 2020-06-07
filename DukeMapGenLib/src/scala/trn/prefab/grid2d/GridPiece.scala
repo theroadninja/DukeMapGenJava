@@ -1,7 +1,7 @@
 package trn.prefab.grid2d
 
 import org.junit.{Assert, Test}
-import trn.prefab.{Heading, MapWriter, RedwallConnector, SectorGroup}
+import trn.prefab.{CompassWriter, Heading, MapWriter, RedwallConnector, SectorGroup}
 import trn.FuncImplicits._
 import trn.prefab.experiments.{Cell2D, GridUtil, TilePainter}
 
@@ -154,7 +154,7 @@ case class SimpleGridPiece(e: Int, s: Int, w: Int, n: Int) extends GridPiece {
 
 class SectorGroupPiece(val sg: SectorGroup) extends GridPiece {
   private val sides: Map[Int, Option[RedwallConnector]] = Heading.all.asScala.map{ h =>
-    (h.toInt, MapWriter.farthestConn(sg.allRedwallConnectors, h))
+    (h.toInt, CompassWriter.farthestConn(sg.allRedwallConnectors, h))
   }.toMap
 
   override def getSg: Option[SectorGroup] = Some(sg)

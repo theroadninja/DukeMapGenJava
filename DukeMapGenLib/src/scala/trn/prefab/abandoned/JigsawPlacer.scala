@@ -240,7 +240,7 @@ object JigsawPlacerMain extends PrefabExperiment {
 
     // -- standard stuff below --
     writer.sgBuilder.autoLinkRedwalls()
-    writer.builder.setAnyPlayerStart()
+    writer.setAnyPlayerStart()
     writer.sgBuilder.clearMarkers()
     writer.outMap
   }

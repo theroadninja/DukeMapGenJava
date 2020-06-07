@@ -103,8 +103,8 @@ class MapWriter2Tests {
 
     hasConnectors(writer1.findPlacementsRaw(allConns(room1), sg2), Set(5))
     hasConnectors(writer1.findPlacementsRaw(allConns(room1), sg3), Set(1, 5))
-    hasConnectors(writer1.findPlacementsRaw(allConns(room1), sg3, Some(Seq(MapWriter.south(sg3).get))), Set(1))
-    hasConnectors(writer1.findPlacementsRaw(allConns(room1), sg3, Some(Seq(MapWriter.north(sg3).get))), Set(5))
+    hasConnectors(writer1.findPlacementsRaw(allConns(room1), sg3, Some(Seq(CompassWriter.south(sg3).get))), Set(1))
+    hasConnectors(writer1.findPlacementsRaw(allConns(room1), sg3, Some(Seq(CompassWriter.north(sg3).get))), Set(5))
 
     val extant = room1.redwallConnectors.filterNot(_.getConnectorId == 5).map(c => (room1, c))
 

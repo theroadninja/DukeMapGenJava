@@ -42,7 +42,7 @@ object PoolExperiment extends PrefabExperiment {
     // if none of the "stay" groups has a play start, add one
     var psg = stays.filter(hasPlayerStart).headOption.getOrElse{
       val startSg = writer.randomElement(palette.allSectorGroups.asScala.filter(_.hasPlayerStart))
-      writer.builder.pasteSectorGroup(startSg, PointXYZ.ZERO) // TODO: need to make sure the area is clear first!
+      writer.pasteSectorGroup(startSg, PointXYZ.ZERO) // TODO: need to make sure the area is clear first!
     }
 
     for(_ <- 0 until 35){
@@ -54,7 +54,7 @@ object PoolExperiment extends PrefabExperiment {
     }
 
     writer.sgBuilder.autoLinkRedwalls()
-    writer.builder.setAnyPlayerStart()
+    writer.setAnyPlayerStart()
     writer.sgBuilder.clearMarkers()
     writer.outMap
   }

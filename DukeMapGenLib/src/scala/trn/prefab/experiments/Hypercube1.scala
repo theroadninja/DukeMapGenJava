@@ -42,27 +42,27 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
   def placeRoom(sg: SectorGroup, x: Int, y: Int, z: Int, w: Int): PastedSectorGroup = {
     if(x < 0 || y < 0 || z < 0 || w < 0) throw new IllegalArgumentException
     val tr = sg.getAnchorSprite.get.getLocation.getTransformTo(gridManager.cellPosition(x, y, z, w))
-    val psg = pasteSectorGroup(sg, tr)
+    val psg = writer.pasteSectorGroup(sg, tr)
     grid((x, y, z, w)) = psg
     psg
   }
 
   private def placeHorizontalHallway(left: PastedSectorGroup, right: PastedSectorGroup, hallway: SectorGroup): Unit = {
-    val leftConn = MapWriter.eastConnector(left)
-    val rightConn = MapWriter.westConnector(right)
-    val cdelta: PointXYZ = MapWriter.westConnector(hallway).getTransformTo(leftConn)
-    val pastedHallway = pasteSectorGroup(hallway, cdelta)
-    sgBuilder.linkConnectors(MapWriter.westConnector(pastedHallway), leftConn)
-    sgBuilder.linkConnectors(MapWriter.eastConnector(pastedHallway), rightConn)
+    val leftConn = CompassWriter.eastConnector(left)
+    val rightConn = CompassWriter.westConnector(right)
+    val cdelta: PointXYZ = CompassWriter.westConnector(hallway).getTransformTo(leftConn)
+    val pastedHallway = writer.pasteSectorGroup(hallway, cdelta)
+    sgBuilder.linkConnectors(CompassWriter.westConnector(pastedHallway), leftConn)
+    sgBuilder.linkConnectors(CompassWriter.eastConnector(pastedHallway), rightConn)
   }
 
   private def placeVerticalHallway(top: PastedSectorGroup, bottom: PastedSectorGroup): Unit = {
-    val topConn = MapWriter.southConnector(top)
-    val bottomConn = MapWriter.northConnector(bottom)
-    val cdelta: PointXYZ = MapWriter.northConnector(vertHallway).getTransformTo(topConn)
-    val pastedHallway = pasteSectorGroup(vertHallway, cdelta)
-    sgBuilder.linkConnectors(MapWriter.northConnector(pastedHallway), topConn)
-    sgBuilder.linkConnectors(MapWriter.southConnector(pastedHallway), bottomConn)
+    val topConn = CompassWriter.southConnector(top)
+    val bottomConn = CompassWriter.northConnector(bottom)
+    val cdelta: PointXYZ = CompassWriter.northConnector(vertHallway).getTransformTo(topConn)
+    val pastedHallway = writer.pasteSectorGroup(vertHallway, cdelta)
+    sgBuilder.linkConnectors(CompassWriter.northConnector(pastedHallway), topConn)
+    sgBuilder.linkConnectors(CompassWriter.southConnector(pastedHallway), bottomConn)
   }
 
   def placeHallways(): Unit = {
@@ -171,8 +171,8 @@ object Hypercube1 {
     builder.placeElevators(1, 2, 1701)
     builder.linkAllTeleporters()
 
-    builder.setAnyPlayerStart()
-    builder.clearMarkers()
+    builder.writer.setAnyPlayerStart()
+    builder.writer.clearMarkers()
     builder.writer.checkSectorCount()
     builder.outMap
   }

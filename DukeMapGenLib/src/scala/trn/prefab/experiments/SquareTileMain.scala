@@ -1,6 +1,6 @@
 package trn.prefab.experiments
-import trn.{DukeConstants, FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
-import trn.prefab.{BoundingBox, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.{BuildConstants, DukeConstants, FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
+import trn.prefab.{BoundingBox, CompassWriter, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
 import trn.duke.TextureList
 import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
@@ -173,7 +173,7 @@ class Grid2D(val params: GridParams2D) {
     sg2.map { sg3 =>
       val cellBox = params.cellBoundingBox(cellx, celly)
       val target = SquareTileMain.alignToBox(sg3, cellBox)
-      val psg = writer.builder.pasteSectorGroupAt(sg3, target.withZ(0))
+      val psg = writer.pasteSectorGroupAt(sg3, target.withZ(0))
       grid.put((cellx, celly), psg)
       psg
     }
@@ -297,7 +297,7 @@ object SquareTileMain {
 
   // TODO - make these fully private
   private[experiments] def snapH(sg: SectorGroup, dest: BoundingBox): Int = {
-    (MapWriter.east(sg).isDefined, MapWriter.west(sg).isDefined) match {
+    (CompassWriter.east(sg).isDefined, CompassWriter.west(sg).isDefined) match {
       case (_, true) => dest.xMin  // align left
       case (true, false) => dest.xMin + (dest.w - sg.boundingBox.w) // align right
       case (false, false) => (dest.xMin + dest.w/2) - sg.boundingBox.w/2 // align center
@@ -305,7 +305,7 @@ object SquareTileMain {
   }
 
   private[experiments] def snapV(sg: SectorGroup, dest: BoundingBox): Int = {
-    (MapWriter.north(sg).isDefined, MapWriter.south(sg).isDefined) match {
+    (CompassWriter.north(sg).isDefined, CompassWriter.south(sg).isDefined) match {
       case (true, _) => dest.yMin // align top
       case (false, true) => dest.yMin + (dest.h - sg.boundingBox.h) // align bottom
       case (false, false) => (dest.yMin + dest.h/2) - sg.boundingBox.h/2 // align center
@@ -622,7 +622,7 @@ class SquareTileMain(
 
     val stays = writer.pasteStays(palette)
 
-    val gridParams = SquareTileMain.guessGridParams(MapWriter.MapBounds, palette, stays).withMaxCellCounts(
+    val gridParams = SquareTileMain.guessGridParams(BuildConstants.MapBounds, palette, stays).withMaxCellCounts(
       gridBuilderInput.maxCellsX,
       gridBuilderInput.maxCellsY
     )
@@ -662,7 +662,7 @@ class SquareTileMain(
     }
 
     writer.sgBuilder.autoLinkRedwalls()
-    writer.builder.setAnyPlayerStart(force = true)
+    writer.setAnyPlayerStart(force = true)
     writer.sgBuilder.clearMarkers()
     writer.checkSectorCount()
     writer.outMap

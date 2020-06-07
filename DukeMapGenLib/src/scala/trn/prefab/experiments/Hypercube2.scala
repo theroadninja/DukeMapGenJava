@@ -60,7 +60,7 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
   //   pasteSectorGroup(sg, tr)
   // }
 
-  def setPlayerStart(cell: Cell): Unit = setPlayerStart(grid(cell))
+  def setPlayerStart(cell: Cell): Unit = writer.setPlayerStart(grid(cell))
 
   // new version
   def addRoom(room: Room, gridCell: (Int, Int, Int, Int)): PastedSectorGroup = {
@@ -68,7 +68,7 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
     if(grid2.get(gridCell).nonEmpty) throw new IllegalArgumentException("that cell already taken")
     val anchor = room.sectorGroup.getAnchor.withZ(0)
     val tr = anchor.getTransformTo(gridManager.toCoordinates(gridCell))
-    val psg = pasteSectorGroup(room.sectorGroup, tr)
+    val psg = writer.pasteSectorGroup(room.sectorGroup, tr)
     grid(gridCell) = psg
     grid2(gridCell) = room
     psg
@@ -193,27 +193,27 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
     val leftConn = leftRoom.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[RedwallConnector]
     val rightConn = rightRoom.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[RedwallConnector]
     val cdelta: PointXYZ = if(leftConn.getAnchorPoint.z < rightConn.getAnchorPoint.z){
-      MapWriter.westConnector(hallway).getTransformTo(leftConn)
+      CompassWriter.westConnector(hallway).getTransformTo(leftConn)
     }else{
-      MapWriter.eastConnector(hallway).getTransformTo(rightConn)
+      CompassWriter.eastConnector(hallway).getTransformTo(rightConn)
     }
-    val pastedHallway = pasteSectorGroup(hallway, cdelta)
-    sgBuilder.linkConnectors(MapWriter.westConnector(pastedHallway), leftConn)
-    sgBuilder.linkConnectors(MapWriter.eastConnector(pastedHallway), rightConn)
+    val pastedHallway = writer.pasteSectorGroup(hallway, cdelta)
+    sgBuilder.linkConnectors(CompassWriter.westConnector(pastedHallway), leftConn)
+    sgBuilder.linkConnectors(CompassWriter.eastConnector(pastedHallway), rightConn)
     pastedHallway
   }
 
   def placeHallwayNS(topRoom: PastedSectorGroup, hallway: SectorGroup, bottomRoom: PastedSectorGroup): PastedSectorGroup = {
-    val topConn = MapWriter.southConnector(topRoom)
-    val bottomConn = MapWriter.northConnector(bottomRoom)
+    val topConn = CompassWriter.southConnector(topRoom)
+    val bottomConn = CompassWriter.northConnector(bottomRoom)
     val cdelta: PointXYZ = if(topConn.getAnchorPoint.z < bottomConn.getAnchorPoint.z){
-      MapWriter.northConnector(hallway).getTransformTo(topConn)
+      CompassWriter.northConnector(hallway).getTransformTo(topConn)
     } else {
-      MapWriter.southConnector(hallway).getTransformTo(bottomConn)
+      CompassWriter.southConnector(hallway).getTransformTo(bottomConn)
     }
-    val pastedHallway = pasteSectorGroup(hallway, cdelta)
-    sgBuilder.linkConnectors(MapWriter.northConnector(pastedHallway), topConn)
-    sgBuilder.linkConnectors(MapWriter.southConnector(pastedHallway), bottomConn)
+    val pastedHallway = writer.pasteSectorGroup(hallway, cdelta)
+    sgBuilder.linkConnectors(CompassWriter.northConnector(pastedHallway), topConn)
+    sgBuilder.linkConnectors(CompassWriter.southConnector(pastedHallway), bottomConn)
     pastedHallway
   }
 }
@@ -480,9 +480,9 @@ object Hypercube2 {
 
     builder.autoLinkRooms()
 
-    builder.applyPaletteToAll(TextureList.SKIES.MOON_SKY, PaletteList.ALSO_NORMAL)
+    builder.writer.applyPaletteToAll(TextureList.SKIES.MOON_SKY, PaletteList.ALSO_NORMAL)
     builder.setPlayerStart((0, 0, 0, 0)) //builder.setAnyPlayerStart()
-    builder.clearMarkers()
+    builder.writer.clearMarkers()
     builder.outMap
   }
 

@@ -8,6 +8,7 @@ import scala.collection.JavaConverters._ // this is the good one
 
 
 class CopyPasteMapBuilder(val outMap: DMap) extends MapBuilder {
+  val writer = new MapWriter(this, this.sgBuilder)
 
 }
 
@@ -229,7 +230,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
     val tmpBuilder = new CopyPasteMapBuilder(result.map)
     val cdelta = conn2.getTransformTo(conn1)
-    val (_, idmap) = tmpBuilder.pasteSectorGroup2(group2, cdelta)
+    val (_, idmap) = tmpBuilder.writer.pasteSectorGroup2(group2, cdelta)
     val pastedConn2 = conn2.translateIds(idmap, cdelta)
 
     // TODO - link redwalls  ( TODO - make this a member of the builder? )
@@ -240,7 +241,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     if(removeSecondAnchor){
       tmpBuilder.outMap.deleteSprites(new ISpriteFilter {
         override def matches(s: Sprite): Boolean = {
-          tmpBuilder.isAnchor(s) && s.getLocation != anchorSprite.get.getLocation
+          tmpBuilder.writer.isAnchor(s) && s.getLocation != anchorSprite.get.getLocation
         }
       })
       // for(i <- 0 until tmpBuilder.outMap.getSpriteCount){
@@ -290,7 +291,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     // TODO - but now all the connectors are fucked up...
 
     val conns = result.getTeleportConnectors().filter(c => c.isWater && !c.isLinked(result.map) && c.getConnectorId == childPtr.connectorId)
-    MapBuilder.linkAllWater(result, conns, tagGenerator)
+    MapWriter.linkAllWater(result, conns, tagGenerator)
 
     // find elevators with matching connector Ids
     val elevatorConns = result.getElevatorConnectorsById(childPtr.connectorId)
@@ -447,6 +448,6 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     new PointXY(bb.xMin, bb.yMin).withZ(0)
   }
 
-  def getAnchorSprite: Option[Sprite] = sprites.find(MapBuilder.isAnchorSprite)
+  def getAnchorSprite: Option[Sprite] = sprites.find(MapWriter.isAnchorSprite)
 
 }

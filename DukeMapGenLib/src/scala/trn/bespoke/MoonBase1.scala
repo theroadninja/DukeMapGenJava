@@ -34,7 +34,7 @@ object MoonBase1 {
     writer.tryPasteConnectedTo(center, spacePalette.getSG(Space.Door), PasteOptions())
 
 
-    writer.builder.setAnyPlayerStart(force = true)
+    writer.setAnyPlayerStart(force = true)
     writer.sgBuilder.clearMarkers()
     writer.checkSectorCount()
     Main.deployTest(writer.outMap)

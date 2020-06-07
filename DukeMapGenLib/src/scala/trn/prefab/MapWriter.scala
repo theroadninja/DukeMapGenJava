@@ -3,13 +3,12 @@ package trn.prefab
 import java.util
 
 import trn.duke.PaletteList
-import trn.{ISpriteFilter, IdMap, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{BuildConstants, ISpriteFilter, IdMap, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.FuncImplicits._
 import trn.prefab.experiments._
 
 import scala.collection.JavaConverters._
-
 
 case class ConnMatch(newConn: RedwallConnector, existingConn: RedwallConnector)
 
@@ -19,68 +18,35 @@ class MapBuilderAdapter(val outMap: DMap) extends MapBuilder {
 }
 
 object MapWriter {
-  val MaxSectors = 1024 // more than this and Build will crash
-  val MapBounds = BoundingBox(DMap.MIN_X, DMap.MIN_Y, DMap.MAX_X, DMap.MAX_Y)
-
+  val MaxSectors = BuildConstants.MaxSectors
+  val MapBounds = BuildConstants.MapBounds
+  //val MapBounds = BoundingBox(DMap.MIN_X, DMap.MIN_Y, DMap.MAX_X, DMap.MAX_Y)
   val MarkerTex = PrefabUtils.MARKER_SPRITE_TEX
 
-  val WestConn = SimpleConnector.WestConnector
-  val EastConn = SimpleConnector.EastConnector
-  val NorthConn = SimpleConnector.NorthConnector
-  val SouthConn = SimpleConnector.SouthConnector
+  def isMarkerSprite(s: Sprite, lotag: Int): Boolean = {
+    s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
+  }
+  def isAnchorSprite(s: Sprite): Boolean = isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
 
-  /** @deprecated */
-  def firstConnector(sg: SectorGroup, cf: ConnectorFilter): RedwallConnector = sg.findFirstConnector(cf).asInstanceOf[RedwallConnector]
-
-  def westConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(WestConn).asInstanceOf[RedwallConnector]
-  def eastConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
-  def northConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
-  def southConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
-
-
-  def east(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(EastConn).map(_.asInstanceOf[RedwallConnector])
-  def west(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(WestConn).map(_.asInstanceOf[RedwallConnector])
-  def north(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(NorthConn).map(_.asInstanceOf[RedwallConnector])
-  def south(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(SouthConn).map(_.asInstanceOf[RedwallConnector])
-
-  def firstConnWithHeading(sg: SectorGroup, heading: Int) = heading match {
-    case Heading.E => east(sg)
-    case Heading.W => west(sg)
-    case Heading.N => north(sg)
-    case Heading.S => south(sg)
-    case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
+  def waterSortKey(p: PointXYZ): Long = {
+    val x = (p.x + 65535L) << 4
+    val y = (p.y + 65535L) << 2
+    val z = p.z + 65535L
+    x + y + z
   }
 
-  // TODO - should not need different methods for SectorGroup and PastedSectorGroup
-  def westConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(WestConn).asInstanceOf[RedwallConnector]
-  def eastConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
-  def northConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
-  def southConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
+  def linkAllWater(singleGroup: SectorGroup, conns: Seq[TeleportConnector], tagGenerator: TagGenerator): Unit = {
+    val map = singleGroup.getMap
+    val aboveWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 1).sortBy(t => MapWriter.waterSortKey(t.getSELocation(singleGroup)))
+    val belowWater: Seq[TeleportConnector] = conns.filter(c => map.getSector(c.getSectorId).getLotag == 2).sortBy(t => MapWriter.waterSortKey(t.getSELocation(singleGroup)))
+    if(aboveWater.size != belowWater.size){
+      throw new SpriteLogicException(s"There are ${aboveWater.size} above water vs ${belowWater.size} below.")
+    }
+    //println(s"above water size=${aboveWater.size}")
 
-  def east(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(EastConn)
-  def west(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(WestConn)
-  def north(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(NorthConn)
-  def south(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(SouthConn)
-  def firstConnWithHeading(sg: PastedSectorGroup, heading: Int): Option[RedwallConnector] = heading match {
-    case Heading.E => east(sg)
-    case Heading.W => west(sg)
-    case Heading.N => north(sg)
-    case Heading.S => south(sg)
-    case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
+    // TODO - verify the locations have the same relative positions
+    aboveWater.zip(belowWater).foreach { case (above, below) => TeleportConnector.linkTeleporters(above, singleGroup, below, singleGroup, tagGenerator.nextUniqueHiTag()) }
   }
-
-  def farthestEast(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isEast).maxByOption(_.getAnchorPoint.x)
-  def farthestWest(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isWest).maxByOption(_.getAnchorPoint.x * -1)
-  def farthestNorth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isNorth).maxByOption(_.getAnchorPoint.y * -1)
-  def farthestSouth(conns: Seq[RedwallConnector]): Option[RedwallConnector] = conns.filter(_.isSouth).maxByOption(_.getAnchorPoint.y)
-  def farthestConn(conns: Seq[RedwallConnector], heading: Int): Option[RedwallConnector] = heading match {
-    case Heading.E => farthestEast(conns)
-    case Heading.W => farthestWest(conns)
-    case Heading.N => farthestNorth(conns)
-    case Heading.S => farthestSouth(conns)
-    case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
-  }
-
 
   def painted(sg: SectorGroup, colorPalette: Int, excludeTextures: Seq[Int] = Seq.empty): SectorGroup = {
     val sg2 = sg.copy
@@ -193,13 +159,43 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     conns: Seq[ConnMatch]
   ): PastedSectorGroup = {
     require(conns.size > 0)
-    val (psg, idmap) = builder.pasteSectorGroup2(newSg, translate)
+    val (psg, idmap) = pasteSectorGroup2(newSg, translate)
     conns.foreach { cmatch =>
       val newConn = cmatch.newConn.translateIds(idmap, translate)
       sgBuilder.linkConnectors(cmatch.existingConn, newConn)
     }
     psg
   }
+
+  def isAnchor(s: Sprite): Boolean = MapWriter.isAnchorSprite(s)
+
+  /**
+    * TODO - candidate for moving to MapWriter
+    * paste the sector group so that it's anchor is at the given location.  If no anchor,
+    * its top left corner of the bounder box will be used.
+    * @param sg
+    * @param location
+    * @return
+    */
+  def pasteSectorGroupAt(sg: SectorGroup, location: PointXYZ, anchorOnly: Boolean = false): PastedSectorGroup = {
+    val anchor = sg.sprites.find(isAnchor).map(_.getLocation).getOrElse{
+      if(anchorOnly){ throw new SpriteLogicException(("no anchor sprite"))}
+      new PointXYZ(sg.boundingBox.xMin, sg.boundingBox.yMin, 0) // TODO - bounding box doesnt do z ...
+    }
+    //pasteSectorGroup(sg, anchor.getTransformTo(location))
+    val (psg, _) = sgBuilder.pasteSectorGroup2(sg, anchor.getTransformTo(location))
+    psg
+  }
+
+  def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = {
+    val (psg, _) = pasteSectorGroup2(sg, translate)
+    psg
+  }
+
+  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap) = {
+    sgBuilder.pasteSectorGroup2(sg, translate)
+  }
+
 
   /** convenience method that tries to autolink any connectors in two PSGs */
   def autoLink(psg1: PastedSectorGroup, psg2: PastedSectorGroup): Int = {
@@ -218,41 +214,19 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
   def pasteStays(palette: PrefabPalette): Seq[PastedSectorGroup] = {
     val stays = palette.getStaySectorGroups.asScala
     stays.map { sg =>
-      builder.pasteSectorGroup(sg, PointXYZ.ZERO) // no translate == leave where it is
+      pasteSectorGroup(sg, PointXYZ.ZERO) // no translate == leave where it is
     }.toSeq
   }
 
   def pasteStays2(palette: PrefabPalette): Seq[(Option[Int], PastedSectorGroup)] = {
     val stays = palette.getStaySectorGroups.asScala
-    stays.map(sg =>(sg.props.groupId, builder.pasteSectorGroup(sg, PointXYZ.ZERO))).toSeq
+    stays.map(sg =>(sg.props.groupId, pasteSectorGroup(sg, PointXYZ.ZERO))).toSeq
   }
-
-
-  // /**
-  //   * Tests if there is space for the given sector group AFTER being moved by tx
-  //   */
-  // def spaceAvailable(sg: SectorGroup, tx: PointXY): Boolean = {
-  //   def conflict(psg: PastedSectorGroup, bb: BoundingBox): Boolean ={
-  //     psg.boundingBox.intersect(bb).map(_.area).getOrElse(0) > 0
-  //   }
-
-  //   val bb = sg.boundingBox.translate(tx)
-  //   lazy val sgBoxes = sg.fineBoundingBoxes.map(_.translate(tx))
-
-  //   if(!bb.isInsideInclusive(MapBuilder.mapBounds)){
-  //     false
-  //   }else{
-  //     val conflicts = pastedSectorGroups.filter { psg =>
-  //       conflict(psg, bb) && BoundingBox.nonZeroOverlap(psg.fineBoundingBoxes, sgBoxes)
-  //     }
-  //     conflicts.isEmpty
-  //   }
-  // }
 
   def spaceAvailable(sg: SectorGroup, tx: PointXY): Boolean = {
     val bb = sg.boundingBox.translate(tx)
     lazy val translatedSg = sg.translatedXY(tx)
-    bb.isInsideInclusive(MapBuilder.mapBounds) && {
+    bb.isInsideInclusive(BuildConstants.MapBounds) && {
       !pastedSectorGroups.exists{ psg =>
         psg.boundingBox.intersects(bb) && psg.intersectsWith(translatedSg)
       }
@@ -267,7 +241,7 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     * @return true if the bounding box is in bounds and there are no existing groups in that area.
     */
   def spaceAvailable(bb: BoundingBox): Boolean = {
-    bb.isInsideInclusive(MapBuilder.mapBounds) &&
+    bb.isInsideInclusive(BuildConstants.MapBounds) &&
       pastedSectorGroups.filter(psg => psg.boundingBox.intersects(bb)).isEmpty
   }
 
@@ -283,64 +257,6 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     existingConn.isMatch(newConn) && (skipSpaceCheck || spaceAvailable(newSg, newConn.getTransformTo(existingConn).asXY))
   }
 
-  // // you care which existing group, but dont care which connector for either of them
-  // // TODO - use the new MapWriter2 methods
-  // def tryPasteConnectedTo(
-  //   existing: PastedSectorGroup,
-  //   newGroup: SectorGroup,
-  //   allowOverlap: Boolean = false   // TODO - check Z of the overlapping sectors
-  // ): Option[PastedSectorGroup] = {
-
-  //   // Placement.allPasteOptions(this, existing, newGroup, allowRotation = true, allowOverlap = allowOverlap)
-  //   val allOptions = Placement.pasteOptions(this, existing, newGroup)
-  //   if(allOptions.size < 1){
-  //     None
-  //   }else{
-  //     //val (c1, c2, g) = random.randomElement(allOptions)
-  //     val p = random.randomElement(allOptions)
-  //     //Some(pasteAndLink(c1, g, c2))
-  //     Some(pasteAndLink(p.existing, p.newSg, p.newConn))
-  //   }
-  // }
-
-
-  //
-  //  COMPASS DIRECTION METHODS BELOW
-  //
-  private def pasteAndLinkNextTo(
-    existingGroup: PastedSectorGroup,
-    existingConn: ConnectorFilter,
-    newGroup: SectorGroup,
-    newConn: ConnectorFilter
-  ): PastedSectorGroup = {
-    val conn1 = existingGroup.findFirstConnector(existingConn).asInstanceOf[RedwallConnector]
-    pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(newConn).asInstanceOf[RedwallConnector])
-  }
-
-  def pasteSouthOf(
-    existing: PastedSectorGroup,
-    newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, MapWriter.SouthConn, newGroup, MapWriter.NorthConn)
-
-  def pasteEastOf(
-    existing: PastedSectorGroup,
-    newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, MapWriter.EastConn, newGroup, MapWriter.WestConn)
-
-  def pasteWestOf(
-    existing: PastedSectorGroup,
-    newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, MapWriter.WestConn, newGroup, MapWriter.EastConn)
-
-  def pasteNorthOf(
-    existing: PastedSectorGroup,
-    newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, MapWriter.NorthConn, newGroup, MapWriter.SouthConn)
-
-  //
-  //  CONNECTORS
-  //
-
   // See the (static) MapWriter object for the version that works on unpasted SectorGroups
   def linkElevators(
     lowerConn: ElevatorConnector,
@@ -354,6 +270,66 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     sgBuilder.nextUniqueHiTag(),
     startLower
   )
+
+  def applyPaletteToAll(textureId: Int, palette: Int): Unit = {
+    if(textureId < 0 || palette < 0) throw new IllegalArgumentException
+    this.outMap.allWalls.foreach { w =>
+      if(w.getTexture == textureId){
+        w.setPal(palette)
+      }
+    }
+    this.outMap.sectors.asScala.foreach { s =>
+      if(s.getFloorTexture == textureId){
+        s.setFloorPalette(palette)
+      }
+      if(s.getCeilingTexture == textureId){
+        s.setCeilingPalette(palette)
+      }
+    }
+  }
+
+
+  /**
+    * If the map does not have a player start set yet,
+    * sets the player start of the map to the location of the first player start marker sprite it finds
+    * @param force if true, will set start marker to 0, 0 on the map, to ensure the map can compile
+    */
+  def setAnyPlayerStart(force: Boolean = false): Unit = {
+    if(!outMap.hasPlayerStart){
+      val playerStarts = outMap.allSprites.filter(s =>
+        s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
+      )
+      if(playerStarts.size < 1) {
+        if(force){
+          outMap.setPlayerStart(new PlayerStart(0, 0, 0, PlayerStart.NORTH))
+        }else{
+          throw new SpriteLogicException("cannot set player start - there are no player start markers")
+        }
+      }else{
+        outMap.setPlayerStart(new PlayerStart(playerStarts(0)))
+      }
+    }
+  }
+
+  /**
+    * Sets the player start to one of the player start markers in the group.
+    * @param psg
+    */
+  def setPlayerStart(psg: PastedSectorGroup): Unit = {
+    //
+    val sectorIds = psg.getCopyState.destSectorIds().asScala
+
+    val playerStarts = psg.getMap.allSprites.filter(s =>
+      s.getTexture == PrefabUtils.MARKER_SPRITE_TEX
+        && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
+        && sectorIds.contains(s.getSectorId)
+    )
+    if(playerStarts.size < 1) {
+      throw new SpriteLogicException(s"no player start markers in sector group")
+    }
+    outMap.setPlayerStart(new PlayerStart(playerStarts(0)))
+  }
+  def clearMarkers(): Unit = sgBuilder.clearMarkers()
 
   //
   //  ISectorGroup Methods

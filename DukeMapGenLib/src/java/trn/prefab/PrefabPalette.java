@@ -136,7 +136,7 @@ public class PrefabPalette {
 		}
 
 
-		TagGenerator tagGenerator = new SimpleTagGenerator(500);
+		TagGenerator tagGenerator = new SimpleTagGenerator(500); // TODO - should be passed in
 		// now process the children
 		final java.util.Map<Integer, SectorGroup> numberedGroups2 = new java.util.TreeMap<>();
 		for(Integer groupId : numberedSectorGroups.keySet()){

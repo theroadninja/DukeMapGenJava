@@ -146,6 +146,8 @@ class Hyper3MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
 {
   val writer = MapWriter(this)
 
+  override def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = writer.pasteSectorGroup(sg, translate)
+
   val grid = scala.collection.mutable.Map[Cell, PastedSectorGroup]()
 
   // TODO - in a generic builder, where is this location?  up to the algorithm?
@@ -164,7 +166,7 @@ class Hyper3MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
 
     // TODO - this is not handling W ...
 
-    val psg = pasteSectorGroupAt(sg, p)
+    val psg = writer.pasteSectorGroupAt(sg, p)
     cellCoords.foreach { coord =>
       require(coord.axisToCoord.size == 4)
       val cell = Hyper3MapBuilder.toCell(coord)
@@ -177,7 +179,7 @@ class Hyper3MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
 
   def placeInGrid(sg: SectorGroup, cell: Cell): PastedSectorGroup = { // TODO - only for debugging
     val p = gridManager.toCoordinates(cell)
-    val psg = pasteSectorGroupAt(sg, p)
+    val psg = writer.pasteSectorGroupAt(sg, p)
     require(!grid.contains(cell))
     grid.put(cell, psg)
     psg
@@ -192,7 +194,7 @@ class Hyper3MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
     if(grid.contains(cell)){
       None
     }else{
-      val psg = pasteSectorGroupAt(sg, gridManager.toCoordinates(cell))
+      val psg = writer.pasteSectorGroupAt(sg, gridManager.toCoordinates(cell))
       grid.put(cell, psg)
       Some(psg)
     }
@@ -250,7 +252,7 @@ class Hyper3MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
         roomConn.findMatches(hallway, sgBuilder.getMapTODO).map(placement => (roomConn, placement))
       }
     }.headOption.foreach { case (roomConn, placement) =>
-      val (psg, idmap) = this.pasteSectorGroup2(placement.newSg, PointXYZ.ZERO) // its already been translated
+      val (psg, idmap) = writer.pasteSectorGroup2(placement.newSg, PointXYZ.ZERO) // its already been translated
     //cant use the conns in the room...
     val newC0 = placement.c0.translateIds(idmap, PointXYZ.ZERO)
       val newC1 = placement.c1.translateIds(idmap, PointXYZ.ZERO)
@@ -296,7 +298,7 @@ object Hypercube3 extends PrefabExperiment {
     //
     // -- standard stuff below --
     writer.sgBuilder.autoLinkRedwalls()
-    writer.builder.setAnyPlayerStart()
+    writer.setAnyPlayerStart()
     writer.sgBuilder.clearMarkers()
     writer.outMap
   }
@@ -358,7 +360,7 @@ object Hypercube3 extends PrefabExperiment {
 
     // -- standard stuff below --
     writer.sgBuilder.autoLinkRedwalls()
-    writer.builder.setAnyPlayerStart()
+    writer.setAnyPlayerStart()
     writer.sgBuilder.clearMarkers()
     writer.outMap
   }
