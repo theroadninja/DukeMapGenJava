@@ -17,43 +17,48 @@ public class ConnectorFactory {
 
 			if (map.findSprites(null, DukeConstants.SE_LOTAGS.TELEPORT, (int) s.getSectorId()).size() > 0) {
 				//its a teleporter
+				// TODO - disallow this (use the teleport prefab)
 				return new TeleportConnector(s, sector.getLotag());
 			} else if (ElevatorConnector.isElevatorMarker(map, s)) {
+			    // TODO - disallow this
 				System.out.println("WARNING: auto connector used to create elevator (DEPRECATED - See ConnectorFactory.java");
 				return new ElevatorConnector(s);
 			} else {
+
+				// TODO - this code has a bug that causes it to run forever if every wall in the sector is marked with 1
+
 				List<Integer> linkWallIds = getLinkWallIds(map, sector);
 
-				if(linkWallIds.size() == 0){
+				if (linkWallIds.size() == 0) {
 					throw new SpriteLogicException("missing link wall for marker sprite at " + s.getLocation().toString());
 				}
 
 				// how many different groups of contiguous lotag-1 walls are there?
 
-                // TODO - write unit tests for partitionWalls
+				// TODO - write unit tests for partitionWalls
 				// (maybe use an interface for the map method that retrieves a wall by wallId)
 				List<List<Integer>> partitions = partitionWalls(linkWallIds, map);
 				//List<List<Integer>> partitions = new LinkedList<>(); // TODO - paritionWalls() not working
 				//partitions.add(linkWallIds);
 
-				if(partitions.size() < 1){
+				if (partitions.size() < 1) {
 					throw new RuntimeException("programming error");
-				}else if(partitions.size() == 1){
+				} else if (partitions.size() == 1) {
 					// only one wall segment, assume the connector matches
 					// TODO - what if they put more than one connector sprite in, which different IDs ?
-					if(SimpleConnector.isSimpleConnector(partitions.get(0), map)){
+					if (SimpleConnector.isSimpleConnector(partitions.get(0), map)) {
 						return new SimpleConnector(s, sector, partitions.get(0).get(0), map);
-					}else{
+					} else {
 						return new MultiWallConnector(s, sector, partitions.get(0), map);
 					}
 					// return redWallConn(s, sector, partitions.get(0), map);
-				}else{
-				    //if(1==1) throw new RuntimeException("not working yet");
+				} else {
+					//if(1==1) throw new RuntimeException("not working yet");
 					//System.out.println("partitions: " + partitions.size());
 
 					// figure out which group the  marker sprite is pointing to
-					for(int partIdx = 0; partIdx < partitions.size(); ++partIdx){
-						if(matches(s, partitions.get(partIdx), map)){
+					for (int partIdx = 0; partIdx < partitions.size(); ++partIdx) {
+						if (matches(s, partitions.get(partIdx), map)) {
 							return redWallConn(s, sector, partitions.get(partIdx), map);
 						}
 					}

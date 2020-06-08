@@ -133,6 +133,9 @@ public class PrefabUtils {
 		// unused because you can still use 20
 		public static int TWO_WALL_CONNECTOR = ConnectorType.MULTI_REDWALL; // 21
 
+		/** a connector that spans multiple sectors */
+		public static int MULTI_SECTOR = 22;
+
 		/**
 		 * A connector sprite that becomes a normal or water teleporter.
 		 * (but not a silent teleporter).
@@ -154,6 +157,7 @@ public class PrefabUtils {
 				ENEMY,
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
+				MULTI_SECTOR,
 				TELEPORT_CONNECTOR
 				});
 	}

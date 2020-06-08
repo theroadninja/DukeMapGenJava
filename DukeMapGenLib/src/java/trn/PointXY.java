@@ -66,6 +66,12 @@ public class PointXY {
 	}
 
 	@Override
+	public int hashCode(){
+		// this needs to be implemented for scalas groupBy function to work
+		return x << 4 + y;
+	}
+
+	@Override
 	public String toString(){
 		return "{ PointXY x=" + this.x + " y=" + y + " }";
 	}

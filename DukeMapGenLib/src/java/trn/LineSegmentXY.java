@@ -1,6 +1,8 @@
 package trn;
 
 import javax.sound.sampled.Line;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LineSegmentXY {
 
@@ -24,6 +26,13 @@ public class LineSegmentXY {
 
         LineSegmentXY line2 = (LineSegmentXY)other;
         return this.p1.equals(line2.p1) && this.p2.equals(line2.p2);
+    }
+
+    public final List<PointXY> toList(){
+        ArrayList<PointXY> list = new ArrayList<>(2);
+        list.add(getP1());
+        list.add(getP2());
+        return list;
     }
 
     public PointXY getP1(){

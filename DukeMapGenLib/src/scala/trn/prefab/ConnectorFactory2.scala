@@ -26,6 +26,8 @@ case class MultiSectorCandidate(connectorId: Int, sectorId: Int, sprite: Sprite,
 }
 
 /**
+  * TODO - looks like an old attempt to move ConnectorFactory to scala
+  * TODO - abandoning this attempt; see ConnectorScanner instead
   * Trying to move some of the logic to a scala factory.
   */
 object ConnectorFactory2 {

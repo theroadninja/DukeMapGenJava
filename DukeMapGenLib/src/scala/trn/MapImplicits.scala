@@ -49,6 +49,14 @@ object MapImplicits {
       list.toSeq
     }
 
+    def allWallViews: Seq[WallView] = {
+      val list = new collection.mutable.ArrayBuffer[WallView](map.getWallCount)
+      for(i <- 0 until map.getWallCount){
+        list += map.getWallView(i)
+      }
+      list
+    }
+
     def translated(translation: PointXY): DMap = {
        val transform = Matrix2D.translate(translation.x, translation.y)
        applyTransform(transform)

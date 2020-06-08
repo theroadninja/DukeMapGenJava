@@ -9,6 +9,10 @@ package trn;
  * So PI = 1024.
  *
  * Apparently BUILD used a lookup table of ints where -1 = -16383 and 1 = 16383 (15 bits, including sign?)
+ *
+ *
+ * TODO - buildhlp says all angles are from 0-2047, clockwise.  Assuming that is based on looking at build's 2d screen,
+ * go through and ...interesting.   That doesnt seem to be true :(
  */
 public class AngleUtil {
 
