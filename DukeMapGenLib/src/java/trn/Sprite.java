@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class Sprite {
+public class Sprite implements IRayXY {
 
 	/**
 	 * TODO - is this correct??
@@ -206,6 +206,21 @@ public class Sprite {
 	public PointXYZ getLocation(){
 		return new PointXYZ(this.x, this.y, this.z);
 	}
+
+	@Override
+	public PointXY getPoint(){
+		return getLocation().asXY();
+	}
+
+	/**
+	 * @return the sprites angle, as a vector: PointXY
+	 */
+	@Override
+	public PointXY getVector(){
+		return AngleUtil.unitVector(getAngle());
+	}
+
+
 	public void setLocation(PointXY point){
 		this.x = point.x;
 		this.y = point.y;

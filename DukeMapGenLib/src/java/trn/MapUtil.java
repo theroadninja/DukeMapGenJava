@@ -248,6 +248,10 @@ public class MapUtil {
 
 
 	/**
+	 *
+	 * // TODO - not good enough.  I think this could return the wrong wall if multiple walls in the sector
+	 *           insersect the sprite's ray
+	 *
 	 * Determines if a sprite is "pointing at" a wall.
 	 *
 	 * The sprites position and angle is used to define a ray (half-line), and the walls position + the position of
@@ -267,6 +271,7 @@ public class MapUtil {
 
 	// this is just split out for unit testing
 	// TODO - compare to Sprite.intersectsSegment (maybe get rid of this one)
+	// NOTE: see also ConnectorScanner.rayIntersect()
 	static boolean isSpritePointedAtWall(Sprite s, Wall w1, Wall w2){
 		PointXY sv = AngleUtil.unitVector(s.getAngle());
 		// System.out.println("\tunit vector: " + sv);

@@ -1,5 +1,7 @@
 package trn;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 /**
  * For xy coordinates.
  *
@@ -259,7 +261,57 @@ public class PointXY {
 			return (0.0 <= t && (isRay1 || t <= 1.0))
 					&& (0.0 <= u && (isRay2 || u <= 1.0));
 		}
+	}
 
+	/**
+	 * TODO - revamp this whole API
+	 *
+	 * Clone of insertsect() above, except that it returns the factor used to multiply the unit vectors that define
+	 * the intersection.
+	 *
+	 * @param a
+	 * @param b
+	 * @param c
+	 * @param d
+	 * @param isRay1
+	 * @param isRay2
+	 * @param endingExclusive
+	 * @return (t, u) where t is the factor for the first vector, a+b, and u is the factor for the second vector, c+d,
+	 * 			or null if they dont intersect
+	 */
+	static Pair<Double, Double> intersectForTU(PointXY a, PointXY b, PointXY c, PointXY d, boolean isRay1, boolean isRay2, boolean endingExclusive) {
+		int bd = b.crossProduct2d(d);
+		if(0 == bd) return null;
+		PointXY ca = c.subtractedBy(a);
+
+		// t is the factor multiplied against a+b
+		double t = ca.crossProduct2d(d) / (double)bd;
+
+		// u is the factor multiplied against c+d
+		double u = ca.crossProduct2d(b) / (double)bd; // -bxd = dxb
+		if(endingExclusive){
+			// if the intersection happens at the beginning of the segment, in counts, but not at the other end
+			// used for polygon math so that we don't double count when crossing vertexes
+			if((0.0 <= t && (isRay1 || t < 1.0)) // <-- this is whats different
+					&& (0.0 <= u && (isRay2 || u < 1.0))){
+				return Pair.of(t, u);
+			}else{
+				return null;
+			}
+		}else{
+			if((0.0 <= t && (isRay1 || t <= 1.0))
+					&& (0.0 <= u && (isRay2 || u <= 1.0))){
+				return Pair.of(t, u);
+			}else{
+				return null;
+			}
+		}
+	}
+
+
+	/** intersect a ray with a line segment */
+	public static Pair<Double, Double> rayIntersectForTU(IRayXY ray, LineSegmentXY line, boolean endingExclusive) {
+		return intersectForTU(ray.getPoint(), ray.getVector(), line.getP1(), line.getVector(), true, false, endingExclusive);
 	}
 
 	/**

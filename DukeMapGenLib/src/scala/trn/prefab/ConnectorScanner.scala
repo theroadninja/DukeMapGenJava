@@ -1,10 +1,17 @@
 package trn.prefab
 
-import trn.{DukeConstants, ISpriteFilter, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
+import trn.{AngleUtil, DukeConstants, IRayXY, ISpriteFilter, LineSegmentXY, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
 import trn.MapImplicits._
+import org.apache.commons.lang3.tuple.{Pair => ApachePair}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable // this is the good one
+
+
+class WallSection(wallIds: Set[Int]) {
+  var marker: Option[Sprite] = None
+}
+
 /**
   * Scala counterpart to ConnectorFactory
   */
@@ -18,6 +25,16 @@ object ConnectorScanner {
       // are already connected.
       w0.p1 == w1.p2 || w0.p2 == w1.p1
     }
+  }
+
+  /**
+    * creates a map of PointXY -> Seq[WallView]  where each key is pointing to all of the walls containing that
+    * point.
+    */
+  def pointToWallMap(walls: Iterable[WallView]): Map[PointXY, Set[WallView]] = {
+    val x = walls.flatMap(wall => wall.getLineSegment.toList.asScala.map(p => p -> wall)).toSeq
+    val x2 = x.groupBy{ case (k, _) => k}
+    x2.mapValues(_.map(_._2).toSet)
   }
 
   // finds a bunch of walls that are all connected to each other
@@ -51,14 +68,53 @@ object ConnectorScanner {
     (closedList.toSet, walls.filterNot(w => closedList.contains(w.getWallId)))
   }
 
-  def pointToWallMap(walls: Iterable[WallView]): Map[PointXY, Set[WallView]] = {
-    val x = walls.flatMap(wall => wall.getLineSegment.toList.asScala.map(p => p -> wall)).toSeq
-    val x2 = x.groupBy{ case (k, _) => k}
-    x2.mapValues(_.map(_._2).toSet)
+  def scanAllLines(walls: Seq[WallView], pointToWall: Map[PointXY, Set[WallView]]): Seq[Set[Int]] = {
+    require(walls.size > 0)
+
+    val (results, remaining) = scanLine(walls, pointToWall)
+    if(remaining.isEmpty){
+      Seq(results)
+    }else{
+      Seq(results) ++ scanAllLines(remaining, pointToWall)
+    }
   }
 
-  def findMultiSectorConnectors(map: DMap): java.util.List[MultiSectorConnector] = {
+  private[prefab] def isMultiSectorSprite(s: Sprite): Boolean = {
+    s.getTex == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.MULTI_SECTOR
+  }
 
+  /**
+    * Using the sprites position and angle to form a ray, intersect it with all walls and return the closest one.
+    * @param sprite
+    * @return the closest wall that intersected
+    */
+  def rayIntersect(sprite: IRayXY, walls: Seq[WallView]): Option[WallView] = {
+
+    def rayInt(s: IRayXY, wall: LineSegmentXY): Option[Double] = {
+      Option(PointXY.rayIntersectForTU(s, wall, false)).map(_.getLeft.doubleValue)
+    }
+
+    val intersectedWalls = walls.map(w => (w, rayInt(sprite, w.getLineSegment))).collect {
+      case (wall, dist) if dist.isDefined => (wall, dist.get)
+    }
+    if(intersectedWalls.isEmpty){
+      None
+    }else{
+      val (closest, _) = intersectedWalls.minBy(_._2)
+      Some(closest)
+    }
+  }
+
+  def findMultiSectorConnectors(map: MapView): java.util.List[MultiSectorConnector] = {
+    // TODO - use a "map view" here, since we dont need to modify the map
+
+    // TODO - establish a max num of walls that can be used in this connector?  32? 512?
+
+
+    // TODO - need to be able to limit the search by sector id...or wont be able to rescan PSGs
+    val sectorIds = map.allSectorIds.toSet
+
+    // TODO - only intersect sprites with walls that belong to that sector...
     // TODO - ensure that loops work
     val results = new java.util.ArrayList[MultiSectorConnector]()
 
@@ -67,31 +123,28 @@ object ConnectorScanner {
       return results
     }
 
-
-    // val pointToWall0 = mutable.Map[PointXY, mutable.Set[WallView]]()
-    // walls.foreach { wall =>
-    //   wall.getLineSegment.toList.asScala.foreach{p =>
-    //     pointToWall0.getOrElseUpdate(p, mutable.Set()).add(wall)
-    //   }
-    // }
-    // val pointToWall = pointToWall0.map{ case (k, v) => k -> v.toSet }.toMap
-
     val pointToWall = pointToWallMap(walls)
-
     val wallsById: Map[Int, WallView] = walls.map(w => w.getWallId -> w).toMap
 
+    val sprites = map.allSprites.filter(sprite => sectorIds.contains(sprite.getSectorId)).filter(isMultiSectorSprite)
 
-    def scanAllLines(walls: Seq[WallView]): Seq[Set[Int]] = {
-      require(walls.size > 0)
-
-      val (results, remaining) = scanLine(walls, pointToWall)
-      if(remaining.isEmpty){
-        Seq(results)
-      }else{
-        Seq(results) ++ scanAllLines(remaining)
-      }
+    val wallSections = scanAllLines(walls, pointToWall).map { line =>
+      new WallSection(line)
     }
 
+    // see  this in connector factory:
+    //private static boolean matches(Sprite marker, List<Integer> walls, Map map){
+    //MapUtil.isSpritePointedAtWall
+
+    // for each sprite
+    //   find the FIRST wall the sprite's ray intersects
+    //   check if the wall has lotag 22
+    //   get the wall id
+    //   scan through the wall sections for one that contains the wall id
+    //   store the sprite in the wall section (if one is already there, throw error)
+
+
+    // TODO - enforce the thing about must have more than one sector, unless water
     ???
 
     // every marker should point to a different set of walls with lotag 2

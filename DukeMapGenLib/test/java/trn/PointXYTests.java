@@ -1,5 +1,6 @@
 package trn;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -268,5 +269,19 @@ public class PointXYTests {
         Assert.assertEquals(p(0, 0), p(100, 100).multipliedBy(0));
 
         Assert.assertEquals(p(1, 2).multipliedBy(3), p(3, 6));
+    }
+
+    private Pair<Double, Double> intersectForRayTU(PointXY ray, PointXY rayvec, PointXY p0, PointXY p1){
+        // EndingExclusive=false is used for sprite-wall testing
+        return PointXY.intersectForTU(ray, rayvec, p0, p1.subtractedBy(p0), true, false, false);
+    }
+
+    @Test
+    public void testIntersectForTU(){
+        double delta = 0.00001;
+        Pair<Double, Double> result = intersectForRayTU(p(0, 0), p(10, 0), p(10, 5), p(10, -5));
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result.getLeft() - 1.0 < delta);
+        Assert.assertTrue(result.getRight() - 0.5 < delta);
     }
 }

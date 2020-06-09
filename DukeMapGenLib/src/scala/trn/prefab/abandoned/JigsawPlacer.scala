@@ -2,7 +2,8 @@ package trn.prefab.abandoned
 
 import trn.prefab._
 import trn.prefab.experiments.PrefabExperiment
-import trn.{ImmutableMap, MapLoader, MathUtil, PointXY, PointXYZ, Sector, Map => DMap}
+import trn.{MapLoader, MapView, MathUtil, PointXY, PointXYZ, Sector, Map => DMap}
+import trn.MapImplicits._
 
 
 
@@ -61,7 +62,8 @@ object JigsawPlacer {
     newConn: RedwallConnector,
     b: RedwallConnector,
     zMatch: Int = ZMatchOptional,
-    map: ImmutableMap
+    //map: ImmutableMapOld
+    map: MapView
   ): Boolean = {
     if(newConn.getSectorIds.size() != 1 || b.getSectorIds.size() != 1){
       throw new RuntimeException("multi-sector not supported yet")
@@ -92,7 +94,7 @@ object JigsawPlacer {
   ): Seq[Placement] = {
     partialFit.translatedSg.allRedwallConnectors.filterNot(_ == partialFit.firstMatch.newConn).flatMap { newConn2 =>
       existingConns2.flatMap { existing2 =>
-        if(inPlaceMatch(partialFit.translatedSg, newConn2, existing2, zMatch, new ImmutableMap(map))){
+        if(inPlaceMatch(partialFit.translatedSg, newConn2, existing2, zMatch, map.asView)){
           Some(Placement(partialFit.translatedSg, Seq(partialFit.firstMatch, ConnMatch(newConn2, existing2))))
         }else{
           None

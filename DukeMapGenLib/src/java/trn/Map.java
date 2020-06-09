@@ -76,10 +76,6 @@ public class Map implements WallContainer {
 		return map;
 	}
 
-	public ImmutableMap readOnly(){
-		return new ImmutableMap(this);
-	}
-	
 	public long getMapVersion(){
 		return mapVersion;
 	}

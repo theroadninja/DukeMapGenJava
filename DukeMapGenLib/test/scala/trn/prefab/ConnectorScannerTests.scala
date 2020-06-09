@@ -4,7 +4,8 @@ import java.io.{ByteArrayInputStream, File, FileInputStream}
 
 import org.apache.commons.io.IOUtils
 import org.junit.{Assert, Test}
-import trn.{HardcodedConfig, LineSegmentXY, PointXY, Wall, WallView, Map => DMap}
+import trn.{AngleUtil, HardcodedConfig, LineSegmentXY, PointXY, Sprite, Wall, WallView, Map => DMap}
+
 import scala.collection.JavaConverters._
 
 class ConnectorScannerTests {
@@ -56,6 +57,10 @@ class ConnectorScannerTests {
     ConnectorScanner.scanLine(walls, ConnectorScanner.pointToWallMap(walls))
   }
 
+  private def scanAllLines(walls: Seq[WallView]): Seq[Set[Int]] = {
+    ConnectorScanner.scanAllLines(walls, ConnectorScanner.pointToWallMap(walls))
+  }
+
   @Test
   def testGroupBy: Unit = {
     // this test brought to you by: forgetting to implement PointXY.hashCode()
@@ -82,12 +87,16 @@ class ConnectorScannerTests {
   @Test
   def testScanLineSingleWall: Unit = {
     // a single line segment
-    val (line0, remaining0) = scanLine(Seq(
-      testWall(1, p(0, 0), p(1024, 0))
-    ))
+    val walls = Seq(testWall(1, p(0, 0), p(1024, 0)))
+    val (line0, remaining0) = scanLine(walls)
     Assert.assertTrue(remaining0.isEmpty)
     Assert.assertEquals(1, line0.size)
     Assert.assertTrue(line0.toSeq(0) == 1)
+
+    val lines = scanAllLines(walls)
+    Assert.assertEquals(1, lines.size)
+    Assert.assertEquals(1, lines(0).size)
+    Assert.assertEquals(1, lines(0).head)
   }
 
   @Test
@@ -115,6 +124,12 @@ class ConnectorScannerTests {
     Assert.assertTrue(remaining1.isEmpty)
     Assert.assertEquals(2, line1.size)
     Assert.assertTrue(line1.intersect(Set(1, 2)).size == 2)
+
+    val lines = scanAllLines(walls1)
+    Assert.assertEquals(1, lines.size)
+    Assert.assertEquals(2, lines(0).size)
+    Assert.assertTrue(lines(0).intersect(Set(1, 2)).size == 2)
+
   }
 
   @Test
@@ -133,6 +148,11 @@ class ConnectorScannerTests {
     Assert.assertTrue(remaining2.isEmpty)
     Assert.assertTrue(line2.contains(1) || line2.contains(2))
     Assert.assertEquals(2, (line1 ++ line2).intersect(Set(1,2)).size)
+
+    val lines = scanAllLines(walls)
+    Assert.assertEquals(2, lines.size)
+    Assert.assertEquals(1, lines(0).size)
+    Assert.assertEquals(1, lines(1).size)
   }
 
   @Test
@@ -200,6 +220,33 @@ class ConnectorScannerTests {
     }else{
       Assert.assertTrue(line2.intersect(Set(1,2)).size == 2)
       Assert.assertTrue(line.intersect(Set(3,4)).size == 2)
+    }
+
+    val lines = scanAllLines(walls)
+    Assert.assertEquals(2, lines.size)
+    Assert.assertEquals(2, lines(0).size)
+    Assert.assertEquals(2, lines(1).size)
+  }
+
+  @Test
+  def testSpritePointedAtWalls: Unit = {
+    val s: Sprite = new Sprite(0, 0, 0, 0)
+    s.setAngle(AngleUtil.ANGLE_RIGHT)
+
+    val walls = Seq(
+      testWall(1, p(64, -1024), p(80, 1024)),
+      testWall(2, p(32, -1024), p(32, 1024)),
+      testWall(3, p(512, -1024), p(512, 1024)),
+    )
+    val result = ConnectorScanner.rayIntersect(s, walls)
+    Assert.assertTrue(result.isDefined)
+    Assert.assertEquals(2, result.get.getWallId)
+
+    val s2: Sprite = new Sprite(0, 0, 0, 0)
+    Seq(AngleUtil.ANGLE_DOWN, AngleUtil.ANGLE_LEFT, AngleUtil.ANGLE_UP).foreach { ang =>
+      s2.setAng(ang)
+      val result2 = ConnectorScanner.rayIntersect(s2, walls)
+      Assert.assertTrue(result2.isEmpty)
     }
   }
 

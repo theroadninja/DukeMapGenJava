@@ -33,6 +33,10 @@ object MapImplicits {
 
   class MapExtended(map: DMap) {
 
+    def asView: MapView = new MapView(map)
+
+    def allSectorIds: Seq[Int] = (0 until map.getSectorCount)
+
     def allSprites: Seq[Sprite] = {
       val list = new collection.mutable.ArrayBuffer[Sprite](map.getSpriteCount)
       for(i <- 0 until map.getSpriteCount){

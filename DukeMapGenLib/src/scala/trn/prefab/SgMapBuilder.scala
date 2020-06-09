@@ -1,6 +1,6 @@
 package trn.prefab
 
-import trn.{IdMap, ImmutableMap, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, SpriteFilter, Map => DMap}
+import trn.{IdMap, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, SpriteFilter, Map => DMap}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -13,7 +13,7 @@ class SgMapBuilder(private val map: DMap) extends TagGenerator {
   // when this becomes true, the map is "finalized" and we can no longer add/remove sector groups
   var markersCleared = false
 
-  def getMap: ImmutableMap = map.readOnly
+  // def getMap: ImmutableMapOld = map.readOnly
   def sectorCount: Int = map.getSectorCount
 
   // TODO - improve ImmutableMap so that everything calling this can use that
