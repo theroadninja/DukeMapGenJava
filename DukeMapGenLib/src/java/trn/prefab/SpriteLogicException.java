@@ -11,11 +11,21 @@ import trn.Sprite;
  */
 @SuppressWarnings("serial")
 public class SpriteLogicException extends RuntimeException {
+
 	public static void throwIf(boolean condition, String message) {
 		if(condition){
 			throw new SpriteLogicException(message);
 		}
 	}
+
+	public static void throwIf(boolean condition, String message, Sprite location){
+	    if(condition){
+	    	throw new SpriteLogicException(message, location);
+		}
+	}
+
+
+
 	// TODO - delete this one in favor of throwIfSprite
 	public static void requireSprite(boolean condition, String message, Sprite s){
 		throwIf(condition, message + " at " + s.getLocation().asXY());

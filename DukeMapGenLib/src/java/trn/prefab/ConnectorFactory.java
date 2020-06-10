@@ -104,6 +104,7 @@ public class ConnectorFactory {
 	}
 
 	// TODO - compare to MapUtil.sortWallSection()
+	// TODO - compare to ConnectorScanner.sortContinuousWalls() which should become the canonical form of this algorithm
 	static List<List<Integer>> partitionWalls(List<Integer> wallIds, WallContainer map){
 		//System.out.print("parition input: " );
 		//for(int i = 0; i < wallIds.size(); ++i){

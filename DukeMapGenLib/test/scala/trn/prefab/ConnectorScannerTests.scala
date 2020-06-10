@@ -251,6 +251,68 @@ class ConnectorScannerTests {
   }
 
   @Test
+  def testSortWalls: Unit = {
+    val a = p(0, 0)
+    val b = p(32, 0)
+    val c = p(64, 0)
+    val d = p(64, 1024)
+    val e = p(96, 1024)
+    val f = p(96, 0)
+
+    Assert.assertTrue(ConnectorScanner.sortContinuousWalls(Seq.empty).isEmpty)
+
+    val walls = Seq(
+      testWall(1, a, b),
+      testWall(2, b, c),
+      testWall(3, c, d),
+    )
+
+    val results = ConnectorScanner.sortContinuousWalls(walls).map(_.getWallId)
+    println(results)
+    Assert.assertEquals(3, results.size)
+    Assert.assertTrue(results.equals(Seq(1,2, 3)))
+    Assert.assertTrue(results.equals(ConnectorScanner.sortContinuousWalls(walls.reverse).map(_.getWallId)))
+
+    val morewalls = Seq(
+      testWall(3, c, d),
+      testWall(5, e, f),
+      testWall(2, b, c),
+      testWall(4, d, e),
+      testWall(1, a, b),
+    )
+    val results2 = ConnectorScanner.sortContinuousWalls(morewalls).map(_.getWallId)
+    Assert.assertEquals(5, results2.size)
+    Assert.assertTrue(results2.equals(Seq(1, 2, 3, 4, 5)))
+  }
+
+  @Test
+  def testAnchor: Unit = {
+
+    Assert.assertEquals(
+      p(0, 0),
+      ConnectorScanner.anchor(Seq(testWall(1, p(0, 0), p(32, 32))))
+    )
+    Assert.assertNotEquals(
+      p(1, 0),
+      ConnectorScanner.anchor(Seq(testWall(1, p(0, 0), p(32, 32))))
+    )
+    Assert.assertEquals(
+      p(0, 0),
+      ConnectorScanner.anchor(Seq(testWall(1, p(32, 32), p(0, 0))))
+    )
+    Assert.assertEquals(
+      p(-1024, -64),
+      ConnectorScanner.anchor(Seq(testWall(1, p(-1024, 512), p(32, -64))))
+    )
+    Assert.assertEquals(
+      p(-1024, -128),
+      ConnectorScanner.anchor(Seq(testWall(1, p(-1024, 512), p(32, -64)), testWall(2, p(64, -128), p(0, 0))))
+    )
+
+
+  }
+
+  @Test
   def testSomething: Unit = {
     palette.getSG(1)
 

@@ -8,7 +8,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable // this is the good one
 
 
-class WallSection(wallIds: Set[Int]) {
+class WallSection(val wallIds: Set[Int]) {
   var marker: Option[Sprite] = None
 }
 
@@ -85,6 +85,9 @@ object ConnectorScanner {
 
   /**
     * Using the sprites position and angle to form a ray, intersect it with all walls and return the closest one.
+    *
+    * See also:  MapUtil.isSpritePointedAtWall
+    *
     * @param sprite
     * @return the closest wall that intersected
     */
@@ -104,6 +107,67 @@ object ConnectorScanner {
       Some(closest)
     }
   }
+
+  /**
+    * takes a set of unordered wall sections that make up a single wall and puts them in order.  The order
+    * is based on the implicit order in a given wall, i.e. a wall with points (p0, p1) has a natural direction
+    * p0 --> p1,  and p1 is the start of the next wall.  So the wall whose p0 does not match any other walls p1
+    * is the first wall in the ordering.
+    *
+    * See also earler version(s):
+    *   - ConnectorFactory.partitionWalls
+    *   - MapUtil.sortWallSection
+    *
+    *
+    * @param walls
+    * @return
+    */
+  def sortContinuousWalls(walls: Iterable[WallView]): Seq[WallView] = {
+    if(walls.isEmpty){
+      Seq.empty
+    }else{
+      val firstPoint = walls.map(w => w.p1 -> w).toMap
+      val secondPoint = walls.map(w => w.p2 -> w).toMap
+      println(s"firstPoint: ${firstPoint}")
+      println(s"secondPoint: ${secondPoint}")
+
+      def f(w: WallView, point: WallView => PointXY, m: Map[PointXY, WallView]): Seq[WallView] = {
+        //Seq(w) ++ m.get(point(w)).map(n => f(n, point, m)).getOrElse(Seq.empty)
+        val n = m.get(point(w))
+        if(n.isDefined){
+          Seq(n.get) ++ f(n.get, point, m)
+        }else{
+          Seq.empty
+        }
+      }
+      val w = walls.head
+
+      // TODO - throw if result size does not match wall size
+      val results = f(w, _.p1, secondPoint).reverse ++ Seq(w) ++ f(w, _.p2, firstPoint)
+      if(results.size != walls.size){
+        throw new IllegalArgumentException("walls not continuous")
+      }
+      results
+    }
+  }
+
+  /**
+    * TODO - there is duplicate logic in the MultiWallConnector constructor.
+    *
+    * Calculates the "anchor" point by finding the minimum x coord of all points, and the
+    * minimum y coord of all points (they can come from differnt points, so the anchor might
+    * not be on the wall).  This anchor point should be the same for two connectors of the same
+    * shape which are facing each other.
+    */
+  def anchor(walls: Iterable[WallView]): PointXY = {
+    if(walls.isEmpty){
+      throw new IllegalArgumentException("walls cannot be empty")
+    }
+    val points = walls.flatMap(_.getLineSegment.toList.asScala)
+    new PointXY(points.map(_.x).min, points.map(_.y).min)
+  }
+
+  // def matchSpritesToWallSections(sprites: Seq[Sprite], wallSections: Seq[WallSection])
 
   def findMultiSectorConnectors(map: MapView): java.util.List[MultiSectorConnector] = {
     // TODO - use a "map view" here, since we dont need to modify the map
@@ -132,16 +196,45 @@ object ConnectorScanner {
       new WallSection(line)
     }
 
-    // see  this in connector factory:
-    //private static boolean matches(Sprite marker, List<Integer> walls, Map map){
-    //MapUtil.isSpritePointedAtWall
+    sprites.foreach { sprite =>
 
-    // for each sprite
-    //   find the FIRST wall the sprite's ray intersects
-    //   check if the wall has lotag 22
-    //   get the wall id
-    //   scan through the wall sections for one that contains the wall id
-    //   store the sprite in the wall section (if one is already there, throw error)
+      val wallOpt = rayIntersect(sprite, map.sectorWallViewLoops(sprite.getSectorId).flatten)
+      val wall = wallOpt.getOrElse(throw new MathIsHardException("marker sprite not pointed at a wall")) // should never happen
+      SpriteLogicException.throwIf(
+        wall.lotag() != MultiSectWallLotag,
+        s"multi sector sprite pointed at wall that does not have lotag ${MultiSectWallLotag}",
+      )
+
+      val section = wallSections.find(_.wallIds.contains(wall.getWallId)).getOrElse(
+        throw new SpriteLogicException("multi sector sprite encountered wierd error", sprite) // should never happen
+      )
+
+      if(section.marker.isDefined){
+        val msg = s"2 multisect sprites pointed at same walls near ${section.marker.get.getLocation}"
+        throw new SpriteLogicException(msg, sprite)
+      }else{
+        section.marker = Some(sprite)
+      }
+
+    }
+
+
+    val wallIdToSectorId = map.newWallIdToSectorIdMap
+    wallSections.filter(_.marker.isDefined).map { wallSection =>
+
+
+      val connectorId = wallSection.marker.get.getHiTag
+      val sectorIds = wallSection.wallIds.map(wallIdToSectorId).toSeq
+
+      val anchorZ = sectorIds.map(map.getSector).map(_.getFloorZ).min
+
+
+      val walls = wallSection.wallIds.map(wallsById)
+      val sortedWalls = sortContinuousWalls(walls)
+      val wallIds = sortedWalls.map(_.getWallId).map(Integer.valueOf)
+      new MultiSectorConnector(wallSection.marker.get, sectorIds.map(Integer.valueOf).asJava, wallIds.asJava, sortedWalls.asJava, anchor(walls).withZ(anchorZ), walls.head.p1, walls.last.p2)
+
+    }
 
 
     // TODO - enforce the thing about must have more than one sector, unless water

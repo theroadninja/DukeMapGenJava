@@ -30,6 +30,7 @@ public abstract class Connector {
         return connectorId;
     }
 
+    /** sector id of the marker sprite (connectors can have more than 1 sector) */
     public abstract short getSectorId();
 
     public abstract boolean isLinked(Map map);

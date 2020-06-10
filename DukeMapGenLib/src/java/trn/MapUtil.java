@@ -281,6 +281,7 @@ public class MapUtil {
 	}
 
 	/**
+	 * TODO - replace this with ConnectorScanner.sortContinuousWalls
 	 *
 	 * @param wallIds ids of walls in the same sector that are connected
 	 * @param map the map containing the walls

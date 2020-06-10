@@ -13,6 +13,14 @@ import java.util.List;
  */
 public class WallView {
 
+    public static long totalLength(Iterable<WallView> walls){
+        long sum = 0;
+        for(WallView w: walls){
+            sum += w.getLineSegment().getLength();
+        }
+        return sum;
+    }
+
     private final Wall wall;
 
     private final int wallId;

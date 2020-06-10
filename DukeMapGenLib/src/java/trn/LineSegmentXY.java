@@ -58,6 +58,10 @@ public class LineSegmentXY {
         return p1.distanceTo(p2);
     }
 
+    public long getManhattanLength(){
+        return p1.manhattanDistanceTo(p2);
+    }
+
     /**
      * Tests line segment intersection.  Note: returns true of overlapping and same lines
      * @param line2 the other line

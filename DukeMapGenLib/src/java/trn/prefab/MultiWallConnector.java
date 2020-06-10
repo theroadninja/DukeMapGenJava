@@ -102,7 +102,7 @@ public class MultiWallConnector extends RedwallConnector {
         }
 
         int z = sector.getFloorZ();
-        this.anchor = new PointXYZ(minX, minY, z);
+        this.anchor = new PointXYZ(minX, minY, z); // TODO - duplicate anchor logic in ConnectorScanner
         this.wallAnchor1 = map.getWall(wallIds.get(0)).getLocation();
         this.wallAnchor2 = map.getWall(endWallId).getLocation();
 
