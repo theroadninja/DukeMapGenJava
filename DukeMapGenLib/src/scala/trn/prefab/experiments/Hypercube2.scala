@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{DukeConstants, Main, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{DukeConstants, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.{PaletteList, TextureList}
 import trn.prefab.experiments.Hyper2MapBuilder.Cell
@@ -337,7 +337,7 @@ case class Room(
   )
 }
 
-object Hypercube2 {
+object Hypercube2 extends PrefabExperimentStdRun {
   val BasicRoom = 100
   val PoolRoomTop = 101
   // 102 - pool room bottom
@@ -388,8 +388,9 @@ object Hypercube2 {
   // 303 - reactor underwater
 
 
-  def run(sourceMap: DMap): DMap = {
-    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
+  //def run(sourceMap: DMap): DMap = {
+  def run(palette: PrefabPalette): DMap = {
+    //val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
     val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
 
     def modularRoom2(sg: SectorGroup, x: Int, y: Int, elevator: Boolean, teleporter: Boolean, w: Int = 0): Room = {
@@ -485,5 +486,7 @@ object Hypercube2 {
     builder.writer.clearMarkers()
     builder.outMap
   }
+
+  override def Filename: String = "hyper2.map"
 
 }

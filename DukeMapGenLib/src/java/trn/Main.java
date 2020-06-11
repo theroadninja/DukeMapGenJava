@@ -41,7 +41,7 @@ public class Main {
 		//run(FirstPrefabExperiment$.MODULE$);
 		//run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
 		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
-		//Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
+		run(Hypercube2$.MODULE$); //Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
 		//deployTest(outMap);
 
 		//run(SoundListMap$.MODULE$);
@@ -54,7 +54,7 @@ public class Main {
 		//deployTest(outMap);
 
 		//run(Hypercube3$.MODULE$);
-		run(Hypercube4$.MODULE$);
+		//run(Hypercube4$.MODULE$);
 		//run(JigsawPlacerMain$.MODULE$);
 
 		// run(PersonalStorage$.MODULE$);

@@ -11,37 +11,13 @@ import java.util.List;
  */
 public class MultiWallConnector extends RedwallConnector {
 
-    // dont put this in RedwallConnector because some redwall connectors might have multiple sectors
-    private final int sectorId;
-    final List<Integer> allSectorIds;
-    private final List<Integer> wallIds;
-    private final List<WallView> walls;
-
-    /** a point with x = min x of all wall points and y = min y of all wall points */
-    private final PointXYZ anchor;
-
-    /**
-     * the anchor at the beginning of the sequence of walls (with a point that matches the first wall in
-     * the sequence).
-     */
-    private final PointXY wallAnchor1;
-
-    /**
-     * the anchor at the end of the sequence of walls (with a point matching the wall that the last wall
-     * of the sequence points to).
-     */
-    private final PointXY wallAnchor2;
-
-    private final int markerSpriteLotag;
+    //private final List<WallView> walls;
 
     /**
      * The points of the walls relative to the first point, which we use to store the shape of the connector,
      * to verify whether it can fit to another connector.
      */
     private final List<PointXY> relativePoints;
-
-    /** Total manhattan length */
-    private final long totalLength;
 
     private MultiWallConnector(
             int connectorId,
@@ -55,49 +31,34 @@ public class MultiWallConnector extends RedwallConnector {
             List<PointXY> relativePoints,
             long totalLength
     ){
-        super(connectorId);
-        this.sectorId = sectorId;
-        this.allSectorIds = new ArrayList(1);
-        this.allSectorIds.add(this.sectorId);
-        this.wallIds = Collections.unmodifiableList(new ArrayList<>(wallIds));
-        this.walls = walls;
-        this.anchor = anchor;
-        this.wallAnchor1 = wallAnchor1;
-        this.wallAnchor2 = wallAnchor2;
-        this.markerSpriteLotag = markerSpriteLotag;
+        super(connectorId, sectorId, SimpleConnector.toList(sectorId), totalLength, anchor, wallAnchor1, wallAnchor2, markerSpriteLotag, ConnectorType.MULTI_REDWALL, wallIds, 1);
+        //this.walls = Collections.unmodifiableList(walls);
         this.relativePoints = relativePoints;
-        this.totalLength = totalLength;
     }
 
     public MultiWallConnector(Sprite markerSprite, Sector sector, List<Integer> wallIds, List<WallView> walls, Map map){
-        super(markerSprite);
-        this.markerSpriteLotag = markerSprite.getLotag();
+        super(markerSprite, markerSprite.getSectorId(),
+                SimpleConnector.toList(markerSprite.getSectorId()),
+                totalManhattanLength(wallIds, map),
+                getAnchor(wallIds, map).withZ(sector.getFloorZ()),
+                map.getWall(wallIds.get(0)).getLocation(),
+                map.getWall(
+                        // TODO dry with endWallId below
+                        map.getWall(wallIds.get(wallIds.size() - 1)).getNextWallInLoop()
+                ).getLocation(),
+                markerSprite.getLotag(),
+                ConnectorType.MULTI_REDWALL,
+                wallIds,
+                1
+                );
         if(markerSprite == null || sector == null) throw new IllegalArgumentException();
-        this.sectorId = markerSprite.getSectorId();
-        this.allSectorIds = new ArrayList(1);
-        this.allSectorIds.add(this.sectorId);
-        //this.wallIds = new ArrayList<>(wallIds.size());
-        // wallIds = MapUtil.sortWallSection(wallIds, map);
-
-
-        //int z = sector.getFloorZ();
-        //this.anchor = new PointXYZ(minX, minY, z);
-        this.anchor = getAnchor(wallIds, map).withZ(sector.getFloorZ());
 
         int endWallId = map.getWall(wallIds.get(wallIds.size() - 1)).getNextWallInLoop();
         if(endWallId == wallIds.get(0)){
             throw new IllegalArgumentException("walls are a complete loop");
         }
-
-        this.wallAnchor1 = map.getWall(wallIds.get(0)).getLocation();
-        this.wallAnchor2 = map.getWall(endWallId).getLocation();
-
-        this.wallIds = Collections.unmodifiableList(wallIds);
-        this.walls = walls;
-        if(this.wallIds.size() < 1) throw new RuntimeException();
-        this.relativePoints = allRelativeConnPoints(this.wallIds, map, this.anchor, this.wallAnchor2);
-
-        this.totalLength = totalManhattanLength(map);
+        //this.walls = walls;
+        this.relativePoints = allRelativeConnPoints(wallIds, map, this.anchor, this.wallAnchor2);
     }
 
     public static PointXY getAnchor(List<Integer> wallIds, Map map){
@@ -134,29 +95,15 @@ public class MultiWallConnector extends RedwallConnector {
         return new PointXY(minX, minY);
     }
 
-
-    @Override
-    public PointXYZ getTransformTo(RedwallConnector other) {
-        if(other == null) throw new IllegalArgumentException();
-        MultiWallConnector c2 = (MultiWallConnector)other;
-        if(! canLink(c2, null)){
-            throw new SpriteLogicException("cannot link to other connector");
-        }
-
-        // if the sectors are facing each other, the anchor sides at opposite ends of the wall
-        // sequence should match, because walls always go clockwise.
-
-
-        return this.getAnchorPoint().getTransformTo(c2.getAnchorPoint());
-    }
-
     @Override
     public MultiWallConnector translateIds(IdMap idmap, PointXYZ delta, Map map) {
+        List<Integer> newWallIds = idmap.wallIds(this.wallIds);
+        List<WallView> newWalls = MapUtil.getWallViews(newWallIds, map);
         return new MultiWallConnector(
                 this.getConnectorId(),
-                idmap.sector(this.sectorId),
-                idmap.wallIds(this.wallIds),
-                null, // TODO!
+                idmap.sector(spriteSectorId),
+                newWallIds,
+                newWalls,
                 this.anchor.add(delta),
                 this.wallAnchor1.add(delta.asXY()),
                 this.wallAnchor2.add(delta.asXY()),
@@ -166,79 +113,14 @@ public class MultiWallConnector extends RedwallConnector {
         );
     }
 
-    @Override
-    public PointXYZ getAnchorPoint() {
-        return this.anchor;
-    }
-
-    @Override
-    public short getSectorId() {
-        return (short)sectorId;
-    }
-
-    @Override
-    public List<Integer> getSectorIds(){
-        return this.allSectorIds;
-    }
-
-    @Override
-    public boolean isLinked(Map map) {
-        // return map.getWall(wallId).isRedWall();
-        // return true if all the walls are red walls
-        Boolean linked = null;
-        assert this.wallIds.size() > 0;
-        for(int wallId: this.wallIds){
-            boolean b = map.getWall(wallId).isRedWall();
-            if(linked == null){
-                linked = b;
-            }else if(linked != b){
-                //some are linked and some are not
-                throw new SpriteLogicException("redwall connector inconsistent linkage");
-            }
-        }
-        return linked;
-    }
-
-    @Override
-    public int getConnectorType() {
-        return ConnectorType.MULTI_REDWALL;
-    }
-
-    @Override
-    public long totalManhattanLength(){
-        return this.totalLength;
-    }
-
-    public long totalManhattanLength(Map map){
+    static long totalManhattanLength(List<Integer> wallIds, Map map){
         long sum = 0;
-        for(int wallId: this.wallIds){
+        for(int wallId: wallIds){
             Wall w1 = map.getWall(wallId);
             Wall w2 = map.getWall(w1.getNextWallInLoop());
             sum += w1.getLocation().manhattanDistanceTo(w2.getLocation());
         }
         return sum;
-    }
-
-    @Override
-    public void removeConnector(Map map) {
-        //TODO - merge this with the one in SimpleConnector
-
-        // clear the wall
-        for(int wallId: this.wallIds){
-            Wall w = map.getWall(wallId);
-            if(w.getLotag() != 1) throw new SpriteLogicException();
-            w.setLotag(0);
-        }
-
-        // remove the marker sprite
-        int d = map.deleteSprites((Sprite s) ->
-                s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
-                        && s.getSectorId() == sectorId
-                        && s.getLotag() == this.markerSpriteLotag
-        );
-        // TODO - this happens when a child connects to a parent group, and the parent groups connector
-        // is in a sector with more than 1 connector
-        if(d != 1) throw new SpriteLogicException("TODO");
     }
 
     @Override
@@ -279,11 +161,13 @@ public class MultiWallConnector extends RedwallConnector {
 
     /**
      *
-     * @param other
+     * @param other0
      * @param map  the map containing both connectors (pass null if the connectors are not in the same map yet)
      * @return
      */
-    public boolean canLink(MultiWallConnector other, Map map) {
+    @Override
+    public boolean canLink(RedwallConnector other0, Map map) {
+        MultiWallConnector other = (MultiWallConnector)other0;
         if(this.wallIds.size() != other.wallIds.size()){
             return false;
         }
@@ -346,11 +230,6 @@ public class MultiWallConnector extends RedwallConnector {
         if(! p2.equals(otherP1)) return false;
         return true;
     }
-
-
-    // private List<PointXY> allRelativeConnPoints(Map map){
-    //     return allRelativeConnPoints(this.wallIds, map, this.anchor, this.wallAnchor2);
-    // }
 
     static List<PointXY> allRelativeConnPoints(List<Integer> wallIds, Map map, PointXYZ anchor, PointXY anchor2){
         List<PointXY> results = new ArrayList<>(wallIds.size() + 1);

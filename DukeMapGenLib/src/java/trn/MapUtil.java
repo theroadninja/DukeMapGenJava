@@ -350,4 +350,12 @@ public class MapUtil {
 	public static boolean isOuterWallLoop(Collection<WallView> wallLoop){
 		return sumOfCrossProduct(wallLoop) > 0;
 	}
+
+	public static List<WallView> getWallViews(Collection<Integer> wallIds, Map map){
+		List<WallView> results = new ArrayList<>(wallIds.size());
+		for(int wallId: wallIds){
+			results.add(map.getWallView(wallId));
+		}
+		return results;
+	}
 }

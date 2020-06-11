@@ -1,23 +1,104 @@
 package trn.prefab;
 
-import trn.IdMap;
-import trn.Map;
-import trn.PointXYZ;
-import trn.Sprite;
+import trn.*;
 
+import java.util.Collections;
 import java.util.List;
 
 // TODO - or should the main feature of this class be that it matters where the sector is?
 public abstract class RedwallConnector extends Connector {
 
-    protected RedwallConnector(int connectorId){
+    /** the "main" sectorId of the connector, where the connector sprite is located */
+    protected final int spriteSectorId;
+    protected final List<Integer> allSectorIds;
+
+    /** a point with x = min x of all wall points and y = min y of all wall points */
+    protected final PointXYZ anchor;
+
+    /** Total manhattan length */
+    protected final long totalLength;
+
+    /** First point of first wall in the sequence of walls. */
+    protected final PointXY wallAnchor1;
+
+    /** Last point of last wall in the sequence of walls */
+    protected final PointXY wallAnchor2;
+
+    protected final int markerSpriteLotag;
+
+    protected final int connectorType;
+
+    protected final List<Integer> wallIds;
+
+    /** the lotag that marks walls as connector walls:  1 or 2 */
+    protected final int wallMarkerLotag;
+
+    protected RedwallConnector(
+            int connectorId,
+            int spriteSectorId,
+            List<Integer> sectorIds,
+            long totalLength,
+            PointXYZ anchor,
+            PointXY wallAnchor1,
+            PointXY wallAnchor2,
+            int markerSpriteLotag,
+            int connectorType,
+            List<Integer> wallIds,
+            int wallMarkerLotag
+    ){
         super(connectorId);
+        if(anchor == null){
+            throw new IllegalArgumentException("anchor cannot be null");
+        }
+        if(wallIds == null || wallIds.size() < 1){
+            throw new IllegalArgumentException("wallIds cannot be empty");
+        }
+        this.spriteSectorId = spriteSectorId;
+        this.allSectorIds = Collections.unmodifiableList(sectorIds);
+        this.totalLength = totalLength;
+        this.anchor = anchor;
+        this.wallAnchor1 = wallAnchor1;
+        this.wallAnchor2 = wallAnchor2;
+        this.markerSpriteLotag = markerSpriteLotag;
+        this.connectorType = connectorType;
+        this.wallIds = Collections.unmodifiableList(wallIds);
+        this.wallMarkerLotag = wallMarkerLotag;
     }
-    protected RedwallConnector(Sprite markerSprite){
-        this(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1);
+    protected RedwallConnector(
+            Sprite markerSprite,
+            int spriteSectorId,
+            List<Integer> sectorIds,
+            long totalLength,
+            PointXYZ anchor,
+            PointXY wallAnchor1,
+            PointXY wallAnchor2,
+            int markerSpriteLotag,
+            int connectorType,
+            List<Integer> wallIds,
+            int wallMarkerLotag
+    ){
+        this(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1, spriteSectorId, sectorIds, totalLength, anchor,
+                wallAnchor1, wallAnchor2, markerSpriteLotag, connectorType, wallIds, wallMarkerLotag);
     }
 
-    public abstract PointXYZ getTransformTo(RedwallConnector c2);
+    public abstract boolean canLink(RedwallConnector other, Map map);
+
+    public final PointXYZ getTransformTo(RedwallConnector other) {
+        if(other == null) throw new IllegalArgumentException();
+
+        // TODO
+        if(! canLink(other, null)){
+            throw new SpriteLogicException("cannot link to other connector");
+        }
+
+        // if the sectors are facing each other, the anchor sides at opposite ends of the wall
+        // sequence should match, because walls always go clockwise.
+        return this.getAnchorPoint().getTransformTo(other.getAnchorPoint());
+    }
+
+    public final int getWallCount(){
+        return this.wallIds.size();
+    }
 
     @Override
     public abstract RedwallConnector translateIds(final IdMap idmap, PointXYZ delta, Map map);
@@ -26,13 +107,22 @@ public abstract class RedwallConnector extends Connector {
         throw new RuntimeException("not implemented yet");
     }
 
-    public abstract List<Integer> getSectorIds();
+    public final List<Integer> getSectorIds(){
+        return this.allSectorIds;
+    }
+
+    @Override
+    public final short getSectorId() { // TODO this should return an int. also rename to getSpiteSectorId or getMainSectorId
+        return (short)spriteSectorId;
+    }
 
 
     /**
      * @returns the sum of the manhattan-distance length of each wall in the group
      */
-    public abstract long totalManhattanLength();
+    public final long totalManhattanLength(){
+        return this.totalLength;
+    }
 
     /**
      * @deprecated
@@ -41,26 +131,10 @@ public abstract class RedwallConnector extends Connector {
         return totalManhattanLength();
     }
 
-    /**
-     * If this is a simple connector and has a single wall that is aligned to x or y axis,
-     * then return which side of the sector group it is on.
-     *
-     * Otherwise, returns null.
-     *
-     * e.g. a connector with heading "east" would be:
-     *
-     * +---------+
-     * |         .
-     * |  (20)-> .
-     * |         .
-     * +---------+
-     */
-    public Integer getSimpleHeading(){
-        return null;
-    }
-
     @Override
-    public abstract int getConnectorType();
+    public final int getConnectorType(){
+        return this.connectorType;
+    }
 
     // convenience method
     public final boolean isEast() {
@@ -120,9 +194,48 @@ public abstract class RedwallConnector extends Connector {
         return isMatch(c) && getTransformTo(c).equals(PointXYZ.ZERO) && !(isLinked(map) || c.isLinked(map));
     }
 
-    public abstract void removeConnector(Map map);
+    @Override
+    public final boolean isLinked(Map map) {
+        // return map.getWall(wallId).isRedWall();
+        // return true if all the walls are red walls
+        Boolean linked = null;
+        assert this.wallIds.size() > 0;
+        for(int wallId: this.wallIds){
+            boolean b = map.getWall(wallId).isRedWall();
+            if(linked == null){
+                linked = b;
+            }else if(linked != b){
+                //some are linked and some are not
+                throw new SpriteLogicException("redwall connector inconsistent linkage");
+            }
+        }
+        return linked;
+    }
 
-    public abstract PointXYZ getAnchorPoint();
+    public final void removeConnector(Map map) {
+        //TODO - merge this with the one in SimpleConnector
+
+        // clear the wall
+        for(int wallId: this.wallIds){
+            Wall w = map.getWall(wallId);
+            if(w.getLotag() != wallMarkerLotag) throw new SpriteLogicException();
+            w.setLotag(0);
+        }
+
+        // remove the marker sprite
+        int d = map.deleteSprites((Sprite s) ->
+                s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
+                        && s.getSectorId() == spriteSectorId
+                        && s.getLotag() == this.markerSpriteLotag
+        );
+        // TODO - this happens when a child connects to a parent group, and the parent groups connector
+        // is in a sector with more than 1 connector
+        if(d != 1) throw new SpriteLogicException("TODO");
+    }
+
+    public final PointXYZ getAnchorPoint(){
+        return this.anchor;
+    }
 
     public abstract void linkConnectors(Map map, RedwallConnector otherConn);
 }

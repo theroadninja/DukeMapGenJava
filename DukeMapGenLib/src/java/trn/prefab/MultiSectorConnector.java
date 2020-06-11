@@ -19,14 +19,6 @@ public class MultiSectorConnector extends RedwallConnector {
         return results;
     }
 
-    private final List<Integer> sectorIds;
-    private final int markerSectorId;
-    private final List<Integer> wallIds;
-    private final List<WallView> walls;
-    private final PointXYZ anchor; // this is a PointXYZ in MultiWallConnector
-    private final PointXY wallAnchor1;
-    private final PointXY wallAnchor2;
-    private final long totalManhattanLength;
     private final List<PointXY> relativeConnPoints;
 
 
@@ -43,51 +35,13 @@ public class MultiSectorConnector extends RedwallConnector {
             PointXY wallAnchor1,
             PointXY wallAnchor2
     ) {
-        super(marker.getHiTag());
-        this.markerSectorId = marker.getSectorId();
-        this.sectorIds = Collections.unmodifiableList(sectorIds);
-        this.wallIds = Collections.unmodifiableList(wallIds);
-        this.walls = Collections.unmodifiableList(walls);
-        this.anchor = anchor;
-        this.wallAnchor1 = wallAnchor1;
-        this.wallAnchor2 = wallAnchor2;
-        this.totalManhattanLength = WallView.totalLength(walls);
+        super(marker.getHiTag(), marker.getSectorId(), sectorIds, WallView.totalLength(walls), anchor, wallAnchor1, wallAnchor2, marker.getLotag(), ConnectorType.MULTI_SECTOR, wallIds, 2);
         this.relativeConnPoints = Collections.unmodifiableList(getRelativeConnPoints(walls, this.anchor));
     }
 
     @Override
-    public short getSectorId() {
-        return (short)this.markerSectorId;
-    }
-
-    @Override
-    public List<Integer> getSectorIds() {
-        return this.sectorIds;
-    }
-
-    @Override
-    public long totalManhattanLength() {
-        return this.totalManhattanLength;
-    }
-
-    @Override
-    public PointXYZ getAnchorPoint() {
-        return this.anchor;
-    }
-
-    @Override
-    public int getConnectorType() {
-        return ConnectorType.MULTI_SECTOR;
-    }
-
-    @Override
-    public boolean isLinked(Map map) {
-        throw new RuntimeException("Not implemented yet");
-    }
-
-    @Override
-    public PointXYZ getTransformTo(RedwallConnector c2) {
-        throw new RuntimeException("Not implemented yet");
+    public boolean canLink(RedwallConnector other, Map map) {
+        throw new RuntimeException("not implemented yet");
     }
 
     @Override
@@ -97,11 +51,6 @@ public class MultiSectorConnector extends RedwallConnector {
 
     @Override
     public boolean isMatch(RedwallConnector c) {
-        throw new RuntimeException("Not implemented yet");
-    }
-
-    @Override
-    public void removeConnector(Map map) {
         throw new RuntimeException("Not implemented yet");
     }
 
