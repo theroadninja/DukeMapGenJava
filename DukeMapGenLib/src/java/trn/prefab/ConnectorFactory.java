@@ -16,13 +16,13 @@ public class ConnectorFactory {
 		if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.SIMPLE_CONNECTOR) {
 
 			if (map.findSprites(null, DukeConstants.SE_LOTAGS.TELEPORT, (int) s.getSectorId()).size() > 0) {
-				//its a teleporter
-				// TODO - disallow this (use the teleport prefab)
-				return new TeleportConnector(s, sector.getLotag());
+				// TODO - delete this code when I'm confident I dont use it anywhere
+			    throw new SpriteLogicException("not supported anymore", s);
+				//return new TeleportConnector(s, sector.getLotag());
 			} else if (ElevatorConnector.isElevatorMarker(map, s)) {
-			    // TODO - disallow this
-				System.out.println("WARNING: auto connector used to create elevator (DEPRECATED - See ConnectorFactory.java");
-				return new ElevatorConnector(s);
+				// TODO - delete this code when I'm confident I dont use it anywhere
+				throw new SpriteLogicException("not supported anymore lotag=" + s.getLotag(), s);
+			    //return new ElevatorConnector(s);
 			} else {
 
 				// TODO - this code has a bug that causes it to run forever if every wall in the sector is marked with 1
@@ -34,12 +34,7 @@ public class ConnectorFactory {
 				}
 
 				// how many different groups of contiguous lotag-1 walls are there?
-
-				// TODO - write unit tests for partitionWalls
-				// (maybe use an interface for the map method that retrieves a wall by wallId)
 				List<List<Integer>> partitions = partitionWalls(linkWallIds, map);
-				//List<List<Integer>> partitions = new LinkedList<>(); // TODO - paritionWalls() not working
-				//partitions.add(linkWallIds);
 
 				if (partitions.size() < 1) {
 					throw new RuntimeException("programming error");
@@ -49,22 +44,17 @@ public class ConnectorFactory {
 					if (SimpleConnector.isSimpleConnector(partitions.get(0), map)) {
 						return new SimpleConnector(s, sector, partitions.get(0).get(0), map);
 					} else {
-						return new MultiWallConnector(s, sector, partitions.get(0), map);
+						//return new MultiWallConnector(s, sector, partitions.get(0), map);
+						return redWallConn(s, sector, partitions.get(0), map);
 					}
 					// return redWallConn(s, sector, partitions.get(0), map);
 				} else {
-					//if(1==1) throw new RuntimeException("not working yet");
-					//System.out.println("partitions: " + partitions.size());
-
 					// figure out which group the  marker sprite is pointing to
 					for (int partIdx = 0; partIdx < partitions.size(); ++partIdx) {
 						if (matches(s, partitions.get(partIdx), map)) {
 							return redWallConn(s, sector, partitions.get(partIdx), map);
 						}
 					}
-
-					//System.out.println("sprite point: " + s.getLocation());
-					//System.out.println("sprite angle: " + s.getAngle());
 					throw new SpriteLogicException("Cannot match connector to its walls (point the sprite at the correct wall(s)");
 				}
 			}
@@ -73,11 +63,10 @@ public class ConnectorFactory {
 			return new TeleportConnector(s, sector.getLotag());
 		}else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR){
 			if(sector.getLotag() != 15){
-				throw new SpriteLogicException("elevector connector in sector id with lotag != 15");
+				throw new SpriteLogicException("elevector connector in sector with lotag != 15");
 			}
 			return new ElevatorConnector(s);
 		}else{
-			//throw new SpriteLogicException("sprite lotag=" + s.getLotag())
 			return null;
 		}
 	}
@@ -86,7 +75,13 @@ public class ConnectorFactory {
 		if(SimpleConnector.isSimpleConnector(wallIds, map)){
 			return new SimpleConnector(s, sector, wallIds.get(0), map);
 		}else{
-			return new MultiWallConnector(s, sector, wallIds, map);
+
+			List<WallView> walls = new ArrayList<>(wallIds.size());
+			for(int id: wallIds){
+				walls.add(map.getWallView(id));
+			}
+			List<Integer> wallIds2 = MapUtil.sortWallSection(wallIds, map);
+			return new MultiWallConnector(s, sector, wallIds2, walls, map);
 		}
 
 	}
@@ -145,14 +140,6 @@ public class ConnectorFactory {
 			results.add(segment);
 		}
 
-
-		// System.out.println("parition output: ");
-		// for(int i = 0; i < results.size(); ++i){
-		// 	for(int j = 0; j < results.get(i).size(); ++j){
-		// 		System.out.print("" + results.get(i).get(j) + ", ");
-		// 	}
-		// 	System.out.println();
-		// }
 		return results;
 	}
 	

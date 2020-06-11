@@ -185,7 +185,7 @@ public class SimpleConnector extends RedwallConnector {
 	}
 
 	@Override
-	public SimpleConnector translateIds(final IdMap idmap, PointXYZ delta){
+	public SimpleConnector translateIds(final IdMap idmap, PointXYZ delta, Map map){
 		return new SimpleConnector(this.connectorId,
 				idmap.sector(this.sectorId),
 				idmap.wall(this.wallId),

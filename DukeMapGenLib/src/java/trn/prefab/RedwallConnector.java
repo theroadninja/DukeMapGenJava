@@ -20,7 +20,7 @@ public abstract class RedwallConnector extends Connector {
     public abstract PointXYZ getTransformTo(RedwallConnector c2);
 
     @Override
-    public abstract RedwallConnector translateIds(final IdMap idmap, PointXYZ delta);
+    public abstract RedwallConnector translateIds(final IdMap idmap, PointXYZ delta, Map map);
 
     public BlueprintConnector toBlueprint(){
         throw new RuntimeException("not implemented yet");

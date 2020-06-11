@@ -161,7 +161,7 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     require(conns.size > 0)
     val (psg, idmap) = pasteSectorGroup2(newSg, translate)
     conns.foreach { cmatch =>
-      val newConn = cmatch.newConn.translateIds(idmap, translate)
+      val newConn = cmatch.newConn.translateIds(idmap, translate, sgBuilder.getMapTODO)
       sgBuilder.linkConnectors(cmatch.existingConn, newConn)
     }
     psg

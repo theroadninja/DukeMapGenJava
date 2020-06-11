@@ -231,7 +231,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     val tmpBuilder = new CopyPasteMapBuilder(result.map)
     val cdelta = conn2.getTransformTo(conn1)
     val (_, idmap) = tmpBuilder.writer.pasteSectorGroup2(group2, cdelta)
-    val pastedConn2 = conn2.translateIds(idmap, cdelta)
+    val pastedConn2 = conn2.translateIds(idmap, cdelta, tmpBuilder.outMap)
 
     // TODO - link redwalls  ( TODO - make this a member of the builder? )
     //PrefabUtils.joinWalls(result.map, conn1, pastedConn2)

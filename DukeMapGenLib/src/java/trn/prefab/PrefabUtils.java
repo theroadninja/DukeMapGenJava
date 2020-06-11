@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 
 // TODO - for the hint sprites, see: SectorGroupHints
+
+// TODO - idea:  marker that autopopulates rats to sector (hitag is number of rats to add)
 public class PrefabUtils {
 
 	public static class MarkerHiTags {

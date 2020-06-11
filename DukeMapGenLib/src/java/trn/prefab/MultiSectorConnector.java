@@ -91,7 +91,7 @@ public class MultiSectorConnector extends RedwallConnector {
     }
 
     @Override
-    public RedwallConnector translateIds(IdMap idmap, PointXYZ delta) {
+    public RedwallConnector translateIds(IdMap idmap, PointXYZ delta, Map map) {
         throw new RuntimeException("Not implemented yet");
     }
 

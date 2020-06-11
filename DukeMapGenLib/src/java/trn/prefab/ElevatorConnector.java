@@ -41,7 +41,7 @@ public class ElevatorConnector extends Connector {
     }
 
     @Override
-    public ElevatorConnector translateIds(IdMap idmap, PointXYZ delta) {
+    public ElevatorConnector translateIds(IdMap idmap, PointXYZ delta, Map map) {
         return new ElevatorConnector(connectorId, idmap.sector(this.sectorId), this.mustReplaceMarkerSprite);
     }
 

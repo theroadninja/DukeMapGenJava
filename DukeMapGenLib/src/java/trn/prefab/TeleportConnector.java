@@ -59,7 +59,7 @@ public class TeleportConnector extends Connector {
     }
 
     @Override
-    public TeleportConnector translateIds(IdMap idmap, PointXYZ delta) {
+    public TeleportConnector translateIds(IdMap idmap, PointXYZ delta, Map map) {
         return new TeleportConnector(
                 this.connectorId,
                 idmap.sector(this.sectorId),

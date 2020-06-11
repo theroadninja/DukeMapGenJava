@@ -6,17 +6,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * what uses this?  hyper4.map
+ */
 public class MultiWallConnector extends RedwallConnector {
 
     // dont put this in RedwallConnector because some redwall connectors might have multiple sectors
     private final int sectorId;
     final List<Integer> allSectorIds;
     private final List<Integer> wallIds;
+    private final List<WallView> walls;
 
-
-    /**
-     * a point with x = min x of all wall points and y = min y of all wall points
-     */
+    /** a point with x = min x of all wall points and y = min y of all wall points */
     private final PointXYZ anchor;
 
     /**
@@ -39,19 +40,27 @@ public class MultiWallConnector extends RedwallConnector {
      */
     private final List<PointXY> relativePoints;
 
-    /**
-     * Total manhattan length
-     */
+    /** Total manhattan length */
     private final long totalLength;
 
-    private MultiWallConnector(int connectorId, int sectorId, List<Integer> wallIds, PointXYZ anchor, PointXY wallAnchor1, PointXY wallAnchor2, int markerSpriteLotag, List<PointXY> relativePoints,
-                               long totalLength){
+    private MultiWallConnector(
+            int connectorId,
+            int sectorId,
+            List<Integer> wallIds,
+            List<WallView> walls,
+            PointXYZ anchor,
+            PointXY wallAnchor1,
+            PointXY wallAnchor2,
+            int markerSpriteLotag,
+            List<PointXY> relativePoints,
+            long totalLength
+    ){
         super(connectorId);
         this.sectorId = sectorId;
         this.allSectorIds = new ArrayList(1);
         this.allSectorIds.add(this.sectorId);
         this.wallIds = Collections.unmodifiableList(new ArrayList<>(wallIds));
-        // if(this.wallIds.size() < 2) throw new IllegalArgumentException();
+        this.walls = walls;
         this.anchor = anchor;
         this.wallAnchor1 = wallAnchor1;
         this.wallAnchor2 = wallAnchor2;
@@ -60,17 +69,39 @@ public class MultiWallConnector extends RedwallConnector {
         this.totalLength = totalLength;
     }
 
-    public MultiWallConnector(Sprite markerSprite, Sector sector, List<Integer> wallIds, Map map){
+    public MultiWallConnector(Sprite markerSprite, Sector sector, List<Integer> wallIds, List<WallView> walls, Map map){
         super(markerSprite);
         this.markerSpriteLotag = markerSprite.getLotag();
         if(markerSprite == null || sector == null) throw new IllegalArgumentException();
-        // if(wallIds == null || wallIds.size() < 2) throw new IllegalArgumentException();
         this.sectorId = markerSprite.getSectorId();
         this.allSectorIds = new ArrayList(1);
         this.allSectorIds.add(this.sectorId);
         //this.wallIds = new ArrayList<>(wallIds.size());
-        wallIds = MapUtil.sortWallSection(wallIds, map);
+        // wallIds = MapUtil.sortWallSection(wallIds, map);
 
+
+        //int z = sector.getFloorZ();
+        //this.anchor = new PointXYZ(minX, minY, z);
+        this.anchor = getAnchor(wallIds, map).withZ(sector.getFloorZ());
+
+        int endWallId = map.getWall(wallIds.get(wallIds.size() - 1)).getNextWallInLoop();
+        if(endWallId == wallIds.get(0)){
+            throw new IllegalArgumentException("walls are a complete loop");
+        }
+
+        this.wallAnchor1 = map.getWall(wallIds.get(0)).getLocation();
+        this.wallAnchor2 = map.getWall(endWallId).getLocation();
+
+        this.wallIds = Collections.unmodifiableList(wallIds);
+        this.walls = walls;
+        if(this.wallIds.size() < 1) throw new RuntimeException();
+        this.relativePoints = allRelativeConnPoints(this.wallIds, map, this.anchor, this.wallAnchor2);
+
+        this.totalLength = totalManhattanLength(map);
+    }
+
+    public static PointXY getAnchor(List<Integer> wallIds, Map map){
+        // TODO - duplicate anchor logic in ConnectorScanner
         int minX = map.getWall(wallIds.get(0)).getX();
         int minY = map.getWall(wallIds.get(0)).getY();
 
@@ -100,17 +131,7 @@ public class MultiWallConnector extends RedwallConnector {
         if(end.getY() < minY){
             minY = end.getY();
         }
-
-        int z = sector.getFloorZ();
-        this.anchor = new PointXYZ(minX, minY, z); // TODO - duplicate anchor logic in ConnectorScanner
-        this.wallAnchor1 = map.getWall(wallIds.get(0)).getLocation();
-        this.wallAnchor2 = map.getWall(endWallId).getLocation();
-
-        this.wallIds = Collections.unmodifiableList(wallIds);
-        if(this.wallIds.size() < 1) throw new RuntimeException();
-        this.relativePoints = allRelativeConnPoints(this.wallIds, map, this.anchor, this.wallAnchor2);
-
-        this.totalLength = totalManhattanLength(map);
+        return new PointXY(minX, minY);
     }
 
 
@@ -130,11 +151,12 @@ public class MultiWallConnector extends RedwallConnector {
     }
 
     @Override
-    public MultiWallConnector translateIds(IdMap idmap, PointXYZ delta) {
+    public MultiWallConnector translateIds(IdMap idmap, PointXYZ delta, Map map) {
         return new MultiWallConnector(
                 this.getConnectorId(),
                 idmap.sector(this.sectorId),
                 idmap.wallIds(this.wallIds),
+                null, // TODO!
                 this.anchor.add(delta),
                 this.wallAnchor1.add(delta.asXY()),
                 this.wallAnchor2.add(delta.asXY()),
@@ -326,18 +348,9 @@ public class MultiWallConnector extends RedwallConnector {
     }
 
 
-    /**
-     * @return an XY point for each wall, AND the xy point where the last wall terminates.
-     */
-    private List<PointXY> allRelativeConnPoints(Map map){
-        return allRelativeConnPoints(this.wallIds, map, this.anchor, this.wallAnchor2);
-        // List<PointXY> results = new ArrayList<>(this.wallIds.size() + 1);
-        // for(Integer i: wallIds){
-        //     results.add(map.getWall(i).getLocation().subtractedBy(this.anchor));
-        // }
-        // results.add(this.wallAnchor2.subtractedBy(this.anchor));
-        // return results;
-    }
+    // private List<PointXY> allRelativeConnPoints(Map map){
+    //     return allRelativeConnPoints(this.wallIds, map, this.anchor, this.wallAnchor2);
+    // }
 
     static List<PointXY> allRelativeConnPoints(List<Integer> wallIds, Map map, PointXYZ anchor, PointXY anchor2){
         List<PointXY> results = new ArrayList<>(wallIds.size() + 1);

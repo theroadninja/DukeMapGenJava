@@ -71,7 +71,8 @@ class SectorGroupTests {
 
   @Test
   def testChildGroups: Unit = {
-    val map = TestUtils.loadTestMap("scala/trn.prefab/CHILDTST.MAP")
+    //val map = TestUtils.loadTestMap("scala/trn.prefab/CHILDTST.MAP")
+    val map = TestUtils.load(TestUtils.ChildTest)
 
     val palette: PrefabPalette = PrefabPalette.fromMap(map, true);
     println(s"palette sector groups: ${palette.numberedSectorGroupIds().asScala}")
