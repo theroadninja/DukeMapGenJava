@@ -1,12 +1,90 @@
 package trn.prefab;
 
 import trn.*;
+import trn.duke.MapErrorException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 // TODO - or should the main feature of this class be that it matters where the sector is?
-public abstract class RedwallConnector extends Connector {
+public class RedwallConnector extends Connector {
+    public static boolean isSimpleConnector(List<Integer> linkWallIds, Map map){
+        if(linkWallIds.size() != 1){
+            return false;
+        }
+        int wallId = linkWallIds.get(0);
+        Wall wall = map.getWall(wallId);
+        Wall nextWallInLoop = map.getWall(wall.getPoint2Id());
+        PointXY vector = wall.getUnitVector(nextWallInLoop);
+        return Math.abs(vector.x) == 1 || Math.abs(vector.y) == 1;
+    }
+
+
+    public static RedwallConnector createSimpleConnector(Sprite markerSprite, Sector sector, List<Integer> wallIds, Map map) throws MapErrorException {
+        int z = sector.getFloorZ();
+
+        int wallId = wallIds.get(0);
+        Wall wall = map.getWall(wallId);
+        WallView wallView = map.getWallView(wallId);
+        Wall nextWallInLoop = map.getWall(wall.getPoint2Id());
+
+        PointXYZ anchorPoint = RedConnUtil.getAnchor(wallIds, map).withZ(z);
+        int connectorType = RedConnUtil.connectorTypeForWall(wallView);
+
+        //return new SimpleConnector(markerSprite, sector, wallIds, wallView, map, connectorType, anchorPoint, wall.getLocation(), nextWallInLoop.getLocation());
+        PointXY wallAnchor1 = wall.getLocation();
+        PointXY wallAnchor2 = nextWallInLoop.getLocation();
+
+        return new RedwallConnector(
+                markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1,
+                markerSprite.getSectorId(),
+                RedConnUtil.toList(markerSprite.getSectorId()),
+                RedConnUtil.totalManhattanLength(wallIds, map), //wallLength(wallId, map),
+                anchorPoint,
+                wallAnchor1,
+                wallAnchor2,
+                markerSprite.getLotag(),
+                connectorType,
+                wallIds,
+                new ArrayList<WallView>(){{ add(wallView); }},
+                1,
+                Collections.emptyList() // TODO !!!
+
+        );
+    }
+    public static RedwallConnector create(Sprite markerSprite, Sector sector, List<Integer> wallIds, List<WallView> walls, Map map){
+        PointXY wallAnchor1 = map.getWall(wallIds.get(0)).getLocation();
+        PointXY wallAnchor2 = map.getWall(
+                // TODO dry - endWallId
+                map.getWall(wallIds.get(wallIds.size() - 1)).getNextWallInLoop()
+        ).getLocation();
+        PointXYZ anchor = RedConnUtil.getAnchor(wallIds, map).withZ(sector.getFloorZ());
+        List<PointXY> relativeConnPoints =
+                RedConnUtil.allRelativeConnPoints(wallIds, map, anchor,
+                        map.getWall(
+                                // TODO dry - endWallId
+                                map.getWall(wallIds.get(wallIds.size() - 1)).getNextWallInLoop()
+                        ).getLocation() );
+
+        //return new MultiWallConnector(markerSprite, sector, wallIds, walls, map, anchor, wallAnchor1, wallAnchor2, relativeConnPoints);
+
+        return new RedwallConnector(
+                markerSprite,
+                markerSprite.getSectorId(),
+                RedConnUtil.toList(markerSprite.getSectorId()),
+                RedConnUtil.totalManhattanLength(wallIds, map),
+                anchor,
+                wallAnchor1,
+                wallAnchor2,
+                markerSprite.getLotag(),
+                ConnectorType.MULTI_REDWALL,
+                wallIds,
+                walls,
+                1,
+                relativeConnPoints
+        );
+    }
 
     /** the "main" sectorId of the connector, where the connector sprite is located */
     protected final int spriteSectorId;
@@ -104,8 +182,6 @@ public abstract class RedwallConnector extends Connector {
         return this.heading;
     }
 
-    public abstract boolean canLink(RedwallConnector other, Map map);
-
     public final PointXYZ getTransformTo(RedwallConnector other) {
         if(other == null) throw new IllegalArgumentException();
 
@@ -124,7 +200,25 @@ public abstract class RedwallConnector extends Connector {
     }
 
     @Override
-    public abstract RedwallConnector translateIds(final IdMap idmap, PointXYZ delta, Map map);
+    public final RedwallConnector translateIds(final IdMap idmap, PointXYZ delta, Map map){
+        List<Integer> newWallIds = idmap.wallIds(this.wallIds);
+        List<WallView> newWalls = MapUtil.getWallViews(newWallIds, map);
+        return new RedwallConnector(
+                this.connectorId,
+                idmap.sector(this.spriteSectorId),
+                idmap.sectorIds(this.allSectorIds),
+                this.totalLength,
+                this.anchor.add(delta),
+                this.wallAnchor1.add(delta.asXY()),
+                this.wallAnchor2.add(delta.asXY()),
+                this.markerSpriteLotag,
+                this.connectorType,
+                newWallIds,
+                newWalls,
+                this.wallMarkerLotag,
+                this.relativePoints
+        );
+    }
 
     public BlueprintConnector toBlueprint(){
         throw new RuntimeException("not implemented yet");
@@ -206,7 +300,7 @@ public abstract class RedwallConnector extends Connector {
             return Heading.opposite(this.heading) == c.heading && this.getWallCount() == c.getWallCount()
                     && this.totalLength == c.totalLength;
         }else{
-            MultiWallConnector other = (MultiWallConnector)c;
+            RedwallConnector other = c; // TODO cleanup
 
             // TODO - this has code duplicated from canLink()
             if(this.wallIds.size() != other.wallIds.size()){
@@ -306,7 +400,7 @@ public abstract class RedwallConnector extends Connector {
         );
         // TODO - this happens when a child connects to a parent group, and the parent groups connector
         // is in a sector with more than 1 connector
-        if(d != 1) throw new SpriteLogicException("TODO");
+        if(d != 1) throw new SpriteLogicException("TODO sprites deleted=" + d + " expected lotag=" + this.markerSpriteLotag);
     }
 
     public final PointXYZ getAnchorPoint(){
@@ -320,6 +414,54 @@ public abstract class RedwallConnector extends Connector {
         sb.append(" sectorId: ").append(spriteSectorId).append("\n");
         //sb.append(" wallId: ").append(wallId).append("\n");
         return sb.toString();
+    }
+
+    public final boolean canLink(RedwallConnector other, Map map) {
+        // this was added while consolidating SimpleConnector, MultiWall and MultiSector into RedwallConnector
+        if(isSimpleConnector()){
+            return isMatch(other);
+        }else{
+            //MultiWallConnector other = (MultiWallConnector)other0;
+            if(this.wallIds.size() != other.wallIds.size()){
+                return false;
+            }
+            PointXY p1 = this.wallAnchor1.subtractedBy(this.anchor);
+            PointXY p2 = this.wallAnchor2.subtractedBy(this.anchor);
+
+            PointXY otherP1 = other.wallAnchor1.subtractedBy(other.anchor);
+            PointXY otherP2 = other.wallAnchor2.subtractedBy(other.anchor);
+
+            // check each point
+            if(map != null){
+
+                // 1. are any of the walls redwalls?
+                List<Integer> tmp = new ArrayList<>(this.wallIds);
+                tmp.addAll(other.wallIds);
+                for(int id: tmp){
+                    if(map.getWall(id).isRedWall()){
+                        throw new SpriteLogicException("wall " + id + " is already a red wall");
+                    }
+                }
+
+                // 2. are the walls lined up correclty?
+                List<PointXY> list1 = this.relativePoints;
+                List<PointXY> list2 = other.relativePoints;
+                if(! list1.get(0).equals(p1)) throw new RuntimeException();
+                if(! list2.get(0).equals(otherP1)) throw new RuntimeException();
+                if(list1.size() != list2.size()) throw new RuntimeException();
+
+                for(int i = 0; i < list1.size(); ++i){
+                    int j = list2.size() - 1 - i;
+                    if(! list1.get(i).equals(list2.get(j))){
+                        return false;
+                    }
+                }
+            }
+            if(! p1.equals(otherP2)) return false;
+            if(! p2.equals(otherP1)) return false;
+            return true;
+
+        }
     }
 
     public final void linkConnectors(Map map, RedwallConnector otherConn){

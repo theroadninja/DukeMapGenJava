@@ -35,6 +35,14 @@ public class IdMap {
 		}
 		return results;
 	}
+
+	public List<Integer> sectorIds(List<Integer> sectorIds){
+		List<Integer> results = new ArrayList<>(sectorIds.size());
+		for(Integer sectorId: sectorIds){
+			results.add((int)this.sector(sectorId));
+		}
+		return results;
+	}
 	
 	
 }

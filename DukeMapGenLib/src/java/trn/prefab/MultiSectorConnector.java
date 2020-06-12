@@ -42,13 +42,4 @@ public class MultiSectorConnector extends RedwallConnector {
         //this.relativeConnPoints = Collections.unmodifiableList(getRelativeConnPoints(walls, this.anchor));
     }
 
-    @Override
-    public boolean canLink(RedwallConnector other, Map map) {
-        throw new RuntimeException("not implemented yet");
-    }
-
-    @Override
-    public RedwallConnector translateIds(IdMap idmap, PointXYZ delta, Map map) {
-        throw new RuntimeException("Not implemented yet");
-    }
 }

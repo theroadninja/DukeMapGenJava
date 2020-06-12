@@ -13,11 +13,11 @@ class SectorGroupTests {
   private def load(filename: String): DMap = TestUtils.loadTestMap(s"scala/trn.prefab/${filename}")
 
   private def loadPalette: PrefabPalette = PrefabPalette.fromMap(load("UNIT.MAP"), true)
-  private def eastConn(psg: PastedSectorGroup): SimpleConnector = {
-    psg.findFirstConnector(RedConnUtil.EastConnector).asInstanceOf[SimpleConnector]
+  private def eastConn(psg: PastedSectorGroup): RedwallConnector = {
+    psg.findFirstConnector(RedConnUtil.EastConnector).asInstanceOf[RedwallConnector]
   }
-  private def westConn(psg: PastedSectorGroup): SimpleConnector = {
-    psg.findFirstConnector(RedConnUtil.WestConnector).asInstanceOf[SimpleConnector]
+  private def westConn(psg: PastedSectorGroup): RedwallConnector = {
+    psg.findFirstConnector(RedConnUtil.WestConnector).asInstanceOf[RedwallConnector]
   }
 
 

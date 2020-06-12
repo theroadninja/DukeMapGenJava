@@ -33,8 +33,8 @@ public class MultiWallConnectorTests {
         Assert.assertEquals(0, result.y);
         Assert.assertEquals(0, result.z);
 
-        MultiWallConnector c1 = (MultiWallConnector)conns1.get(0);
-        MultiWallConnector c2 = (MultiWallConnector)conns2.get(0);
+        RedwallConnector c1 = conns1.get(0);
+        RedwallConnector c2 = conns2.get(0);
         Assert.assertTrue(c1.isMatch(c2));
         Assert.assertTrue(c1.canLink(c2, null));
 
