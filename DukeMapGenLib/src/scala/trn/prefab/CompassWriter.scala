@@ -7,10 +7,10 @@ import trn.FuncImplicits._
   * after compass directions, e.g. north, east, south, west.  May be useful for grids and hypercubes.
   */
 object CompassWriter {
-  val WestConn = SimpleConnector.WestConnector
-  val EastConn = SimpleConnector.EastConnector
-  val NorthConn = SimpleConnector.NorthConnector
-  val SouthConn = SimpleConnector.SouthConnector
+  val WestConn = RedConnUtil.WestConnector
+  val EastConn = RedConnUtil.EastConnector
+  val NorthConn = RedConnUtil.NorthConnector
+  val SouthConn = RedConnUtil.SouthConnector
 
   /** @deprecated */
   def firstConnector(sg: SectorGroup, cf: ConnectorFilter): RedwallConnector = sg.findFirstConnector(cf).asInstanceOf[RedwallConnector]

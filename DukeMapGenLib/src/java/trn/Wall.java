@@ -208,7 +208,7 @@ public class Wall {
 	 * 	    connector types).  Based on experimentation, these can go either way
 	 * 	    CORRECTON:  ignore note...maybe i just suck at writing unit vectors
 	 */
-	public PointXY getUnitVector(Wall point2){
+	public PointXY getUnitVector(PointXY point2){
 		int dx = point2.x - x;
 		int dy = point2.y - y;
 		if(dx == 0 && dy == 0){
@@ -224,7 +224,11 @@ public class Wall {
 			return new PointXY((int)(dx/magnitude), (int)(dy/magnitude));
 		}
 	}
-	
+	public PointXY getUnitVector(Wall point2){
+		return getUnitVector(point2.getLocation());
+
+    }
+
 	public boolean sameXY(Wall rh){
 		return rh != null && x == rh.x && y == rh.y;
 	}

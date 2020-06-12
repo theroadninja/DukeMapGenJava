@@ -35,6 +35,10 @@ public class WallView {
         return wallSegment.getVector();
     }
 
+    public final PointXY getUnitVector(){
+        return wall.getUnitVector(p2());
+    }
+
     public final LineSegmentXY getLineSegment(){
         return wallSegment;
     }

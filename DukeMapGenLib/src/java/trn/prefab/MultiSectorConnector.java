@@ -19,7 +19,7 @@ public class MultiSectorConnector extends RedwallConnector {
         return results;
     }
 
-    private final List<PointXY> relativeConnPoints;
+    //private final List<PointXY> relativeConnPoints;
 
 
     /**
@@ -35,8 +35,11 @@ public class MultiSectorConnector extends RedwallConnector {
             PointXY wallAnchor1,
             PointXY wallAnchor2
     ) {
-        super(marker.getHiTag(), marker.getSectorId(), sectorIds, WallView.totalLength(walls), anchor, wallAnchor1, wallAnchor2, marker.getLotag(), ConnectorType.MULTI_SECTOR, wallIds, 2);
-        this.relativeConnPoints = Collections.unmodifiableList(getRelativeConnPoints(walls, this.anchor));
+        super(marker.getHiTag(), marker.getSectorId(), sectorIds, WallView.totalLength(walls),
+                anchor, wallAnchor1, wallAnchor2, marker.getLotag(), ConnectorType.MULTI_SECTOR, wallIds, walls, 2,
+                Collections.unmodifiableList(getRelativeConnPoints(walls, anchor))
+                );
+        //this.relativeConnPoints = Collections.unmodifiableList(getRelativeConnPoints(walls, this.anchor));
     }
 
     @Override
@@ -46,16 +49,6 @@ public class MultiSectorConnector extends RedwallConnector {
 
     @Override
     public RedwallConnector translateIds(IdMap idmap, PointXYZ delta, Map map) {
-        throw new RuntimeException("Not implemented yet");
-    }
-
-    @Override
-    public boolean isMatch(RedwallConnector c) {
-        throw new RuntimeException("Not implemented yet");
-    }
-
-    @Override
-    public void linkConnectors(Map map, RedwallConnector otherConn) {
         throw new RuntimeException("Not implemented yet");
     }
 }

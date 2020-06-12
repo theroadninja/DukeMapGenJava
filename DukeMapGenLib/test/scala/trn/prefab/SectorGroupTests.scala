@@ -14,10 +14,10 @@ class SectorGroupTests {
 
   private def loadPalette: PrefabPalette = PrefabPalette.fromMap(load("UNIT.MAP"), true)
   private def eastConn(psg: PastedSectorGroup): SimpleConnector = {
-    psg.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[SimpleConnector]
+    psg.findFirstConnector(RedConnUtil.EastConnector).asInstanceOf[SimpleConnector]
   }
   private def westConn(psg: PastedSectorGroup): SimpleConnector = {
-    psg.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[SimpleConnector]
+    psg.findFirstConnector(RedConnUtil.WestConnector).asInstanceOf[SimpleConnector]
   }
 
 
@@ -54,15 +54,17 @@ class SectorGroupTests {
     // the anchor sprites are placed such that they will be 2048 apart when the sectors are linked
     val left = builder.writer.pasteSectorGroupAt(palette.getSectorGroup(3), new PointXYZ(0, 0, 0))
     val right = builder.writer.pasteSectorGroupAt(palette.getSectorGroup(4), new PointXYZ(2048, 0, 0))
-    //builder.joinWalls(eastConn(left), westConn(right))
-    SimpleConnector.linkConnectors(eastConn(left), westConn(right), builder.outMap)
+
+    //SimpleConnector.linkConnectors(eastConn(left), westConn(right), builder.outMap)
+    eastConn(left).linkConnectors(builder.outMap, westConn(right))
 
     // more of a sanity check, to test this test
     val left2 = builder.writer.pasteSectorGroupAt(palette.getSectorGroup(3), new PointXYZ(0, 1024 * 10, 0))
     val right2 = builder.writer.pasteSectorGroupAt(palette.getSectorGroup(4), new PointXYZ(0, 1024 * 10, 0))
     try {
-      //builder.joinWalls(eastConn(left2), westConn(right2))
-      SimpleConnector.linkConnectors(eastConn(left2), westConn(right2), builder.outMap)
+      //SimpleConnector.linkConnectors(eastConn(left2), westConn(right2), builder.outMap)
+      eastConn(left2).linkConnectors(builder.outMap, westConn(right2))
+
       Assert.fail("expected an exception")
     } catch {
       case _: Exception => {}

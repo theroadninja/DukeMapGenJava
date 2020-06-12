@@ -52,44 +52,44 @@ object FirstPrefabExperiment extends PrefabExperiment {
     val psg1: PastedSectorGroup = builder.writer.pasteSectorGroupAt(palette.getSG(10), new PointXYZ(-1024*30, -1024*50, 0))
 
     val psg2: PastedSectorGroup = {
-      val conn2:Connector = psg1.findFirstConnector(SimpleConnector.WestConnector);
-      builder.pasteAndLink(12, SimpleConnector.EastConnector, conn2);
+      val conn2:Connector = psg1.findFirstConnector(RedConnUtil.WestConnector);
+      builder.pasteAndLink(12, RedConnUtil.EastConnector, conn2);
     }
 
     // add a third group!
-    val psg3: PastedSectorGroup  = builder.pasteAndLink(10, SimpleConnector.EastConnector, psg2.findFirstConnector(SimpleConnector.WestConnector));
+    val psg3: PastedSectorGroup  = builder.pasteAndLink(10, RedConnUtil.EastConnector, psg2.findFirstConnector(RedConnUtil.WestConnector));
 
     // add exit
     {
-      val c: Connector = builder.findFirstUnlinkedConnector(SimpleConnector.EastConnector);
+      val c: Connector = builder.findFirstUnlinkedConnector(RedConnUtil.EastConnector);
       if(c == null) throw new RuntimeException("some thing went wrong")
-      builder.pasteAndLink(14, SimpleConnector.WestConnector, c);
+      builder.pasteAndLink(14, RedConnUtil.WestConnector, c);
     }
 
     // now try to add the player start group - 11
     {
-      val leftEdge: Connector = psg3.findFirstConnector(SimpleConnector.WestConnector);
-      builder.pasteAndLink(11, SimpleConnector.EastConnector, leftEdge);
+      val leftEdge: Connector = psg3.findFirstConnector(RedConnUtil.WestConnector);
+      builder.pasteAndLink(11, RedConnUtil.EastConnector, leftEdge);
     }
 
     //try adding a group(s) to the north of psg3
     {
-      val north: Connector = psg3.findFirstConnector(SimpleConnector.NorthConnector)
-      val sgNorth: PastedSectorGroup = builder.pasteAndLink(10, SimpleConnector.SouthConnector, north);
+      val north: Connector = psg3.findFirstConnector(RedConnUtil.NorthConnector)
+      val sgNorth: PastedSectorGroup = builder.pasteAndLink(10, RedConnUtil.SouthConnector, north);
 
-      val north2 = sgNorth.findFirstConnector(SimpleConnector.NorthConnector);
-      val sgNorth2 = builder.pasteAndLink(13, SimpleConnector.SouthConnector, north2);
+      val north2 = sgNorth.findFirstConnector(RedConnUtil.NorthConnector);
+      val sgNorth2 = builder.pasteAndLink(13, RedConnUtil.SouthConnector, north2);
     }
 
     //some random groups to the south of something
 
-    builder.pasteAndLink(10, SimpleConnector.NorthConnector, builder.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
+    builder.pasteAndLink(10, RedConnUtil.NorthConnector, builder.findFirstUnlinkedConnector(RedConnUtil.SouthConnector));
 
     //try sector group 15
-    builder.pasteAndLink(15, SimpleConnector.NorthConnector, builder.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
+    builder.pasteAndLink(15, RedConnUtil.NorthConnector, builder.findFirstUnlinkedConnector(RedConnUtil.SouthConnector));
 
     //try sector group 18 - teleporter
-    builder.pasteAndLink(18, SimpleConnector.NorthConnector, builder.findFirstUnlinkedConnector(SimpleConnector.SouthConnector));
+    builder.pasteAndLink(18, RedConnUtil.NorthConnector, builder.findFirstUnlinkedConnector(RedConnUtil.SouthConnector));
 
     builder.writer.setAnyPlayerStart()
     //builder.clearMarkers()

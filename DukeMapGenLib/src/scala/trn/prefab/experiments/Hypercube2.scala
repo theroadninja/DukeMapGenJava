@@ -190,8 +190,8 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuil
   }
 
   def placeHallwayEW(leftRoom: PastedSectorGroup, hallway: SectorGroup, rightRoom: PastedSectorGroup): PastedSectorGroup = {
-    val leftConn = leftRoom.findFirstConnector(SimpleConnector.EastConnector).asInstanceOf[RedwallConnector]
-    val rightConn = rightRoom.findFirstConnector(SimpleConnector.WestConnector).asInstanceOf[RedwallConnector]
+    val leftConn = leftRoom.findFirstConnector(RedConnUtil.EastConnector).asInstanceOf[RedwallConnector]
+    val rightConn = rightRoom.findFirstConnector(RedConnUtil.WestConnector).asInstanceOf[RedwallConnector]
     val cdelta: PointXYZ = if(leftConn.getAnchorPoint.z < rightConn.getAnchorPoint.z){
       CompassWriter.westConnector(hallway).getTransformTo(leftConn)
     }else{
@@ -243,7 +243,7 @@ object Room {
   // TODO - how do we detect low doors vs high?
   def autoDoors(sectorGroup: SectorGroup): Seq[Int] = {
     val standardDoorLength = 2048
-    def hasHeading(h: Int): Boolean  = sectorGroup.getRedwallConnectors(SimpleConnector.connectorTypeForHeading(h)) match {
+    def hasHeading(h: Int): Boolean  = sectorGroup.getRedwallConnectors(RedConnUtil.connectorTypeForHeading(h)) match {
       case x: Seq[RedwallConnector] => {
         //x.find(_.totalManhattanLength(sectorGroup.getMap) == standardDoorLength).nonEmpty
         x.find(_.totalManhattanLength(sectorGroup) == standardDoorLength).nonEmpty

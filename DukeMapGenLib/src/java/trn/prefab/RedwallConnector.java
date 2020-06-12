@@ -30,8 +30,19 @@ public abstract class RedwallConnector extends Connector {
 
     protected final List<Integer> wallIds;
 
+    protected final List<WallView> walls;
+
     /** the lotag that marks walls as connector walls:  1 or 2 */
     protected final int wallMarkerLotag;
+
+    /** if this is an axis-aligned (a.k.a. compass, or SimpleConnector) then this returns the heading; otherwise -1 */
+    protected final int heading;
+
+    /**
+     * The points of the walls relative to the first point, which we use to store the shape of the connector,
+     * to verify whether it can fit to another connector.
+     */
+    protected final List<PointXY> relativePoints;
 
     protected RedwallConnector(
             int connectorId,
@@ -44,7 +55,9 @@ public abstract class RedwallConnector extends Connector {
             int markerSpriteLotag,
             int connectorType,
             List<Integer> wallIds,
-            int wallMarkerLotag
+            List<WallView> walls,
+            int wallMarkerLotag,
+            List<PointXY> relativePoints
     ){
         super(connectorId);
         if(anchor == null){
@@ -62,7 +75,11 @@ public abstract class RedwallConnector extends Connector {
         this.markerSpriteLotag = markerSpriteLotag;
         this.connectorType = connectorType;
         this.wallIds = Collections.unmodifiableList(wallIds);
+        this.walls = walls;
         this.wallMarkerLotag = wallMarkerLotag;
+        this.relativePoints = Collections.unmodifiableList(relativePoints);
+
+        this.heading = RedConnUtil.headingForConnectorType(this.connectorType);
     }
     protected RedwallConnector(
             Sprite markerSprite,
@@ -75,10 +92,16 @@ public abstract class RedwallConnector extends Connector {
             int markerSpriteLotag,
             int connectorType,
             List<Integer> wallIds,
-            int wallMarkerLotag
+            List<WallView> walls,
+            int wallMarkerLotag,
+            List<PointXY> relativePoints
     ){
         this(markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1, spriteSectorId, sectorIds, totalLength, anchor,
-                wallAnchor1, wallAnchor2, markerSpriteLotag, connectorType, wallIds, wallMarkerLotag);
+                wallAnchor1, wallAnchor2, markerSpriteLotag, connectorType, wallIds, walls, wallMarkerLotag, relativePoints);
+    }
+
+    public int getHeading(){
+        return this.heading;
     }
 
     public abstract boolean canLink(RedwallConnector other, Map map);
@@ -154,6 +177,18 @@ public abstract class RedwallConnector extends Connector {
     }
 
 
+    /** temp, just to east the transition from having SimpleConnector vs MultiWallConnector */
+    private boolean isSimpleConnector(){
+        if(getConnectorType() == ConnectorType.MULTI_REDWALL){
+            return false;
+        }else if(heading == -1){
+            throw new RuntimeException("this should never happen");
+        }else{
+            return true;
+        }
+
+    }
+
 
     /**
      * Tests if the connectors match, i.e. if they could mate.
@@ -163,7 +198,47 @@ public abstract class RedwallConnector extends Connector {
      * TODO - support rotation also (or maybe not...)
      * @return
      */
-    public abstract boolean isMatch(RedwallConnector c);
+    public final boolean isMatch(RedwallConnector c){
+        if(isSimpleConnector()){
+            if(! c.isSimpleConnector()){
+                return false;
+            }
+            return Heading.opposite(this.heading) == c.heading && this.getWallCount() == c.getWallCount()
+                    && this.totalLength == c.totalLength;
+        }else{
+            MultiWallConnector other = (MultiWallConnector)c;
+
+            // TODO - this has code duplicated from canLink()
+            if(this.wallIds.size() != other.wallIds.size()){
+                return false;
+            }
+            PointXY p1 = this.wallAnchor1.subtractedBy(this.anchor);
+            PointXY p2 = this.wallAnchor2.subtractedBy(this.anchor);
+            PointXY otherP1 = other.wallAnchor1.subtractedBy(other.anchor);
+            PointXY otherP2 = other.wallAnchor2.subtractedBy(other.anchor);
+            if(! p1.equals(otherP2)) return false;
+            if(! p2.equals(otherP1)) return false;
+
+            List<PointXY> list1 = this.relativePoints;
+            List<PointXY> list2 = other.relativePoints;
+            if(! list1.get(0).equals(p1)) throw new RuntimeException();
+            if(! list2.get(0).equals(otherP1)) throw new RuntimeException();
+            if(list1.size() != list2.size()) throw new RuntimeException();
+
+            for(int i = 0; i < list1.size(); ++i){
+                int j = list2.size() - 1 - i;
+                if(! list1.get(i).equals(list2.get(j))){
+                    // System.out.println("no match: " + list1.get(i).toString() + "," + list2.get(i).toString());
+                    // System.out.println("i=" + i + " j=" + j);
+                    return false;
+                }
+            }
+
+            return true;
+
+        }
+
+    }
 
     /**
      * copy of isMatch() but with a more obvious name
@@ -178,13 +253,14 @@ public abstract class RedwallConnector extends Connector {
      * @return
      */
     public final boolean isWestConn(){
-        return SimpleConnector.WestConnector.matches(this);
+        return RedConnUtil.WestConnector.matches(this);
     }
 
     /** @deprecated */
     public final boolean isEastConn(){
-        return SimpleConnector.EastConnector.matches(this);
+        return RedConnUtil.EastConnector.matches(this);
     }
+
 
     /**
      * meant to be used for two connectors that have already been pasted, to see if they are in the same place
@@ -237,5 +313,36 @@ public abstract class RedwallConnector extends Connector {
         return this.anchor;
     }
 
-    public abstract void linkConnectors(Map map, RedwallConnector otherConn);
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("{ connector\n");
+        sb.append(" sectorId: ").append(spriteSectorId).append("\n");
+        //sb.append(" wallId: ").append(wallId).append("\n");
+        return sb.toString();
+    }
+
+    public final void linkConnectors(Map map, RedwallConnector otherConn){
+        if(map == null || otherConn == null) throw new IllegalArgumentException("argument is null");
+
+        // TODO - should be able to use the same logic for both
+        if(isSimpleConnector()){
+            if(! otherConn.isSimpleConnector()) throw new IllegalArgumentException("connectors are not a match");
+            if(otherConn.isLinked(map)) throw new IllegalArgumentException("connector is already linked");
+            if(this.isLinked(map)) throw new IllegalStateException("already linked");
+            //SimpleConnector c2 = (SimpleConnector)other;
+            map.linkRedWalls(this.getSectorId(), wallIds.get(0), otherConn.getSectorId(), otherConn.wallIds.get(0));
+        }else{
+            if(otherConn.getConnectorType() != this.getConnectorType()) throw new IllegalArgumentException("connector type mismatch");
+            //MultiWallConnector c2 = (MultiWallConnector)otherConn;
+            if(! canLink(otherConn, map)) throw new SpriteLogicException("cannot link connector (other=" + otherConn.getConnectorId() + ")");
+
+            // i think we just link up the walls in reverse order
+            for(int i = 0; i < this.wallIds.size(); ++i){
+                int j = this.wallIds.size() - 1 - i;
+                map.linkRedWalls(this.getSectorId(), this.wallIds.get(i), otherConn.getSectorId(), otherConn.wallIds.get(j));
+            }
+
+        }
+    }
 }
