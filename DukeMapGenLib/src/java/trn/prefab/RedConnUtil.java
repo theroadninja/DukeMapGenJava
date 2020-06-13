@@ -59,7 +59,18 @@ public class RedConnUtil {
         }else if(vector.y == -1){ // y is pointed up
             return ConnectorType.HORIZONTAL_WEST;
         }else{
-            throw new IllegalArgumentException("connector wall must be horizontal or vertical");
+            return ConnectorType.MULTI_REDWALL;
+            //throw new IllegalArgumentException("connector wall must be horizontal or vertical");
+        }
+    }
+
+    public static int connectorTypeForWalls(List<WallView> walls){
+        if(walls.size() < 0){
+            throw new IllegalArgumentException();
+        }else if(walls.size() == 1){
+            return connectorTypeForWall(walls.get(0));
+        }else{
+            return ConnectorType.MULTI_REDWALL;
         }
     }
 

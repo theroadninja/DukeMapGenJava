@@ -9,65 +9,28 @@ import java.util.List;
 
 // TODO - or should the main feature of this class be that it matters where the sector is?
 public class RedwallConnector extends Connector {
-    public static boolean isSimpleConnector(List<Integer> linkWallIds, Map map){
-        if(linkWallIds.size() != 1){
-            return false;
-        }
-        int wallId = linkWallIds.get(0);
-        Wall wall = map.getWall(wallId);
-        Wall nextWallInLoop = map.getWall(wall.getPoint2Id());
-        PointXY vector = wall.getUnitVector(nextWallInLoop);
-        return Math.abs(vector.x) == 1 || Math.abs(vector.y) == 1;
+
+    static PointXY getWallAnchor1(List<Integer> wallIds, Map map){
+        return map.getWall(wallIds.get(0)).getLocation();
     }
-
-
-    public static RedwallConnector createSimpleConnector(Sprite markerSprite, Sector sector, List<Integer> wallIds, Map map) throws MapErrorException {
-        int z = sector.getFloorZ();
-
-        int wallId = wallIds.get(0);
-        Wall wall = map.getWall(wallId);
-        WallView wallView = map.getWallView(wallId);
-        Wall nextWallInLoop = map.getWall(wall.getPoint2Id());
-
-        PointXYZ anchorPoint = RedConnUtil.getAnchor(wallIds, map).withZ(z);
-        int connectorType = RedConnUtil.connectorTypeForWall(wallView);
-
-        //return new SimpleConnector(markerSprite, sector, wallIds, wallView, map, connectorType, anchorPoint, wall.getLocation(), nextWallInLoop.getLocation());
-        PointXY wallAnchor1 = wall.getLocation();
-        PointXY wallAnchor2 = nextWallInLoop.getLocation();
-
-        return new RedwallConnector(
-                markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1,
-                markerSprite.getSectorId(),
-                RedConnUtil.toList(markerSprite.getSectorId()),
-                RedConnUtil.totalManhattanLength(wallIds, map), //wallLength(wallId, map),
-                anchorPoint,
-                wallAnchor1,
-                wallAnchor2,
-                markerSprite.getLotag(),
-                connectorType,
-                wallIds,
-                new ArrayList<WallView>(){{ add(wallView); }},
-                1,
-                Collections.emptyList() // TODO !!!
-
-        );
-    }
-    public static RedwallConnector create(Sprite markerSprite, Sector sector, List<Integer> wallIds, List<WallView> walls, Map map){
-        PointXY wallAnchor1 = map.getWall(wallIds.get(0)).getLocation();
-        PointXY wallAnchor2 = map.getWall(
-                // TODO dry - endWallId
+    static PointXY getWallAnchor2(List<Integer> wallIds, Map map){
+        return map.getWall(
                 map.getWall(wallIds.get(wallIds.size() - 1)).getNextWallInLoop()
         ).getLocation();
-        PointXYZ anchor = RedConnUtil.getAnchor(wallIds, map).withZ(sector.getFloorZ());
-        List<PointXY> relativeConnPoints =
-                RedConnUtil.allRelativeConnPoints(wallIds, map, anchor,
-                        map.getWall(
-                                // TODO dry - endWallId
-                                map.getWall(wallIds.get(wallIds.size() - 1)).getNextWallInLoop()
-                        ).getLocation() );
+    }
 
-        //return new MultiWallConnector(markerSprite, sector, wallIds, walls, map, anchor, wallAnchor1, wallAnchor2, relativeConnPoints);
+    public static RedwallConnector create(
+            Sprite markerSprite,
+            Sector sector,
+            List<Integer> wallIds,
+            List<WallView> walls,
+            Map map
+    ){
+        PointXY wallAnchor1 = getWallAnchor1(wallIds, map);
+        PointXY wallAnchor2 = getWallAnchor2(wallIds, map);
+        PointXYZ anchor = RedConnUtil.getAnchor(wallIds, map).withZ(sector.getFloorZ());
+        int connectorType = RedConnUtil.connectorTypeForWalls(walls);
+        List<PointXY> relativeConnPoints = RedConnUtil.allRelativeConnPoints(wallIds, map, anchor, wallAnchor2);
 
         return new RedwallConnector(
                 markerSprite,
@@ -78,7 +41,7 @@ public class RedwallConnector extends Connector {
                 wallAnchor1,
                 wallAnchor2,
                 markerSprite.getLotag(),
-                ConnectorType.MULTI_REDWALL,
+                connectorType,
                 wallIds,
                 walls,
                 1,

@@ -40,14 +40,8 @@ public class ConnectorFactory {
 					throw new RuntimeException("programming error");
 				} else if (partitions.size() == 1) {
 					// only one wall segment, assume the connector matches
-					// TODO - what if they put more than one connector sprite in, which different IDs ?
-					if (RedwallConnector.isSimpleConnector(partitions.get(0), map)) {
-						return RedwallConnector.createSimpleConnector(s, sector, partitions.get(0), map);
-					} else {
-						//return new MultiWallConnector(s, sector, partitions.get(0), map);
-						return redWallConn(s, sector, partitions.get(0), map);
-					}
-					// return redWallConn(s, sector, partitions.get(0), map);
+                    // TODO get rid of this ability (valid connector without pointing the sprite at the wall) ?
+					return redWallConn(s, sector, partitions.get(0), map);
 				} else {
 					// figure out which group the  marker sprite is pointing to
 					for (int partIdx = 0; partIdx < partitions.size(); ++partIdx) {
@@ -72,15 +66,9 @@ public class ConnectorFactory {
 	}
 
 	private static RedwallConnector redWallConn(Sprite s, Sector sector, List<Integer> wallIds, Map map) throws MapErrorException {
-		if(RedwallConnector.isSimpleConnector(wallIds, map)){
-			return RedwallConnector.createSimpleConnector(s, sector, wallIds, map);
-		}else{
-			List<Integer> wallIds2 = MapUtil.sortWallSection(wallIds, map);
-			List<WallView> walls = MapUtil.getWallViews(wallIds2, map);
-			//return new MultiWallConnector(s, sector, wallIds2, walls, map, anchor);
-			return RedwallConnector.create(s, sector, wallIds2, walls, map);
-		}
-
+		List<Integer> wallIds2 = MapUtil.sortWallSection(wallIds, map);
+		List<WallView> walls = MapUtil.getWallViews(wallIds2, map);
+		return RedwallConnector.create(s, sector, wallIds, walls, map);
 	}
 
 	private static boolean matches(Sprite marker, List<Integer> walls, Map map){
