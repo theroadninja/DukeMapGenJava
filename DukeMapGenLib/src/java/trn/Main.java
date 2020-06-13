@@ -100,7 +100,7 @@ public class Main {
 	}
 
 	public static void writeAndOpenMapPng(Map map) throws IOException {
-		File picfile = writeMapPng("outptu.png", map);
+		File picfile = writeMapPng("output.png", map);
 		System.out.println("writing " + picfile.toString());
 		Desktop.getDesktop().open(picfile);  // note: Runtime.exec() does not work
 	}

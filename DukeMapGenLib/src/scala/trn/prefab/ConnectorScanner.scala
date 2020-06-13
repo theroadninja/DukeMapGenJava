@@ -19,11 +19,18 @@ object ConnectorScanner {
   val MultiSectWallLotag = 2
 
   // this really means "adjacent and connected"
+  /**
+    * @returns true if the walls are adjacent and connected but NOT if they are opposite walls forming a redwall
+    */
   private[prefab] def adjacent(w0: WallView, w1: WallView): Boolean = {
-    w0.getWallId != w1.getWallId && w0.isRedwall == w1.isRedwall && !w0.isOtherSide(w1) && {
-      // cannot let p1 == p1 because then we would detect walls in the other connect when two multi sectors
-      // are already connected.
-      w0.p1 == w1.p2 || w0.p2 == w1.p1
+    if(w0.p1 == w1.p2 && w0.p2 == w1.p1){
+      false // they form a redwall, but havent been linked yet
+    }else{
+      w0.getWallId != w1.getWallId && w0.isRedwall == w1.isRedwall && !w0.isOtherSide(w1) && {
+        // cannot let p1 == p1 because then we would detect walls in the other connect when two multi sectors
+        // are already connected.
+        w0.p1 == w1.p2 || w0.p2 == w1.p1
+      }
     }
   }
 
@@ -41,6 +48,7 @@ object ConnectorScanner {
   def scanLine(walls: Seq[WallView], pointToWall: Map[PointXY, Set[WallView]] ): (Set[Int], Seq[WallView]) = {
     require(walls.size > 0)
     require(!walls.exists(_.lotag != MultiSectorConnector.WALL_LOTAG))
+    require(walls.map(_.getWallId).toSet.size == walls.size, "duplicate wall ids detected")
 
     val closedList = mutable.Set[Int]()
     val openList = mutable.ArrayBuffer[WallView]()
@@ -56,7 +64,9 @@ object ConnectorScanner {
 
         val neighboorsForPoint = pointToWall.get(p).getOrElse(Set.empty[WallView]).filter { n: WallView =>
           adjacent(current, n)
-        }.filterNot(n => closedList.contains(n.getWallId))
+        }.filterNot { n =>
+          closedList.contains(n.getWallId)
+        }
 
         // for each vertex, there should only be one neighboring wall with lotag 2, same red/white, which is not the "other" redwall
         SpriteLogicException.throwIf(neighboorsForPoint.size > 1, "multisector connector problem (TODO better err msg)")
@@ -229,7 +239,8 @@ object ConnectorScanner {
       )
 
       if(section.marker.isDefined){
-        val msg = s"2 multisect sprites pointed at same walls near ${section.marker.get.getLocation}"
+        val walls = s"walls=${section.wallIds}"
+        val msg = s"2 multisect sprites pointed at same walls near ${section.marker.get.getLocation} sprite1.sector=${sprite.getSectorId} sprite2.sector=${section.marker.get.getSectorId} ${walls}"
         throw new SpriteLogicException(msg, sprite)
       }else{
         section.marker = Some(sprite)

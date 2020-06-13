@@ -7,7 +7,8 @@ public class ConnectorType {
                 || connectorType == HORIZONTAL_WEST
                 || connectorType == VERTICAL_NORTH
                 || connectorType == VERTICAL_SOUTH
-                || connectorType == MULTI_REDWALL;
+                || connectorType == MULTI_REDWALL
+                || connectorType == MULTI_SECTOR;
     }
 
     public static int TELEPORTER = 7; // TODO - maybe this should be 27 to match the prefab... (or that one should be 7)

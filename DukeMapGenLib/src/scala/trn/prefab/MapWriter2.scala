@@ -184,6 +184,22 @@ trait MapWriter2 {
 
 
 
+  // cant rotate
+  def tryPasteConnectedTo(
+    extantPsg: PastedSectorGroup,
+    extantConn: RedwallConnector,
+    newSg: SectorGroup,
+    newConn: RedwallConnector
+  ): Option[PastedSectorGroup] = {
+
+    val placements = findPlacementsRaw(Seq((extantPsg, extantConn)), newSg, Some(Seq(newConn)))
+    if(placements.isEmpty){
+      None
+    }else{
+      Some(pasteAndConnect(random.randomElement(placements)))
+    }
+
+  }
 
   // THIS sg with this conn to THIS psg (any conn)
   def tryPasteConnectedTo(
@@ -218,12 +234,12 @@ trait MapWriter2 {
     }
   }
 
-  // THIS sg with this conn to THIS psg with this conn
-  def tryPasteConnectedTo(
-    map: DMap,
-    existingConn: RedwallConnector,
-    sg: SectorGroup,
-    sgConn: Option[RedwallConnector]
-  ): PastedSectorGroup = ???
+  //// THIS sg with this conn to THIS psg with this conn
+  //def tryPasteConnectedTo(
+  //  map: DMap,
+  //  existingConn: RedwallConnector,
+  //  sg: SectorGroup,
+  //  sgConn: Option[RedwallConnector]
+  //): PastedSectorGroup = ???
 
 }

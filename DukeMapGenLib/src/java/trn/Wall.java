@@ -172,6 +172,10 @@ public class Wall {
 		return new WallStat(this.cstat);
 	}
 
+	public void setStat(WallStat stat){
+		this.cstat = stat.cstat();
+	}
+
 	public int getX(){
 		return x;
 	}

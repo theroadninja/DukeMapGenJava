@@ -246,7 +246,9 @@ public class RedwallConnector extends Connector {
 
     /** temp, just to east the transition from having SimpleConnector vs MultiWallConnector */
     private boolean isSimpleConnector(){
-        if(getConnectorType() == ConnectorType.MULTI_REDWALL){
+        if(getConnectorType() == ConnectorType.MULTI_REDWALL) {
+            return false;
+        }else if(getConnectorType() == ConnectorType.MULTI_SECTOR){
             return false;
         }else if(heading == -1){
             throw new RuntimeException("this should never happen");

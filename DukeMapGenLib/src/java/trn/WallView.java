@@ -85,7 +85,7 @@ public class WallView {
         return wall.isRedWall();
     }
 
-    /** @returns true if this is a red wall and 'other' is the other redwall */
+    /** @returns true if this is a red wall and 'other' is the other redwall (based on its pointer, not its location) */
     public final boolean isOtherSide(WallView other){
         if(wall.nextWall == -1 && other.wall.nextWall == -1){
             return false;

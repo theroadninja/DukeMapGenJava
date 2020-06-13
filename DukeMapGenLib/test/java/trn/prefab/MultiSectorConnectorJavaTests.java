@@ -10,7 +10,7 @@ import trn.WallView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultiSectorConnectorTests {
+public class MultiSectorConnectorJavaTests {
     // def testWall(wallId: Int, p0: PointXY, p1: PointXY, otherWall: Int = -1): WallView = {
     //     val w = new Wall(p0.x, p0.y)
     //     w.setOtherSide(otherWall, -1)
