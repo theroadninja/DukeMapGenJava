@@ -21,7 +21,7 @@ class PastedConnectorCollection(
   }
 
   def findFirstConnector(cf: ConnectorFilter): Option[Connector] = {
-    val it: java.util.Iterator[Connector] = Connector.findConnectors(connectors, cf).iterator
+    val it: java.util.Iterator[Connector] = ConnectorFactory.findConnectors(connectors, cf).iterator
     //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
     //return it.hasNext() ? it.next() : null;
     if(it.hasNext){

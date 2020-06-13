@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._ // this is the good one
 object PastedSectorGroup {
 
   def apply(map: DMap, copystate: MapUtil.CopyState, groupId: Option[Int]): PastedSectorGroup = {
-    new PastedSectorGroup(map, copystate, Connector.findConnectorsInPsg(map, copystate), groupId)
+    new PastedSectorGroup(map, copystate, ConnectorFactory.findConnectorsInPsg(map, copystate), groupId)
   }
 
 }

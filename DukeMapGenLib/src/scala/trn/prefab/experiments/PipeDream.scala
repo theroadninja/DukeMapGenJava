@@ -72,7 +72,7 @@ object PipeDream extends PrefabExperiment {
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val builder = new PipeBuilder(DMap.createNew(), palette)
 
-    val SIZE = 40
+    val SIZE = 16
 
 
     // TODO - implement multi-wall-multi-sector connector

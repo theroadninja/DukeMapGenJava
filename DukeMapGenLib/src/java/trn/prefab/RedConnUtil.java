@@ -82,7 +82,7 @@ public class RedConnUtil {
         }
     }
 
-    public static PointXY getAnchor(List<Integer> wallIds, Map map){
+    public static PointXY getAnchor(List<Integer> wallIds, MapView map){
         // TODO - duplicate anchor logic in ConnectorScanner
         int minX = map.getWall(wallIds.get(0)).getX();
         int minY = map.getWall(wallIds.get(0)).getY();
@@ -116,7 +116,7 @@ public class RedConnUtil {
         return new PointXY(minX, minY);
     }
 
-    static long totalManhattanLength(List<Integer> wallIds, Map map){
+    static long totalManhattanLength(List<Integer> wallIds, MapView map){
         long sum = 0;
         for(int wallId: wallIds){
             Wall w1 = map.getWall(wallId);
@@ -126,7 +126,7 @@ public class RedConnUtil {
         return sum;
     }
 
-    static List<PointXY> allRelativeConnPoints(List<Integer> wallIds, Map map, PointXYZ anchor, PointXY anchor2){
+    static List<PointXY> allRelativeConnPoints(List<Integer> wallIds, MapView map, PointXYZ anchor, PointXY anchor2){
         List<PointXY> results = new ArrayList<>(wallIds.size() + 1);
         for(Integer i: wallIds){
             results.add(map.getWall(i).getLocation().subtractedBy(anchor));

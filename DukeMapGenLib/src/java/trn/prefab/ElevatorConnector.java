@@ -41,7 +41,7 @@ public class ElevatorConnector extends Connector {
     }
 
     @Override
-    public ElevatorConnector translateIds(IdMap idmap, PointXYZ delta, Map map) {
+    public ElevatorConnector translateIds(IdMap idmap, PointXYZ delta, MapView map) {
         return new ElevatorConnector(connectorId, idmap.sector(this.sectorId), this.mustReplaceMarkerSprite);
     }
 
@@ -80,7 +80,7 @@ public class ElevatorConnector extends Connector {
 
     // for auto marker 20, to distinguish between other uses of the auto marker
     @Deprecated
-    public static boolean isElevatorMarker(Map map, Sprite markerSprite){
+    public static boolean isElevatorMarker(MapView map, Sprite markerSprite){
         int sectorId = markerSprite.getSectorId();
         if(map.getSector(sectorId).getLotag() != Lotags.ST.ELEVATOR){
             return false;

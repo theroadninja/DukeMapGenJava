@@ -1,14 +1,16 @@
 package trn.prefab
 
 import trn.duke.{MapErrorException, TextureList}
-import trn.{DukeConstants, ISpriteFilter, PointXY, PointXYZ, Sector, Sprite, Wall, Map => DMap}
+import trn.{DukeConstants, ISpriteFilter, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._ // this is the good one
 
 
 class CopyPasteMapBuilder(val outMap: DMap) extends MapBuilder {
+  val mapView = new MapView(outMap)
   val writer = new MapWriter(this, this.sgBuilder)
+
 
 }
 
@@ -35,7 +37,7 @@ object SectorGroup {
     */
   def newSG(map: DMap, sectorGroupId: Int, props: SectorGroupProperties, hints: SectorGroupHints): SectorGroup = {
     val connectors = try {
-      Connector.findConnectors(map)
+      ConnectorFactory.findConnectors(map)
     }catch{
       case ex: Exception => throw new SpriteLogicException(
         "exception while scanning connectors in sector group.  id=" + sectorGroupId,
@@ -166,7 +168,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   // protected def updateConnectors(): Unit = ???
   protected def updateConnectors(): Unit = {
     connectors.clear()
-    Connector.findConnectors(map).forEach(c => addConnector(c))
+    ConnectorFactory.findConnectors(map).forEach(c => addConnector(c))
   }
 
 
@@ -196,8 +198,9 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   // TODO - move to base class or interface something
+  /** @deprecated - this actually rescans the sector group! */
   def findFirstConnector(cf: ConnectorFilter): Connector = {
-    val it: java.util.Iterator[Connector] = Connector.findConnectors(connectors, cf).iterator();
+    val it: java.util.Iterator[Connector] = ConnectorFactory.findConnectors(connectors, cf).iterator();
     //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
     //return it.hasNext() ? it.next() : null;
     if(it.hasNext) {
@@ -231,7 +234,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     val tmpBuilder = new CopyPasteMapBuilder(result.map)
     val cdelta = conn2.getTransformTo(conn1)
     val (_, idmap) = tmpBuilder.writer.pasteSectorGroup2(group2, cdelta)
-    val pastedConn2 = conn2.translateIds(idmap, cdelta, tmpBuilder.outMap)
+    val pastedConn2 = conn2.translateIds(idmap, cdelta, tmpBuilder.mapView)
 
     // TODO - link redwalls  ( TODO - make this a member of the builder? )
     //PrefabUtils.joinWalls(result.map, conn1, pastedConn2)
@@ -244,12 +247,6 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
           tmpBuilder.writer.isAnchor(s) && s.getLocation != anchorSprite.get.getLocation
         }
       })
-      // for(i <- 0 until tmpBuilder.outMap.getSpriteCount){
-      //   val s: Sprite = tmpBuilder.outMap.getSprite(i)
-      //   if(tmpBuilder.isAnchor(s) && s.getLocation != anchorSprite.get){
-      //     tmpBuilder.outMap.deleteSprite(i) // it is the other anchor, delete it
-      //   }
-      // }
     }
 
     // DELETE USED CONNECTORS

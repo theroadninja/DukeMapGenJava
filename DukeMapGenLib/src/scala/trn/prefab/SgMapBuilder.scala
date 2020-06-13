@@ -1,6 +1,6 @@
 package trn.prefab
 
-import trn.{IdMap, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, SpriteFilter, Map => DMap}
+import trn.{IdMap, MapUtil, MapView, PlayerStart, PointXY, PointXYZ, Sprite, SpriteFilter, Map => DMap}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -18,6 +18,8 @@ class SgMapBuilder(private val map: DMap) extends TagGenerator {
 
   // TODO - improve ImmutableMap so that everything calling this can use that
   def getMapTODO: DMap = map
+
+  def getMapView: MapView = new MapView(map) // TODO - dont create a new instance each time
 
   var hiTagCounter = 1
   // TODO - for now, if PSGs are modified (connecting teleporers, elevators...) just mark them as

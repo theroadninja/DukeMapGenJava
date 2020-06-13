@@ -4,6 +4,7 @@ import trn.{Map => DMap}
 import trn.MapImplicits._
 import scala.collection.JavaConverters._
 
+
 /**
   * Immutable interface for Map.  Replaces ImmutableMap.
   *
@@ -11,7 +12,10 @@ import scala.collection.JavaConverters._
   *   import trn.MapImplicits._
   *   map.asView
   */
-class MapView(map: DMap) {
+class MapView(map: DMap) extends WallContainer {
+
+  override def getWall(id: Int): Wall = map.getWall(id)
+  def getWallView(wallId: Int): WallView = map.getWallView(wallId)
 
   def getSector(sectorId: Int): Sector = map.getSector(sectorId)
 
@@ -33,5 +37,16 @@ class MapView(map: DMap) {
       map.getAllSectorWallIds(map.getSector(sectorId)).asScala.map(wallId => wallId.intValue -> sectorId)
     }.toMap
   }
+
+
+
+  /** ************************************
+    * TODO - functions to get rid of (or convert to scala types) later
+    * *************************************/
+
+  def getAllSectorWallIds(sector: Sector): java.util.List[Integer] = map.getAllSectorWallIds(sector)
+
+  // need to be java integers because they can be null
+  def findSprites(picnum: Integer, lotag: Integer, sectorId: Integer): java.util.List[Sprite] = map.findSprites(picnum, lotag, sectorId)
 
 }

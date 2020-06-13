@@ -138,12 +138,14 @@ class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuild
 /**
   * A 3x3x3x2 hypercube that uses hyper1.map
   */
-object Hypercube1 {
+object Hypercube1 extends PrefabExperimentStdRun {
   val MainRoom = 100
   val MainRoomCenter = 101
   val BottomFloorRoom = 102
   val TopFloorRoom = 103
   val rooms = Map((0 -> BottomFloorRoom), 1 -> MainRoom, 2 -> TopFloorRoom)
+
+  override def Filename: String = "hyper1.map"
 
   def getRoom(palette: PrefabPalette, x: Int, y: Int, z: Int, w: Int): Option[SectorGroup] = {
     val room: SectorGroup = if(x == 1 && y == 1) {
@@ -158,8 +160,8 @@ object Hypercube1 {
     }
   }
 
-  def run(sourceMap: DMap): DMap = {
-    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
+  def run(palette: PrefabPalette): DMap = {
+    //val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val builder = new HyperMapBuilder(DMap.createNew(), palette)
 
     for(x <- 0 until 3; y <- 0 until 3; z <- 0 until 3; w <- 0 until 2){
@@ -176,4 +178,5 @@ object Hypercube1 {
     builder.writer.checkSectorCount()
     builder.outMap
   }
+
 }

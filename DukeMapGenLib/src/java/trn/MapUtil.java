@@ -263,7 +263,7 @@ public class MapUtil {
 	 * @param m
 	 * @returns true if the sprite is pointed at the wall.
 	 */
-	public static boolean isSpritePointedAtWall(Sprite s, int wallId, Map m) {
+	public static boolean isSpritePointedAtWall(Sprite s, int wallId, MapView m) {
 		Wall w1 = m.getWall(wallId);
 		Wall w2 = m.getWall(w1.getPoint2Id());
 		return isSpritePointedAtWall(s, w1, w2);
@@ -287,7 +287,7 @@ public class MapUtil {
 	 * @param map the map containing the walls
 	 * @return the wallIds sorted in order (so that Wall(i).getPoint2() == Wall(i+1)
 	 */
-	public static List<Integer> sortWallSection(List<Integer> wallIds, Map map){
+	public static List<Integer> sortWallSection(List<Integer> wallIds, MapView map){
 	    // TODO - this is a classic topological, so optimize this enough to not be embarassing
 		if(wallIds == null) throw new IllegalArgumentException();
 	    java.util.Map<Integer, Integer> walls = new TreeMap<>();
@@ -319,7 +319,7 @@ public class MapUtil {
 	}
 
 	/** throws an exception if the walls are not adjacent and in order */
-	private static void checkLoopSection(List<Integer> wallIds, Map map){
+	private static void checkLoopSection(List<Integer> wallIds, MapView map){
 		for(int i = 0; i < wallIds.size() - 1; ++i){
 			int wallId = wallIds.get(i);
 			int nextWallId = wallIds.get(i + 1);
@@ -351,7 +351,7 @@ public class MapUtil {
 		return sumOfCrossProduct(wallLoop) > 0;
 	}
 
-	public static List<WallView> getWallViews(Collection<Integer> wallIds, Map map){
+	public static List<WallView> getWallViews(Collection<Integer> wallIds, MapView map){
 		List<WallView> results = new ArrayList<>(wallIds.size());
 		for(int wallId: wallIds){
 			results.add(map.getWallView(wallId));

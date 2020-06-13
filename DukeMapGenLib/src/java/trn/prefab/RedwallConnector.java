@@ -10,10 +10,10 @@ import java.util.List;
 // TODO - or should the main feature of this class be that it matters where the sector is?
 public class RedwallConnector extends Connector {
 
-    static PointXY getWallAnchor1(List<Integer> wallIds, Map map){
+    static PointXY getWallAnchor1(List<Integer> wallIds, MapView map){
         return map.getWall(wallIds.get(0)).getLocation();
     }
-    static PointXY getWallAnchor2(List<Integer> wallIds, Map map){
+    static PointXY getWallAnchor2(List<Integer> wallIds, MapView map){
         return map.getWall(
                 map.getWall(wallIds.get(wallIds.size() - 1)).getNextWallInLoop()
         ).getLocation();
@@ -24,7 +24,7 @@ public class RedwallConnector extends Connector {
             Sector sector,
             List<Integer> wallIds,
             List<WallView> walls,
-            Map map
+            MapView map
     ){
         PointXY wallAnchor1 = getWallAnchor1(wallIds, map);
         PointXY wallAnchor2 = getWallAnchor2(wallIds, map);
@@ -168,7 +168,7 @@ public class RedwallConnector extends Connector {
     }
 
     @Override
-    public final RedwallConnector translateIds(final IdMap idmap, PointXYZ delta, Map map){
+    public final RedwallConnector translateIds(final IdMap idmap, PointXYZ delta, MapView map){
         List<Integer> newWallIds = idmap.wallIds(this.wallIds);
         List<WallView> newWalls = MapUtil.getWallViews(newWallIds, map);
         return new RedwallConnector(
@@ -186,6 +186,11 @@ public class RedwallConnector extends Connector {
                 this.wallMarkerLotag,
                 this.relativePoints
         );
+    }
+
+    /** @deprecated */
+    public final RedwallConnector translateIds(final IdMap idmap, PointXYZ delta, Map map){
+        return translateIds(idmap, delta, new MapView(map));
     }
 
     public BlueprintConnector toBlueprint(){

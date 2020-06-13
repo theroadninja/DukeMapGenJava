@@ -29,7 +29,7 @@ trait ConnectorCollection {
 
   // TODO - copied from PastedConnectorCollection.findFirstConnector()
   def findFirstConnectorOpt(cf: ConnectorFilter): Option[Connector] = {
-    val it: java.util.Iterator[Connector] = Connector.findConnectors(connectors, cf).iterator
+    val it: java.util.Iterator[Connector] = ConnectorFactory.findConnectors(connectors, cf).iterator // TODO - does the caller need us to rescan every time???
     //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
     //return it.hasNext() ? it.next() : null;
     if(it.hasNext){

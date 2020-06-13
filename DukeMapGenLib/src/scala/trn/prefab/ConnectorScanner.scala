@@ -108,18 +108,6 @@ object ConnectorScanner {
     }
   }
 
-
-  /**
-    * picks and arbitrary Point to serve as the "root" point for the purpose of detecting cycles.
-    */
-  def pickRootPointForLoop(walls: Iterable[WallView]): PointXY = {
-    require(walls.size > 0)
-    // first find all points with min x, and then points with min y (make sure x dominates y so we dont have ties)
-    // since this is for loops, we only need to look at one of the points
-    val minx = walls.map(_.p1).map(_.x).min
-    walls.map(_.p1).filter(_.x == minx).toSeq.sortBy(_.y).head
-  }
-
   /**
     * takes a set of unordered wall sections that make up a single wall and puts them in order.  The order
     * is based on the implicit order in a given wall, i.e. a wall with points (p0, p1) has a natural direction
@@ -140,22 +128,6 @@ object ConnectorScanner {
     }else{
       val firstPoint = walls.map(w => w.p1 -> w).toMap
       val secondPoint = walls.map(w => w.p2 -> w).toMap
-      //println(s"firstPoint: ${firstPoint}")
-      //println(s"secondPoint: ${secondPoint}")
-      //def f(w: WallView, point: WallView => PointXY, m: Map[PointXY, WallView]): Seq[WallView] = {
-      //  //Seq(w) ++ m.get(point(w)).map(n => f(n, point, m)).getOrElse(Seq.empty)
-      //  val n = m.get(point(w))
-      //  if(n.isEmpty){
-      //    Seq.empty
-      //  }else{
-      //    val n2 = n.flatMap(nn => m.get(point(nn)))
-      //    if(n2.isEmpty){
-      //      Seq(n.get)
-      //    }else{
-      //      Seq(n.get) ++ f(n2.get, point, m)
-      //    }
-      //  }
-      //}
 
       def forwardSearch(w: Option[WallView], rootPoint: PointXY): Seq[WallView] = {
         if(w.isEmpty){
@@ -184,29 +156,15 @@ object ConnectorScanner {
 
       }
 
-      val rootPoint = pickRootPointForLoop(walls)
-      val w = walls.find(_.p1 == rootPoint).get
-      //val w = walls.head
-
-      println("")
-      println(s"walls: ${walls.map(_.getLineSegment)} rootPoint=${rootPoint}")
-      //println(s"forward: ${forwardSearch(Some(w), rootPoint).map(_.getWallId)} w=${w.p1}")
-      //println(s"backward: ${backwardSearch(Some(w), rootPoint).map(_.getWallId)} w=${w.p1}")
-      // TODO - throw if result size does not match wall size
-      //val results = f(w, _.p1, secondPoint).reverse ++ Seq(w) ++ f(w, _.p2, firstPoint)
-
+      val w = walls.head
+      val rootPoint = w.p1
       val fwalls = forwardSearch(Some(w), rootPoint)
       val results = if(fwalls.size + 1 == walls.size){
-        // it was a loop; the foward search went all the way arount
-        // TODO - can probably do this without calculating a rootpoint -- can just use the first point as "root"
-        Seq(w) ++ forwardSearch(Some(w), rootPoint)
+        // it was a loop; the foward search went all the way around
+        Seq(w) ++ fwalls
       }else{
-        backwardSearch(Some(w), rootPoint).reverse ++ Seq(w) ++ forwardSearch(Some(w), rootPoint)
-
+        backwardSearch(Some(w), rootPoint).reverse ++ Seq(w) ++ fwalls
       }
-
-      // val results = backwardSearch(Some(w), rootPoint).reverse ++ Seq(w) ++ forwardSearch(Some(w), rootPoint)
-
 
       if(results.size != walls.size){
         throw new IllegalArgumentException(s"walls not continuous ${results.size} != ${walls.size}")
@@ -234,8 +192,6 @@ object ConnectorScanner {
   // def matchSpritesToWallSections(sprites: Seq[Sprite], wallSections: Seq[WallSection])
 
   def findMultiSectorConnectors(map: MapView): java.util.List[Connector] = {
-    // TODO - use a "map view" here, since we dont need to modify the map
-
     // TODO - establish a max num of walls that can be used in this connector?  32? 512?
 
 

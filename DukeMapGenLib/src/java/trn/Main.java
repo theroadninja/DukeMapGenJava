@@ -5,6 +5,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+
 import org.apache.commons.io.FileUtils;
 import trn.bespoke.MoonBase1$;
 import trn.duke.MapImageWriter;
@@ -37,27 +39,22 @@ public class Main {
 			throw new Exception(DOSPATH + " does not exist");
 		}
 
-		//Map outMap = ChildSectorTest.run(MapLoader.loadMap(DOSPATH + ChildSectorTest.FILENAME()));
+		//run(ChildSectorTest$.MODULE$);
 		//run(FirstPrefabExperiment$.MODULE$);
 		//run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
-		//Map outMap = Hypercube1.run(MapLoader.loadMap(DOSPATH + "hyper1.map"));
-		run(Hypercube2$.MODULE$); //Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
-		//deployTest(outMap);
+		//run(Hypercube1$.MODULE$);
+		//run(Hypercube2$.MODULE$); //Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
+        superTest();
 
 		//run(SoundListMap$.MODULE$);
 		//run(PipeDream$.MODULE$);
 		//run(PoolExperiment$.MODULE$);
 		//run(Sushi$.MODULE$);
-		//= Sushi.run(new MapLoader(DOSPATH));
-
-		// writeAndOpenMapPng(outMap);
-		//deployTest(outMap);
-
-		//run(Hypercube3$.MODULE$);
+		//run(Hypercube3$.MODULE$); // TODO - delete this entirely?
 		//run(Hypercube4$.MODULE$);
 		//run(JigsawPlacerMain$.MODULE$);
 
-		// run(PersonalStorage$.MODULE$);
+		//run(PersonalStorage$.MODULE$);
 
 		// StairPrinter.xrepeatTest(new MapLoader(DOSPATH), gameCfg);
 		// RenderQuickTest.quickTest(new MapLoader(DOSPATH), gameCfg);
@@ -67,7 +64,33 @@ public class Main {
 		//	ArtFileReader.runTest(ff);
 		//}
 
+		// writeAndOpenMapPng(outMap);
+		//deployTest(outMap);
+
 		// MoonBase1$.MODULE$.run(gameCfg);
+	}
+
+	/** compile all test maps, to at least know if they break or not */
+	private static void superTest() throws Exception {
+	    java.util.List<PrefabExperiment> all = new ArrayList<PrefabExperiment>(){{
+	    	add(ChildSectorTest$.MODULE$);
+	    	add(FirstPrefabExperiment$.MODULE$);
+	    	add(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
+	    	add(Hypercube1$.MODULE$);
+	    	add(Hypercube2$.MODULE$);
+	    	add(SoundListMap$.MODULE$);
+	    	add(PipeDream$.MODULE$);
+	    	add(PoolExperiment$.MODULE$);
+	    	add(Sushi$.MODULE$);
+	    	add(Hypercube4$.MODULE$);
+	    	add(JigsawPlacerMain$.MODULE$);
+	    	add(PersonalStorage$.MODULE$); // sometimes with fails with "cant place player start"
+		}};
+	    for(PrefabExperiment experiment: all){
+	        System.out.println("starting: " + experiment.Filename());
+	    	run(experiment);
+		}
+
 	}
 
 

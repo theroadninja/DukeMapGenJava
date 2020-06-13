@@ -65,10 +65,6 @@ object JigsawPlacer {
     //map: ImmutableMapOld
     map: MapView
   ): Boolean = {
-    if(newConn.getSectorIds.size() != 1 || b.getSectorIds.size() != 1){
-      throw new RuntimeException("multi-sector not supported yet")
-    }
-
     def ceilMatch(s1: Sector, s2: Sector): Boolean = s1.getCeilingZ == s2.getCeilingZ
 
     def xyMatch(c1: RedwallConnector, c2: RedwallConnector): Boolean = c1.getTransformTo(c2).asXY() == PointXY.ZERO

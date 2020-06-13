@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab.{MapBuilder, MapWriter, PrefabPalette}
-import trn.{DukeConstants, Main, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{DukeConstants, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -10,11 +10,12 @@ class TestBuilder(val outMap: DMap) extends MapBuilder {
 }
 
 @deprecated // see SectorGroupTests
-object ChildSectorTest {
+object ChildSectorTest extends PrefabExperiment{
 
-  val FILENAME = "childtst.map"
+  override def Filename: String = "childtst.map"
 
-  def run(sourceMap: DMap): DMap = {
+  override def run(mapLoader: MapLoader): DMap = {
+    val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
 
     println(s"palette sector groups: ${palette.numberedSectorGroupIds().asScala}")
@@ -26,5 +27,6 @@ object ChildSectorTest {
     builder.writer.setAnyPlayerStart()
     builder.writer.clearMarkers()
     builder.outMap
+
   }
 }
