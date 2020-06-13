@@ -7,7 +7,25 @@ import java.util.Collections;
 import java.util.List;
 
 // TODO - implement this using a `2` instead of a `1` for the wall lotag
-public class MultiSectorConnector extends RedwallConnector {
+public class MultiSectorConnector {
+
+    public static int WALL_LOTAG = 2;
+
+    /**
+     * Calculates the `z` value of the anchor.  With other connectors this is the z of the sector with the marker,
+     * however the marker of a MultiSectorConnector can be any sector, and the sector containing the marker is not
+     * special, so instead we take the lowest floor, which is actually the "max" because z is upside down in Build.
+     */
+    public static int getAnchorZ(List<Integer> sectorIds, MapView map){
+        if(sectorIds.size() < 1){
+            throw new IllegalArgumentException();
+        }
+        int maxz = map.getSector(sectorIds.get(0)).getFloorZ();
+        for(int sectorId: sectorIds){
+            maxz = Math.max(maxz, map.getSector(sectorId).getFloorZ());
+        }
+        return maxz;
+    }
 
     // calculate all wall positions relative to the anchor
     public static List<PointXY> getRelativeConnPoints(List<WallView> walls, PointXYZ anchor){
@@ -21,25 +39,62 @@ public class MultiSectorConnector extends RedwallConnector {
 
     //private final List<PointXY> relativeConnPoints;
 
-
-    /**
-     * @param sectorIds all sectors containing walls in this connector, in any order
-     * @param wallIds  must be in order (e.g. wall(p0 -> p1) -> wall(p1 -> p2) -> ...)
-     */
-    public MultiSectorConnector(
+    public static RedwallConnector create(
             Sprite marker,
-            List<Integer> sectorIds,
-            List<Integer> wallIds,
-            List<WallView> walls,
-            PointXYZ anchor,
+            List<Integer> sectorIds, // sorted and match wallIds and walls
+            List<Integer> wallIds, // sorted
+            List<WallView> walls, // sorted
+            PointXY anchorXY,
             PointXY wallAnchor1,
-            PointXY wallAnchor2
-    ) {
-        super(marker.getHiTag(), marker.getSectorId(), sectorIds, WallView.totalLength(walls),
-                anchor, wallAnchor1, wallAnchor2, marker.getLotag(), ConnectorType.MULTI_SECTOR, wallIds, walls, 2,
+            PointXY wallAnchor2,
+            MapView map
+
+    ){
+        PointXYZ anchor = anchorXY.withZ(getAnchorZ(sectorIds, map));
+        //return new MultiSectorConnector(
+        //        marker,
+        //        sectorIds,
+        //        wallIds,
+        //        walls,
+        //        anchor,
+        //        wallAnchor1,
+        //        wallAnchor2
+        //);
+        return new RedwallConnector(
+                marker.getHiTag() > 0 ? marker.getHiTag() : -1,
+                marker.getSectorId(),
+                sectorIds,
+                WallView.totalLength(walls),
+                anchor,
+                wallAnchor1,
+                wallAnchor2,
+                marker.getLotag(),
+                ConnectorType.MULTI_SECTOR,
+                wallIds,
+                walls,
+                WALL_LOTAG,
                 Collections.unmodifiableList(getRelativeConnPoints(walls, anchor))
-                );
-        //this.relativeConnPoints = Collections.unmodifiableList(getRelativeConnPoints(walls, this.anchor));
+        );
     }
+
+    ///**
+    // * @param wallIds  must be in order (e.g. wall(p0 -> p1) -> wall(p1 -> p2) -> ...)
+    // */
+    //public MultiSectorConnector(
+    //        Sprite marker,
+    //        List<Integer> sectorIds, // sorted
+    //        List<Integer> wallIds, // sorted
+    //        List<WallView> walls, // sorted
+    //        PointXYZ anchor,
+    //        PointXY wallAnchor1,
+    //        PointXY wallAnchor2
+    //) {
+    //    super(marker.getHiTag() > 0 ? marker.getHiTag() : -1,
+    //            marker.getSectorId(), sectorIds, WallView.totalLength(walls),
+    //            anchor, wallAnchor1, wallAnchor2, marker.getLotag(), ConnectorType.MULTI_SECTOR, wallIds, walls, 2,
+    //            Collections.unmodifiableList(getRelativeConnPoints(walls, anchor))
+    //            );
+    //    //this.relativeConnPoints = Collections.unmodifiableList(getRelativeConnPoints(walls, this.anchor));
+    //}
 
 }

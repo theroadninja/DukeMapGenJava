@@ -19,6 +19,14 @@ public class RedConnUtil {
         }};
     }
 
+    public static List<Integer> toList(int element, int count){
+        List<Integer> results = new ArrayList<>(count);
+        for(int i = 0; i < count; ++i){
+            results.add(element);
+        }
+        return results;
+    }
+
     public static int connectorTypeForHeading(int heading){
         if(Heading.E == heading){
             return ConnectorType.HORIZONTAL_EAST;

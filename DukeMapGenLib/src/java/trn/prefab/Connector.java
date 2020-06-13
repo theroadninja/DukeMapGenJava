@@ -61,6 +61,9 @@ public abstract class Connector {
             }
         } // for sprite
 
+        List<Connector> multiSectorResults = ConnectorScanner.findMultiSectorConnectors(new MapView(map));
+        results.addAll(multiSectorResults);
+
         return results;
     }
 

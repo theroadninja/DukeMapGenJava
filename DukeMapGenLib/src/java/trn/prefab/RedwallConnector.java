@@ -35,7 +35,7 @@ public class RedwallConnector extends Connector {
         return new RedwallConnector(
                 markerSprite,
                 markerSprite.getSectorId(),
-                RedConnUtil.toList(markerSprite.getSectorId()),
+                RedConnUtil.toList(markerSprite.getSectorId(), wallIds.size()),
                 RedConnUtil.totalManhattanLength(wallIds, map),
                 anchor,
                 wallAnchor1,
@@ -106,6 +106,11 @@ public class RedwallConnector extends Connector {
         }
         if(wallIds == null || wallIds.size() < 1){
             throw new IllegalArgumentException("wallIds cannot be empty");
+        }
+        if(wallIds.size() != sectorIds.size() || wallIds.size() != walls.size()){
+            throw new IllegalArgumentException(
+                    String.format("size mismatch %s %s %s", wallIds.size(), sectorIds.size(), wallIds.size())
+            );
         }
         this.spriteSectorId = spriteSectorId;
         this.allSectorIds = Collections.unmodifiableList(sectorIds);
@@ -435,8 +440,9 @@ public class RedwallConnector extends Connector {
             if(! otherConn.isSimpleConnector()) throw new IllegalArgumentException("connectors are not a match");
             if(otherConn.isLinked(map)) throw new IllegalArgumentException("connector is already linked");
             if(this.isLinked(map)) throw new IllegalStateException("already linked");
-            //SimpleConnector c2 = (SimpleConnector)other;
-            map.linkRedWalls(this.getSectorId(), wallIds.get(0), otherConn.getSectorId(), otherConn.wallIds.get(0));
+
+            //map.linkRedWalls(this.getSectorId(), wallIds.get(0), otherConn.getSectorId(), otherConn.wallIds.get(0));
+            map.linkRedWalls(allSectorIds.get(0), wallIds.get(0), otherConn.allSectorIds.get(0), otherConn.wallIds.get(0));
         }else{
             if(otherConn.getConnectorType() != this.getConnectorType()) throw new IllegalArgumentException("connector type mismatch");
             //MultiWallConnector c2 = (MultiWallConnector)otherConn;
@@ -445,7 +451,9 @@ public class RedwallConnector extends Connector {
             // i think we just link up the walls in reverse order
             for(int i = 0; i < this.wallIds.size(); ++i){
                 int j = this.wallIds.size() - 1 - i;
-                map.linkRedWalls(this.getSectorId(), this.wallIds.get(i), otherConn.getSectorId(), otherConn.wallIds.get(j));
+
+                //map.linkRedWalls(this.getSectorId(), this.wallIds.get(i), otherConn.getSectorId(), otherConn.wallIds.get(j));
+                map.linkRedWalls(this.allSectorIds.get(i), this.wallIds.get(i), otherConn.allSectorIds.get(j), otherConn.wallIds.get(j));
             }
 
         }

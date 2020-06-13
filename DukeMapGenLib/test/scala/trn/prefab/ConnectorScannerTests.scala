@@ -22,7 +22,7 @@ class ConnectorScannerTests {
   def testWall(wallId: Int, p0: PointXY, p1: PointXY, otherWall: Int = -1): WallView = {
     val w = new Wall(p0.x, p0.y)
     w.setOtherSide(otherWall, -1)
-    w.setLotag(PrefabUtils.MarkerSpriteLoTags.MULTI_SECTOR)
+    w.setLotag(MultiSectorConnector.WALL_LOTAG)
     new WallView(w, wallId, new LineSegmentXY(p0, p1))
   }
 
@@ -283,6 +283,61 @@ class ConnectorScannerTests {
     val results2 = ConnectorScanner.sortContinuousWalls(morewalls).map(_.getWallId)
     Assert.assertEquals(5, results2.size)
     Assert.assertTrue(results2.equals(Seq(1, 2, 3, 4, 5)))
+  }
+
+  @Test
+  def testSortWallsLoop: Unit = {
+    val a = p(0, 0)
+    val b = p(32, 0)
+    val c = p(64, 0)
+    val walls = Seq(
+      testWall(1, a, b),
+      testWall(2, b, c),
+      testWall(3, c, a),
+    )
+    val results = ConnectorScanner.sortContinuousWalls(walls).map(_.getWallId)
+    println(results)
+
+    // TODO - fill this in
+  }
+
+  @Test
+  def testSortWallsVertical: Unit = {
+    // the loop detection algo has consequences for vertical segments going up vs down
+
+    val a = p(0, 0)
+    val b = p(0, 64)
+    val c = p(0, 128)
+    val d = p(0, 196)
+    val walls = Seq(
+      testWall(1, a, b),
+      testWall(2, b, c),
+      testWall(3, c, d),
+    )
+    val results = ConnectorScanner.sortContinuousWalls(walls).map(_.getWallId)
+    Assert.assertEquals(3, results.size)
+    // TODO - fill this in
+
+    val e = p(0, 0)
+    val f = p(0, -64)
+    val g = p(0, -128)
+    val h = p(0, -196)
+    val walls2 = Seq(
+      testWall(1, e, f),
+      testWall(2, f, g),
+      testWall(3, g, h),
+    )
+    val results2 = ConnectorScanner.sortContinuousWalls(walls2).map(_.getWallId)
+    Assert.assertEquals(3, results2.size)
+    // TODO - fill this in
+
+    val walls3 = Seq(
+      testWall(1, p(-62464, -54272), p(-62464, -54784)),
+      testWall(2, p(-62464, -52736), p(-62464, -53248)),
+      testWall(3, p(-62464, -53248), p(-62464, -54272)),
+    )
+    val results3 = ConnectorScanner.sortContinuousWalls(walls3).map(_.getWallId)
+    Assert.assertEquals(3, results3.size)
   }
 
   @Test

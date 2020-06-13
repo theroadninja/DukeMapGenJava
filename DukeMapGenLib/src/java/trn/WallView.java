@@ -21,7 +21,7 @@ public class WallView {
         return sum;
     }
 
-    private final Wall wall;
+    protected final Wall wall;
 
     private final int wallId;
 
