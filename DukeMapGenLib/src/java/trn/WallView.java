@@ -57,6 +57,10 @@ public class WallView {
         return this.wallId;
     }
 
+    public List<PointXY> points(){
+        return getLineSegment().toList();
+    }
+
     // @Override
     // public boolean equals(Object obj){
     //     if(!(obj instanceof WallView)){

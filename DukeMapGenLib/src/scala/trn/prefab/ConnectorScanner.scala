@@ -119,6 +119,35 @@ object ConnectorScanner {
   }
 
   /**
+    * Choose a "pivot" point, which is an arbitrary point used to prevent the sorting algorithm from running endlessly
+    * in a loop if the walls are in a cycle.
+    *
+    * @return (pivot, wall) where `pivot` is a point that halts the sort, and `wall` is the wall to start searching
+    *         from.   In cases where its obvious there is no loop (i.e. pivot is not the first point of any wall) then
+    *         the first wall in the given iterable is returned
+    *
+    * Note: in the case of wall loops,
+    * this is not just the minx and miny like anchor, because that might not be a point on the wall loop.
+    * To ensure this is deterministic, we take the min x first (ensuring x dominates y) and then take the y min.
+    * The only way to defeat this is to have two points in exactly the same spot, which is not allowed for a valid
+    * wall loop.
+    *
+    */
+  def loopPivot(walls: Iterable[WallView]): (PointXY, WallView) = {
+    val points: Iterable[PointXY] = walls.flatMap(_.points.asScala)
+    val xmin = points.map(_.x).min
+    val ymin = points.filter(_.x == xmin).map(_.y).min
+    val rootPoint = new PointXY(xmin, ymin)
+    val start = walls.find(_.p1 == rootPoint)
+    if(start.isDefined){
+      (rootPoint, start.get)
+    }else{
+      val w = walls.head
+      (w.p1, w)
+    }
+  }
+
+  /**
     * takes a set of unordered wall sections that make up a single wall and puts them in order.  The order
     * is based on the implicit order in a given wall, i.e. a wall with points (p0, p1) has a natural direction
     * p0 --> p1,  and p1 is the start of the next wall.  So the wall whose p0 does not match any other walls p1
@@ -166,8 +195,9 @@ object ConnectorScanner {
 
       }
 
-      val w = walls.head
-      val rootPoint = w.p1
+
+      val (rootPoint, w) = loopPivot(walls) //val rootPoint = w.p1
+
       val fwalls = forwardSearch(Some(w), rootPoint)
       val results = if(fwalls.size + 1 == walls.size){
         // it was a loop; the foward search went all the way around
@@ -260,9 +290,9 @@ object ConnectorScanner {
         sectorIds.map(Integer.valueOf).asJava,
         wallIds.map(Integer.valueOf).asJava,
         sortedWalls.asJava,
-        anchor(walls), //.withZ(anchorZ),
-        walls.head.p1,
-        walls.last.p2,
+        anchor(sortedWalls), //.withZ(anchorZ),
+        sortedWalls.head.p1,
+        sortedWalls.last.p2,
         map
       )
     }.map(_.asInstanceOf[Connector]).asJava

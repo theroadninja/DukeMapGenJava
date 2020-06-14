@@ -48,7 +48,7 @@ trait MapWriter2 {
   private def allConns(psg: PastedSectorGroup) = psg.redwallConnectors.map(c => (psg, c))
 
   // NOTE: this can't handle rotation, because connectors have to be rescanned after a sector group rotate
-  private[prefab]def findPlacementsRaw(
+  private[prefab] def findPlacementsRaw(
     existing: Seq[(PastedSectorGroup, RedwallConnector)], // need psg to measure Z
     sg: SectorGroup,
     sgConns: Option[Seq[RedwallConnector]] = None, // None means use any connector

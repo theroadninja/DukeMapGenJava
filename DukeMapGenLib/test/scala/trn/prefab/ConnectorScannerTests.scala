@@ -391,7 +391,7 @@ class ConnectorScannerTests {
   def testScanMultiSector: Unit = {
 
     val multiSectorResults = ConnectorScanner.findMultiSectorConnectors(new MapView(testMap)).asScala
-    Assert.assertEquals(13, multiSectorResults.size)
+    Assert.assertEquals(17, multiSectorResults.size)
 
     val sg1 = palette.getSG(1) // this alone found most of the problems
     Assert.assertEquals(1, sg1.connectors.size)
@@ -406,6 +406,8 @@ class ConnectorScannerTests {
     val sg3 = palette.getSG(3)
     Assert.assertEquals(1, sg3.allRedwallConnectors.size)
     Assert.assertEquals(2, sg3.allRedwallConnectors.head.getWallCount)
+    val conn3 = sg3.allRedwallConnectors.head
+    Assert.assertEquals(conn3.getAnchorPoint.asXY, conn3.wallAnchor1)
 
     val sg4 = palette.getSG(4)
     Assert.assertEquals(2, sg4.allRedwallConnectors.size)
