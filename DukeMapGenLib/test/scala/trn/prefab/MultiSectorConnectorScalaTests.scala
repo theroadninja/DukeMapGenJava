@@ -100,4 +100,17 @@ class MultiSectorConnectorScalaTests {
     //val p = writer.tryPasteConnectedTo(psg16, conn16, sg6, conn6)
     //Assert.assertTrue(p.isDefined)
   }
+
+  @Test
+  def test7and18: Unit = {
+    val writer = MapWriter()
+    val psg7 = writer.pasteSectorGroupAt(palette.getSG(7), PointXYZ.ZERO)
+    val eastConn = psg7.redwallConnectors.head
+
+    val sg18 = palette.getSG(18)
+    val westConn = sg18.allRedwallConnectors.head
+    val p = writer.tryPasteConnectedTo(psg7, eastConn, sg18, westConn)
+    Assert.assertTrue(p.isDefined)
+
+  }
 }

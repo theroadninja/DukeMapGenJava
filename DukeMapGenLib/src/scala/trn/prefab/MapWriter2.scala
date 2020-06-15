@@ -98,6 +98,28 @@ trait MapWriter2 {
     }
   }
 
+  def tryPasteConnectedTo(
+    psg: PastedSectorGroup,
+    extantConn: RedwallConnector,
+    sg: SectorGroup,
+    options: PasteOptions
+  ): Option[PastedSectorGroup] = {
+    val sgs = if(options.allowRotate){
+      sg.allRotations
+    }else{
+      Seq(sg)
+    }
+    val allOptions = sgs.flatMap{ newSg =>
+      findPlacementsRaw(Seq((psg, extantConn)), newSg, None, options.allowOverlap)
+    }
+    random.randomElementOpt(allOptions).map(placement => pasteAndConnect(placement))
+    //if(allOptions.size < 1){
+    //  None
+    //}else{
+    //  Some(pasteAndConnect(random.randomElement(allOptions)))
+    //}
+  }
+
   // Was trying to write this for FirstPrefabExperiment
   //def tryPastedConnectedTo(
   //  psg: PastedSectorGroup,

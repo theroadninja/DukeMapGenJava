@@ -14,6 +14,12 @@ class RandomX(seed: Long = System.currentTimeMillis()) {
     list(random.nextInt(list.size))
   }
 
+  def randomElementOpt[E](collection: Iterable[E]): Option[E] = if(collection.isEmpty){
+    None
+  }else{
+    Some(randomElement(collection))
+  }
+
   def shuffle[E](collection: TraversableOnce[E]): TraversableOnce[E] = scalaRandom.shuffle(collection)
 
   def nextInt(bound: Int): Int = random.nextInt(bound)

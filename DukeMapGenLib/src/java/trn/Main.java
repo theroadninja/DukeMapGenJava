@@ -44,7 +44,7 @@ public class Main {
 		//run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
 		//run(Hypercube1$.MODULE$);
 		//run(Hypercube2$.MODULE$); //Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
-        superTest();
+        //superTest();
 
 		//run(SoundListMap$.MODULE$);
 		//run(PipeDream$.MODULE$);
@@ -67,7 +67,7 @@ public class Main {
 		// writeAndOpenMapPng(outMap);
 		//deployTest(outMap);
 
-		// MoonBase1$.MODULE$.run(gameCfg);
+		MoonBase1$.MODULE$.run(gameCfg);
 	}
 
 	/** compile all test maps, to at least know if they break or not */

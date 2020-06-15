@@ -27,6 +27,9 @@ public class GameLogic {
             if(SE_SPECIAL_ANGLE.contains(s.getLotag())){
                 return false;
             }
+        }else if(s.getTexture() == TextureList.CYCLER){
+            // cyclers seems to break when angle is changed
+            return false;
         }
 
         return true;
