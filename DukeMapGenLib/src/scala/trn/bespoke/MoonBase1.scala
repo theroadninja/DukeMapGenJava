@@ -31,8 +31,10 @@ object MoonBase1 {
 
     val (center, _) = writer.sgBuilder.pasteSectorGroup2(moonPalette.getSectorGroup(1), PointXYZ.ZERO)
 
+    val doors = Seq(1, 3).map(spacePalette.getSG)
+
     val openConns = (0 until 4).map{_ =>
-      val psg = writer.tryPasteConnectedTo(center, spacePalette.getSG(Space.Door), PasteOptions()).get
+      val psg = writer.tryPasteConnectedTo(center, writer.randomElement(doors), PasteOptions()).get
       val conn = psg.redwallConnectors.filterNot(_.isLinked(writer.outMap)).head
       (psg, conn)
     }
