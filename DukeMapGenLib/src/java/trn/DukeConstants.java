@@ -3,7 +3,7 @@ package trn;
 /**
  * See also:  http://infosuite.duke4.net/index.php?page=references_dimensions
  * 
- * 
+ * TODO - this is probably replaced by BuildConstants and/or GameConfig
  * 
  * @author Dave
  *
@@ -59,6 +59,9 @@ public class DukeConstants {
 		
 		/** simple door that comes down from ceiling */
 		public static final int DOOR = 20;
+
+
+		public static final int TWO_WAY_TRAIN = 30;
 		
 	}
 	

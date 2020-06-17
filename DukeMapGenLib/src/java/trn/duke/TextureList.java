@@ -1,6 +1,8 @@
 package trn.duke;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * 
@@ -118,6 +120,75 @@ public class TextureList {
 		public static final int HOLODUKE = 1348;
 		
 	}
+
+	public static class DOORS {
+		public static final int DOORTILE5 = 150; // classic E2L1 space door
+		public static final int DOORTILE6 = 151; // slides horizontally
+		public static final int DOORTILE1 = 152; // top half
+		public static final int DOORTILE2 = 153; // bottom half of 152
+		public static final int DOORTILE3 = 154; // circles, top half
+		public static final int DOORTILE4 = 155; // circles, bottom half
+		public static final int DOORTILE7 = 156; // blue sliding door
+		public static final int DOORTILE8 = 157; // nuke door
+		public static final int DOORTILE9 = 158;
+		public static final int DOORTILE10 = 159;
+		public static final int DOORTILE22 = 395; // doesnt look like a door
+		public static final int DOORTILE18 = 447;
+		public static final int DOORTILE19 = 448;
+		public static final int DOORTILE20 = 449;
+		public static final int DOORTILE14 = 717;
+		public static final int DOORTILE16 = 781;
+		public static final int DOORTILE15 = 1102;
+		public static final int DOORTILE21 = 1144;
+		public static final int DOORTILE11 = 1178;
+		public static final int DOORTILE12 = 1179;
+
+		// TODO - where is DOORTILE13? DOORTILE17?  is 22 the last?
+
+		// TODO - not done yet
+
+		// Textures that build editor tile browser doesnt recognize as doors:
+		// TODO - test if these work (the lotag/hitag thing)
+        // 450, 455, 457, 458, 459, 469, 470, 473, 719, 843, 858, 879, 883, 1108, 1117, 1173
+		// Note: 719 is the bathroom door
+
+		public static final List<Integer> ALL = Arrays.asList(new Integer[]{
+		        DOORTILE1, DOORTILE2, DOORTILE3, DOORTILE4, DOORTILE5, DOORTILE6, DOORTILE7, DOORTILE8, DOORTILE9,
+				DOORTILE10, DOORTILE11, DOORTILE12,
+				//DOORTILE13
+				DOORTILE14, DOORTILE15, DOORTILE15, DOORTILE16,
+				// DOORTILE17
+				DOORTILE18, DOORTILE19, DOORTILE20, DOORTILE21, DOORTILE22
+		});
+
+
+	}
+
+	public static class EXPLOSIVE_TRASH {
+		// TODO - not sure which ones work as SEENINE sprites
+		public static final int NUKEBARREL = 1227;
+		public static final int CANWITHSOMETHING = 1232; // trash can
+		public static final int EXPLODINGBARREL = 1238;
+		public static final int FIREBARREL = 1240;
+		public static final int SEENINE = 1247;
+	}
+
+	public static class FEM {
+		// Note: this does not include the femmag (posters, etc)
+		public static final int NAKED1 = 603;
+		public static final int STATUE = 753; // STATUEFLASH is 869
+		public static final int PODFEM1 = 1294; // alien reference
+		public static final int FEM1 = 1312; // stripper
+		public static final int FEM2 = 1317; // pole stripper
+		public static final int FEM3 = 1321; // beer seller
+		public static final int FEM5 = 1323; // tied to spike
+		public static final int FEM4 = 1325; // fire dancer
+		public static final int FEM6 = 1334; // on platform
+		public static final int FEM7 = 1395; // karaoke singer
+
+		// cheerleader is 3450, but build editor doesnt recognize as a FEM
+
+	}
 	
 	public static class SKIES {
 		
@@ -202,7 +273,11 @@ public class TextureList {
 		/** painted hand; only has one tile */
 		public static final int HANDPRINT_SWITCH = 1155;
 		
-		
+		public static final List<Integer> ALL = Arrays.asList(new Integer[]{ ACCESS_SWITCH, SLOT_DOOR, LIGHT_SWITCH, SPACE_DOOR_SWITCH,
+			SPACE_LIGHT_SWITCH, FRANKENSTINE_SWITCH,  NUKE_BUTTON, MULTI_SWITCH, DIP_SWITCH, DIP_SWITCH_2,
+			TECH_SWITCH, DIP_SWITCH_3, ACCESS_SWITCH_2, LIGHT_SWITCH_2, POWER_SWITCH_1, LOCK_SWITCH_1, POWER_SWITCH_2,
+			HAND_SWITCH, PULL_SWITCH, ALIEN_SWITCH, HANDPRINT_SWITCH
+		});
 	}
 	
 	/**
