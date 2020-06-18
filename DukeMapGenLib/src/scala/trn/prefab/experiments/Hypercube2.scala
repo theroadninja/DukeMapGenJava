@@ -30,7 +30,7 @@ object Hyper2MapBuilder {
   type Cell = (Int, Int, Int, Int)
 }
 
-class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
+class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette, val gameCfg: GameConfig) extends MapBuilder {
   val writer = new MapWriter(this, sgBuilder) // TODO
 
   val grid = scala.collection.mutable.Map[Cell, PastedSectorGroup]()
@@ -391,7 +391,8 @@ object Hypercube2 extends PrefabExperimentStdRun {
   //def run(sourceMap: DMap): DMap = {
   def run(palette: PrefabPalette): DMap = {
     //val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
-    val builder = new Hyper2MapBuilder(DMap.createNew(), palette)
+    val gameCfg = DukeConfig.loadHardCodedVersion()
+    val builder = new Hyper2MapBuilder(DMap.createNew(), palette, gameCfg)
 
     def modularRoom2(sg: SectorGroup, x: Int, y: Int, elevator: Boolean, teleporter: Boolean, w: Int = 0): Room = {
       val lowDoors = Seq(Heading.W, Heading.N)
@@ -399,9 +400,9 @@ object Hypercube2 extends PrefabExperimentStdRun {
       val elevatorId = if(elevator){ 1101 }else{ 1102 }
       //val sg = palette.getSectorGroup(110).connectedTo(125, palette.getSectorGroup(teleportId))
       //val sg1 = sg.connectedTo(125, palette.getSectorGroup(teleportId))
-      val sg1 = MapWriter.connected(sg, palette.getSectorGroup(teleportId), 125)
+      val sg1 = MapWriter.connected(sg, palette.getSectorGroup(teleportId), 125, gameCfg)
       // val sg2 = sg1.connectedTo(123, palette.getSectorGroup(elevatorId))
-      val sg2 = MapWriter.connected(sg1, palette.getSectorGroup(elevatorId), 123)
+      val sg2 = MapWriter.connected(sg1, palette.getSectorGroup(elevatorId), 123, gameCfg)
       val sg3 = w match {
         case 0 => sg2
         case 1 => {
@@ -444,7 +445,7 @@ object Hypercube2 extends PrefabExperimentStdRun {
 
     val ELEVATOR_GROUP = 1101
     // val dishSg = palette.getSectorGroup(RoofAntenna).connectedTo(123, palette.getSectorGroup(ELEVATOR_GROUP))
-    val dishSg = MapWriter.connected(palette.getSectorGroup(RoofAntenna), palette.getSectorGroup(ELEVATOR_GROUP), 123)
+    val dishSg = MapWriter.connected(palette.getSectorGroup(RoofAntenna), palette.getSectorGroup(ELEVATOR_GROUP), 123, gameCfg)
     val dishRoof = Room.auto(dishSg, Seq(Heading.S, Heading.W), Seq())
 
     val medicalBay = Room(palette.getSectorGroup(MedicalBay), Seq(), Seq(Heading.S), false, false)

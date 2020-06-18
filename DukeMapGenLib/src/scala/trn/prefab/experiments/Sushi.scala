@@ -4,7 +4,7 @@ import trn.prefab._
 import trn.{MapLoader, PointXY, PointXYZ, Wall, Map => DMap}
 import scala.collection.JavaConverters._ // this is the good one
 
-class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = new RandomX()) extends MapBuilder {
+class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = new RandomX()) extends MapBuilder with HardcodedGameConfigProvider {
 
   val writer = new MapWriter(this, sgBuilder) // TODO
   sgBuilder.pasteAllStaySectors(palette)

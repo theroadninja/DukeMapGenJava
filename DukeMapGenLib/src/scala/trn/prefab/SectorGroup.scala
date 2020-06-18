@@ -7,7 +7,7 @@ import trn.MapImplicits._
 import scala.collection.JavaConverters._ // this is the good one
 
 
-class CopyPasteMapBuilder(val outMap: DMap) extends MapBuilder {
+class CopyPasteMapBuilder(val outMap: DMap, val gameCfg: GameConfig) extends MapBuilder {
   val mapView = new MapView(outMap)
   val writer = new MapWriter(this, this.sgBuilder)
 
@@ -223,7 +223,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   //  - can we remove the redwall connectors?
   // TODO - right now, the sector copy code ONLY copies sectors linked with red walls.  Two unconnected
   // sectors will not both be copied (the bug isnt here, but in the main copy code ...
-  def connectedTo(conn1: RedwallConnector, group2: SectorGroup, conn2: RedwallConnector): SectorGroup = {
+  def connectedTo(conn1: RedwallConnector, group2: SectorGroup, conn2: RedwallConnector, gameCfg: GameConfig): SectorGroup = {
     if(conn1 == conn2) throw new IllegalArgumentException("same connection object passed") // sanity check
 
     val result = this.copy()
@@ -231,7 +231,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     val anchorSprite = result.getAnchorSprite
     val removeSecondAnchor = anchorSprite.nonEmpty && group2.getAnchorSprite.nonEmpty
 
-    val tmpBuilder = new CopyPasteMapBuilder(result.map)
+    val tmpBuilder = new CopyPasteMapBuilder(result.map, gameCfg)
     val cdelta = conn2.getTransformTo(conn1)
     val (_, idmap) = tmpBuilder.writer.pasteSectorGroup2(group2, cdelta)
     val pastedConn2 = conn2.translateIds(idmap, cdelta, tmpBuilder.mapView)
@@ -267,7 +267,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     getRedwallConnectorsById(childPtr.connectorId).size == childPtr.connectorsJava.size
   }
 
-  def connectedToChild(childPtr: ChildPointer, child: SectorGroup, tagGenerator: TagGenerator): SectorGroup = {
+  def connectedToChild(childPtr: ChildPointer, child: SectorGroup, tagGenerator: TagGenerator, gameCfg: GameConfig): SectorGroup = {
     // parent and child must have the same number of connectors
     //if(this.getRedwallConnectorsById(childPtr.connectorId).size != childPtr.connectorsJava.size){
     if(! childConnectorsMatch(childPtr, child)){
@@ -283,7 +283,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
     if(c1.size > 1) throw new RuntimeException("not implemented yet")
 
-    val result = connectedTo(c1(0), child, c2(0))
+    val result = connectedTo(c1(0), child, c2(0), gameCfg)
 
     // TODO - but now all the connectors are fucked up...
 
@@ -310,7 +310,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   // TODO - write unit tests!!
-  def connectedToChildren2(children: java.util.List[SectorGroup], tagGenerator: TagGenerator): SectorGroup = {
+  def connectedToChildren2(children: java.util.List[SectorGroup], tagGenerator: TagGenerator, gameCfg: GameConfig): SectorGroup = {
     requireLogic(sectorGroupId != -1, "cannot connect child to parent with no group id")
     if(children.size == 0){
       return this.copy
@@ -337,9 +337,9 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
       requireLogic(matches(false).size == 0, "unable to connect all child sector groups")
     }
     val newParent = matched.foldLeft(this.copy) { case (parent, child) =>
-        parent.connectedToChild(child.getChildPointer, child, tagGenerator)
+        parent.connectedToChild(child.getChildPointer, child, tagGenerator, gameCfg)
     }
-    newParent.connectedToChildren2(unmatched.asJava, tagGenerator)
+    newParent.connectedToChildren2(unmatched.asJava, tagGenerator, gameCfg)
   }
 
   /**
@@ -351,7 +351,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     * 3. the connectorId the child uses to connect must match the parent's in quantity
     * 		(e.g. if a child has two redwall connectors with ID 123, the parent must have exactly two)
     */
-  def connectedToChildren(children: java.util.List[SectorGroup], tagGenerator: TagGenerator): SectorGroup = {
+  def connectedToChildren(children: java.util.List[SectorGroup], tagGenerator: TagGenerator, gameCfg: GameConfig): SectorGroup = {
     var result = this.copy
     if(children.size < 1){
       return result
@@ -372,7 +372,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
         seenConnectorIds.addAll(child.allConnectorIds.asScala.map(_.toInt).asJava)
       }
 
-      result = result.connectedToChild(childPtr, child, tagGenerator);
+      result = result.connectedToChild(childPtr, child, tagGenerator, gameCfg);
     }
     result
   }

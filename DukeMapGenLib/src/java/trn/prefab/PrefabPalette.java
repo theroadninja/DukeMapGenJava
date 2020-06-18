@@ -45,7 +45,16 @@ public class PrefabPalette {
 	public static PrefabPalette fromMap(Map map) throws MapErrorException {
 		return fromMap(map, false);
 	}
+
+	/**
+	 * @deprecated - GameConfig needs to be passed in
+	 */
 	public static PrefabPalette fromMap(Map map, boolean strict) throws MapErrorException {
+		GameConfig cfg = DukeConfig.loadHardCodedVersion();
+		return fromMap(cfg, map, strict);
+
+	}
+	public static PrefabPalette fromMap(GameConfig cfg, Map map, boolean strict) throws MapErrorException {
 	    final List<SectorGroup> sectorGroupsThatStay = new ArrayList<>();
 		final java.util.Map<Integer, SectorGroup> numberedSectorGroups = new java.util.TreeMap<>();
 		final java.util.Map<Integer, List<SectorGroup>> redwallChildren = new java.util.TreeMap<>();
@@ -63,7 +72,7 @@ public class PrefabPalette {
 			}
 			
 			Map clipboard = Map.createNew();
-			MapUtil.CopyState cpstate = MapUtil.copySectorGroup(map, clipboard, sector, new PointXYZ(0, 0, 0));
+			MapUtil.CopyState cpstate = MapUtil.copySectorGroup(cfg, map, clipboard, sector, new PointXYZ(0, 0, 0));
 			SectorGroupProperties props = SectorGroupProperties.scanMap(clipboard);
 			SectorGroupHints hints = SectorGroupHints.apply(clipboard); // NOTE: these need to get re-applied after children
 
@@ -142,7 +151,7 @@ public class PrefabPalette {
 		for(Integer groupId : numberedSectorGroups.keySet()){
 			SectorGroup sg = numberedSectorGroups.get(groupId);
 			if(redwallChildren.containsKey(groupId)){
-			    numberedGroups2.put(groupId, sg.connectedToChildren2(redwallChildren.get(groupId), tagGenerator));
+			    numberedGroups2.put(groupId, sg.connectedToChildren2(redwallChildren.get(groupId), tagGenerator, cfg));
 			}else{
 				numberedGroups2.put(groupId, sg);
 			}

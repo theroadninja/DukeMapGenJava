@@ -138,7 +138,7 @@ object JigsawPlacer {
   ): Seq[Placement] = findPlacements(sg, psg1.redwallConnectors, psg2.redwallConnectors, map, allowRotation, zMatch)
 }
 
-class TestBuilder(val outMap: DMap) extends MapBuilder {
+class TestBuilder(val outMap: DMap) extends MapBuilder with HardcodedGameConfigProvider {
 }
 
 object JigsawPlacerMain extends PrefabExperiment {

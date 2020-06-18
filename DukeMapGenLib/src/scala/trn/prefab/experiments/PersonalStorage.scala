@@ -12,7 +12,7 @@ import trn.MapImplicits._
 import trn.prefab.PrefabPalette
 import trn.prefab.experiments.Hypercube4.{Filename, run}
 
-class BasicBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
+class BasicBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder with HardcodedGameConfigProvider {
   val writer = new MapWriter(this, sgBuilder) // TODO
 
   def pasteAllStays(): Seq[PastedSectorGroup] = {

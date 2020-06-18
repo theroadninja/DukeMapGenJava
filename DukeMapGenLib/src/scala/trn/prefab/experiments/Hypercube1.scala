@@ -26,7 +26,7 @@ class GridManager(
   }
 }
 
-class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
+class HyperMapBuilder(val outMap: DMap, palette: PrefabPalette, val gameCfg: GameConfig) extends MapBuilder {
   val writer = new MapWriter(this, sgBuilder) // TODO
   val Hallway = 250
   val gridManager = new GridManager(
@@ -162,7 +162,7 @@ object Hypercube1 extends PrefabExperimentStdRun {
 
   def run(palette: PrefabPalette): DMap = {
     //val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
-    val builder = new HyperMapBuilder(DMap.createNew(), palette)
+    val builder = new HyperMapBuilder(DMap.createNew(), palette, DukeConfig.loadHardCodedVersion())
 
     for(x <- 0 until 3; y <- 0 until 3; z <- 0 until 3; w <- 0 until 2){
       val roomToPlace = getRoom(palette, x, y, z, w)

@@ -166,6 +166,8 @@ public class TextureList {
 
 	public static class EXPLOSIVE_TRASH {
 		// TODO - not sure which ones work as SEENINE sprites
+
+		public static final int OOZFILTER = 1079; // alien version of SEENINE
 		public static final int NUKEBARREL = 1227;
 		public static final int CANWITHSOMETHING = 1232; // trash can
 		public static final int EXPLODINGBARREL = 1238;
@@ -188,6 +190,9 @@ public class TextureList {
 
 		// cheerleader is 3450, but build editor doesnt recognize as a FEM
 
+        public static final List<Integer> ALL = Arrays.asList(new Integer[]{
+        		NAKED1, STATUE, PODFEM1, FEM1, FEM2, FEM3, FEM4, FEM5, FEM6, FEM7
+		});
 	}
 	
 	public static class SKIES {

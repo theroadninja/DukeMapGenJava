@@ -142,7 +142,7 @@ object HyperUtils {
 }
 
 class Hyper3MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: trn.prefab.hypercube.GridManager)
-  extends MapBuilder with AnywhereBuilder // TODO move AnywhereBuilder functionality to MapWriter
+  extends MapBuilder with AnywhereBuilder with HardcodedGameConfigProvider// TODO move AnywhereBuilder functionality to MapWriter
 {
   val writer = MapWriter(this)
 

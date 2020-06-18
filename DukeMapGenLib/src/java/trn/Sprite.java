@@ -152,6 +152,14 @@ public class Sprite implements IRayXY {
 		this.extra = -1;
 		
 	}
+
+	public Sprite(PointXYZ xyz, int sectnum, int picnum, int hitag, int lotag){
+		this(xyz.asXY(), xyz.z, sectnum);
+		this.picnum = (short)picnum;
+		this.hitag = (short)hitag;
+		this.lotag = lotag;
+	}
+
 	public Sprite copy(){
 		return copy(this.getSectorId());
 	}

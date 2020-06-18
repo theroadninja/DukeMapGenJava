@@ -30,7 +30,7 @@ object HyperUtils2 {
 }
 
 class Hyper4MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: trn.prefab.hypercube.GridManager)
-  extends MapBuilder // with AnywhereBuilder
+  extends MapBuilder with HardcodedGameConfigProvider // with AnywhereBuilder
 {
   val writer = MapWriter(this)
 

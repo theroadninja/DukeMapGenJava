@@ -13,7 +13,7 @@ import scala.collection.JavaConverters._
 case class ConnMatch(newConn: RedwallConnector, existingConn: RedwallConnector)
 
 // creating this as an adapter for old (new?) code
-class MapBuilderAdapter(val outMap: DMap) extends MapBuilder {
+class MapBuilderAdapter(val outMap: DMap, val gameCfg: GameConfig) extends MapBuilder {
 
 }
 
@@ -87,23 +87,25 @@ object MapWriter {
   }
 
   // this is a merge operation
-  def connected(sg1: SectorGroup, sg2: SectorGroup, connectorId: Int): SectorGroup = {
+  def connected(sg1: SectorGroup, sg2: SectorGroup, connectorId: Int, gameCfg: GameConfig): SectorGroup = {
     val c1: RedwallConnector = sg1.getRedwallConnector(connectorId)
     val c2: RedwallConnector = sg2.getRedwallConnector(connectorId)
-    sg1.connectedTo(c1, sg2, c2)
+    sg1.connectedTo(c1, sg2, c2, gameCfg)
   }
 
-  def apply(map: DMap): MapWriter = {
-    val builder = new MapBuilderAdapter(map)
+  def apply(map: DMap, gameCfg: GameConfig): MapWriter = {
+    val builder = new MapBuilderAdapter(map, gameCfg)
     new MapWriter(builder, builder.sgBuilder)
   }
 
   def apply(builder: MapBuilder): MapWriter = new MapWriter(builder, builder.sgBuilder)
 
-  def apply(): MapWriter = {
-    val builder = new MapBuilderAdapter(DMap.createNew())
+  def apply(gameCfg: GameConfig): MapWriter = {
+    val builder = new MapBuilderAdapter(DMap.createNew(), gameCfg)
     new MapWriter(builder, builder.sgBuilder)
   }
+
+  def unitTestWriter: MapWriter = apply(DukeConfig.empty)
 }
 /**
   * TODO - write unit tests for this class

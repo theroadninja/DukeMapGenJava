@@ -4,7 +4,7 @@ import trn.prefab._
 import trn.{DukeConstants, Main, MapLoader, MapUtil, PointXY, PointXYZ, Map => DMap}
 import scala.collection.JavaConverters._
 
-class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
+class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder with HardcodedGameConfigProvider {
   val writer = MapWriter(this)
 
   def pasteAndLink(

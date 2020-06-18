@@ -267,6 +267,10 @@ public class Wall {
 	public short getTexture(){
 		return this.picnum;
 	}
+
+	public int getTex(){
+		return this.picnum;
+	}
 	
 	public Wall addCstat(int flag){
 		this.cstat |= flag;

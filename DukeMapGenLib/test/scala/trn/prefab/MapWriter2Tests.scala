@@ -41,7 +41,7 @@ class MapWriter2Tests {
   def testFindPlacementsRaw: Unit = {
     // val palette: PrefabPalette = PrefabPalette.fromMap(load("UNIT2.MAP"), true);
 
-    val writer1 = MapWriter()
+    val writer1 = MapWriter(DukeConfig.empty)
     val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO)
 
     Seq(2, 3, 4, 5, 6).foreach { doorId =>
@@ -95,7 +95,7 @@ class MapWriter2Tests {
   @Test
   def testFindPlacementsRawSpecificConns: Unit = {
 
-    val writer1 = MapWriter()
+    val writer1 = MapWriter(DukeConfig.empty)
     val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO)
 
     val sg2 = palette.getSG(2)
@@ -114,7 +114,7 @@ class MapWriter2Tests {
 
   @Test
   def testFindPlacementsForSg: Unit = {
-    val writer1 = MapWriter()
+    val writer1 = MapWriter.unitTestWriter
     val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO)
 
     hasConnectors(writer1.findPlacementsForSg(room1, palette.getSG(2), PasteOptions(allowRotate = false)), Set(5))
@@ -123,7 +123,7 @@ class MapWriter2Tests {
 
   @Test
   def testTryPasteConnectedTo1: Unit = {
-    val writer1 = MapWriter()
+    val writer1 = MapWriter.unitTestWriter
     val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO)
 
     Assert.assertTrue(writer1.tryPasteConnectedTo(room1, palette.getSG(2), PasteOptions(allowRotate = false)).isDefined)

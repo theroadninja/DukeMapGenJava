@@ -15,7 +15,7 @@ class MultiSectorConnectorScalaTests {
 
     val sg1 = palette.getSG(1)
 
-    val writer = MapWriter()
+    val writer = MapWriter.unitTestWriter
     val psg1 = writer.pasteSectorGroupAt(sg1, PointXYZ.ZERO)
 
     val sg11 = palette.getSG(11)
@@ -30,7 +30,7 @@ class MultiSectorConnectorScalaTests {
 
   @Test
   def testPaste2and12: Unit = {
-    val writer = MapWriter()
+    val writer = MapWriter.unitTestWriter
     val psg2 = writer.pasteSectorGroupAt(palette.getSG(2), PointXYZ.ZERO)
     val sg12 = palette.getSG(12)
     writer.tryPasteConnectedTo(psg2, psg2.redwallConnectors.head, sg12, sg12.allRedwallConnectors.head)
@@ -38,7 +38,7 @@ class MultiSectorConnectorScalaTests {
 
   @Test
   def testPaste3and13: Unit = {
-    val writer = MapWriter()
+    val writer = MapWriter.unitTestWriter
     val sg3 = palette.getSG(3)
     val psg3 = writer.pasteSectorGroupAt(sg3, PointXYZ.ZERO)
     Assert.assertEquals(2, psg3.redwallConnectors.head.getWallCount)
@@ -54,7 +54,7 @@ class MultiSectorConnectorScalaTests {
 
   @Test
   def test4and4: Unit = {
-    val writer = MapWriter()
+    val writer = MapWriter.unitTestWriter
     val psg4 = writer.pasteSectorGroupAt(palette.getSG(4), PointXYZ.ZERO)
     val eastConn = psg4.redwallConnectors.find(_.getConnectorId == 123).get
 
@@ -66,7 +66,7 @@ class MultiSectorConnectorScalaTests {
 
   @Test
   def test6and16: Unit = {
-    val writer = MapWriter()
+    val writer = MapWriter.unitTestWriter
     val psg16 = writer.pasteSectorGroupAt(palette.getSG(16), PointXYZ.ZERO)
     val conn16 = psg16.redwallConnectors.head
     Assert.assertEquals(6, conn16.getWallCount)
@@ -103,7 +103,7 @@ class MultiSectorConnectorScalaTests {
 
   @Test
   def test7and18: Unit = {
-    val writer = MapWriter()
+    val writer = MapWriter.unitTestWriter
     val psg7 = writer.pasteSectorGroupAt(palette.getSG(7), PointXYZ.ZERO)
     val eastConn = psg7.redwallConnectors.head
 

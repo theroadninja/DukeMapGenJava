@@ -1,6 +1,6 @@
 package trn.prefab.experiments
 import trn.{BuildConstants, DukeConstants, FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
-import trn.prefab.{BoundingBox, CompassWriter, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.prefab.{BoundingBox, CompassWriter, DukeConfig, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
 import trn.duke.TextureList
 import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
@@ -618,7 +618,7 @@ class SquareTileMain(
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true)
     val maxCopyHint = MaxCopyHint.fromPalette(palette)
-    val writer = MapWriter()
+    val writer = MapWriter(DukeConfig.loadHardCodedVersion())
 
     val stays = writer.pasteStays(palette)
 

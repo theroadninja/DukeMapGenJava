@@ -9,7 +9,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 
-class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
+class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder with HardcodedGameConfigProvider {
   val writer = new MapWriter(this, sgBuilder) // TODO
 
   def sectorCount: Int = sgBuilder.sectorCount

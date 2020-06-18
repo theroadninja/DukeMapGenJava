@@ -45,7 +45,7 @@ public class MultiWallConnectorTests {
     private void testPasteAndLinking(int groupId1, int groupId2) throws Exception {
         PrefabPalette palette = PrefabPalette.fromMap(JavaTestUtils.readTestMap(JavaTestUtils.MULTI_WALL_CONN_MAP));
 
-        MapWriter writer = MapWriter.apply();
+        MapWriter writer = MapWriter.unitTestWriter();
         PastedSectorGroup psg1 = writer.pasteSectorGroupAt(palette.getSG(groupId1), PointXYZ.ZERO, false);
         Assert.assertFalse(psg1.redwallConnectors().head().isLinked(writer.getMap()));
 

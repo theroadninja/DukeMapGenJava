@@ -1,5 +1,8 @@
 package trn;
 
+import scala.collection.JavaConverters;
+import trn.prefab.GameConfig;
+
 import java.util.*;
 
 /**
@@ -113,8 +116,9 @@ public class MapUtil {
 	 * @param sourceMap
 	 * @param destMap
 	 */
-	public static CopyState copySectorGroup(final Map sourceMap, Map destMap, int sourceSectorId, PointXYZ transform){
+	public static CopyState copySectorGroup(GameConfig cfg, final Map sourceMap, Map destMap, int sourceSectorId, PointXYZ transform){
 		CopyState cpstate = new CopyState();
+		Set<Integer> usedTags = MapUtilScala$.MODULE$.usedUniqueTagsAsJava(cfg, destMap);
 		
 		Set<Integer> sectorsToCopy = new TreeSet<Integer>();
 		Set<Integer> alreadyCopied = new TreeSet<Integer>();

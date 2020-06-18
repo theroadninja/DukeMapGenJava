@@ -2,7 +2,7 @@ package trn.prefab
 
 import java.util
 
-import trn.{DukeConstants, Sprite}
+import trn.{DukeConstants, HardcodedConfig, Sprite, Wall, WallView}
 import trn.duke.TextureList
 
 import scala.collection.JavaConverters._
@@ -33,7 +33,10 @@ trait GameConfig {
     * @param sprite the sprite to examine
     * @return the "uniqe hitag values" read off this sprite
     */
-  def uniqueTag(sprite: Sprite): Seq[Int]
+  def uniqueTags(sprite: Sprite): Seq[Int]
+
+
+  def uniqueTags(wall: Wall): Seq[Int]
 }
 
 object DukeConfig {
@@ -45,8 +48,14 @@ object DukeConfig {
     new DukeConfig(texWidths)
   }
 
+  /** @deprecated - the GameConfig should be loaded propertly; only making this so I dont have to rewrite so much */
+  def loadHardCodedVersion(): GameConfig = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile())
+
+  /** this is for unit tests only */
+  private[prefab] def empty: GameConfig = new DukeConfig(Map.empty)
+
   /** SE sprites with unique hitags */
-  private[prefab] val UniqueHiSE = Seq(0, 1, 3, 6, 7, 8, 9, 12, 13, 14, 15, 17, 19, 21, 22, 24, 30)
+  private[prefab] val UniqueHiSE = Set(0, 1, 3, 6, 7, 8, 9, 12, 13, 14, 15, 17, 19, 21, 22, 24, 30)
 
   // TODO - for SE6 (subway engine) - is the sector hitag of car sectors also unique?
   // TODO - does SE 11 (rotate sector door) use unique hitags to link doors?
@@ -56,7 +65,12 @@ object DukeConfig {
 
   // TODO - double check that SE36 (spawn shot) really dont use a unique tag (is the masterswitch in the same sector?)
 
-  private[prefab] lazy val Switches: Seq[Int] = TextureList.Switches.ALL.asScala.map(_.intValue())
+  private[prefab] lazy val Switches: Seq[Int] = TextureList.Switches.ALL.asScala.map(_.intValue)
+
+  /** tiles that can trigger activators.  NOT the same as "tiles that look like doors" */
+  private[prefab] lazy val DoorTiles: Seq[Int] = TextureList.DOORS.ALL.asScala.map(_.intValue)
+
+  private[prefab] lazy val Fems: Seq[Int] = TextureList.FEM.ALL.asScala.map(_.intValue)
 }
 
 /** TODO - move this somewhere else? */
@@ -73,15 +87,19 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
     Seq(TextureList.CRACK1, TextureList.CRACK2, TextureList.CRACK3, TextureList.CRACK4).contains(tex)
   }
 
-  override def uniqueTag(sprite: Sprite): Seq[Int] = {
-    if(sprite.getTex == TextureList.SE){
+  def isDoor(tex: Int): Boolean = DukeConfig.DoorTiles.contains(tex)
 
+  def isFem(tex: Int): Boolean = DukeConfig.Fems.contains(tex)
+
+  override def uniqueTags(sprite: Sprite): Seq[Int] = {
+    if(sprite.getTex == TextureList.SE){
       if(DukeConstants.LOTAGS.TWO_WAY_TRAIN == sprite.getLotag){
-        (sprite.getLotag to sprite.getLotag + 2)
+        (sprite.getHiTag to sprite.getHiTag + 2)
       }else if(DukeConfig.UniqueHiSE.contains(sprite.getLotag) && sprite.getHiTag != 0){
         Seq(sprite.getHiTag)
+      }else{
+        Seq.empty
       }
-      Seq.empty
     }else if(sprite.getTex == TextureList.ACTIVATOR){
       Seq(sprite.getLotag) // TODO - all of these need to filter out zeros (maybe do it at the end)
     }else if(sprite.getTex == TextureList.TOUCHPLATE){
@@ -106,20 +124,28 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
       Seq(sprite.getHiTag)
     }else if(sprite.getTex == TextureList.CAMERA1){
       Seq(sprite.getLotag)
+    }else if(isDoor(sprite.getTex)){
+      Seq(sprite.getLotag) // NOTE: this is silly because this code looks at sprites, not walls
+    }else if(Seq(TextureList.EXPLOSIVE_TRASH.OOZFILTER, TextureList.EXPLOSIVE_TRASH.SEENINE).contains(sprite.getTex)){
+      // TODO - figure out if other explosive textures work for that effect
+      Seq(sprite.getHiTag)
+    }else if(isFem(sprite.getTex)){
+      Seq(sprite.getHiTag)
+    }else{
+      Seq.empty
     }
 
-    // TODO *** ALL DOOR TILES ***  (any lotags != 0) also all explosive Tiles (SEENINE, 1247 and ...)
-    // TODO *** ALL SEENINE *** ALL FEMPIC ***
-
-    // TODO: go through sector tags
+    // TODO - clean this function up, and get rid of the zeros!
 
     // TODO - verify we can use locator lotags without interference...
 
-
-    // TODO masterswitch, activator...whatever else
-
-
-    Seq.empty
   }
 
+  def uniqueTags(wall: Wall): Seq[Int] = {
+    if(isDoor(wall.getTex) && wall.getLotag != 0){
+      Seq(wall.getLotag)
+    }else{
+      Seq.empty
+    }
+  }
 }

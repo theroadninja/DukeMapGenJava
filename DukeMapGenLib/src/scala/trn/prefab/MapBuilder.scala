@@ -29,6 +29,13 @@ trait AnywhereBuilder { // TODO rename to AnywhereWriter or something
 }
 
 /**
+  * @deprecated This is a temporary provider to provide the game config.  In the future it should be passed in explicitly.
+  */
+trait HardcodedGameConfigProvider {
+  val gameCfg: GameConfig = DukeConfig.loadHardCodedVersion()
+}
+
+/**
   * TODO - put a comment here saying where I can find a basic, vanilla builder
   * TODO - this should go away in favor of SgMapBuilder + MapWriter
   */
@@ -38,7 +45,9 @@ trait MapBuilder
 {
   val outMap: DMap
 
-  val sgBuilder = new SgMapBuilder(outMap)
+  def gameCfg: GameConfig
+
+  val sgBuilder = new SgMapBuilder(outMap, gameCfg)
 
   override def nextUniqueHiTag(): Int = sgBuilder.nextUniqueHiTag()
 

@@ -27,7 +27,7 @@ object MoonBase1 {
     val spacePalette = MapLoader.loadPalette(getSpaceMap)
     val moonPalette = MapLoader.loadPalette(getMoonMap)
 
-    val writer = MapWriter()
+    val writer = MapWriter(gameCfg)
 
     val (center, _) = writer.sgBuilder.pasteSectorGroup2(moonPalette.getSectorGroup(1), PointXYZ.ZERO)
 

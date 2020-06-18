@@ -5,7 +5,7 @@ import trn.{MapLoader, PointXYZ, Map => DMap}
 
 import scala.collection.JavaConverters._
 
-class PoolBuilder(val outMap: DMap) extends MapBuilder {
+class PoolBuilder(val outMap: DMap) extends MapBuilder with HardcodedGameConfigProvider {
   // mostly a test to see if too many copies have been added
   def available(sg: SectorGroup): Boolean = {
     if(sg.sectorGroupId == -1 || sg.hints.maxCopies.filter(i => i > 0).isEmpty){

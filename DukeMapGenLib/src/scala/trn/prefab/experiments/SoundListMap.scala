@@ -7,7 +7,7 @@ import trn.{MapLoader, PointXY, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._
 
-class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder {
+class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette, val gameCfg: GameConfig) extends MapBuilder {
   val writer = new MapWriter(this, sgBuilder)
 
   val mainHall = 2
@@ -143,7 +143,7 @@ object SoundListMap extends PrefabExperiment {
   override def run(mapLoader: MapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
-    val builder = new SoundMapBuilder(DMap.createNew(), palette)
+    val builder = new SoundMapBuilder(DMap.createNew(), palette, DukeConfig.loadHardCodedVersion())
     run2(builder, palette, getLabels)
     println(s"Sector count: ${builder.outMap.getSectorCount}")
     builder.writer.setAnyPlayerStart()
