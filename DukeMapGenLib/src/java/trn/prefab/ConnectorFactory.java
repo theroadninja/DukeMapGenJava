@@ -40,7 +40,7 @@ public class ConnectorFactory {
 		return results;
 	}
 
-	public static List<Connector> findConnectorsInPsg(Map map, MapUtil.CopyState copystate) throws MapErrorException {
+	public static List<Connector> findConnectorsInPsg(Map map, CopyState copystate) throws MapErrorException {
 		ConnectorFilter cf = new ConnectorFilter(){
 			@Override
 			public boolean matches(Connector c) {

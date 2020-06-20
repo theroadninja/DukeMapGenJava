@@ -1,6 +1,5 @@
 package trn;
 
-import scala.collection.JavaConverters;
 import trn.prefab.GameConfig;
 
 import java.util.*;
@@ -117,8 +116,24 @@ public class MapUtil {
 	 * @param destMap
 	 */
 	public static CopyState copySectorGroup(GameConfig cfg, final Map sourceMap, Map destMap, int sourceSectorId, PointXYZ transform){
+	    if(cfg == null){
+	    	throw new IllegalArgumentException("cfg cannot be null");
+		}
 		CopyState cpstate = new CopyState();
-		Set<Integer> usedTags = MapUtilScala$.MODULE$.usedUniqueTagsAsJava(cfg, destMap);
+
+	    // TODO - this feature needs to be integrated with the unique tag generator ...
+		//cpstate.usedTagsBeforeCopy.addAll(MapUtilScala$.MODULE$.usedUniqueTagsAsJava(cfg, destMap));
+
+
+		// TODO - idea: what if the solution to the multiswitch and 2-way train tag problem is that, when copying,
+		// TODO - we always condense tags together (e.g. 102,130 =>  ...,4,5,...) and never spread them apart?
+		// so that if there is a multiswitch with 5,6,7,8, then we would always ensure that those number map to
+		// numbers that are consecutive?
+        // TODO - probably need to just sort a sequence, then break it up into blocks of consecutive numbers
+		// e.g. 1,2,4,6,7,8,10 =>  [1,2], [4], [6,7,8], [10]
+		// TODO and THEN we could sort by size, so that the smaller ones go first:  [4], [10], [1,2], [6,7,8]
+		// maybe even put them in a map by size....
+		// TODO - this probably isnt good enough.  what if only 1 or 2 of a multswitch is used?  there will be a gap...
 		
 		Set<Integer> sectorsToCopy = new TreeSet<Integer>();
 		Set<Integer> alreadyCopied = new TreeSet<Integer>();
@@ -135,13 +150,10 @@ public class MapUtil {
 				}
 			}
 		}
-		// boolean ignoreOtherSectors = false;
-		// if(ignoreOtherSectors){
-		// 	for(Wall w: destMap.walls){
-		// 		w.nextSector = -1;
-		// 		w.nextWall = -1;
-		// 	}
-		// }
+
+		// now we know which sectors were copied, so we can calculate the unique tag map
+
+
 		updateIds(destMap, cpstate);
 
 		// I think i forgot to update the sprite count ...
@@ -150,26 +162,8 @@ public class MapUtil {
 		return cpstate;
 		
 	}
-	
-	
-	// this is public because someone might need the source sector ids
-	public static class CopyState {
-		public IdMap idmap = new IdMap();
-		
-		List<Integer> wallsToUpdate = new LinkedList<Integer>();
-		List<Integer> sectorsToUpdate = new LinkedList<Integer>();
-		
-		public Set<Short> sourceSectorIds(){
-			return idmap.sectorIdMap.keySet();
-		}
-		
-		public Set<Short> destSectorIds(){
-			Set<Short> ids = new TreeSet<Short>();
-			ids.addAll(idmap.sectorIdMap.values());
-			return ids;
-		}
-	}
-	
+
+
 	/**
 	 * 
 	 * @returns more source sector ids, which are neighboors

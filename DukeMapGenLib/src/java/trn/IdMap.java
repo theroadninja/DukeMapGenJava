@@ -1,8 +1,6 @@
 package trn;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Maps old->new ids for copy operations.
@@ -12,6 +10,8 @@ import java.util.List;
  */
 public class IdMap {
 	java.util.Map<Short, Short> wallIdMap = new HashMap<Short, Short>();
+
+	/** Map of, for each sector, (Sector Id in old map => Sector Id in new map) */
 	java.util.Map<Short, Short> sectorIdMap = new HashMap<Short, Short>();
 	
 	public void putSector(int oldId, int newId){
@@ -36,9 +36,14 @@ public class IdMap {
 		return results;
 	}
 
-	public List<Integer> sectorIds(List<Integer> sectorIds){
-		List<Integer> results = new ArrayList<>(sectorIds.size());
-		for(Integer sectorId: sectorIds){
+	/**
+	 * Maps the given source sector ids to their destination sector ids
+	 * @param sourceSectorIds - ids of sectors in the source map
+	 * @returns the mapped sector ids (the ids of the sectors in the destination map)
+	 */
+	public List<Integer> sectorIds(List<Integer> sourceSectorIds){
+		List<Integer> results = new ArrayList<>(sourceSectorIds.size());
+		for(Integer sectorId: sourceSectorIds){
 			results.add((int)this.sector(sectorId));
 		}
 		return results;

@@ -13,6 +13,11 @@ object BuildConstants {
   val MAX_Y = 65536
   val MIN_Y: Int = -65536
 
+  // if set a hi/lotag to 32768 it displays correctly in the 2D view but as soon as you edit
+  // the hi tag is says "-32768"...
+  // TODO - see if this is UI thing and build actually supports up to 65535 for this...
+  val MaxTagValue = 32767
+
   val MapBounds = BoundingBox(MIN_X, MIN_Y, MAX_X, MAX_Y)
   val MaxSectors = 1024 // more than this and Build will crash
 

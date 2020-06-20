@@ -29,6 +29,7 @@ trait AnywhereBuilder { // TODO rename to AnywhereWriter or something
 }
 
 /**
+  * TODO - this doesnt work right; getting that def/val race condition
   * @deprecated This is a temporary provider to provide the game config.  In the future it should be passed in explicitly.
   */
 trait HardcodedGameConfigProvider {
@@ -45,6 +46,8 @@ trait MapBuilder
 {
   val outMap: DMap
 
+  // WARNING:  because of def/val/trait bullshit, you need to defined this in the class's primary constructor (between
+  // the parens after the class name).  Otherwise this may be null.
   def gameCfg: GameConfig
 
   val sgBuilder = new SgMapBuilder(outMap, gameCfg)

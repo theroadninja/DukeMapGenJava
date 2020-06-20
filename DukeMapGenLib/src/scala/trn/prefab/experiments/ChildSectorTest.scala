@@ -1,11 +1,14 @@
 package trn.prefab.experiments
 
-import trn.prefab.{HardcodedGameConfigProvider, MapBuilder, MapWriter, PrefabPalette}
+import trn.prefab.{DukeConfig, GameConfig, HardcodedGameConfigProvider, MapBuilder, MapWriter, PrefabPalette}
 import trn.{DukeConstants, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 
 import scala.collection.JavaConverters._
 
-class TestBuilder(val outMap: DMap) extends MapBuilder with HardcodedGameConfigProvider {
+class TestBuilder(
+  val outMap: DMap,
+  val gameCfg: GameConfig = DukeConfig.loadHardCodedVersion()
+) extends MapBuilder {
   val writer = new MapWriter(this, this.sgBuilder)
 }
 

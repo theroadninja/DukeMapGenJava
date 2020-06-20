@@ -3,6 +3,10 @@ package trn
 import scala.math.Ordering
 import scala.collection.mutable
 
+/**
+  * TO use:
+        import trn.FuncImplicits._
+  */
 object FuncUtils {
 
   // This is native to scala 2.13

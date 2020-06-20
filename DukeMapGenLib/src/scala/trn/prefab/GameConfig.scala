@@ -35,6 +35,17 @@ trait GameConfig {
     */
   def uniqueTags(sprite: Sprite): Seq[Int]
 
+  /**
+    * Subset of  tags returned by uniqueTags(); only the ones that are related to each other and must maintain their
+    * relationship with each other, for example the multi switch always involves 4 sequential values, which must
+    * remain in sequence after mapping.
+    *
+    * NOTE: this will return ALL possible tags, not just the ones used.  For example if you use a MultiSwitch starting
+    * at tag 1024, but only implement doors for 1024 and 1026, this function will still return (1024, 1025, 1026, 1027)
+    * anyway.
+    */
+  def groupedUniqueTags(sprite: Sprite): Seq[Int]
+
 
   def uniqueTags(wall: Wall): Seq[Int]
 }
@@ -52,10 +63,10 @@ object DukeConfig {
   def loadHardCodedVersion(): GameConfig = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile())
 
   /** this is for unit tests only */
-  private[prefab] def empty: GameConfig = new DukeConfig(Map.empty)
+  def empty: GameConfig = new DukeConfig(Map.empty) // TODO - make package private?
 
   /** SE sprites with unique hitags */
-  private[prefab] val UniqueHiSE = Set(0, 1, 3, 6, 7, 8, 9, 12, 13, 14, 15, 17, 19, 21, 22, 24, 30)
+  private[prefab] val UniqueHiSE = Set(0, 1, 3, 6, 7, 8, 9, 12, 13, 14, 15, 17, 19, 21, 22, 24, 30) // TODO consider using trn.duke.Lotags
 
   // TODO - for SE6 (subway engine) - is the sector hitag of car sectors also unique?
   // TODO - does SE 11 (rotate sector door) use unique hitags to link doors?
@@ -90,6 +101,18 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
   def isDoor(tex: Int): Boolean = DukeConfig.DoorTiles.contains(tex)
 
   def isFem(tex: Int): Boolean = DukeConfig.Fems.contains(tex)
+
+  override def groupedUniqueTags(sprite: Sprite): Seq[Int] = {
+    // TODO try with uniqueTags()
+    if(sprite.getTex == TextureList.Switches.MULTI_SWITCH) {
+      (sprite.getLotag to sprite.getLotag + 3)
+    }else if(sprite.getTex == TextureList.SE && DukeConstants.LOTAGS.TWO_WAY_TRAIN == sprite.getLotag){
+      (sprite.getHiTag to sprite.getHiTag + 2)
+    }else{
+      Seq.empty
+    }
+
+  }
 
   override def uniqueTags(sprite: Sprite): Seq[Int] = {
     if(sprite.getTex == TextureList.SE){

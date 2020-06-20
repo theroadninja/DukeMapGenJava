@@ -8,8 +8,10 @@ object UnitTestBuilder {
   def apply(): UnitTestBuilder = new UnitTestBuilder(DMap.createNew())
 }
 
-class UnitTestBuilder(val outMap: DMap) extends MapBuilder with AnywhereBuilder {
-  override val gameCfg = DukeConfig.empty
+class UnitTestBuilder(
+  val outMap: DMap,
+  val gameCfg: GameConfig = DukeConfig.empty
+) extends MapBuilder with AnywhereBuilder {
   val writer = new MapWriter(this, this.sgBuilder)
 
   override def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = writer.pasteSectorGroup(sg, translate)

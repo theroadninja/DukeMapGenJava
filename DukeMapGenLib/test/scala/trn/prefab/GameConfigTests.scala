@@ -15,6 +15,16 @@ class GameConfigTests {
   def activator(hitag: Int, lotag: Int): Sprite = spr(TextureList.ACTIVATOR, hitag, lotag)
 
   @Test
+  def testGroupedUniqueTags(): Unit = {
+
+    val cfg = DukeConfig.empty
+    Assert.assertTrue(cfg.groupedUniqueTags(se(21, 0)) == Seq.empty) // SE0 has a uniqe hitag, but its not in a group
+    Assert.assertTrue(cfg.groupedUniqueTags(spr(TextureList.Switches.MULTI_SWITCH, 123, 456)) == Seq(456, 457, 458, 459))
+    // Two-way train
+    Assert.assertTrue(cfg.uniqueTags(se(123, 30)) == Seq(123, 124, 125))
+  }
+
+  @Test
   def testUniqueTag(): Unit = {
 
     val cfg = DukeConfig.empty

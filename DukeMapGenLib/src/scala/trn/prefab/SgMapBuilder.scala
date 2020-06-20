@@ -9,6 +9,7 @@ import scala.collection.JavaConverters._ // this is the good one
   * Lower-level map builder, that manages pasted sector groups.
   */
 class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenerator {
+  require(Option(gameCfg).isDefined)
 
   // when this becomes true, the map is "finalized" and we can no longer add/remove sector groups
   var markersCleared = false

@@ -53,6 +53,11 @@ object MapImplicits {
       list.toSeq
     }
 
+    def allWallsInSector(sectorId: Int): Seq[Wall] = {
+      val wallIds = map.getAllWallLoops(sectorId).asScala.map(_.asScala).flatten
+      wallIds.map(w => map.getWall(w))
+    }
+
     def allWallViews: Seq[WallView] = {
       val list = new collection.mutable.ArrayBuffer[WallView](map.getWallCount)
       for(i <- 0 until map.getWallCount){

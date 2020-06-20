@@ -1,7 +1,7 @@
 package trn.prefab
 
 import trn.duke.{MapErrorException, TextureList}
-import trn.{DukeConstants, ISpriteFilter, MapUtil, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
+import trn.{CopyState, DukeConstants, ISpriteFilter, MapUtil, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._ // this is the good one
@@ -9,7 +9,7 @@ import scala.collection.JavaConverters._ // this is the good one
 
 object PastedSectorGroup {
 
-  def apply(map: DMap, copystate: MapUtil.CopyState, groupId: Option[Int]): PastedSectorGroup = {
+  def apply(map: DMap, copystate: CopyState, groupId: Option[Int]): PastedSectorGroup = {
     new PastedSectorGroup(map, copystate, ConnectorFactory.findConnectorsInPsg(map, copystate), groupId)
   }
 
@@ -17,7 +17,7 @@ object PastedSectorGroup {
 
 class PastedSectorGroup private (
   val map: DMap,
-  copystate: MapUtil.CopyState,
+  copystate: CopyState,
   val connectors: java.util.List[Connector],
   val groupId: Option[Int] // id of the sector group this was copied from
 )
@@ -31,7 +31,7 @@ class PastedSectorGroup private (
 
   val sectorIds: Set[Int] = destSectorIds.asScala.map(_.toInt).toSet
 
-  final def getCopyState: MapUtil.CopyState = copystate
+  final def getCopyState: CopyState = copystate
   override def getMap: DMap = map
   override def findSprites(picnum: Int, lotag: Int, sectorId: Int): java.util.List[Sprite] = {
     getMap().findSprites(picnum, lotag, sectorId)
