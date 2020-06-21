@@ -16,6 +16,10 @@ import trn.FuncImplicits._
   */
 object MapUtilScala {
 
+  def toScalaMap(map: java.util.Map[Integer, Integer]): scala.collection.immutable.Map[Int, Int] = {
+    map.asScala.map{case (k, v) => k.intValue -> v.intValue}.toMap
+  }
+
   def usedUniqueTags(cfg: GameConfig, map: DMap): Set[Int] = {
     require(Option(cfg).isDefined && Option(map).isDefined)
     val tags = map.allSprites.flatMap(s => cfg.uniqueTags(s)) ++ map.allWalls.flatMap(w => cfg.uniqueTags(w))
@@ -66,6 +70,7 @@ object MapUtilScala {
     * @return
     */
   private[trn] def findSingleGaps(tags: Set[Int], start: Int, count: Int): Seq[Int] = {
+    // TODO - add limits to how far this searches (max tag value), and also limits on max count
     require(start >= 0)
     val results = mutable.ArrayBuffer[Int]()
     var i = start
@@ -106,7 +111,8 @@ object MapUtilScala {
     usedUniqueDestTags: Set[Int],
   ): scala.collection.immutable.Map[Int, Int] = {
 
-    // dont want to start at 0, because that might conflic with SEs that haven't been set up yet
+    // We must never set unique tags to zero, because then sprites and door walls with interact when not expected to.
+    // Especially:  door walls with hitag 0 are assumed to not have any special behavior, and are left at zero.
     val MinTag = 1
 
     // it is possible that the ranges of multiswitches/two-way trains overlap each other (which is probably invalid)

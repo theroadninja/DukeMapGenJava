@@ -1,5 +1,6 @@
 package trn;
 
+import scala.collection.JavaConverters;
 import trn.prefab.GameConfig;
 
 import java.util.*;
@@ -152,9 +153,10 @@ public class MapUtil {
 		}
 
 		// now we know which sectors were copied, so we can calculate the unique tag map
+		//java.util.Map<Integer, Integer> tagMap = MapUtilScala$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, cpstate);
+		cpstate.idmap.tagMap = MapUtilScala$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, cpstate);
 
-
-		updateIds(destMap, cpstate);
+		updateIds(cfg, destMap, cpstate);
 
 		// I think i forgot to update the sprite count ...
 		if(destMap.sprites.size() != destMap.getSpriteCount()) throw new RuntimeException("logic error");
@@ -191,17 +193,26 @@ public class MapUtil {
 			neighboors.addAll(copyWallLoop(sourceMap, destMap, cpstate, cpstate.wallsToUpdate, wallLoopIds, transform));
 		}
 
-		copySpritesInSector(sourceMap, destMap, sourceSectorId, (short)newSectorId, transform);
+		copySpritesInSector(sourceMap, destMap, sourceSectorId, (short)newSectorId, transform, cpstate);
 
 		return neighboors;
 	}
 	
-	static void updateIds(Map destMap, CopyState cpstate){
+	static void updateIds(GameConfig cfg, Map destMap, CopyState cpstate){
 		for(int sid: cpstate.sectorsToUpdate){
 			destMap.getSector(sid).translateIds(cpstate.idmap);
 		}
 		for(int wid: cpstate.wallsToUpdate){
 			destMap.getWall(wid).translateIds(cpstate.idmap, false);
+
+			// update the lotag if the wall is a door
+			cfg.updateUniqueTagInPlace(destMap.getWall(wid), MapUtilScala$.MODULE$.toScalaMap(cpstate.idmap.tagMap));
+		}
+		for(int spriteId: cpstate.spritesToUpdate){
+			cfg.updateUniqueTagInPlace(
+					destMap.getSprite(spriteId),
+					MapUtilScala$.MODULE$.toScalaMap(cpstate.idmap.tagMap)
+			);
 		}
 	}
 	
@@ -234,13 +245,20 @@ public class MapUtil {
 		return otherSourceSectors;
 	}
 	
-	static void copySpritesInSector(final Map sourceMap, Map destMap, int sourceSectorId, short destSectorId,
-			PointXYZ transform){
+	static void copySpritesInSector(
+			final Map sourceMap,
+			Map destMap,
+			int sourceSectorId,
+			short destSectorId,
+			PointXYZ transform,
+			CopyState cpstate
+	){
 		
 		List<Sprite> sprites = sourceMap.findSprites(null, null, sourceSectorId);
 		for(Sprite sp: sprites){
 			//System.out.println("copying sprite!v picnum=" + sp.picnum);
-			destMap.addSprite(sp.copy(destSectorId).translate(transform));
+			int newSpriteId = destMap.addSprite(sp.copy(destSectorId).translate(transform));
+			cpstate.spritesToUpdate.add(newSpriteId);
 		}
 	}
 

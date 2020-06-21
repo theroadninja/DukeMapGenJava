@@ -280,7 +280,7 @@ public class Sprite implements IRayXY {
 		return this.lotag;
 	}
 	
-	public short getHiTag(){
+	public int getHiTag(){
 		return this.hitag;
 	}
 

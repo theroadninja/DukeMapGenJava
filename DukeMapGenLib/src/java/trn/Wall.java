@@ -335,7 +335,7 @@ public class Wall {
 		this.shade = shade;
 	}
 	
-	public short getLotag(){
+	public int getLotag(){
 		return this.lotag;
 	}
 

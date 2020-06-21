@@ -7,7 +7,12 @@ public class CopyState {
     public IdMap idmap = new IdMap();
 
     List<Integer> wallsToUpdate = new LinkedList<Integer>();
+
+    // these are the new ids, in the destination map
     List<Integer> sectorsToUpdate = new LinkedList<Integer>();
+
+    /** destination ids of sprites that were copied */
+    List<Integer> spritesToUpdate = new LinkedList<Integer>();
 
     /** unique hi tags already present in the destination map before copying the sector group */
     //Set<Integer> usedTagsBeforeCopy = new HashSet<Integer>();

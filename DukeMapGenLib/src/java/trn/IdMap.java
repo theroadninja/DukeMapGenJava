@@ -13,7 +13,9 @@ public class IdMap {
 
 	/** Map of, for each sector, (Sector Id in old map => Sector Id in new map) */
 	java.util.Map<Short, Short> sectorIdMap = new HashMap<Short, Short>();
-	
+
+	java.util.Map<Integer, Integer> tagMap = new HashMap<>();
+
 	public void putSector(int oldId, int newId){
 		sectorIdMap.put((short)oldId, (short)newId);
 	}

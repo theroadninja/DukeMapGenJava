@@ -28,6 +28,8 @@ trait GameConfig {
     * Method for reading all of the unique hi or lo tag values from a sprite, which is any tag used to link sprites
     * together, e.g. the value used to link activators and switches.
     *
+    * This WILL change hitags of 0 for sprites that are expected to have a unique high tag.
+    *
     * Note: this is also going to return 32767 for the nuke button
     *
     * @param sprite the sprite to examine
@@ -43,11 +45,33 @@ trait GameConfig {
     * NOTE: this will return ALL possible tags, not just the ones used.  For example if you use a MultiSwitch starting
     * at tag 1024, but only implement doors for 1024 and 1026, this function will still return (1024, 1025, 1026, 1027)
     * anyway.
+    *
     */
   def groupedUniqueTags(sprite: Sprite): Seq[Int]
 
 
+  /**
+    * Unlike the overload for sprites, this WILL NOT alter walls (with door texture) if they have a hitag of zero.
+    * Unlike SE and other sprites, door walls are not expected to have a hitag, so this code assumes a hitag of 0
+    * means it shouldn't have one.
+    *
+    * @param wall
+    * @return
+    */
   def uniqueTags(wall: Wall): Seq[Int]
+
+  /**
+    * Modifies the sprite in place, changing its unique tag according to `idMap`.  The unique tag could be a hi or
+    * lo tag, depending on the sprites texture and tag values.
+    *
+    * Throws an exception if the given id map does not contain a mapping for the tag value.
+    *
+    * @param sprite the sprite to modify
+    * @param idMap a map of (current tag => new tag)
+    */
+  def updateUniqueTagInPlace(sprite: Sprite, idMap: Map[Int, Int]): Unit
+
+  def updateUniqueTagInPlace(wall: Wall, idMap: Map[Int, Int]): Unit
 }
 
 object DukeConfig {
@@ -63,9 +87,9 @@ object DukeConfig {
   def loadHardCodedVersion(): GameConfig = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile())
 
   /** this is for unit tests only */
-  def empty: GameConfig = new DukeConfig(Map.empty) // TODO - make package private?
+  lazy val empty: GameConfig = new DukeConfig(Map.empty) // TODO - make package private?
 
-  /** SE sprites with unique hitags */
+  /** Lotags of SE sprites with unique hitags */
   private[prefab] val UniqueHiSE = Set(0, 1, 3, 6, 7, 8, 9, 12, 13, 14, 15, 17, 19, 21, 22, 24, 30) // TODO consider using trn.duke.Lotags
 
   // TODO - for SE6 (subway engine) - is the sector hitag of car sectors also unique?
@@ -75,6 +99,13 @@ object DukeConfig {
   // TODO - for SE 30 we also need to reserve hitag+1 and hitag+2 ( done - check using unit test )
 
   // TODO - double check that SE36 (spawn shot) really dont use a unique tag (is the masterswitch in the same sector?)
+
+  /** Texture/picnums of sprites that can have unique lotags */
+  private[prefab] lazy val TexWithLotags = Set(TextureList.ACTIVATOR, TextureList.TOUCHPLATE,
+    TextureList.ACTIVATOR_LOCKED, TextureList.MASTERSWITCH, TextureList.RESPAWN, TextureList.CAMERA1)
+
+  /** sprites with these textures have unique tags (if non zero) */
+  private[prefab] lazy val TexWithHitags = Set(TextureList.VIEWSCREEN, TextureList.VIEWSCREEN_SPACE)
 
   private[prefab] lazy val Switches: Seq[Int] = TextureList.Switches.ALL.asScala.map(_.intValue)
 
@@ -103,72 +134,72 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
   def isFem(tex: Int): Boolean = DukeConfig.Fems.contains(tex)
 
   override def groupedUniqueTags(sprite: Sprite): Seq[Int] = {
-    // TODO try with uniqueTags()
-    if(sprite.getTex == TextureList.Switches.MULTI_SWITCH) {
-      (sprite.getLotag to sprite.getLotag + 3)
-    }else if(sprite.getTex == TextureList.SE && DukeConstants.LOTAGS.TWO_WAY_TRAIN == sprite.getLotag){
-      (sprite.getHiTag to sprite.getHiTag + 2)
+    val tags = uniqueTags(sprite)
+    if(tags.size > 1){
+      tags
     }else{
       Seq.empty
     }
+  }
 
+  private def hasUniqueLotag(tex: Int): Boolean = {
+    DukeConfig.TexWithLotags.contains(tex) || isSwitch(tex)
+  }
+
+  private def hasUniqueHitag(tex: Int): Boolean = {
+    val Explosives = Seq(TextureList.EXPLOSIVE_TRASH.OOZFILTER, TextureList.EXPLOSIVE_TRASH.SEENINE)
+    DukeConfig.TexWithHitags.contains(tex) || isCrack(tex) || Explosives.contains(tex) || isFem(tex)
   }
 
   override def uniqueTags(sprite: Sprite): Seq[Int] = {
-    if(sprite.getTex == TextureList.SE){
-      if(DukeConstants.LOTAGS.TWO_WAY_TRAIN == sprite.getLotag){
-        (sprite.getHiTag to sprite.getHiTag + 2)
-      }else if(DukeConfig.UniqueHiSE.contains(sprite.getLotag) && sprite.getHiTag != 0){
+    // Decided not to exclude zeros, because I wanted to keep them for multiswitches, and that would create
+    // unpredictable, non-local behavior:  simply adding a multi_switch in the same sector group would cause
+    // unrelated SE sprites to have their hitags changed.  Instead, this code with _always_ map hitags, even
+    // if they are zero (though probably dont want to do this with walls!)
+
+    // TODO - verify we can use locator lotags without interference...
+
+    if(sprite.getTex == TextureList.SE) {
+      if (DukeConstants.LOTAGS.TWO_WAY_TRAIN == sprite.getLotag) {
+        (sprite.getHiTag to sprite.getHiTag + 2) // must come before normal SE logic
+      } else if (DukeConfig.UniqueHiSE.contains(sprite.getLotag) && sprite.getHiTag != 0) {
         Seq(sprite.getHiTag)
-      }else{
+      } else {
         Seq.empty
       }
-    }else if(sprite.getTex == TextureList.ACTIVATOR){
-      Seq(sprite.getLotag) // TODO - all of these need to filter out zeros (maybe do it at the end)
-    }else if(sprite.getTex == TextureList.TOUCHPLATE){
-      Seq(sprite.getLotag)
-    }else if(sprite.getTex == TextureList.ACTIVATOR_LOCKED){
-      Seq(sprite.getLotag)
-    }else if(sprite.getTex == TextureList.MASTERSWITCH){
-      Seq(sprite.getLotag)
-    }else if(sprite.getTex == TextureList.RESPAWN){
-      Seq(sprite.getLotag)
-    }else if(sprite.getTex == TextureList.Switches.ACCESS_SWITCH){
-      Seq(sprite.getLotag)
-    }else if(sprite.getTex == TextureList.Switches.ACCESS_SWITCH_2) {
-      Seq(sprite.getLotag)
     }else if(sprite.getTex == TextureList.Switches.MULTI_SWITCH){
-      (sprite.getLotag to sprite.getLotag + 3)
-    }else if(isSwitch(sprite.getTex)){ // this needs to be tested AFTER multi switch
+      (sprite.getLotag to sprite.getLotag + 3) // must come before hasUniqueLotag()
+    }else if(hasUniqueLotag(sprite.getTex)){
       Seq(sprite.getLotag)
-    }else if(sprite.getTex == TextureList.VIEWSCREEN || sprite.getTex == TextureList.VIEWSCREEN_SPACE){
-      Seq(sprite.getHiTag) // TODO - filter out zero
-    }else if(isCrack(sprite.getTex)){
-      Seq(sprite.getHiTag)
-    }else if(sprite.getTex == TextureList.CAMERA1){
-      Seq(sprite.getLotag)
-    }else if(isDoor(sprite.getTex)){
-      Seq(sprite.getLotag) // NOTE: this is silly because this code looks at sprites, not walls
-    }else if(Seq(TextureList.EXPLOSIVE_TRASH.OOZFILTER, TextureList.EXPLOSIVE_TRASH.SEENINE).contains(sprite.getTex)){
-      // TODO - figure out if other explosive textures work for that effect
-      Seq(sprite.getHiTag)
-    }else if(isFem(sprite.getTex)){
+    }else if(hasUniqueHitag(sprite.getTex)){
       Seq(sprite.getHiTag)
     }else{
       Seq.empty
     }
-
-    // TODO - clean this function up, and get rid of the zeros!
-
-    // TODO - verify we can use locator lotags without interference...
-
   }
 
   def uniqueTags(wall: Wall): Seq[Int] = {
     if(isDoor(wall.getTex) && wall.getLotag != 0){
-      Seq(wall.getLotag)
+      Seq(wall.getLotag).filterNot(_ == 0)
     }else{
       Seq.empty
     }
+  }
+
+  override def updateUniqueTagInPlace(sprite: Sprite, idMap: Map[Int, Int]): Unit = {
+    if(sprite.getTex == TextureList.SE && DukeConfig.UniqueHiSE.contains(sprite.getLotag)){
+      sprite.setHiTag(idMap(sprite.getHiTag))
+    }else if(hasUniqueLotag(sprite.getTex)){
+      sprite.setLotag(idMap(sprite.getLotag))
+    }else if(hasUniqueHitag(sprite.getTex)){
+      sprite.setHiTag(idMap(sprite.getHiTag))
+    }
+  }
+
+  override def updateUniqueTagInPlace(wall: Wall, idMap: Map[Int, Int]): Unit = {
+    if(isDoor(wall.getTex) && wall.getLotag > 0){
+      wall.setLotag(idMap(wall.getLotag))
+    }
+
   }
 }

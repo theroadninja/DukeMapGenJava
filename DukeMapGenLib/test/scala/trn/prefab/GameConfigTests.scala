@@ -2,7 +2,7 @@ package trn.prefab
 
 import org.junit.{Assert, Test}
 import trn.{PointXYZ, Sprite, Wall}
-import trn.duke.TextureList
+import trn.duke.{Lotags, TextureList}
 
 class GameConfigTests {
 
@@ -54,7 +54,8 @@ class GameConfigTests {
     Assert.assertTrue(cfg.uniqueTags(spr(TextureList.Switches.ACCESS_SWITCH_2, 123, 456)) == Seq(456))
     Assert.assertTrue(cfg.uniqueTags(spr(TextureList.Switches.LIGHT_SWITCH, 123, 456)) == Seq(456))
     Assert.assertTrue(cfg.uniqueTags(spr(TextureList.CAMERA1, 123, 456)) == Seq(456))
-    Assert.assertTrue(cfg.uniqueTags(spr(TextureList.DOORS.DOORTILE1, 123, 456)) == Seq(456))
+    // Ignoring DoorTile for sprites
+    // Assert.assertTrue(cfg.uniqueTags(spr(TextureList.DOORS.DOORTILE1, 123, 456)) == Seq(456))
     Assert.assertTrue(cfg.uniqueTags(spr(TextureList.EXPLOSIVE_TRASH.SEENINE, 123, 456)) == Seq(123))
     Assert.assertTrue(cfg.uniqueTags(spr(TextureList.FEM.FEM1, 69, 0)) == Seq(69))
   }
@@ -62,11 +63,72 @@ class GameConfigTests {
   @Test
   def testUniqueTagWall(): Unit = {
     val cfg = DukeConfig.empty
-    Assert.assertTrue(cfg.uniqueTags(new Wall(0, 0, TextureList.GLASS)) == Seq.empty)
+    Assert.assertTrue(cfg.uniqueTags(new Wall(0, 0, TextureList.GLASS)) == Seq.empty) // Glass as no special tags
     Assert.assertTrue(cfg.uniqueTags(new Wall(0, 0, TextureList.DOORS.DOORTILE1)) == Seq.empty)
     val w = new Wall(0, 0, TextureList.DOORS.DOORTILE1)
     w.setLotag(456)
     Assert.assertTrue(cfg.uniqueTags(w) == Seq(456))
+  }
+
+  private def testUpdateUniqueTag(
+    sprite: Sprite,
+    tagMap: Map[Int, Int],
+    expectedHitag: Int,
+    expectedLotag: Int
+  ): Unit = {
+    DukeConfig.empty.updateUniqueTagInPlace(sprite, tagMap)
+    Assert.assertEquals(expectedHitag, sprite.getHiTag)
+    Assert.assertEquals(expectedLotag, sprite.getLotag)
+  }
+
+  @Test
+  def updateUniqueTagInPlace(): Unit = {
+    val cfg = DukeConfig.empty
+    val sprite = spr(TextureList.Switches.ACCESS_SWITCH, 99, 123)
+    Assert.assertEquals(123, sprite.getLotag)
+    cfg.updateUniqueTagInPlace(sprite, Map(123 -> 5))
+    Assert.assertEquals(5, sprite.getLotag)
+
+    testUpdateUniqueTag(spr(TextureList.Switches.ACCESS_SWITCH, 99, 123), Map(123 -> 5), 99, 5)
+    testUpdateUniqueTag(spr(TextureList.SE, 14, 0), Map(14 -> 1), 1, 0)
+    testUpdateUniqueTag(spr(217, 14, 0), Map(14 -> 1), 14, 0) // just a random texture
+    testUpdateUniqueTag(spr(TextureList.SE, 14, 10), Map(14 -> 1), 14, 10) // SE 10 does not have a unique tag
+    testUpdateUniqueTag(spr(TextureList.SE, 14, Lotags.SE.TWO_WAY_TRAIN), Map(14 -> 100), 100, Lotags.SE.TWO_WAY_TRAIN)
+    Seq(TextureList.TOUCHPLATE, TextureList.ACTIVATOR_LOCKED, TextureList.MASTERSWITCH, TextureList.RESPAWN).foreach { tex =>
+      testUpdateUniqueTag(spr(tex, 1203, 500), Map(500 -> 111), 1203, 111)
+    }
+
+    Seq(TextureList.VIEWSCREEN, TextureList.VIEWSCREEN_SPACE, TextureList.CRACK1, TextureList.CRACK4).foreach { tex =>
+      testUpdateUniqueTag(spr(tex, 1400, 5), Map(1400 -> 12345), 12345, 5)
+    }
+    Seq(TextureList.EXPLOSIVE_TRASH.SEENINE, TextureList.FEM.FEM1).foreach { tex =>
+      testUpdateUniqueTag(spr(tex, 1400, 5), Map(1400 -> 12345), 12345, 5)
+    }
+
+    Seq(TextureList.CAMERA1, TextureList.Switches.ALIEN_SWITCH, TextureList.Switches.FRANKENSTINE_SWITCH).foreach { tex =>
+      testUpdateUniqueTag(spr(tex, 1203, 500), Map(500 -> 111), 1203, 111)
+    }
+
+    // DOOR TILE IGNORED FOR SPRITES
+    testUpdateUniqueTag(spr(TextureList.DOORS.DOORTILE2, 1203, 500), Map(500 -> 111), 1203, 500)
+  }
+
+  @Test
+  def updateUniqueTagInPlaceForWall(): Unit = {
+    val cfg = DukeConfig.empty
+
+    val wall = new Wall(0, 0, TextureList.DOORS.DOORTILE3)
+    wall.setLotag(42)
+
+    Assert.assertEquals(42, wall.getLotag)
+    cfg.updateUniqueTagInPlace(wall, Map(42 -> 16))
+    Assert.assertEquals(16, wall.getLotag)
+
+    val wall2 = new Wall(0, 0, 353) // not a door
+    wall2.setLotag(42)
+    Assert.assertEquals(42, wall2.getLotag)
+    cfg.updateUniqueTagInPlace(wall2, Map(42 -> 16))
+    Assert.assertEquals(42, wall2.getLotag)
   }
 
 }

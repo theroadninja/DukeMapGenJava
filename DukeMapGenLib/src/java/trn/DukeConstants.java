@@ -53,6 +53,7 @@ public class DukeConstants {
 
 		//public static final int ELEVATOR = 17;
 	}
+	@Deprecated // use trn.duke.Lotags.SE instead
 	public static final class LOTAGS {
 		
 		public static final int NUKE_BUTTON_END_LEVEL = 65535;
