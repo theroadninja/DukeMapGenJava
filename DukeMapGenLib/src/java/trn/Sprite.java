@@ -269,8 +269,8 @@ public class Sprite implements IRayXY {
 		this.shade = (short)i;
 	}
 	
-	public void setPal(short pallette){
-		this.pal = pallette;
+	public void setPal(int pallette){
+		this.pal = (short)pallette;
 	}
 	public int getPal(){
 		return this.pal;

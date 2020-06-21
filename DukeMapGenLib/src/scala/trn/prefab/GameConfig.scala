@@ -3,7 +3,7 @@ package trn.prefab
 import java.util
 
 import trn.{DukeConstants, HardcodedConfig, Sprite, Wall, WallView}
-import trn.duke.TextureList
+import trn.duke.{PaletteList, TextureList}
 
 import scala.collection.JavaConverters._
 import scala.io.Source
@@ -113,6 +113,8 @@ object DukeConfig {
   private[prefab] lazy val DoorTiles: Seq[Int] = TextureList.DOORS.ALL.asScala.map(_.intValue)
 
   private[prefab] lazy val Fems: Seq[Int] = TextureList.FEM.ALL.asScala.map(_.intValue)
+
+  val KeyColors: Seq[Int] = Seq(PaletteList.KEYCARD_BLUE, PaletteList.KEYCARD_RED, PaletteList.KEYCARD_YELLOW)
 }
 
 /** TODO - move this somewhere else? */

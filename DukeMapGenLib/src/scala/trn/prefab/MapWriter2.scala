@@ -223,7 +223,6 @@ trait MapWriter2 {
 
   }
 
-  // THIS sg with this conn to THIS psg (any conn)
   def tryPasteConnectedTo(
     map: DMap,
     psg: PastedSectorGroup,

@@ -111,6 +111,7 @@ public class TextureList {
 		public static final int NIGHT_VISION = 59;
 		
 		public static final int CARD = 60;
+		public static final int KEY = CARD;
 		
 		public static final int BOOTS = 61;
 		

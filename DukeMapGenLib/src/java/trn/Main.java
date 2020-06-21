@@ -124,9 +124,12 @@ public class Main {
 	 * @throws IOException
 	 */
 	public static void deployTest(Map map) throws IOException{
+		String filename = "output.map";
+		deployTest(map, filename);
+	}
+	public static void deployTest(Map map, String filename) throws IOException{
 	    if(map == null) throw new IllegalArgumentException("map is null");
 
-		String filename = "output.map";
 		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + filename;
 		Main.writeResult(map, resultsFile);
 		

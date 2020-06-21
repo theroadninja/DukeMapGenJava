@@ -26,6 +26,9 @@ object MapWriter {
   def isMarkerSprite(s: Sprite, lotag: Int): Boolean = {
     s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
   }
+
+  def isMarker(s: Sprite): Boolean = s.getTexture == PrefabUtils.MARKER_SPRITE_TEX
+
   def isAnchorSprite(s: Sprite): Boolean = isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
 
   def waterSortKey(p: PointXYZ): Long = {

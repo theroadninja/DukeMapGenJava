@@ -106,6 +106,11 @@ public class PrefabUtils {
 		public static int ENEMY = 8;
 
 		/**
+		 * Location for a powerup, including keys.
+		 */
+		public static int ITEM = 9;
+
+		/**
 		 * Elevator Connector
 		 *
 		 * To make an elevator with this:
@@ -157,6 +162,7 @@ public class PrefabUtils {
 				AUTO_TEXT,
 				STAY,
 				ENEMY,
+				ITEM,
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
 				MULTI_SECTOR,
