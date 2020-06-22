@@ -51,7 +51,7 @@ object MoonBase1 {
     val doorsWithLocks = Seq(2, 5).map(spacePalette.getSG)
     val startingAreas = Seq(2).map(moonPalette.getSG(_))
     val hallways = Seq(3, 4, 6, 7, 10).map(moonPalette.getSG(_))
-    val setPieces = Seq(5, 8).map(moonPalette.getSG(_))
+    val setPieces = Seq(5, 8, 11).map(moonPalette.getSG(_))
     val endSetPieces = setPieces.filter(_.allRedwallConnectors.size > 1)
     val endPieces = moonPalette.allSectorGroups.asScala.filter(_.containsSprite(s => s.getTex == TextureList.Switches.NUKE_BUTTON))
 
@@ -138,6 +138,8 @@ object MoonBase1 {
     // TODO - add a hallway where random walls open up (dont know which ones)
 
 
+
+    writer.disarmAllSkyTextures()
     writer.setAnyPlayerStart(force = true)
     writer.sgBuilder.clearMarkers()
     writer.checkSectorCount()

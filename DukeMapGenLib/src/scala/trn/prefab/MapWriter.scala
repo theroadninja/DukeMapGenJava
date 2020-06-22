@@ -2,7 +2,7 @@ package trn.prefab
 
 import java.util
 
-import trn.duke.PaletteList
+import trn.duke.{PaletteList, TextureList}
 import trn.{BuildConstants, ISpriteFilter, IdMap, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.FuncImplicits._
@@ -293,6 +293,20 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     }
   }
 
+  /**
+    * Goes through the whole map and sets palette of 3 on any floor or ceiling texture that has a sky pallete that
+    * normally kills the player.
+    */
+  def disarmAllSkyTextures(): Unit = {
+    outMap.allSectors.foreach { sector =>
+      if(TextureList.isDeadly(sector.getCeilingTexture)){
+        sector.setCeilingPalette(PaletteList.DISARM_SKY)
+      }
+      if(TextureList.isDeadly(sector.getFloorTexture)){
+        sector.setFloorPalette(PaletteList.DISARM_SKY)
+      }
+    }
+  }
 
   /**
     * If the map does not have a player start set yet,

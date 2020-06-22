@@ -203,9 +203,10 @@ public class TextureList {
 		public static final int BIG_ORBIT = 84; //huge earth
 		
 		public static final int LA = 89;
-		
-		
-		
+	}
+
+	public static final boolean isDeadly(int tex){
+		return tex == SKIES.MOON_SKY || tex == SKIES.BIG_ORBIT;
 	}
 	
 	//NOTE: there are some lights here (120) that I'm skipping

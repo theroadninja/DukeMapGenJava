@@ -37,6 +37,8 @@ object MapImplicits {
 
     def allSectorIds: Seq[Int] = (0 until map.getSectorCount)
 
+    def allSectors: Seq[Sector] = allSectorIds.map(map.getSector)
+
     def allSprites: Seq[Sprite] = {
       val list = new collection.mutable.ArrayBuffer[Sprite](map.getSpriteCount)
       for(i <- 0 until map.getSpriteCount){

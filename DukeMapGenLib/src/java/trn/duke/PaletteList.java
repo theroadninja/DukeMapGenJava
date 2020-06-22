@@ -20,6 +20,7 @@ public class PaletteList {
      *
      */
     public static int ALSO_NORMAL = 3;
+    public static int DISARM_SKY = ALSO_NORMAL; // alternative name
 
     public static int BLUE_TO_RED = 21;
     public static int BLUE_TO_GREEN = 22;
