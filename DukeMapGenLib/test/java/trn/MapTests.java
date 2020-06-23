@@ -12,6 +12,10 @@ import trn.prefab.PrefabUtils;
 
 public class MapTests {
 
+	private PointXY p(int x, int y){
+		return new PointXY(x, y);
+	}
+
 	@Test
 	public void testAddLoop(){
 		Map map = Map.createNew();
@@ -162,5 +166,127 @@ public class MapTests {
 		Assert.assertEquals(4, map.getAllWallLoopsAsViews(sectorId).size());
 
 
+	}
+
+	@Test
+	public void testDeterminant() {
+		Assert.assertEquals(0, Map.determinant(new PointXY(0, 0), new PointXY(7, 7)));
+		Assert.assertEquals(-7, Map.determinant(new PointXY(0, 1), new PointXY(7, 7)));
+		Assert.assertEquals(-14, Map.determinant(new PointXY(0, 2), new PointXY(7, 7)));
+		Assert.assertEquals(-21, Map.determinant(new PointXY(0, 3), new PointXY(7, 7)));
+		Assert.assertEquals(21, Map.determinant(new PointXY(0, 3), new PointXY(-7, 7)));
+		Assert.assertEquals(-24, Map.determinant(new PointXY(0, 3), new PointXY(8, 7)));
+		Assert.assertEquals(-32, Map.determinant(new PointXY(0, 4), new PointXY(8, 6)));
+		Assert.assertEquals(-26, Map.determinant(new PointXY(1, 4), new PointXY(8, 6)));
+		Assert.assertEquals(-38, Map.determinant(new PointXY(1, 4), new PointXY(8, -6)));
+		Assert.assertEquals(-20, Map.determinant(new PointXY(2, 4), new PointXY(8, 6)));
+		Assert.assertEquals(-14, Map.determinant(new PointXY(3, 4), new PointXY(8, 6)));
+		Assert.assertEquals(18, Map.determinant(new PointXY(3, 4), new PointXY(0, 6)));
+	}
+
+	@Test
+	public void testIsClockwise() {
+		// build coordinates are:
+		//
+        //         y-
+		//         /\
+		//          |
+		//   x- <--- ---> x+
+		//          |
+		//         \/
+		//         y+
+		Assert.assertTrue(Map.isClockwise(p(-5, -5), p(5, -5), p(5, 5), p(-5, 5)));
+		Assert.assertFalse(Map.isClockwise(p(-5, -5), p(-5, 5), p(5, 5), p(5, -5)));
+	}
+
+	private List<Wall> createInnerBox(PointXY topLeft, int tex){
+	    List<Wall> results = new ArrayList<>(4);
+		results.add(new Wall(topLeft.add(p(0, 1024)), tex, 8, 8));
+		results.add(new Wall(topLeft.add(p(1024, 1024)), tex, 8, 8));
+		results.add(new Wall(topLeft.add(p(1024, 0)), tex, 8, 8));
+		results.add(new Wall(topLeft, tex, 8, 8));
+		return results;
+	}
+
+	private PointXY topLeft(Map map, int sectorId){
+		int minX = Map.MAX_X;
+		int minY = Map.MAX_Y;
+		for(int w : map.getAllSectorWallIds(map.getSector(sectorId))){
+		    Wall wall = map.getWall(w);
+		    minX = Math.min(minX, wall.x);
+			minY = Math.min(minY, wall.y);
+		}
+		return p(minX, minY);
+	}
+
+	@Test
+	public void testAddLoopToSector() throws Exception {
+		Map map = JavaTestUtils.readTestMap(JavaTestUtils.ADD_LOOP);
+		//Map map = JavaTestUtils.readMap(HardcodedConfig.getDosboxPath("ADDLOOP.MAP"));
+
+		int roomATex = 395;
+		int roomBTex = 461;
+		int roomCTex = 3387;
+		List<Integer> sectorTextures = new ArrayList<>(3);
+		sectorTextures.add(roomATex);
+		sectorTextures.add(roomBTex);
+		sectorTextures.add(roomCTex);
+
+		int sectorIdA = -1;
+		int sectorIdB = -1;
+		int sectorIdC = -1;
+
+		Assert.assertEquals(3, map.getSectorCount());
+		for(int i = 0; i < map.getSectorCount(); ++i){
+			Sector sector = map.getSector(i);
+			if(sector.getFloorTexture() == roomATex){
+				sectorIdA = i;
+			}else if(sector.getFloorTexture() == roomBTex){
+				sectorIdB = i;
+			}else if(sector.getFloorTexture() == roomCTex){
+				sectorIdC = i;
+			}else{
+				Assert.fail();
+			}
+		}
+
+		List<Integer> sectorIds = new ArrayList<>(3);
+		sectorIds.add(sectorIdA);
+		sectorIds.add(sectorIdB);
+		sectorIds.add(sectorIdC);
+
+		for(int sector = 0; sector < 3; ++sector){
+			int sectorId = sectorIds.get(sector);
+
+			for(int w : map.getAllSectorWallIds(map.getSector(sectorId))){
+				Wall wall = map.getWall(w);
+				Assert.assertEquals((int)sectorTextures.get(sector), (int)wall.getTexture());
+			}
+
+			List<Collection<Integer>> wallLoops = map.getAllWallLoops(sectorId);
+			for(Collection<Integer> wallLoop: wallLoops){
+				List<PointXY> polygon = new ArrayList<PointXY>();
+				for(int wallId: wallLoop){
+					polygon.add(map.getWall(wallId).getLocation());
+				}
+				Assert.assertTrue(Map.isClockwise(polygon.toArray(new PointXY[]{})));
+			}
+		}
+
+		PointXY columnA = topLeft(map, sectorIdA).add(p(1024, 1024));
+		List<Wall> columnWallsA = createInnerBox(columnA, roomATex);
+
+		Assert.assertEquals(12, map.getWallCount());
+		map.addLoopToSector(sectorIdA, columnWallsA);
+		Assert.assertEquals(16, map.getWallCount());
+
+		PointXY columnB = topLeft(map, sectorIdB).add(p(1024, 1024));
+		map.addLoopToSector(sectorIdB, createInnerBox(columnB, roomBTex));
+
+		PointXY columnC = topLeft(map, sectorIdC).add(p(1024, 1024));
+		map.addLoopToSector(sectorIdC, createInnerBox(columnC, roomCTex));
+
+		map.assertIntegrity();
+		// Main.deployTest(map);
 	}
 }

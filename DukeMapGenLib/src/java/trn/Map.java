@@ -1,6 +1,7 @@
 package trn;
 
 import trn.duke.MapErrorException;
+import trn.prefab.MathIsHardException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -19,8 +20,7 @@ public class Map implements WallContainer {
 	public static final int MIN_Y = -65536;
 	public static final PointXY TOP_LEFT = new PointXY(MIN_X, MIN_Y);
 
-
-	long mapVersion;
+	final long mapVersion;
 	
 	PlayerStart playerStart;
 	
@@ -238,18 +238,18 @@ public class Map implements WallContainer {
 		return list;
 	}
 
-	public int getPreviousWall(int wallIndex) throws MapErrorException {
-		if(wallIndex < 0) throw new IllegalArgumentException();
-		List<Integer> loop = getWallLoop(wallIndex);
-		for(int i = 0; i < loop.size(); ++i){
-			Wall pw = getWall(i);
-			if(wallIndex == pw.point2){
-				return wallIndex;
-			}
-		}
-		throw new MapErrorException("unable to find previous wall for wall " + wallIndex);
-	}
-	
+	//public int getPreviousWall(int wallIndex) throws MapErrorException {
+	//	if(wallIndex < 0) throw new IllegalArgumentException();
+	//	List<Integer> loop = getWallLoop(wallIndex);
+	//	for(int i = 0; i < loop.size(); ++i){
+	//		Wall pw = getWall(i);
+	//		if(wallIndex == pw.point2){
+	//			return wallIndex;
+	//		}
+	//	}
+	//	throw new MapErrorException("unable to find previous wall for wall " + wallIndex);
+	//}
+	//
 	/**
 	 * WARNING: this does not automatically update any indexes (it does update wall count)
 	 * 
@@ -266,6 +266,8 @@ public class Map implements WallContainer {
 	/**
 	 * Adds the walls and links them together by setting their 'nextwall' pointers to the 
 	 * indices they get when they are added to the wall array.
+     *
+	 * I think this is only for adding walls for the purpose of creating a sector.
 	 * 
 	 * Details:  in the build format walls are identified by their index in the global list of
 	 * walls for the entire map, so we don't really have an identifier for them until we add them to
@@ -297,6 +299,89 @@ public class Map implements WallContainer {
 		lastWall.setPoint2Id(firstWall);
 		
 		return firstWall;
+	}
+
+
+	public void addLoopToSector(int sectorId, List<Wall> wallsToAdd){
+		addLoopToSector(sectorId, wallsToAdd.toArray(new Wall[]{}));
+	}
+
+	/**
+	 * Adds (inserts) wall loop to an existing sector.  If you are calling this, you are basically adding a hole to
+	 * the sector (e.g., a column)
+	 *
+	 * The walls must already be in the correct order, which since they are a hole, means counter-clockwise from the
+	 * Build editor POV.
+	 *
+	 * @param sectorId
+	 * @param wallsToAdd
+	 * @return
+	 */
+	public void addLoopToSector(int sectorId, Wall ... wallsToAdd){
+
+	    // make sure points are CCW
+		List<PointXY> points = new ArrayList<PointXY>();
+		for(Wall wall : wallsToAdd){
+			points.add(wall.getLocation());
+		}
+		if(isClockwise(points.toArray(new PointXY[]{}))) throw new IllegalArgumentException("points are in the wrong order");
+
+		// make sure lines dont intersect
+        for(int i = 0; i + 3 < points.size(); ++i){
+            // we skip testing i+1 and i+2 because those lines cannot intersect, and overlapping is a valid use case
+			// (for doors)
+        	LineSegmentXY lineA = new LineSegmentXY(points.get(i), points.get(i+1));
+			LineSegmentXY lineB = new LineSegmentXY(points.get(i+2), points.get(i+3));
+			if(lineA.intersects(lineB)) throw new IllegalArgumentException("walls in loop intersect each other");
+		}
+
+        // defensive copy (not setting sector id here because walls dont know their sector id)
+        List<Wall> newWalls = new ArrayList<>(wallsToAdd.length);
+        for(Wall wall: wallsToAdd){
+        	Wall wall2 = wall.copy();
+        	newWalls.add(wall2);
+		}
+
+		// insert the walls, setting up the loop
+        Sector sector = this.getSector(sectorId);
+        int addIndex = sector.getFirstWall() + sector.getWallCount(); // TODO rename to insertionIndex
+		this.walls.addAll(addIndex, newWalls); // TODO make a defensive copy of each wall
+
+		// update wall count
+		// update sector wall count
+		this.wallCount += wallsToAdd.length;
+        sector.setWallCount(sector.getWallCount() + wallsToAdd.length);
+
+		// update sector firstWall pointers
+		for(int otherSectorId = 0; otherSectorId < this.getSectorCount(); ++otherSectorId){
+			Sector otherSector = this.getSector(otherSectorId);
+			if(otherSector.getFirstWall() >= addIndex){
+			    otherSector.setFirstWall(otherSector.getFirstWall() + wallsToAdd.length);
+			}
+		}
+
+		// update point2 pointers on walls (none of them should cross the insertion boundary)
+		// update nextwall (redwall) pointers
+		for(int wallId = 0; wallId < this.wallCount; ++wallId){
+			Wall w = this.getWall(wallId);
+			if(wallId < addIndex && w.getPoint2Id() >= addIndex) throw new MathIsHardException("should never happen");
+
+			if(w.getPoint2Id() >= addIndex){
+				w.setPoint2Id(w.getPoint2Id() + wallsToAdd.length);
+			}
+			if(w.isRedWall() && w.getOtherWall() >= addIndex){
+				w.setOtherWall(w.getOtherWall() + wallsToAdd.length);
+			}
+		}
+
+		// set the point2 indexes for the new walls, AFTER updating the others
+		for(int i = 0; i < newWalls.size(); ++i){
+			Wall wall = this.getWall(addIndex + i);
+			wall.setPoint2Id(addIndex + i + 1);
+		}
+		this.getWall(addIndex + newWalls.size() - 1).setPoint2Id(addIndex);
+
+		if(this.wallCount != walls.size()) throw new RuntimeException("wall count mismatch");
 	}
 	
 	/**
@@ -335,12 +420,7 @@ public class Map implements WallContainer {
 	 * creating two-sided walls (which appear red in build); 
 	 */
 	public void linkRedWalls(int sectorIndex, int wallIndex, int sectorIndex2, int wallIndex2){
-
 		linkRedWallsStrict(sectorIndex, wallIndex, sectorIndex2, wallIndex2);
-
-	    // old implementation
-		// getWall(wallIndex).setOtherSide(wallIndex2, sectorIndex2);
-		// getWall(wallIndex2).setOtherSide(wallIndex, sectorIndex);
 	}
 
 	public void linkRedWallsStrict(int sectorIndex, int wallIndex, int sectorIndex2, int wallIndex2){
@@ -352,8 +432,8 @@ public class Map implements WallContainer {
 		}
 		Wall w1End = getWall(w1.getPoint2Id());
 		Wall w2 = getWall(wallIndex2);
-		// TODO - ok the below condition can easily happen as soon as any red wall in the sector group has blocking,
-		// even the solid walls seem to inherit it somehow.  Might want to consider automatically removing the blocking
+		// the below condition can easily happen as soon as any red wall in the sector group has blocking,
+		// even the solid walls seem to inherit it somehow.
 		if(w2.getStat().blockPlayer()) throw new RuntimeException("wall has blocking enabled " + w2.getLocation());
 		Wall w2End = getWall(w2.getPoint2Id());
 		if(w1.isRedWall()) throw new IllegalArgumentException("wall " + wallIndex + " is already a red wall");
@@ -505,6 +585,9 @@ public class Map implements WallContainer {
 		if (this.sectorCount != this.sectors.size()) {
 			throw new Exception("sectorCount is off");
 		}
+		if(this.wallCount != this.walls.size()){
+			throw new Exception("wallCount is off");
+		}
 
 	    // make sure all sprites point to an existing sector
 		for(Sprite s: this.sprites){
@@ -526,7 +609,7 @@ public class Map implements WallContainer {
 				}
 			}
 
-        	// also check the loops
+        	// also check the loops // TODO - check the other loops
 			for(Integer wallId: this.getWallLoop(sector.getFirstWall())){
 				if(!sectorWallIds.contains(wallId)){
 					throw new RuntimeException("wall loop broken");
@@ -537,8 +620,10 @@ public class Map implements WallContainer {
         if(closedList.size() != this.walls.size()){
         	throw new Exception("walls are missing or unused");
 		}
+		Set<Integer> seenPoint2 = new TreeSet<>();
 
-        // make sure every redwall is pointing to a valid sector and a matching redwall?
+		// make sure every redwall is pointing to a valid sector and a matching redwall?
+        // and make sure point2 is valid
         for(int wallId = 0; wallId < this.walls.size(); ++wallId){
         	Wall w = this.getWall(wallId);
         	if(w.isRedWall()){
@@ -548,6 +633,14 @@ public class Map implements WallContainer {
         		if(wallId != otherWall.nextWall){
         			throw new Exception("redwalls dont match");
 				}
+			}
+			if(seenPoint2.contains(w.getPoint2Id())){
+				throw new Exception("wall id " + w.getPoint2Id() + " appears more than once");
+			}else{
+				seenPoint2.add(w.getPoint2Id());
+			}
+        	if(w.getPoint2Id() < 0 || w.getPoint2Id() >= this.wallCount){
+        		throw new Exception("wall is invalid point2: " + w.getPoint2Id());
 			}
 		}
 
@@ -612,95 +705,101 @@ public class Map implements WallContainer {
 		return results;
 	}
 	
-	/**
-	 * TODO:  this doesnt handle inner sectors yet!
-	 * 
-	 * Gets all of the adjacent sectors (sectors that share a red wall)
-	 * @param sectorId - sector id (a.k.a. secnum) of the starting sector
-	 * @return set of sector Ids that share a red wall with this sector
-	 */
-	public Set<Integer> getAdjacentSectors(int sectorId){
-		Set<Integer> results = new TreeSet<Integer>();
-		if(sectorId < 0 || sectorId >= this.sectors.size()){
-			throw new IllegalArgumentException();
-		}
-		
-		Sector sector = this.sectors.get(sectorId);
-		List<Integer> walls = this.getWallLoop(sector.getFirstWall());
-		for(int i : walls){
-			int otherSector = this.getWall(i).nextSector;
-			if(otherSector != -1){
-				results.add(otherSector);
-			}
-		}
-		return results;
-	}
+	// /**
+	//  * TODO:  this doesnt handle inner sectors yet!
+	//  *
+	//  * Gets all of the adjacent sectors (sectors that share a red wall)
+	//  * @param sectorId - sector id (a.k.a. secnum) of the starting sector
+	//  * @return set of sector Ids that share a red wall with this sector
+	//  */
+	// public Set<Integer> getAdjacentSectors(int sectorId){
+	// 	Set<Integer> results = new TreeSet<Integer>();
+	// 	if(sectorId < 0 || sectorId >= this.sectors.size()){
+	// 		throw new IllegalArgumentException();
+	// 	}
+	//
+	// 	Sector sector = this.sectors.get(sectorId);
+	// 	List<Integer> walls = this.getWallLoop(sector.getFirstWall());
+	// 	for(int i : walls){
+	// 		int otherSector = this.getWall(i).nextSector;
+	// 		if(otherSector != -1){
+	// 			results.add(otherSector);
+	// 		}
+	// 	}
+	// 	return results;
+	// }
 	
-	/**
-	 * Do a really dumb point average to guess the center of a sector.
-	 * For convex sectors this could be totally wrong.
-	 * 
-	 * @param sectorId
-	 * @return
-	 */
-	public PointXYZ guessCenter(int sectorId){
-		Sector sector = this.getSector(sectorId);
-		List<Integer> walls = this.getFirstWallLoop(sector);
-		
-		List<Integer> xvalues = new ArrayList<Integer>(walls.size());
-		List<Integer> yvalues = new ArrayList<Integer>(walls.size());
-		for(int wi : walls){
-			xvalues.add(this.getWall(wi).x);
-			yvalues.add(this.getWall(wi).y);
-		}
-		return new PointXYZ(MapUtil.average(xvalues), MapUtil.average(yvalues), sector.getFloorZ());
-	}
+	// /**
+	//  * Do a really dumb point average to guess the center of a sector.
+	//  * For convex sectors this could be totally wrong.
+	//  *
+	//  * @param sectorId
+	//  * @return
+	//  */
+	// public PointXYZ guessCenter(int sectorId){
+	// 	Sector sector = this.getSector(sectorId);
+	// 	List<Integer> walls = this.getFirstWallLoop(sector);
+	//
+	// 	List<Integer> xvalues = new ArrayList<Integer>(walls.size());
+	// 	List<Integer> yvalues = new ArrayList<Integer>(walls.size());
+	// 	for(int wi : walls){
+	// 		xvalues.add(this.getWall(wi).x);
+	// 		yvalues.add(this.getWall(wi).y);
+	// 	}
+	// 	return new PointXYZ(MapUtil.average(xvalues), MapUtil.average(yvalues), sector.getFloorZ());
+	// }
 	
 	
 	public void print(){
 		System.out.println("map version: " + mapVersion);
-		
 		System.out.println("player start: " + playerStart.toString());
-		
 		System.out.println("sector with start point: " + sectorWithStartPoint);
-		
 		System.out.println("sector count: " + sectorCount);
-		
 		System.out.println("wall count: " + wallCount);
-		
 		System.out.println("sprite count: " + spriteCount);
 	}
 	
 	public void printAll(){
-		
 		print();
-		
 		System.out.println(this.playerStart.toString());
-		
 		System.out.println("\nSECTORS\n");
-		
 		for(int i = 0; i < sectors.size(); ++i){
 			System.out.print("sector " + i + ": ");
 			sectors.get(i).print();
 			System.out.println();
 		}
-		
 		System.out.println("WALLS");
-		
 		for(int i = 0; i < walls.size(); ++i){
 			System.out.print("wall " + i + ": ");
 			System.out.println(walls.get(i).toString());
 			System.out.println();
 		}
-		
 		System.out.println("SPRITES");
-		
 		for(int i = 0; i < sprites.size(); ++i){
 			System.out.println(sprites.get(i).toString());
 		}
-		
-		
-		
+	}
+
+	// for debugging
+	public void printTable(){
+		System.out.println("map version: " + mapVersion);
+		System.out.println("player start: " + playerStart.toString());
+		System.out.println("sector with start point: " + sectorWithStartPoint);
+		System.out.println("sector count: " + sectorCount);
+		System.out.println("wall count: " + wallCount);
+		System.out.println("sprite count: " + spriteCount);
+
+		for(int i = 0; i < sectorCount; ++i){
+			Sector sector = this.getSector(i);
+			System.out.println(i + "  firstWall=" + sector.getFirstWall() + " wallCount=" + sector.getWallCount());
+		}
+		System.out.println("--------------------");
+		for(int i = 0; i < wallCount; ++i){
+			Wall wall = this.getWall(i);
+			System.out.println("wall " + i + " | point2=" + wall.getPoint2Id());
+		}
+		System.out.println("--------------------");
+
 	}
 	
 	
@@ -735,18 +834,13 @@ public class Map implements WallContainer {
 	}
 
 	public static Map readMap(InputStream bs) throws IOException {
-		
-		Map map = new Map();
-		
-		//long mapVersion = ByteUtil.readUint32LE(mapFile, 0);
-		map.mapVersion = ByteUtil.readUint32LE(bs);
+		long mapVersion = ByteUtil.readUint32LE(bs);
+		Map map = new Map(mapVersion);
 
 		map.playerStart = PlayerStart.readPlayerStart(bs);
-				
-				
+
 		map.sectorWithStartPoint = ByteUtil.readUint16LE(bs); //NOTE:  that wiki page is wrong here!
-				
-				
+
 		map.sectorCount = ByteUtil.readUint16LE(bs);
 
 		map.sectors = new ArrayList<Sector>(map.sectorCount);
@@ -773,19 +867,47 @@ public class Map implements WallContainer {
 		map.sprites = new ArrayList<Sprite>(map.spriteCount);
 		for(int i = 0; i < map.spriteCount; ++i){
 			map.sprites.add(Sprite.readSprite(bs));
-			//map.sprites[i] = Sprite.readSprite(bs);
-					
-			//System.out.println("sprite texture: " + map.sprites[i].picnum); //oneroom.map should be 22 and 24
 		}
 		
 		//System.out.println("read method returns: " + bs.read()); //-1 [probably] means EOF, meaning we did it right.
 		if(-1 != bs.read()){
 			throw new IOException("data left over at end of file");
 		}
-		
-		
-				
         return map;
+	}
+
+
+	/**
+	 * Gets the determinant of two PointXY's, treating them as columns.  In other words, it computes:
+	 *
+	 * |                  |
+	 * | [  p0.x  p1.x  ] |
+	 * | [  p0.y  p1.y  ] |
+	 * |                  |
+	 *
+	 * @param p0
+	 * @param p1
+	 * @return
+	 */
+	static int determinant(PointXY p0, PointXY p1){
+		return p0.x * p1.y - p0.y * p1.x;
+	}
+
+	/**
+	 *
+	 * @param points
+	 * @return true if the points are clockwise FROM THE POV OF THE BUILD EDITOR...which probably actualls means they
+	 * are counter clockwise.
+	 */
+	static boolean isClockwise(PointXY ... points){
+	    if(points.length < 3) throw new IllegalArgumentException("need at least three points");
+
+		int sum = 0;
+		for(int i = 0; i < points.length; ++i){
+			int j = (i + 1) % points.length;
+			sum += determinant(points[i], points[j]);
+		}
+		return sum > 0;
 	}
 
 }

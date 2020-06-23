@@ -250,6 +250,7 @@ public class Wall {
 		return this.point2;
 	}
 
+
 	public int getNextWallInLoop(){
 		return getPoint2Id();
 	}
@@ -257,6 +258,15 @@ public class Wall {
 	public void setOtherSide(int nextWall, int nextSector){
 		this.nextWall = (short)nextWall;
 		this.nextSector = (short)nextSector;
+	}
+
+	void setOtherWall(int nextWall){
+		this.nextWall = (short)nextWall;
+	}
+
+	/** -1 if this is not a redwall, otherwise is the wall on the other side (NOT the next wall in the loop) */
+	public int getOtherWall(){
+		return this.nextWall;
 	}
 	
 	public void setTexture(int texture){

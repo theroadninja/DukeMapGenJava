@@ -221,6 +221,9 @@ public class Sector {
 	public short getWallCount(){
 		return this.wallCount;
 	}
+	void setWallCount(int wallCount){
+		this.wallCount = (short)wallCount;
+	}
 	
 	public void setLotag(int lotag){
 		this.lotag = (short)lotag;

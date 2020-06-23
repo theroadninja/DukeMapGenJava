@@ -12,13 +12,14 @@ public class JavaTestUtils {
     public static final String JUNIT1 = "JUNIT1.MAP";
 
     public static final String MULTI_WALL_CONN_MAP = "UNITMW.MAP";
+    public static final String ADD_LOOP = "ADDLOOP.MAP";
 
     private static String testFilePath(String fname){
         String filepath = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata" + File.separator + fname;
         return filepath;
     }
 
-    private static Map readMap(String filename) throws IOException {
+    static Map readMap(String filename) throws IOException {
         File f = new File(filename);
         Assert.assertTrue(f.exists() && f.isFile());
         return Map.readMap(new FileInputStream(f));
