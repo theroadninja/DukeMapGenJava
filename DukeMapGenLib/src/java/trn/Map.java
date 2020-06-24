@@ -326,6 +326,8 @@ public class Map implements WallContainer {
 		}
 		if(isClockwise(points.toArray(new PointXY[]{}))) throw new IllegalArgumentException("points are in the wrong order");
 
+		// TODO - test for intersections with the parent sector (and maybe every other wall on the map)
+
 		// make sure lines dont intersect
         for(int i = 0; i + 3 < points.size(); ++i){
             // we skip testing i+1 and i+2 because those lines cannot intersect, and overlapping is a valid use case

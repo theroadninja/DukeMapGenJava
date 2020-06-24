@@ -14,7 +14,7 @@ import trn.FuncImplicits._
   *
   * TODO: this is in trn package, but depends on GameConfig which is in trn.prefab
   */
-object MapUtilScala {
+object UniqueTags {
 
   def toScalaMap(map: java.util.Map[Integer, Integer]): scala.collection.immutable.Map[Int, Int] = {
     map.asScala.map{case (k, v) => k.intValue -> v.intValue}.toMap

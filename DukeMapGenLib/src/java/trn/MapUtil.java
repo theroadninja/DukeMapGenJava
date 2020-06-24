@@ -1,6 +1,5 @@
 package trn;
 
-import scala.collection.JavaConverters;
 import trn.prefab.GameConfig;
 
 import java.util.*;
@@ -154,7 +153,7 @@ public class MapUtil {
 
 		// now we know which sectors were copied, so we can calculate the unique tag map
 		//java.util.Map<Integer, Integer> tagMap = MapUtilScala$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, cpstate);
-		cpstate.idmap.tagMap = MapUtilScala$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, cpstate);
+		cpstate.idmap.tagMap = UniqueTags$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, cpstate);
 
 		updateIds(cfg, destMap, cpstate);
 
@@ -206,12 +205,12 @@ public class MapUtil {
 			destMap.getWall(wid).translateIds(cpstate.idmap, false);
 
 			// update the lotag if the wall is a door
-			cfg.updateUniqueTagInPlace(destMap.getWall(wid), MapUtilScala$.MODULE$.toScalaMap(cpstate.idmap.tagMap));
+			cfg.updateUniqueTagInPlace(destMap.getWall(wid), UniqueTags$.MODULE$.toScalaMap(cpstate.idmap.tagMap));
 		}
 		for(int spriteId: cpstate.spritesToUpdate){
 			cfg.updateUniqueTagInPlace(
 					destMap.getSprite(spriteId),
-					MapUtilScala$.MODULE$.toScalaMap(cpstate.idmap.tagMap)
+					UniqueTags$.MODULE$.toScalaMap(cpstate.idmap.tagMap)
 			);
 		}
 	}
