@@ -15,6 +15,8 @@ object MapUtilScala {
     * Returns the walls that make up the outer border of a sector group.   This algorithm is designed to exclude
     * holes that touch the edge of the sector group (see unit tests for examples).
     *
+    * If you just want the outer loop of a single sector, see MapImplicits.getOuterWallLoop().
+    *
     * @param walls  all walls in a sector group.  These walls must form valid build sectors for this to work
     * @return the walls that form the outer border of a sector group, in sequence.
     */
@@ -86,5 +88,20 @@ object MapUtilScala {
     val startWall = wallsById(startWallId)
     dfs(startWall, Seq(startWall), byP1)
   }
+
+  /**
+    * Return a loop full of walls that can be the other wall of a redwall.  This new loop has the same points, but
+    * the individual walls go the opposite direction and their order is reversed.
+    *
+    *    +--1-->+                +<--4---+
+    *    /\     |                |       /\
+    *    4      2    =======>    1       3
+    *    |      \/               \/      |
+    *    +<--3--+                +---2-->+
+    *
+    * @param wallLoop
+    * @return
+    */
+  def opposingRedwallLoop(wallLoop: Seq[WallView]): Seq[WallView] = wallLoop.reverse.map(_.reversed())
 
 }

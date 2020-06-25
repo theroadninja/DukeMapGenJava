@@ -5,6 +5,7 @@ import trn.{IdMap, MapUtil, MapView, PlayerStart, PointXY, PointXYZ, Sprite, Spr
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConverters._ // this is the good one
+
 /**
   * Lower-level map builder, that manages pasted sector groups.
   */

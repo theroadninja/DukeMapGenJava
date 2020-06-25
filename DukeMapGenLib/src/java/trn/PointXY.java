@@ -109,6 +109,10 @@ public class PointXY {
 		return new PointXY(dest.x - this.x, dest.y - this.y);
 	}
 
+	public PointXY translated(PointXY delta){
+		return this.add(delta);
+	}
+
 	public PointXY add(PointXY p){
 		return new PointXY(x + p.x, y + p.y);
 	}

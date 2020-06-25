@@ -1,7 +1,7 @@
 package trn.prefab
 
 import trn.duke.{MapErrorException, TextureList}
-import trn.{DukeConstants, ISpriteFilter, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, Map => DMap}
+import trn.{DukeConstants, ISpriteFilter, MapUtil, MapUtilScala, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._ // this is the good one
@@ -118,31 +118,89 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     * @param innerAnchor location of anchoring sprite in inner group
     * @param destSectorId sector id of the sector to paste the group into
     * @param destAnchor location of the anchoring sprite in the destination
+    * @param gameCfg A GameConfig to specify how unique tags are mapped during the copy
     * @return a copy of this sector group, but with `innerGroup` pasted inside it, in sector `pasteSectorId`
     */
   def withInnerGroup(
     innerGroup: SectorGroup,
     innerAnchor: PointXYZ,
     destSectorId: Int,
-    destAnchor: PointXYZ
+    destAnchor: PointXYZ,
+    gameCfg: GameConfig
   ): SectorGroup = {
+
+    // TODO - when scanning for an "inner group" make sure it has no redwall connectors on the border edge
+    // TODO - also fail if there are any sprites where the dest border is being created...
 
     val dest = this.copy()
 
-    // calculate the outer boundary of `innerGroup` - in the form of a multi sector connector?
-    // insert a wall loop of same dimensions in dest sector, position using the anchors
-    //    - calculate transform using anchors
-    //    - ensure the space is clear
-    // paste and link
-    ???
+    // 1. calculate the border
+    val sourceBorder = MapUtilScala.outerBorderDfs(innerGroup.getAllWallViews)
+    require(DMap.isClockwise(sourceBorder.map(_.p1).asJava))
+
+    val delta = innerAnchor.getTransformTo(destAnchor)
+    val destBorder = MapUtilScala.opposingRedwallLoop(sourceBorder.map(_.translated(delta)))
+    for(i <- 0 until destBorder.size){
+      require(destBorder(i).p2 == destBorder((i+1) % destBorder.size).p1)
+    }
+
+
+    // 2. ensure the space is clear
+    dest.map.allWallViews.foreach { w0 =>
+      destBorder.foreach { w1 =>
+        if(w0.getLineSegment.intersects(w1.getLineSegment)){
+          val msg = s"Cannot paste inner group, wall intersection: ${w0.getLineSegment} x ${w1.getLineSegment}"
+          throw new SpriteLogicException(msg)
+        }
+      }
+    }
+
+    // 3. make sure all the points are in the destination sector
+    val destSectorLoop = dest.map.getOuterWallLoop(destSectorId)
+    destBorder.flatMap(w => w.points().asScala).find{ p =>
+      !Polygon.containsExclusive2(destSectorLoop, p)
+    }.foreach { outOfBounds =>
+      val msg = s"trying to paste group inside sector but wall point ${outOfBounds} does not fit inside dest sector"
+      throw new SpriteLogicException(msg)
+    }
+
+    // 4. add the loop
+    val outerWallIds = dest.map.addLoopToSector(destSectorId, destBorder.map(_.getWall).asJava).asScala.map(_.toInt)
+    val test1 = outerWallIds.map(dest.map.getWallView(_))
+    require(destBorder.flatMap(_.points().asScala).toSet == test1.flatMap(_.points().asScala).toSet)
+
+    // ... paste and link?
+    val copyState = MapUtil.copySectorGroup(gameCfg, innerGroup.map, dest.map, 0, delta);
+    val innerWallIds = sourceBorder.map(_.getWallId).map(wallId => copyState.idmap.wall(wallId)).map(_.toInt)
+    require(outerWallIds.size == innerWallIds.size)
+
+    val outerWalls = outerWallIds.map(dest.map.getWallView(_))
+    for(i <- 0 until outerWalls.size){
+      require(outerWalls(i).p2 == outerWalls((i+1) % outerWalls.size).p1)
+    }
+    // TODO - DRY with RedwallConnector.linkConnectors()?
+
+    println(s"outer loop: ${outerWallIds.map(dest.map.getWallView(_).getLineSegment)}")
+    println(s"inner loop: ${innerWallIds.map(dest.map.getWallView(_).getLineSegment)}")
+
+    val wallIdToSectorId = new MapView(dest.map).newWallIdToSectorIdMap
+    outerWallIds.reverse.zip(innerWallIds).foreach { case (outerId, innerId) =>
+      println(dest.map.getWallView(outerId).getLineSegment)
+      println(dest.map.getWallView(innerId).getLineSegment)
+      require(dest.map.getWallView(outerId).isBackToBack(dest.map.getWallView(innerId)))
+
+      val newSectorId = wallIdToSectorId(innerId)
+      dest.map.linkRedWalls(destSectorId, outerId, newSectorId, innerId)
+    }
+
+    dest
   }
 
-  def withOuterBoundaryConnector: (SectorGroup, RedwallConnector, PointXY) = {
-    // the last PointXY is some kind of anchor offset
-
-
-    ???
-  }
+  // def withOuterBoundaryConnector: (SectorGroup, RedwallConnector, PointXY) = {
+  //   // the last PointXY is some kind of anchor offset
+  //   val outerBorder = MapUtilScala.outerBorderDfs(this.getAllWallViews)
+  //   ???
+  // }
 
   /**
     * @return a copy of this sector group, flipped about the X axis

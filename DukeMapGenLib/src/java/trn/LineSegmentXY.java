@@ -53,6 +53,10 @@ public class LineSegmentXY {
         return new LineSegmentXY(p2, p1);
     }
 
+    public LineSegmentXY translated(PointXY delta){
+        return new LineSegmentXY(this.p1.translated(delta), this.p2.translated(delta));
+    }
+
 
     /**
      * @return the vector from p1 to p2

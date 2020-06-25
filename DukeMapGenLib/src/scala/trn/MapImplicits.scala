@@ -60,6 +60,8 @@ object MapImplicits {
       wallIds.map(w => map.getWall(w))
     }
 
+    def allWallIds: Seq[Int] = 0 until map.wallCount
+
     def allWallViews: Seq[WallView] = {
       val list = new collection.mutable.ArrayBuffer[WallView](map.getWallCount)
       for(i <- 0 until map.getWallCount){
@@ -157,6 +159,20 @@ object MapImplicits {
       val transform = Matrix2D.flipYat(anchorY)
       val angleTransform = Matrix2D.flipY
       applyTransforms(transform, angleTransform, true)
+    }
+
+
+    /**
+      * Returns the outer wall loop of a single sector.  If you want to find the outer "border" of an entire sector
+      * group, see MapUtilScala.outerBorderDfs().
+      *
+      * @param sectorId
+      * @returns the outer wall loop of a single sector
+      */
+    def getOuterWallLoop(sectorId: Int): Seq[WallView] = {
+      val outerLoops = map.getAllWallLoopsAsViews(sectorId).asScala.filter(MapUtil.isOuterWallLoop)
+      require(outerLoops.size == 1, s"sector ${sectorId} has more than one outer wall loop")
+      outerLoops.head.asScala.toSeq
     }
 
 

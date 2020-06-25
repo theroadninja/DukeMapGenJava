@@ -102,4 +102,12 @@ public class LineSegmentXYTests {
     public void testReversed(){
         Assert.assertTrue(line(p(1365, 2048), p(1365, 0)).equals(line(p(1365, 0), p(1365, 2048)).reversed()));
     }
+
+    @Test
+    public void testTranslated(){
+        Assert.assertTrue(line(p(10, 15), p(20, 15)).equals(line(p(0, 0), p(10, 0)).translated(p(10, 15))));
+        Assert.assertTrue(line(p(-10, 15), p(0, 15)).equals(line(p(0, 0), p(10, 0)).translated(p(-10, 15))));
+        Assert.assertTrue(line(p(0, -15), p(10, -15)).equals(line(p(0, 0), p(10, 0)).translated(p(0, -15))));
+        Assert.assertTrue(line(p(-9, -15), p(1, -15)).equals(line(p(0, 0), p(10, 0)).translated(p(-9, -15))));
+    }
 }

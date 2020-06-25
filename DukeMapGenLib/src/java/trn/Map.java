@@ -302,8 +302,8 @@ public class Map implements WallContainer {
 	}
 
 
-	public void addLoopToSector(int sectorId, List<Wall> wallsToAdd){
-		addLoopToSector(sectorId, wallsToAdd.toArray(new Wall[]{}));
+	public List<Integer> addLoopToSector(int sectorId, List<Wall> wallsToAdd){
+		return addLoopToSector(sectorId, wallsToAdd.toArray(new Wall[]{}));
 	}
 
 	/**
@@ -315,9 +315,9 @@ public class Map implements WallContainer {
 	 *
 	 * @param sectorId
 	 * @param wallsToAdd
-	 * @return
+	 * @return the new wall ids
 	 */
-	public void addLoopToSector(int sectorId, Wall ... wallsToAdd){
+	public List<Integer> addLoopToSector(int sectorId, Wall ... wallsToAdd){
 
 	    // make sure points are CCW
 		List<PointXY> points = new ArrayList<PointXY>();
@@ -377,13 +377,16 @@ public class Map implements WallContainer {
 		}
 
 		// set the point2 indexes for the new walls, AFTER updating the others
+		List<Integer> newIds = new ArrayList<Integer>(wallsToAdd.length);
 		for(int i = 0; i < newWalls.size(); ++i){
+			newIds.add(addIndex + i);
 			Wall wall = this.getWall(addIndex + i);
 			wall.setPoint2Id(addIndex + i + 1);
 		}
 		this.getWall(addIndex + newWalls.size() - 1).setPoint2Id(addIndex);
 
 		if(this.wallCount != walls.size()) throw new RuntimeException("wall count mismatch");
+		return newIds;
 	}
 	
 	/**
@@ -913,7 +916,7 @@ public class Map implements WallContainer {
 		return sum > 0;
 	}
 
-	static boolean isClockwise(Collection<PointXY> points){
+	public static boolean isClockwise(Collection<PointXY> points){
 		return isClockwise(points.toArray(new PointXY[]{}));
 	}
 

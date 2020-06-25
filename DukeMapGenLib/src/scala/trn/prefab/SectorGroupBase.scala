@@ -3,6 +3,7 @@ package trn.prefab
 import trn.{LineSegmentXY, MapUtil, PointXY, Wall, WallView, Map => DMap}
 
 import scala.collection.JavaConverters._ // this is the good one
+import trn.MapImplicits._
 
 /**
   * For code that is shared between SectorGroups and PastedSectorGroups.
@@ -70,9 +71,10 @@ trait SectorGroupBase {
   }
 
   def getOuterWallLoop(sectorId: Int): Seq[WallView] = {
-    val outerLoops = map.getAllWallLoopsAsViews(sectorId).asScala.filter(MapUtil.isOuterWallLoop)
-    require(outerLoops.size == 1, s"sector ${sectorId} has more than one outer wall loop")
-    outerLoops.head.asScala.toSeq
+    map.getOuterWallLoop(sectorId)
+    // val outerLoops = map.getAllWallLoopsAsViews(sectorId).asScala.filter(MapUtil.isOuterWallLoop)
+    // require(outerLoops.size == 1, s"sector ${sectorId} has more than one outer wall loop")
+    // outerLoops.head.asScala.toSeq
   }
 
 

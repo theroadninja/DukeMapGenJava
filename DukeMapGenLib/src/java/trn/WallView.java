@@ -51,6 +51,9 @@ public class WallView {
         this.wall = wall;
         this.wallId = wallId;
         this.wallSegment = wallSegement;
+        if(!wall.getLocation().equals(wallSegement.getP1())){
+            throw new IllegalArgumentException("point mismatch between wall and line segment");
+        }
     }
 
     public final int getWallId(){
@@ -59,6 +62,24 @@ public class WallView {
 
     public List<PointXY> points(){
         return getLineSegment().toList();
+    }
+
+    @Override
+    public boolean equals(Object other){
+        if(this == other){
+            return true;
+        }
+        if(!(other instanceof WallView)){
+            return false;
+        }
+
+        WallView rh = (WallView)other;
+        return this.wall.equals(rh.wall) && this.wallId == rh.wallId && this.wallSegment.equals(rh.wallSegment);
+    }
+
+    @Override
+    public int hashCode(){
+        return this.wall.hashCode() << 4 + this.wallId << 2 + this.wallSegment.hashCode();
     }
 
     /**
@@ -118,7 +139,10 @@ public class WallView {
         return wall.isRedWall();
     }
 
-    /** @returns true if this is a red wall and 'other' is the other redwall (based on its pointer, not its location) */
+    /**
+     * @returns true if this is a red wall and 'other' is the other redwall (based on its pointer, not its location)
+     *          (to test based on location only, see isBackToBack())
+     */
     public final boolean isOtherSide(WallView other){
         if(wall.nextWall == -1 && other.wall.nextWall == -1){
             return false;
@@ -142,6 +166,48 @@ public class WallView {
         //    );
         //    throw new RuntimeException(msg);
         //}
+    }
+
+    /**
+     * Returns true if this wall is positioned "back to back" with the other, meaning this wall starts where the other
+     * ends and this wall ends where the other starts.  This test is based on location only, and does not test points,
+     * whether these are red walls, etc.  For that, see isOtherSide().
+     *
+     * @param other
+     * @return true if this wall is positioned "back to back" with the other
+     */
+    public final boolean isBackToBack(WallView other){
+        return this.p1().equals(other.p2()) && this.p2().equals(other.p1());
+    }
+
+    public WallView translated(PointXYZ delta){
+        WallView result = new WallView(
+                this.wall.copy().translate(delta),
+                this.getWallId(),
+                this.getLineSegment().translated(delta.asXY())
+        );
+        return result;
+    }
+
+    /**
+     * Make the wall point in the other direction.
+     *
+     * For a wall A->B, return a wall B->A.
+     *
+     * Note:  the wall inside this will no longer be a valid wall, so point2 and wallId will be cleared.
+     *
+     * @return a copy of this wall, with the points swapped.
+     */
+    public WallView reversed(){
+        Wall newWall = this.wall.copy();
+        newWall.point2 = -1;
+        newWall.x = p2().x;
+        newWall.y = p2().y;
+        return new WallView(
+                newWall,
+                -1,
+                new LineSegmentXY(p2(), p1())
+        );
     }
 
     public final int otherWallId(){
@@ -170,5 +236,9 @@ public class WallView {
 
     public final PointXY p2(){
         return getLineSegment().getP2();
+    }
+
+    public final Wall getWall(){
+        return this.wall;
     }
 }

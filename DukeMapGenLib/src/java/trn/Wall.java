@@ -146,6 +146,30 @@ public class Wall {
 		w.extra = this.extra;
 		return w;
 	}
+
+	// TODO - test this thoroughly
+	@Override
+	public boolean equals(Object other){
+		if(this == other){
+			return true;
+		}
+		if(!(other instanceof Wall)){
+			return false;
+		}
+		Wall rh = (Wall)other;
+		return this.x == rh.x && this.y == rh.y && this.point2 == rh.point2 && this.nextWall == rh.nextWall &&
+				this.nextSector == rh.nextSector && this.cstat == rh.cstat && this.picnum == rh.picnum &&
+				this.overpicnum == rh.overpicnum && this.shade == rh.shade && this.pal == rh.pal &&
+				this.xrepeat == rh.xrepeat && this.yrepeat == rh.yrepeat && this.xpanning == rh.xpanning &&
+				this.ypanning == rh.ypanning && this.lotag == rh.lotag && this.hitag == rh.hitag &&
+				this.extra == rh.extra;
+	}
+
+	// TODO - test this thoroughly
+	@Override
+	public int hashCode(){
+		return this.x << 5 + this.y << 4 + this.point2 << 3 + this.nextWall << 2 + this.cstat << 1 + this.lotag;
+	}
 	
 	/**
 	 * 

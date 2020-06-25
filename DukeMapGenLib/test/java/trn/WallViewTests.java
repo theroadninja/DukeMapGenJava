@@ -10,7 +10,7 @@ public class WallViewTests {
     }
 
     private WallView wall(PointXY p1, PointXY p2){
-        return new WallView(new Wall(), -1, new LineSegmentXY(p1, p2));
+        return new WallView(new Wall(p1, null), -1, new LineSegmentXY(p1, p2));
     }
 
     private WallView testWall(int wallId, PointXY p0, PointXY p1) {
@@ -52,5 +52,37 @@ public class WallViewTests {
         WallView w0 = testWall(1, p(10, 40), p(30, 40));
         WallView w1 = testWall(2, p(30, 40), p(30, 30));
         Assert.assertTrue(w0.contiguous(w1));
+    }
+
+    @Test
+    public void testEquals(){
+        Assert.assertTrue(wall(p(1, 2), p(3, 4)).equals(wall(p(1, 2), p(3, 4))));
+        Assert.assertEquals(wall(p(1, 2), p(3, 4)), wall(p(1, 2), p(3, 4)));
+
+        Assert.assertFalse(wall(p(1, 2), p(3, 4)).equals(wall(p(1, 2), p(3, 5))));
+        Assert.assertNotEquals(wall(p(1, 2), p(3, 4)), wall(p(1, 2), p(3, 5)));
+    }
+
+    @Test
+    public void testTranslated(){
+        WallView w = wall(p(64, -48), p(128, -64));
+        Assert.assertEquals(w, w.translated(new PointXYZ(0, 0, 0)));
+        Assert.assertEquals(w, w.translated(new PointXYZ(0, 0, 10)));
+
+        Assert.assertEquals(wall(p(74, -48), p(138, -64)), w.translated(new PointXYZ(10, 0, 0)));
+        Assert.assertEquals(wall(p(54, -48), p(118, -64)), w.translated(new PointXYZ(-10, 0, 0)));
+        Assert.assertEquals(wall(p(64, -38), p(128, -54)), w.translated(new PointXYZ(0, 10, 0)));
+        Assert.assertEquals(wall(p(64, -58), p(128, -74)), w.translated(new PointXYZ(0, -10, 0)));
+        Assert.assertEquals(wall(p(65, -50), p(129, -66)), w.translated(new PointXYZ(1, -2, 0)));
+    }
+
+    @Test
+    public void testReversed(){
+        WallView w = wall(p(64, -48), p(128, -64));
+        WallView r = wall(p(128, -64), p(64, -48));
+        Assert.assertTrue(w.reversed().equals(r));
+        Assert.assertEquals(w.reversed(), r);
+        Assert.assertEquals(w, r.reversed());
+        Assert.assertEquals(w.reversed().reversed(), w);
     }
 }

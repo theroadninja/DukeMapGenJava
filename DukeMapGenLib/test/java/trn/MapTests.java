@@ -277,8 +277,24 @@ public class MapTests {
 		List<Wall> columnWallsA = createInnerBox(columnA, roomATex);
 
 		Assert.assertEquals(12, map.getWallCount());
-		map.addLoopToSector(sectorIdA, columnWallsA);
+		List<Integer> resultsA = map.addLoopToSector(sectorIdA, columnWallsA);
 		Assert.assertEquals(16, map.getWallCount());
+		Assert.assertEquals(4, resultsA.size());
+
+		List<Wall> wallsA = new ArrayList<>(4);
+		List<PointXY> pointsA = new ArrayList<>(4);
+		for(int wallId: resultsA){
+			wallsA.add(map.getWall(wallId));
+			pointsA.add(map.getWall(wallId).getLocation());
+		}
+		Assert.assertTrue(!Map.isClockwise(pointsA));
+
+		for(int i = 0; i < wallsA.size(); ++i){
+			Assert.assertEquals(wallsA.get(i).getLocation(), columnWallsA.get(i).getLocation());
+		}
+
+
+
 
 		PointXY columnB = topLeft(map, sectorIdB).add(p(1024, 1024));
 		map.addLoopToSector(sectorIdB, createInnerBox(columnB, roomBTex));

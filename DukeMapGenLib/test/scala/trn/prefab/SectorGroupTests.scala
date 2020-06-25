@@ -1,9 +1,8 @@
 package trn.prefab
 
 import org.junit.{Assert, Test}
-import trn.PointXYZ
+import trn.{Main, PointXYZ, Map => DMap}
 import trn.prefab.experiments.TestBuilder
-import trn.{Map => DMap}
 
 import scala.collection.JavaConverters._ // this is the good one
 
@@ -82,6 +81,33 @@ class SectorGroupTests {
     builder.writer.pasteSectorGroup(palette.getSectorGroup(100), new PointXYZ(0, 0, 0))
     builder.writer.setAnyPlayerStart()
     builder.writer.clearMarkers()
+  }
+
+  @Test
+  def testPasteInsideSector: Unit = {
+    val map = TestUtils.load(TestUtils.Inner)
+    val palette: PrefabPalette = PrefabPalette.fromMap(DukeConfig.empty, map, true)
+
+    // NOTE: using normal anchor markers as the anchors
+
+    val sg = palette.getSG(1)
+    val destAnchor = sg.allSprites.filter(_.getLotag == PrefabUtils.MarkerSpriteLoTags.ANCHOR).head
+    val destSectorId = destAnchor.getSectorId
+
+
+    val sgInner = palette.getSG(2)
+    val sourceAnchor = sgInner.allSprites.filter(_.getLotag == PrefabUtils.MarkerSpriteLoTags.ANCHOR).head
+    val resultSg = sg.withInnerGroup(sgInner, sourceAnchor.getLocation, destSectorId, destAnchor.getLocation, DukeConfig.empty)
+
+    val builder = new TestBuilder(DMap.createNew())
+    val (psg, _) = builder.sgBuilder.pasteSectorGroup2(resultSg, PointXYZ.ZERO)
+
+    builder.writer.setAnyPlayerStart()
+    builder.writer.clearMarkers()
+
+    // TODO !!!! need to also clear out sprites!!!  ( and withInnerGroup() should fail if there are sprites in the way )
+
+    // Main.deployTest(builder.outMap)
   }
 
 

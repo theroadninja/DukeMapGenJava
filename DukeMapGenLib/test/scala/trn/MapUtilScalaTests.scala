@@ -178,4 +178,27 @@ class MapUtilScalaTests {
     ))
   }
 
+  @Test
+  def testOpposingWallLoop: Unit = {
+    val walls = Seq(
+      testWall(1, p(0, 0), p(5, 10)),
+      testWall(2, p(5, 10), p(10, 0)),
+      testWall(3, p(10, 0), p(0, 0)),
+    )
+
+    val walls2 = MapUtilScala.opposingRedwallLoop(walls)
+    Assert.assertEquals(walls.size, walls2.size)
+
+    Assert.assertEquals(walls(0).p2, walls(1).p1)
+    Assert.assertEquals(walls(1).p2, walls(2).p1)
+    Assert.assertEquals(walls(2).p2, walls(0).p1)
+    Assert.assertEquals(walls2(0).p2, walls2(1).p1)
+    Assert.assertEquals(walls2(1).p2, walls2(2).p1)
+    Assert.assertEquals(walls2(2).p2, walls2(0).p1)
+
+    Assert.assertTrue(walls(0).isBackToBack(walls2(2)))
+    Assert.assertTrue(walls(1).isBackToBack(walls2(1)))
+    Assert.assertTrue(walls(2).isBackToBack(walls2(0)))
+  }
+
 }
