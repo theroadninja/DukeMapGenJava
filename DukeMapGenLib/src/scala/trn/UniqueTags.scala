@@ -16,10 +16,6 @@ import trn.FuncImplicits._
   */
 object UniqueTags {
 
-  def toScalaMap(map: java.util.Map[Integer, Integer]): scala.collection.immutable.Map[Int, Int] = {
-    map.asScala.map{case (k, v) => k.intValue -> v.intValue}.toMap
-  }
-
   def usedUniqueTags(cfg: GameConfig, map: DMap): Set[Int] = {
     require(Option(cfg).isDefined && Option(map).isDefined)
     val tags = map.allSprites.flatMap(s => cfg.uniqueTags(s)) ++ map.allWalls.flatMap(w => cfg.uniqueTags(w))

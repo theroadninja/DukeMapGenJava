@@ -897,6 +897,7 @@ public class Map implements WallContainer {
 
 	/**
 	 *
+	 * TODO - this belons on a math-related class, not here
 	 * @param points
 	 * @return true if the points are clockwise FROM THE POV OF THE BUILD EDITOR...which probably actualls means they
 	 * are counter clockwise.
@@ -910,6 +911,10 @@ public class Map implements WallContainer {
 			sum += determinant(points[i], points[j]);
 		}
 		return sum > 0;
+	}
+
+	static boolean isClockwise(Collection<PointXY> points){
+		return isClockwise(points.toArray(new PointXY[]{}));
 	}
 
 }

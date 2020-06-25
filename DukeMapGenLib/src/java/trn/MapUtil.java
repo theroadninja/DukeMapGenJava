@@ -205,12 +205,12 @@ public class MapUtil {
 			destMap.getWall(wid).translateIds(cpstate.idmap, false);
 
 			// update the lotag if the wall is a door
-			cfg.updateUniqueTagInPlace(destMap.getWall(wid), UniqueTags$.MODULE$.toScalaMap(cpstate.idmap.tagMap));
+			cfg.updateUniqueTagInPlace(destMap.getWall(wid), MapUtilScala$.MODULE$.toScalaMap(cpstate.idmap.tagMap));
 		}
 		for(int spriteId: cpstate.spritesToUpdate){
 			cfg.updateUniqueTagInPlace(
 					destMap.getSprite(spriteId),
-					UniqueTags$.MODULE$.toScalaMap(cpstate.idmap.tagMap)
+					MapUtilScala$.MODULE$.toScalaMap(cpstate.idmap.tagMap)
 			);
 		}
 	}

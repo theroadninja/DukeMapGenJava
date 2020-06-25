@@ -18,6 +18,21 @@ public class LineSegmentXYTests {
     }
 
     @Test
+    public void testMidpoint(){
+        Assert.assertEquals(p(5, 0), line(p(0, 0), p(10, 0)).midpoint());
+        Assert.assertEquals(p(5, 0), line(p(0, 0), p(11, 0)).midpoint());
+        Assert.assertEquals(p(5, 0), line(p(10, 0), p(0, 0)).midpoint());
+        Assert.assertEquals(p(-5, 0), line(p(0, 0), p(-10, 0)).midpoint());
+        Assert.assertEquals(p(0, 5), line(p(0, 0), p(0, 10)).midpoint());
+        Assert.assertEquals(p(0, -5), line(p(0, 0), p(0, -10)).midpoint());
+        Assert.assertEquals(p(0, -5), line(p(0, 0), p(0, -11)).midpoint());
+        Assert.assertEquals(p(15, 30), line(p(10, 20), p(20, 40)).midpoint());
+        Assert.assertEquals(p(15, -10), line(p(10, 20), p(20, -40)).midpoint());
+        Assert.assertEquals(p(-5, 30), line(p(10, 20), p(-20, 40)).midpoint());
+        Assert.assertEquals(p(-5, -10), line(p(10, 20), p(-20, -40)).midpoint());
+    }
+
+    @Test
     public void testGetVector(){
         Assert.assertEquals(line(p(0, 0), p( 1,  1)).getVector(), p( 1,  1));
         Assert.assertEquals(line(p(1, 1), p( 0, 0)).getVector(), p(-1, -1));

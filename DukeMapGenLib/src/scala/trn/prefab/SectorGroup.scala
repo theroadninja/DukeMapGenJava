@@ -111,6 +111,40 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   /**
+    * Pastes one sector group, innerGroup, inside this group.   The exact placement is determined by calculating the
+    * translate that lines up the anchors.
+    *
+    * @param innerGroup the group to be pasted inside this one
+    * @param innerAnchor location of anchoring sprite in inner group
+    * @param destSectorId sector id of the sector to paste the group into
+    * @param destAnchor location of the anchoring sprite in the destination
+    * @return a copy of this sector group, but with `innerGroup` pasted inside it, in sector `pasteSectorId`
+    */
+  def withInnerGroup(
+    innerGroup: SectorGroup,
+    innerAnchor: PointXYZ,
+    destSectorId: Int,
+    destAnchor: PointXYZ
+  ): SectorGroup = {
+
+    val dest = this.copy()
+
+    // calculate the outer boundary of `innerGroup` - in the form of a multi sector connector?
+    // insert a wall loop of same dimensions in dest sector, position using the anchors
+    //    - calculate transform using anchors
+    //    - ensure the space is clear
+    // paste and link
+    ???
+  }
+
+  def withOuterBoundaryConnector: (SectorGroup, RedwallConnector, PointXY) = {
+    // the last PointXY is some kind of anchor offset
+
+
+    ???
+  }
+
+  /**
     * @return a copy of this sector group, flipped about the X axis
     */
   def flippedX(x: Int): SectorGroup = {

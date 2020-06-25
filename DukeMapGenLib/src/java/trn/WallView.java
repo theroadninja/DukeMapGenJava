@@ -61,6 +61,35 @@ public class WallView {
         return getLineSegment().toList();
     }
 
+    /**
+     * Tests if this wall is "contiguous" with another wall, based on the point locations alone, meaning that they
+     * share a point.  If strict==true, they must not only share a point but one wall must start where the other ends
+     * (walls are directional, going from p1 to p2).
+     *
+     * Contiguous:
+     *   +------>+------>
+     *
+     * Not Contiguous if strict == true:
+     *   +------><-------+
+     *   <------++------->
+     *
+     * @param other the other wall to compare to this
+     * @param strict if true, only returns true if one wall starts where another wall ends.  if false, two walls
+     *               that start at the same point count as contiguous
+     * @return true if this wall shared a point with the other wall AND they are both going in the same direction.
+     */
+    public boolean contiguous(WallView other, boolean strict){
+        if(strict){
+            return this.p1().equals(other.p2()) || this.p2().equals(other.p1());
+        }else{
+            return this.p1().equals(other.p1()) || this.p1().equals(other.p2()) || this.p2().equals(other.p1()) || this.p2().equals(other.p2());
+        }
+    }
+
+    public boolean contiguous(WallView other){
+        return contiguous(other, true);
+    }
+
     // @Override
     // public boolean equals(Object obj){
     //     if(!(obj instanceof WallView)){

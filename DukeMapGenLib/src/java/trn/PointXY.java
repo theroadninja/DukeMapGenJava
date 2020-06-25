@@ -264,7 +264,7 @@ public class PointXY {
 	}
 
 	/**
-	 * TODO - revamp this whole API
+	 * TODO - revamp this whole API (see IntersectXY)
 	 *
 	 * Clone of insertsect() above, except that it returns the factor used to multiply the unit vectors that define
 	 * the intersection.
@@ -307,6 +307,8 @@ public class PointXY {
 			}
 		}
 	}
+
+
 
 
 	/** intersect a ray with a line segment */

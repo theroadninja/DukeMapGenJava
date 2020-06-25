@@ -42,6 +42,13 @@ public class LineSegmentXY {
         return this.p2;
     }
 
+    /** @returns integer approximation of midpoint */
+    public PointXY midpoint(){
+        int mx = this.p1.x + (this.p2.x - this.p1.x) / 2;
+        int my = this.p1.y + (this.p2.y - this.p1.y) / 2;
+        return new PointXY(mx, my);
+    }
+
     public LineSegmentXY reversed(){
         return new LineSegmentXY(p2, p1);
     }

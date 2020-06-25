@@ -4,7 +4,7 @@ import java.io.{ByteArrayInputStream, File, FileInputStream}
 
 import org.apache.commons.io.IOUtils
 import org.junit.{Assert, Test}
-import trn.{AngleUtil, HardcodedConfig, LineSegmentXY, MapView, PointXY, Sprite, Wall, WallView, Map => DMap}
+import trn.{AngleUtil, HardcodedConfig, LineSegmentXY, LineXY, MapView, PointXY, Sprite, Wall, WallView, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -445,6 +445,66 @@ class ConnectorScannerTests {
 
 
     // For more tests, see MultiSectorConnectorTests
+  }
+
+  @Test
+  def testLineIntersectSorted(): Unit = {
+
+    val walls = Seq(
+      testWall(2, p(16, 0), p(16, -64), -1),
+      testWall(3, p(24, 0), p(32, -64), -1),
+      testWall(4, p(32, 0), p(24, -64), -1),
+      testWall(5, p(48, -96), p(48, -32), -1),
+      testWall(6, p(64, -32), p(64, 0), -1),
+      testWall(1, p(8, -64), p(8, 0), -1),
+      testWall(12, p(192, 0), p(256, -64), -1),
+      testWall(7, p(80, 0), p(80, -32), -1),
+      testWall(8, p(96, -128), p(96, -33), -1), // does not interset
+      testWall(9, p(112, -33), p(112, -128), -1), // does not intersect
+      testWall(10, p(128, -32), p(144, -32), -1), // parallel
+      testWall(11, p(160, -64), p(176, -64), -1), // parllel
+    )
+    val results = ConnectorScanner.lineIntersectSorted(new LineXY(p(0, -32), p(1, 0)), walls)
+    Assert.assertEquals(8, results.size)
+    Assert.assertTrue(results.head.getWallId == 1 || results.last.getWallId == 1)
+    Assert.assertTrue(results.head.getWallId == 12 || results.last.getWallId == 12)
+
+
+    /*          1
+     *  /\--------------->
+     *  |                |
+     *  |   <-------/\   |2   /\----->
+     *  |   |       |    |    |      |
+     *  |   |       <----\/   |      |      /\--->
+     *  |   |                 |      |      |    |
+     *  |   \/---------------->      \/----->    |
+     *  |                                        |
+     *  <---------------------------------------\/
+     */
+    val intervieweesNightmare = Seq(
+      testWall(1, p(10, 70), p(40, 70)),
+      testWall(2, p(40, 70), p(40, 50)),
+      testWall(3, p(40, 50), p(30, 50)),
+      testWall(4, p(30, 50), p(30, 60)),
+      testWall(5, p(30, 60), p(20, 60)),
+      testWall(6, p(20, 60), p(20, 40)),
+      testWall(7, p(20, 40), p(50, 40)),
+      testWall(8, p(50, 40), p(50, 60)),
+      testWall(9, p(50, 60), p(70, 60)),
+      testWall(10, p(70, 60), p(70, 40)),
+      testWall(11, p(70, 40), p(80, 40)),
+      testWall(12, p(80, 40), p(80, 50)),
+      testWall(13, p(80, 50), p(90, 50)),
+      testWall(14, p(90, 50), p(90, 30)),
+      testWall(15, p(90, 30), p(10, 30)),
+      testWall(16, p(10, 30), p(10, 70)),
+    )
+    val results2 = ConnectorScanner.lineIntersectSorted(new LineXY(p(0, 50), p(1, 0)), intervieweesNightmare)
+    println(results2.map(_.getWallId))
+    Assert.assertEquals(8, results2.size)
+
+    val results3 = if(results2.head.getWallId == 16){ results2 } else { results2.reverse }
+    Assert.assertTrue(results3.map(_.getWallId).equals(Seq(16, 6, 4, 2, 8, 10, 12, 14)))
   }
 
 }

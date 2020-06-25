@@ -1,6 +1,6 @@
 package trn.prefab
 
-import trn.{AngleUtil, DukeConstants, IRayXY, ISpriteFilter, LineSegmentXY, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
+import trn.{AngleUtil, DukeConstants, IRayXY, ISpriteFilter, IntersectXY, LineSegmentXY, LineXY, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
 import trn.MapImplicits._
 import org.apache.commons.lang3.tuple.{Pair => ApachePair}
 
@@ -116,6 +116,24 @@ object ConnectorScanner {
       val (closest, _) = intersectedWalls.minBy(_._2)
       Some(closest)
     }
+  }
+
+  /**
+    * return those wall which intersect the line ordered by their intersection points (so the first wall in the seq
+    * is the last intersection you would see if you traveled along the line to infinity, and the last wall in the seq
+    * is the last insersection you would see if you traveled along the line in the opposite direction)
+    *
+    * Note: parallel lines are not counted as intersections.
+    *
+    * @param line
+    * @param walls
+    * @return
+    */
+  def lineIntersectSorted(line: LineXY, walls: Iterable[WallView]): Seq[WallView] = {
+    walls.flatMap { wall =>
+      val wline = wall.getLineSegment
+      Option(IntersectXY.lineSegmentIntersect(line, wline)).map(intersect => (wall, intersect.getLeft))
+    }.toSeq.sortBy(_._2).map(_._1)
   }
 
   /**
