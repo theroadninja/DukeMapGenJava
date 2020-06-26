@@ -347,6 +347,12 @@ public class TextureList {
 
 		// TODO - which is the invisible one?
 	}
+
+	/** nothing special, just random textures */
+	public static class Other {
+	    public static int NICE_GRAY_BRICK = 461;
+
+	}
 	
 	//TODO:  add door tiles, see 150
 	

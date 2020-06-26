@@ -110,9 +110,11 @@ public class PrefabUtils {
 		 */
 		public static int ITEM = 9;
 
+		/**
+		 * Reserved for hardcoded experiments and algorithms that do not take input.
+		 */
+		public static int INTERNAL_RESERVED = 10;
 
-
-		// TODO - COPY_AND_PASTE_? = 10. ?
 
 		/**
 		 * Elevator Connector

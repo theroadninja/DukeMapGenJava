@@ -292,6 +292,11 @@ public class Wall {
 	public int getOtherWall(){
 		return this.nextWall;
 	}
+
+	/** sector on the other side of the redwall; should be -1 if this is not a redwall */
+	public int getOtherSector(){
+		return this.nextSector;
+	}
 	
 	public void setTexture(int texture){
 		this.picnum = (short)texture;

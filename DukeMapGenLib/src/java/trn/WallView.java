@@ -1,5 +1,6 @@
 package trn;
 
+import javax.sound.sampled.Line;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +55,10 @@ public class WallView {
         if(!wall.getLocation().equals(wallSegement.getP1())){
             throw new IllegalArgumentException("point mismatch between wall and line segment");
         }
+    }
+
+    public WallView(Wall wall, int wallId, PointXY p1, PointXY p2){
+        this(wall, wallId, new LineSegmentXY(p1, p2));
     }
 
     public final int getWallId(){
@@ -214,6 +219,10 @@ public class WallView {
         return wall.nextWall;
     }
 
+    public final int otherSectorId(){
+        return wall.nextSector;
+    }
+
     public final int tex(){
         return wall.getTexture();
     }
@@ -240,5 +249,13 @@ public class WallView {
 
     public final Wall getWall(){
         return this.wall;
+    }
+
+    public static List<Wall> toWalls(List<WallView> views){
+        List<Wall> walls = new ArrayList<Wall>(views.size());
+        for(WallView view: views){
+            walls.add(view.getWall());
+        }
+        return walls;
     }
 }

@@ -214,6 +214,9 @@ public class Sector {
 	public short getFirstWall(){
 		return this.firstWall;
 	}
+
+
+	// TODO - is this wrong?  is it relative?
 	public void setFirstWall(int wallId){
 		this.firstWall = (short)wallId;
 	}

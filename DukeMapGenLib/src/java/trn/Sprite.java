@@ -248,6 +248,9 @@ public class Sprite implements IRayXY {
 	public short getSectorId(){
 		return this.sectnum;
 	}
+	void setSectorId(int i){
+		this.sectnum = (short)i;
+	}
 	
 	public short getTexture(){
 		return this.picnum;

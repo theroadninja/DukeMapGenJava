@@ -1,8 +1,10 @@
 package trn
 
-import trn.prefab.{ConnectorScanner, MathIsHardException, RedwallConnector, SectorGroup}
+import trn.prefab.{ConnectorScanner, GameConfig, MathIsHardException, Polygon, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.{Map => DMap}
 
 import scala.collection.JavaConverters._
+import trn.MapImplicits._
 import scala.collection.mutable
 
 object MapUtilScala {
@@ -103,5 +105,91 @@ object MapUtilScala {
     * @return
     */
   def opposingRedwallLoop(wallLoop: Seq[WallView]): Seq[WallView] = wallLoop.reverse.map(_.reversed())
+
+
+  /**
+    * Copies an entire sector group _inside_ a single sector in the destination map, automatically creating the red
+    * walls.
+    *
+    * The sector group will be positioned such that sourceAnchor and destAnchor are in the same place.
+    *
+    * @param sourceGroup the group to paste
+    * @param sourceAnchor  anchoring sprite location inside the source group, matched with destAnchor
+    * @param destMap  map to paste into
+    * @param destSectorId id of sector in destMap to paste into
+    * @param destAnchor destination anchoring sprite, matched with sourceAnchor
+    * @param gameConfig config object that describes how to map unique ids
+    */
+  def copyGroupIntoSector(
+    sourceGroup: SectorGroup,
+    sourceAnchor: PointXYZ,
+    destMap: DMap,
+    destSectorId: Int,
+    destAnchor: PointXYZ,
+    gameConfig: GameConfig
+  ): Unit = {
+
+    // 1. calculate the border
+    val sourceBorder = MapUtilScala.outerBorderDfs(sourceGroup.getAllWallViews)
+    require(DMap.isClockwise(sourceBorder.map(_.p1).asJava))
+
+    val delta = sourceAnchor.getTransformTo(destAnchor)
+    val destBorder = MapUtilScala.opposingRedwallLoop(sourceBorder.map(_.translated(delta)))
+    for(i <- 0 until destBorder.size){
+      require(destBorder(i).p2 == destBorder((i+1) % destBorder.size).p1)
+    }
+
+    // 2. ensure the space is clear
+    destMap.allWallViews.foreach { w0 =>
+      destBorder.foreach { w1 =>
+        if(w0.getLineSegment.intersects(w1.getLineSegment)){
+          val msg = s"Cannot paste inner group, wall intersection: ${w0.getLineSegment} x ${w1.getLineSegment}"
+          throw new SpriteLogicException(msg)
+        }
+      }
+    }
+    destMap.allSprites.find { sprite =>
+      Polygon.containsExclusive2(destBorder, sprite.getLocation.asXY()) && sprite.getTex != PrefabUtils.MARKER_SPRITE_TEX
+    }.foreach { sprite =>
+      throw new SpriteLogicException(s"Cannot paste inner group, sprite in the way", sprite)
+    }
+
+    // 3. make sure all the points are in the destination sector
+    val destSectorLoop = destMap.getOuterWallLoop(destSectorId)
+    destBorder.flatMap(w => w.points().asScala).find{ p =>
+      !Polygon.containsExclusive2(destSectorLoop, p)
+    }.foreach { outOfBounds =>
+      val msg = s"trying to paste group inside sector but wall point ${outOfBounds} does not fit inside dest sector"
+      throw new SpriteLogicException(msg)
+    }
+
+    // 4. add the loop
+    val outerWallIds = destMap.addLoopToSector(destSectorId, destBorder.map(_.getWall).asJava).asScala.map(_.toInt)
+    val test1 = outerWallIds.map(destMap.getWallView(_))
+    require(destBorder.flatMap(_.points().asScala).toSet == test1.flatMap(_.points().asScala).toSet)
+
+    // 5. paste and link
+    // Note: similar code in RedwallConnector.linkConnectors()
+    val copyState = MapUtil.copySectorGroup(gameConfig, sourceGroup.map, destMap, 0, delta);
+    val innerWallIds = sourceBorder.map(_.getWallId).map(wallId => copyState.idmap.wall(wallId)).map(_.toInt)
+    require(outerWallIds.size == innerWallIds.size)
+
+    val outerWalls = outerWallIds.map(destMap.getWallView(_))
+    for(i <- 0 until outerWalls.size){
+      require(outerWalls(i).p2 == outerWalls((i+1) % outerWalls.size).p1)
+    }
+    // println(s"outer loop: ${outerWallIds.map(dest.map.getWallView(_).getLineSegment)}")
+    // println(s"inner loop: ${innerWallIds.map(dest.map.getWallView(_).getLineSegment)}")
+
+    val wallIdToSectorId = new MapView(destMap).newWallIdToSectorIdMap
+    outerWallIds.reverse.zip(innerWallIds).foreach { case (outerId, innerId) =>
+      //println(destMap.getWallView(outerId).getLineSegment)
+      //println(destMap.getWallView(innerId).getLineSegment)
+      require(destMap.getWallView(outerId).isBackToBack(destMap.getWallView(innerId)))
+      val newSectorId = wallIdToSectorId(innerId)
+      destMap.linkRedWalls(destSectorId, outerId, newSectorId, innerId)
+    }
+
+  }
 
 }
