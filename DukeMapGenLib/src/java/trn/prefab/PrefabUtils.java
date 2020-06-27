@@ -11,6 +11,10 @@ import java.util.List;
 // TODO - for the hint sprites, see: SectorGroupHints
 
 // TODO - idea:  marker that autopopulates rats to sector (hitag is number of rats to add)
+
+// TODO - reorder these markers before relasing (maybe space them out with reserved numbers in between)
+//        (can build a scanner to find them in all my test maps)
+
 public class PrefabUtils {
 
 	public static class MarkerHiTags {
@@ -115,6 +119,21 @@ public class PrefabUtils {
 		 */
 		public static int INTERNAL_RESERVED = 10;
 
+		/**
+		 * This is for a companion sector group that is connected only via water/teleporters/elevators,
+		 * and not by redwalls.  This companion sector must be pasted and linked to its parent, however
+		 * it can be pasted anyway.
+		 *
+		 * See REDWALL_CHILD for a child group that connects via a redwall.
+         *
+		 * All teleporer and elevator connectors between groups must match via connector ids.
+		 *
+		 * TODO - water automatic?
+         *
+		 * Lotag: 11
+		 * Hitag:  matches sector group id of parent sector group
+		 */
+		public static int TELEPORT_CHILD = 11;
 
 		/**
 		 * Elevator Connector

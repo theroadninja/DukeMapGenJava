@@ -112,6 +112,8 @@ object DukeConfig {
   /** tiles that can trigger activators.  NOT the same as "tiles that look like doors" */
   private[prefab] lazy val DoorTiles: Seq[Int] = TextureList.DOORS.ALL.asScala.map(_.intValue)
 
+  private[prefab] lazy val ForceFields: Seq[Int] = TextureList.ForceFields.ALL.asScala.map(_.intValue)
+
   private[prefab] lazy val Fems: Seq[Int] = TextureList.FEM.ALL.asScala.map(_.intValue)
 
   val KeyColors: Seq[Int] = Seq(PaletteList.KEYCARD_BLUE, PaletteList.KEYCARD_RED, PaletteList.KEYCARD_YELLOW)
@@ -132,6 +134,8 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
   }
 
   def isDoor(tex: Int): Boolean = DukeConfig.DoorTiles.contains(tex)
+
+  def isForceField(tex: Int): Boolean = DukeConfig.ForceFields.contains(tex)
 
   def isFem(tex: Int): Boolean = DukeConfig.Fems.contains(tex)
 
@@ -181,10 +185,12 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
   }
 
   def uniqueTags(wall: Wall): Seq[Int] = {
-    if(isDoor(wall.getTex) && wall.getLotag != 0){
-      Seq(wall.getLotag).filterNot(_ == 0)
-    }else{
-      Seq.empty
+    Seq(wall.getTex, wall.getMaskTex).flatMap { tex =>
+      if(isDoor(tex) || isForceField(tex)){
+        Seq(wall.getLotag).filterNot(_ == 0)
+      }else{
+        Seq.empty
+      }
     }
   }
 
@@ -199,9 +205,11 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
   }
 
   override def updateUniqueTagInPlace(wall: Wall, idMap: Map[Int, Int]): Unit = {
-    if(isDoor(wall.getTex) && wall.getLotag > 0){
+    if((isDoor(wall.getTex) || isForceField(wall.getTex)) && wall.getLotag > 0){
       wall.setLotag(idMap(wall.getLotag))
     }
-
+    if((isDoor(wall.getMaskTex) || isForceField(wall.getMaskTex)) && wall.getLotag > 0){
+      wall.setLotag(idMap(wall.getLotag))
+    }
   }
 }

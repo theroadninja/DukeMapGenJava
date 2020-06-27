@@ -25,7 +25,9 @@ object MoonBase1 {
   def run(gameCfg: GameConfig): Unit = {
     val writer = MapWriter(gameCfg)
     try{
-      run(gameCfg, writer)
+      // run(gameCfg, writer)
+      runTest(gameCfg, writer)
+
       Main.deployTest(writer.outMap)
     }catch{
       case ex: Throwable => {
@@ -37,6 +39,49 @@ object MoonBase1 {
 
     }
   }
+
+  def pasteInSequence(writer: MapWriter, startPsg: PastedSectorGroup, startConn: RedwallConnector, groups: Seq[SectorGroup]): PastedSectorGroup = {
+    SpriteLogicException.throwIf(groups.exists(_.allRedwallConnectors.isEmpty), "Sector group missing connector")
+
+    val (psg, _) = groups.foldLeft(  (startPsg, Option(startConn))){ case ((psg, conn), sg) =>
+      println(s"pasting sg ${sg.getGroupId}")
+      val psg2 = writer.tryPasteConnectedTo(psg, conn.get, sg, PasteOptions()).get
+      val conn2 = psg2.unlinkedRedwallConnectors.headOption
+      (psg2, conn2)
+    }
+    psg
+  }
+
+  def runTest(gameCfg: GameConfig, writer: MapWriter): Unit = {
+    val spacePalette = MapLoader.loadPalette(getSpaceMap)
+    val moonPalette = MapLoader.loadPalette(getMoonMap)
+
+    // TODO: maybe these belong in some kind of custom, scenario-specific palette
+    val doors = Seq(1, 4).map(spacePalette.getSG)
+    val startingAreas = Seq(2).map(moonPalette.getSG(_))
+
+    val center = writer.pasteSectorGroupAt(moonPalette.getSectorGroup(1), PointXYZ.ZERO)
+    val openConns = writer.randomShuffle(center.redwallConnectors).toSeq
+
+
+    val sgs0 = Seq(
+      writer.randomElement(doors),
+      writer.randomElement(startingAreas)
+    )
+    val psg0 = pasteInSequence(writer, center, openConns(0), sgs0)
+
+    val elevatorTop = moonPalette.getSectorGroup(12)
+    writer.tryPasteConnectedTo(center, elevatorTop, PasteOptions())
+
+
+
+    writer.disarmAllSkyTextures()
+    writer.setAnyPlayerStart(force = true)
+    writer.sgBuilder.clearMarkers()
+    writer.checkSectorCount()
+  }
+
+
   def run(gameCfg: GameConfig, writer: MapWriter): Unit = {
 
     // TODO - compare space.map in proj folder and in workspace and fail fast if they are different (proj version
@@ -55,17 +100,6 @@ object MoonBase1 {
     val endSetPieces = setPieces.filter(_.allRedwallConnectors.size > 1)
     val endPieces = moonPalette.allSectorGroups.asScala.filter(_.containsSprite(s => s.getTex == TextureList.Switches.NUKE_BUTTON))
 
-    def pasteInSequence(writer: MapWriter, startPsg: PastedSectorGroup, startConn: RedwallConnector, groups: Seq[SectorGroup]): PastedSectorGroup = {
-      SpriteLogicException.throwIf(groups.exists(_.allRedwallConnectors.isEmpty), "Sector group missing connector")
-
-      val (psg, _) = groups.foldLeft(  (startPsg, Option(startConn))){ case ((psg, conn), sg) =>
-        println(s"pasting sg ${sg.getGroupId}")
-        val psg2 = writer.tryPasteConnectedTo(psg, conn.get, sg, PasteOptions()).get
-        val conn2 = psg2.unlinkedRedwallConnectors.headOption
-        (psg2, conn2)
-      }
-      psg
-    }
 
     def withKey(sg: SectorGroup, keyColor: Int): SectorGroup = {
       require(DukeConfig.KeyColors.contains(keyColor))

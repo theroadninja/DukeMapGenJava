@@ -19,6 +19,13 @@ class UniqueTagsTests {
     ww
   }
 
+  def mask(tex: Int, lotag: Int, maskTex: Int): Wall ={
+    val ww = new Wall(0, 0, tex)
+    ww.setLotag(lotag)
+    ww.setMaskTex(maskTex)
+    ww
+  }
+
   @Test
   def testFindGap(): Unit = {
     Assert.assertEquals(0, UniqueTags.findGap(Set.empty, 0, 1))
@@ -109,9 +116,6 @@ class UniqueTagsTests {
     val results2 = UniqueTags.getUniqueTagCopyMap(cfg, sourceSprites, sourceWalls, usedUniqueDestTags2)
     val expected2 = scala.collection.immutable.Map(123 -> 4, 124 -> 5, 125 -> 6, 1 -> 2, 6000 -> 9)
     Assert.assertTrue(results2 == expected2)
-
-    // TODO - do a test with no groups, and a test with no singles,
-
   }
 
   @Test
@@ -160,5 +164,42 @@ class UniqueTagsTests {
     val expected1 = scala.collection.immutable.Map(123 -> 20, 124 -> 21, 125 -> 22, 300 -> 23, 301 -> 24, 302 -> 25, 303 -> 26)
     Assert.assertTrue(results1 == expected1)
 
+  }
+
+  @Test
+  def testGetUniqueTagCopyMapWithForceFields(): Unit = {
+    val cfg: GameConfig = DukeConfig.empty
+
+    val sourceSprites = Set[Sprite](
+      se(1, Lotags.SE.ROTATE), // this gets mapped
+      se(1, 2),
+      se(1, 4),
+      se(1, 5),
+      se(123, Lotags.SE.TWO_WAY_TRAIN) // 123,124, 125
+    )
+    val sourceWalls: Set[Wall] = Set(
+      w(355, 5),
+      w(TextureList.DOORS.DOORTILE1, 6000), // this gets mapped
+      w(TextureList.ForceFields.W_FORCEFIELD, 12345),
+      mask(355, 15000, TextureList.ForceFields.W_FORCEFIELD),
+    )
+
+    // test0 - empty unique tags
+    val results0 = UniqueTags.getUniqueTagCopyMap(cfg, sourceSprites, sourceWalls, Set.empty[Int])
+    val expected0 = scala.collection.immutable.Map(123 -> 1, 124 -> 2, 125 -> 3, 1 -> 4, 6000 -> 5, 12345 -> 6, 15000 -> 7)
+    Assert.assertTrue(results0 == expected0)
+
+    // test1 - TWO WAY processed first (also, note that is skips zero)
+    val usedUniqueDestTags1: Set[Int] = Set(4, 5, 7, 9) // 1, 2, 3, 6, 8
+    Assert.assertEquals(0, UniqueTags.findGap(usedUniqueDestTags1, 0, 3))
+    val results1 = UniqueTags.getUniqueTagCopyMap(cfg, sourceSprites, sourceWalls, usedUniqueDestTags1)
+    val expected1 = scala.collection.immutable.Map(123 -> 1, 124 -> 2, 125 -> 3, 1 -> 6, 6000 -> 8, 12345 -> 10, 15000 -> 11)
+    Assert.assertTrue(results1 == expected1)
+
+    // test2 - TWO WAY processed first; not enought room
+    val usedUniqueDestTags2: Set[Int] = Set(0, 1, 3, 7, 8) // 2, 4, 5, 8
+    val results2 = UniqueTags.getUniqueTagCopyMap(cfg, sourceSprites, sourceWalls, usedUniqueDestTags2)
+    val expected2 = scala.collection.immutable.Map(123 -> 4, 124 -> 5, 125 -> 6, 1 -> 2, 6000 -> 9, 12345 -> 10, 15000 -> 11)
+    Assert.assertTrue(results2 == expected2)
   }
 }

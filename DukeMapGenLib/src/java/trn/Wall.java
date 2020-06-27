@@ -310,6 +310,15 @@ public class Wall {
 	public int getTex(){
 		return this.picnum;
 	}
+
+	/** texture of the wall's masked wall (different from the wall texture -- think of a window) */
+	public int getMaskTex(){
+		return this.overpicnum;
+	}
+
+	public void setMaskTex(int i){
+		this.overpicnum = (short)i;
+	}
 	
 	public Wall addCstat(int flag){
 		this.cstat |= flag;
@@ -380,6 +389,10 @@ public class Wall {
 
 	public void setLotag(int i){
 		this.lotag = (short)i;
+	}
+
+	public void setHitag(int i){
+		this.hitag = (short)i;
 	}
 	
 	

@@ -214,18 +214,24 @@ public class TextureList {
 	
 	public static final class Switches {
 		public static final int ACCESS_SWITCH = 130; //for keycards
-		
+		public static final int ACCESS_SWITCH_OFF = 131;
+
 		public static final int SLOT_DOOR = 132; //left or right switch
-		
+        public static final int SLOT_DOOR_OFF = 133;
+
 		public static final int LIGHT_SWITCH = 134; //an up or down switch
-		
+        public static final int LIGHT_SWITCH_OFF = 135;
+
 		public static final int SPACE_DOOR_SWITCH = 136; //rotates around center
+		public static final int SPACE_DOOR_SWITCH_OFF = 137;
 		
 		public static final int SPACE_LIGHT_SWITCH = 138; //swings around a corner
-		
+		public static final int SPACE_LIGHT_SWITCH_OFF = 139;
+
 		/** looks like a big breaker switch */
 		public static final int FRANKENSTINE_SWITCH = 140;
-		
+		public static final int FRANKENSTINE_SWITCH_OFF = 141;
+
 		/**
 		 * End of level switch.
 		 * needs a lotag of 65535 to work (according to a site i found, any non-zero lotag will work, and the
@@ -239,51 +245,69 @@ public class TextureList {
 		
 		/** switch with 4 positions, like in the death row level */
 		public static final int MULTI_SWITCH = 146;
-		
+		public static final int MULTI_SWITCH_B = 147;
+		public static final int MULTI_SWITCH_C = 148;
+		public static final int MULTI_SWITCH_D = 149;
+
 		/** the classic red button (circle), often linked together */
 		public static final int DIP_SWITCH = 162;
-		
+		public static final int DIP_SWITCH_OFF = 163;
+
 		/** square button */
 		public static final int DIP_SWITCH_2 = 164;
-		
+		public static final int DIP_SWITCH_2_OFF = 165;
+
 		/** bar that rotates */
 		public static final int TECH_SWITCH = 166;
-		
+		public static final int TECH_SWITCH_OFF = 167;
+
 		/** whole thing glows red or green */
 		public static final int DIP_SWITCH_3 = 168;
-		
+		public static final int DIP_SWITCH_3_OFF = 169;
+
 		/** for key cards; the space version */
 		public static final int ACCESS_SWITCH_2 = 170;
-		
+		public static final int ACCESS_SWITCH_2_OFF = 171;
+
 		/** standard, boring home light switch */
 		public static final int LIGHT_SWITCH_2 = 712;
-		
+		public static final int LIGHT_SWITCH_2_OFF = 713;
+
 		/** outdoor switch wired to box */
 		public static final int POWER_SWITCH_1 = 860;
-		
+		public static final int POWER_SWITCH_1_OFF = 861;
+
 		/** giant lever that goes between "open" and "locked" */
 		public static final int LOCK_SWITCH_1 = 862;
-		
+		public static final int LOCK_SWITCH_1_OFF = 863;
+
 		/** surrounded by yellow/black bars, goes between "off" and "on" */
 		public static final int POWER_SWITCH_2 = 864;
-		
+		public static final int POWER_SWITCH_2_OFF = 865;
+
 		/** green alien handprint button */
 		public static final int HAND_SWITCH = 1111;
-		
+		public static final int HAND_SWITCH_OFF = 1112;
+
 		/** alien switch that flips left or right */
 		public static final int PULL_SWITCH = 1122;
-		
-		
+		public static final int PULL_SWITCH_OFF = 1123;
+
 		/** green sphincter */
 		public static final int ALIEN_SWITCH = 1142;
-		
+		public static final int ALIEN_SWITCH_OFF = 1143;
+
 		/** painted hand; only has one tile */
 		public static final int HANDPRINT_SWITCH = 1155;
 		
-		public static final List<Integer> ALL = Arrays.asList(new Integer[]{ ACCESS_SWITCH, SLOT_DOOR, LIGHT_SWITCH, SPACE_DOOR_SWITCH,
-			SPACE_LIGHT_SWITCH, FRANKENSTINE_SWITCH,  NUKE_BUTTON, MULTI_SWITCH, DIP_SWITCH, DIP_SWITCH_2,
-			TECH_SWITCH, DIP_SWITCH_3, ACCESS_SWITCH_2, LIGHT_SWITCH_2, POWER_SWITCH_1, LOCK_SWITCH_1, POWER_SWITCH_2,
-			HAND_SWITCH, PULL_SWITCH, ALIEN_SWITCH, HANDPRINT_SWITCH
+		public static final List<Integer> ALL = Arrays.asList(new Integer[]{ ACCESS_SWITCH, ACCESS_SWITCH_OFF, SLOT_DOOR,
+			SLOT_DOOR_OFF, LIGHT_SWITCH, LIGHT_SWITCH_OFF, SPACE_DOOR_SWITCH, SPACE_DOOR_SWITCH_OFF, SPACE_LIGHT_SWITCH,
+			SPACE_LIGHT_SWITCH_OFF, FRANKENSTINE_SWITCH,  FRANKENSTINE_SWITCH_OFF, NUKE_BUTTON, MULTI_SWITCH,
+			MULTI_SWITCH_B, MULTI_SWITCH_C, MULTI_SWITCH_D, DIP_SWITCH, DIP_SWITCH_OFF, DIP_SWITCH_2, DIP_SWITCH_2_OFF,
+			TECH_SWITCH, TECH_SWITCH_OFF, DIP_SWITCH_3, DIP_SWITCH_3_OFF, ACCESS_SWITCH_2, ACCESS_SWITCH_2_OFF,
+			LIGHT_SWITCH_2, LIGHT_SWITCH_2_OFF, POWER_SWITCH_1, POWER_SWITCH_1_OFF, LOCK_SWITCH_1, LOCK_SWITCH_1_OFF,
+			POWER_SWITCH_2, POWER_SWITCH_2_OFF, HAND_SWITCH, HAND_SWITCH_OFF, PULL_SWITCH, PULL_SWITCH_OFF,
+			ALIEN_SWITCH, ALIEN_SWITCH_OFF, HANDPRINT_SWITCH
 		});
 	}
 	
@@ -345,7 +369,7 @@ public class TextureList {
 		/** the invisible one that shouldn't hurt the player */
 		public static int BIGFORCE = 230;
 
-		// TODO - which is the invisible one?
+		public static final List<Integer> ALL = Arrays.asList(new Integer[]{ W_FORCEFIELD, BIGFORCE });
 	}
 
 	/** nothing special, just random textures */
