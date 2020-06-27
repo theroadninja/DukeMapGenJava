@@ -131,7 +131,7 @@ object PipeDream extends PrefabExperiment {
         //3. paste the SG
         if(matchingSgs.nonEmpty){
           val (newSg, newSgConn) = randomItem(matchingSgs.toSeq)
-          val psg = builder.writer.pasteAndLink(c, newSg, newSgConn)
+          val psg = builder.writer.pasteAndLink(c, newSg, newSgConn, Seq.empty)
           //val psg = builder.pasteAndLink(c, newSg, newSgConn)
 
           // 4. see if any open connectors happen to be next to each other

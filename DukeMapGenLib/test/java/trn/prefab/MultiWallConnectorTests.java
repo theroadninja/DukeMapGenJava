@@ -3,6 +3,8 @@ package trn.prefab;
 import org.junit.Assert;
 import org.junit.Test;
 import scala.collection.JavaConverters;
+import scala.collection.Seq;
+import scala.collection.Seq$;
 import trn.JavaTestUtils;
 import trn.PointXYZ;
 
@@ -51,7 +53,7 @@ public class MultiWallConnectorTests {
 
         RedwallConnector extantConn = psg1.redwallConnectors().head();
         SectorGroup sg2 = palette.getSG(groupId2);
-        PastedSectorGroup psg2 = writer.pasteAndLink(extantConn, sg2, sg2.allRedwallConnectors().head());
+        PastedSectorGroup psg2 = writer.pasteAndLink(extantConn, sg2, sg2.allRedwallConnectors().head(), (Seq<SectorGroup>) Seq$.MODULE$.<SectorGroup>empty());
 
         Assert.assertTrue(psg1.redwallConnectors().head().isLinked(writer.getMap()));
         Assert.assertTrue(psg2.redwallConnectors().head().isLinked(writer.getMap()));

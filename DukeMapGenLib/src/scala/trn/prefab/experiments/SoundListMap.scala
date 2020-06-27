@@ -48,7 +48,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette, val gameCfg: Gam
           getRowStart(rowRight)
         }
     } // match
-    val pastedRoom = writer.pasteAndLink(econn, room, CompassWriter.westConnector(room))
+    val pastedRoom = writer.pasteAndLink(econn, room, CompassWriter.westConnector(room), Seq.empty)
     currentPsgRight = Some(pastedRoom)
   }
 
@@ -64,7 +64,7 @@ class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette, val gameCfg: Gam
           getLeftRowStart(rowLeft)
         }
     }
-    val pastedRoom = writer.pasteAndLink(wconn, room, CompassWriter.eastConnector(room))
+    val pastedRoom = writer.pasteAndLink(wconn, room, CompassWriter.eastConnector(room), Seq.empty)
     currentPsgLeft = Some(pastedRoom)
   }
 }

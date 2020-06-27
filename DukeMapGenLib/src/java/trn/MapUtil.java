@@ -1,6 +1,7 @@
 package trn;
 
 import trn.prefab.GameConfig;
+import trn.prefab.SectorGroup;
 
 import java.util.*;
 
@@ -115,7 +116,13 @@ public class MapUtil {
 	 * @param sourceMap
 	 * @param destMap
 	 */
-	public static CopyState copySectorGroup(GameConfig cfg, final Map sourceMap, Map destMap, int sourceSectorId, PointXYZ transform){
+	public static CopyState copySectorGroup(
+			GameConfig cfg,
+			final Map sourceMap,
+			Map destMap,
+			int sourceSectorId,
+			PointXYZ transform
+	){
 	    if(cfg == null){
 	    	throw new IllegalArgumentException("cfg cannot be null");
 		}

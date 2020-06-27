@@ -14,6 +14,7 @@ public class JavaTestUtils {
     public static final String MULTI_WALL_CONN_MAP = "UNITMW.MAP";
     public static final String ADD_LOOP = "ADDLOOP.MAP";
     public static final String JOIN = "JOIN.MAP";
+    public static final String PREFAB_TEST = "PRETEST.MAP";
 
     private static String testFilePath(String fname){
         String filepath = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata" + File.separator + fname;

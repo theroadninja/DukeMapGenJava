@@ -92,7 +92,7 @@ class Hyper4MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
       )
     }
     x.headOption.foreach { placement =>
-      writer.pasteAndLink2(placement.newSg, PointXYZ.ZERO, placement.conns)
+      writer.pasteAndLink2(placement.newSg, PointXYZ.ZERO, placement.conns, Seq.empty)
     }
 
   }

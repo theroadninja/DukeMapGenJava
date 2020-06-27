@@ -42,7 +42,7 @@ class MapWriter2Tests {
     // val palette: PrefabPalette = PrefabPalette.fromMap(load("UNIT2.MAP"), true);
 
     val writer1 = MapWriter(DukeConfig.empty)
-    val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO)
+    val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO, Seq.empty)
 
     Seq(2, 3, 4, 5, 6).foreach { doorId =>
       Assert.assertEquals(0, writer1.findPlacementsRaw(Seq.empty, palette.getSG(doorId)).size)
@@ -96,7 +96,7 @@ class MapWriter2Tests {
   def testFindPlacementsRawSpecificConns: Unit = {
 
     val writer1 = MapWriter(DukeConfig.empty)
-    val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO)
+    val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO, Seq.empty)
 
     val sg2 = palette.getSG(2)
     val sg3 = palette.getSG(3)
@@ -115,16 +115,16 @@ class MapWriter2Tests {
   @Test
   def testFindPlacementsForSg: Unit = {
     val writer1 = MapWriter.unitTestWriter
-    val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO)
+    val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO, Seq.empty)
 
-    hasConnectors(writer1.findPlacementsForSg(room1, palette.getSG(2), PasteOptions(allowRotate = false)), Set(5))
-    hasConnectors(writer1.findPlacementsForSg(room1, palette.getSG(2)), Set(1, 3, 5, 7))
+    hasConnectors(writer1.findPlacementsForSg(room1, CompoundGroup(palette.getSG(2)), PasteOptions(allowRotate = false)), Set(5))
+    hasConnectors(writer1.findPlacementsForSg(room1, CompoundGroup(palette.getSG(2))), Set(1, 3, 5, 7))
   }
 
   @Test
   def testTryPasteConnectedTo1: Unit = {
     val writer1 = MapWriter.unitTestWriter
-    val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO)
+    val (room1, _) = writer1.sgBuilder.pasteSectorGroup2(palette.getSectorGroup(BigRoom1), PointXYZ.ZERO, Seq.empty)
 
     Assert.assertTrue(writer1.tryPasteConnectedTo(room1, palette.getSG(2), PasteOptions(allowRotate = false)).isDefined)
     Assert.assertTrue(writer1.tryPasteConnectedTo(room1, palette.getSG(2), PasteOptions(allowRotate = false)).isEmpty)

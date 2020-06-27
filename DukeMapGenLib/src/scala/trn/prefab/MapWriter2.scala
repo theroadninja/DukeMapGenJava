@@ -1,7 +1,31 @@
 package trn.prefab
 
 import trn.prefab.experiments.Placement
-import trn.{Map => DMap}
+import trn.{IdMap, PointXYZ, Map => DMap}
+
+object CompoundGroup {
+  def apply(sg: SectorGroup): CompoundGroup = CompoundGroup(sg, Seq.empty)
+}
+
+/**
+  * If necessary, this can become a trait with multiple options.
+  *
+  * @param sg   the main sector group to paste; only redwall conns in this group will be used.
+  * @param teleportChildGroups other groups that are conceptually "part of" the main sg and need to be pasted with it
+  */
+case class CompoundGroup(sg: SectorGroup, teleportChildGroups: Seq[SectorGroup]){
+
+  def allRotations: Seq[CompoundGroup] = Seq(this, rotateCW, rotate180, rotateCCW)
+
+  def rotateCW: CompoundGroup = CompoundGroup(
+    sg.rotateCW,
+    teleportChildGroups.map(_.rotateCW)
+  )
+
+  def rotate180: CompoundGroup = rotateCW.rotateCW
+
+  def rotateCCW: CompoundGroup = rotateCW.rotateCW.rotateCW
+}
 
 case class PasteOptions(
   allowOverlap: Boolean = false,
@@ -14,7 +38,8 @@ case class Placement2(
   extantPsg: PastedSectorGroup,
   extantConn: RedwallConnector,
   newSg: SectorGroup,
-  newConn: RedwallConnector
+  newConn: RedwallConnector,
+  floatingGroups: Seq[SectorGroup]
 )
 
 /**
@@ -32,6 +57,21 @@ trait MapWriter2 {
 
   def random: RandomX
 
+  def sgPacker: Option[SectorGroupPacker]
+
+  // TODO - DRY with AnywhereBuilder.placeAnywhere() in MapBuilder.scala
+  final def pasteAnywhere(sg: SectorGroup): PastedSectorGroup = {
+    val packer = sgPacker.getOrElse(
+      throw new RuntimeException("Cannot paste sector to 'anywhere' because the packing area was not specified.  Pass an instance of SectorGroupPacker to MapWriter")
+    )
+    val topLeft = packer.reserveArea(sg)
+    val tr = sg.boundingBox.getTranslateTo(topLeft).withZ(0)
+    val (psg, _) = pasteSectorGroup2(sg, tr, Seq.empty) // TODO this IS the method for pasting floating groups; circular logic here
+    psg
+  }
+
+  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup]): (PastedSectorGroup, IdMap)
+
   def canPlaceAndConnect(
     existingConn: RedwallConnector,
     newConn: RedwallConnector,
@@ -42,7 +82,8 @@ trait MapWriter2 {
   def pasteAndLink(
     existingConn: RedwallConnector,
     newSg: SectorGroup,
-    newConn: RedwallConnector
+    newConn: RedwallConnector,
+    floatingGroups: Seq[SectorGroup]
   ): PastedSectorGroup
 
   private def allConns(psg: PastedSectorGroup) = psg.redwallConnectors.map(c => (psg, c))
@@ -52,13 +93,14 @@ trait MapWriter2 {
     existing: Seq[(PastedSectorGroup, RedwallConnector)], // need psg to measure Z
     sg: SectorGroup,
     sgConns: Option[Seq[RedwallConnector]] = None, // None means use any connector
+    floatingGroups: Seq[SectorGroup] = Seq.empty,
     allowOverlap: Boolean = false
   ): Seq[Placement2] = {
 
     val newConns = sgConns.getOrElse(sg.allRedwallConnectors)
     val all = existing.flatMap {
       case (psg, existingConn) => newConns.map{ newConn =>
-        Placement2(psg, existingConn, sg, newConn)
+        Placement2(psg, existingConn, sg, newConn, floatingGroups)
       }
     }
     all
@@ -66,11 +108,12 @@ trait MapWriter2 {
       .filter(p => canPlaceAndConnect(p.extantConn, p.newConn, p.newSg, checkSpace = !allowOverlap))
   }
 
-  def pasteAndConnect(p: Placement2): PastedSectorGroup = pasteAndLink(p.extantConn, p.newSg, p.newConn)
+  def pasteAndConnect(p: Placement2): PastedSectorGroup = pasteAndLink(p.extantConn, p.newSg, p.newConn, p.floatingGroups)
 
   def findPlacementsForSg(
     psg: PastedSectorGroup,
-    sg: SectorGroup,
+    //sg: SectorGroup,
+    sg: CompoundGroup,
     options: PasteOptions = PasteOptions()
   ): Seq[Placement2] = {
     val sgs = if(options.allowRotate){
@@ -79,7 +122,7 @@ trait MapWriter2 {
       Seq(sg)
     }
     sgs.flatMap{ newSg =>
-      findPlacementsRaw(allConns(psg), newSg, None, options.allowOverlap)
+      findPlacementsRaw(allConns(psg), newSg.sg, None, sg.teleportChildGroups, allowOverlap = options.allowOverlap)
     }
   }
 
@@ -88,13 +131,27 @@ trait MapWriter2 {
     sg: SectorGroup,
     options: PasteOptions
   ): Option[PastedSectorGroup] = {
+    tryPasteConnectedTo(psg, CompoundGroup(sg, Seq.empty), options).flatMap(_.headOption)
+    //val allOptions = findPlacementsForSg(psg, sg, options)
+    //if(allOptions.size < 1){
+    //  None
+    //}else{
+    //  val p = random.randomElement(allOptions)
+    //  Some(pasteAndConnect(p))
+    //}
+  }
 
+  def tryPasteConnectedTo(
+    psg: PastedSectorGroup,
+    sg: CompoundGroup,
+    options: PasteOptions
+  ): Option[Seq[PastedSectorGroup]] = {
     val allOptions = findPlacementsForSg(psg, sg, options)
     if(allOptions.size < 1){
       None
     }else{
       val p = random.randomElement(allOptions)
-      Some(pasteAndConnect(p))
+      Some(Seq(pasteAndConnect(p)))
     }
   }
 
@@ -110,7 +167,7 @@ trait MapWriter2 {
       Seq(sg)
     }
     val allOptions = sgs.flatMap{ newSg =>
-      findPlacementsRaw(Seq((psg, extantConn)), newSg, None, options.allowOverlap)
+      findPlacementsRaw(Seq((psg, extantConn)), newSg, None, Seq.empty, options.allowOverlap)
     }
     random.randomElementOpt(allOptions).map(placement => pasteAndConnect(placement))
     //if(allOptions.size < 1){
@@ -146,7 +203,7 @@ trait MapWriter2 {
     newConn: ConnectorFilter
   ): PastedSectorGroup = {
     val conn1 = existingGroup.findFirstConnector(existingConn).asInstanceOf[RedwallConnector]
-    pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(newConn).asInstanceOf[RedwallConnector])
+    pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(newConn).asInstanceOf[RedwallConnector], Seq.empty)
   }
 
   def pasteSouthOf(
@@ -214,7 +271,7 @@ trait MapWriter2 {
     newConn: RedwallConnector
   ): Option[PastedSectorGroup] = {
 
-    val placements = findPlacementsRaw(Seq((extantPsg, extantConn)), newSg, Some(Seq(newConn)))
+    val placements = findPlacementsRaw(Seq((extantPsg, extantConn)), newSg, Some(Seq(newConn)), Seq.empty)
     if(placements.isEmpty){
       None
     }else{
@@ -230,6 +287,7 @@ trait MapWriter2 {
     sgConn: Option[RedwallConnector],
     options: PasteOptions
   ): Option[PastedSectorGroup] = {
+    val floatingGroups: Seq[SectorGroup] = Seq.empty
 
     // TODO - this is complete untested.  Not sure if I want to keep it
 
@@ -244,7 +302,7 @@ trait MapWriter2 {
     }
 
     val placements = newSgAndConn.flatMap{ case (newSg, newSgConn) =>
-      findPlacementsRaw(allConns(psg), newSg, newSgConn.map(c => Seq(c)), options.allowOverlap)
+      findPlacementsRaw(allConns(psg), newSg, newSgConn.map(c => Seq(c)), floatingGroups, options.allowOverlap)
     }
     // val placements = findPlacementsRaw(allConns(psg), sg, sgConn.map(c => Seq(c)), options.allowOverlap)
 

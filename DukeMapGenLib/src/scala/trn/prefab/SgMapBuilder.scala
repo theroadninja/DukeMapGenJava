@@ -36,8 +36,13 @@ class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenera
     i
   }
 
-  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap)  = {
+  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup]): (PastedSectorGroup, IdMap)  = {
     require(!markersCleared)
+
+    if(floatingGroups.nonEmpty){
+      throw new Exception("pasting floating groups not supported yet")
+    }
+
     val copyState = MapUtil.copySectorGroup(gameCfg, sg.map, map, 0, translate);
     val tp = (PastedSectorGroup(map, copyState, sg.groupIdOpt), copyState.idmap)
     pastedSectorGroupsMutable.append(tp._1)
@@ -50,8 +55,9 @@ class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenera
     */
   def pasteAllStaySectors(palette: PrefabPalette): Seq[PastedSectorGroup] = {
     require(!pastedStays.isDefined)
+    val floating = Seq.empty
     pastedStays = Some(palette.getStaySectorGroups.asScala.map { sg =>
-      val (psg, _) = pasteSectorGroup2(sg, PointXYZ.ZERO)  // no translate == leave where it is
+      val (psg, _) = pasteSectorGroup2(sg, PointXYZ.ZERO, floating)  // no translate == leave where it is
       psg
     })
     pastedStays.getOrElse(Seq.empty)

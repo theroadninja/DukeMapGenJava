@@ -2,7 +2,7 @@ package trn.bespoke
 
 import trn.duke.TextureList
 import trn.{BuildConstants, HardcodedConfig, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sector, WallView, Map => DMap}
-import trn.prefab.{DukeConfig, GameConfig, MapWriter, PasteOptions, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.prefab.{CompoundGroup, DukeConfig, GameConfig, MapWriter, PasteOptions, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
 
 import scala.collection.JavaConverters._
 
@@ -71,9 +71,13 @@ object MoonBase1 {
     val psg0 = pasteInSequence(writer, center, openConns(0), sgs0)
 
     val elevatorTop = moonPalette.getSectorGroup(12)
-    writer.tryPasteConnectedTo(center, elevatorTop, PasteOptions())
+    val elevator = CompoundGroup(
+      moonPalette.getSectorGroup(12),
+      moonPalette.getTeleChildren(12).asScala
+    )
+    require(elevator.teleportChildGroups.size  == 1)
 
-
+    writer.tryPasteConnectedTo(center, elevator, PasteOptions())
 
     writer.disarmAllSkyTextures()
     writer.setAnyPlayerStart(force = true)

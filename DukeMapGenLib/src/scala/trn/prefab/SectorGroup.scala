@@ -165,6 +165,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
   def rotateCW: SectorGroup = rotateAroundCW(this.rotationAnchor)
 
+  // TODO - this is a waste.  Should have a rotate(Angle)
   def rotateCCW: SectorGroup = rotateCW.rotateCW.rotateCW
 
   def rotate180: SectorGroup = rotateCW.rotateCW
@@ -256,7 +257,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
     val tmpBuilder = new CopyPasteMapBuilder(result.map, gameCfg)
     val cdelta = conn2.getTransformTo(conn1)
-    val (_, idmap) = tmpBuilder.writer.pasteSectorGroup2(group2, cdelta)
+    val (_, idmap) = tmpBuilder.writer.pasteSectorGroup2(group2, cdelta, Seq.empty)
     val pastedConn2 = conn2.translateIds(idmap, cdelta, tmpBuilder.mapView)
 
     // TODO - link redwalls  ( TODO - make this a member of the builder? )

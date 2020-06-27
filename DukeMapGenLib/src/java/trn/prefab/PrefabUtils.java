@@ -188,6 +188,8 @@ public class PrefabUtils {
 				STAY,
 				ENEMY,
 				ITEM,
+				INTERNAL_RESERVED,
+				TELEPORT_CHILD,
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
 				MULTI_SECTOR,

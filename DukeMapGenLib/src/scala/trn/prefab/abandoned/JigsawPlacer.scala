@@ -163,7 +163,7 @@ object JigsawPlacerMain extends PrefabExperiment {
     def getSg(groupId: Int): SectorGroup = palette.getSG(groupId)
 
     def place(placement: Placement): Unit = {
-      writer.pasteAndLink2(placement.newSg, PointXYZ.ZERO, placement.conns)
+      writer.pasteAndLink2(placement.newSg, PointXYZ.ZERO, placement.conns, Seq.empty)
     }
 
     val hallway100 = palette.getSectorGroup(100)

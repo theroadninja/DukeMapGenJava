@@ -116,7 +116,12 @@ object MapWriter {
   * @param builder
   * @param sgBuilder
   */
-class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random: RandomX = new RandomX())
+class MapWriter(
+  val builder: MapBuilder,
+  val sgBuilder: SgMapBuilder,
+  val random: RandomX = new RandomX(),
+  val sgPacker: Option[SectorGroupPacker] = None
+)
   extends ISectorGroup
     with EntropyProvider
     with MapWriter2 {
@@ -143,7 +148,8 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
   override def pasteAndLink(
     existingConn: RedwallConnector,
     newSg: SectorGroup,
-    newConn: RedwallConnector
+    newConn: RedwallConnector,
+    floatingGroups: Seq[SectorGroup]
   ): PastedSectorGroup = {
     require(Option(existingConn).isDefined)
     require(Option(newSg).isDefined)
@@ -151,7 +157,7 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
     val cdelta = newConn.getTransformTo(existingConn)
 
 
-    pasteAndLink2(newSg, cdelta, Seq(ConnMatch(newConn, existingConn)))
+    pasteAndLink2(newSg, cdelta, Seq(ConnMatch(newConn, existingConn)), floatingGroups)
     // val (psg, idmap) = builder.pasteSectorGroup2(newSg, cdelta)
     // val pastedConn2 = newConn.translateIds(idmap, cdelta)
     // sgBuilder.linkConnectors(existingConn, pastedConn2)
@@ -161,10 +167,12 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
   def pasteAndLink2(
     newSg: SectorGroup,
     translate: PointXYZ,
-    conns: Seq[ConnMatch]
+    conns: Seq[ConnMatch],
+    floatingGroups: Seq[SectorGroup]
   ): PastedSectorGroup = {
     require(conns.size > 0)
-    val (psg, idmap) = pasteSectorGroup2(newSg, translate)
+
+    val (psg, idmap) = pasteSectorGroup2(newSg, translate, floatingGroups)
     conns.foreach { cmatch =>
       val newConn = cmatch.newConn.translateIds(idmap, translate, sgBuilder.getMapView)
       sgBuilder.linkConnectors(cmatch.existingConn, newConn)
@@ -188,17 +196,18 @@ class MapWriter(val builder: MapBuilder, val sgBuilder: SgMapBuilder, val random
       new PointXYZ(sg.boundingBox.xMin, sg.boundingBox.yMin, 0) // TODO - bounding box doesnt do z ...
     }
     //pasteSectorGroup(sg, anchor.getTransformTo(location))
-    val (psg, _) = sgBuilder.pasteSectorGroup2(sg, anchor.getTransformTo(location))
+    val floating = Seq.empty
+    val (psg, _) = sgBuilder.pasteSectorGroup2(sg, anchor.getTransformTo(location), floating)
     psg
   }
 
   def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = {
-    val (psg, _) = pasteSectorGroup2(sg, translate)
+    val (psg, _) = pasteSectorGroup2(sg, translate, Seq.empty)
     psg
   }
 
-  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ): (PastedSectorGroup, IdMap) = {
-    sgBuilder.pasteSectorGroup2(sg, translate)
+  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup]): (PastedSectorGroup, IdMap) = {
+    sgBuilder.pasteSectorGroup2(sg, translate, floatingGroups)
   }
 
 

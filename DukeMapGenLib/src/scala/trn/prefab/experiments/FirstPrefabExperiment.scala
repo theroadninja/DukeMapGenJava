@@ -18,7 +18,7 @@ class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder
     }
     val paletteConnector = CompassWriter.firstConnector(sg, paletteConnectorFilter)
 
-    writer.pasteAndLink(destConnector.asInstanceOf[RedwallConnector], sg, paletteConnector)
+    writer.pasteAndLink(destConnector.asInstanceOf[RedwallConnector], sg, paletteConnector, Seq.empty)
   }
 
   def findFirstUnlinkedConnector(cf: ConnectorFilter): Connector = {

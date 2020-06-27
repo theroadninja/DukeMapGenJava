@@ -11,8 +11,12 @@ import scala.collection.mutable.ListBuffer
 
 
 /**
+  * TODO - migrate all uses of this to MapWriter2 (or whatever that becomes).
+  *
   * Providers extra functionality for placing sectors whose locations are not important (underwater sectors, etc).
   * Automatically separates them, so you don't have to bother hardcoding locations.
+  *
+  * @Deprecated - moving this to MapWriter2
   */
 trait AnywhereBuilder { // TODO rename to AnywhereWriter or something
 

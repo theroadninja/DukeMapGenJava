@@ -252,7 +252,7 @@ class Hyper3MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
         roomConn.findMatches(hallway, sgBuilder.getMapTODO).map(placement => (roomConn, placement))
       }
     }.headOption.foreach { case (roomConn, placement) =>
-      val (psg, idmap) = writer.pasteSectorGroup2(placement.newSg, PointXYZ.ZERO) // its already been translated
+      val (psg, idmap) = writer.pasteSectorGroup2(placement.newSg, PointXYZ.ZERO, Seq.empty) // its already been translated
     //cant use the conns in the room...
     val newC0 = placement.c0.translateIds(idmap, PointXYZ.ZERO, outMap)
       val newC1 = placement.c1.translateIds(idmap, PointXYZ.ZERO, outMap)
