@@ -108,6 +108,11 @@ object MapWriter {
     new MapWriter(builder, builder.sgBuilder)
   }
 
+  def apply(gameCfg: GameConfig, sgPacker: Option[SectorGroupPacker]): MapWriter = {
+    val builder = new MapBuilderAdapter(DMap.createNew(), gameCfg)
+    new MapWriter(builder, builder.sgBuilder, sgPacker = sgPacker)
+  }
+
   def unitTestWriter: MapWriter = apply(DukeConfig.empty)
 }
 /**
@@ -197,7 +202,7 @@ class MapWriter(
     }
     //pasteSectorGroup(sg, anchor.getTransformTo(location))
     val floating = Seq.empty
-    val (psg, _) = sgBuilder.pasteSectorGroup2(sg, anchor.getTransformTo(location), floating)
+    val (psg, _) = sgBuilder.pasteSectorGroup2(sg, anchor.getTransformTo(location), floating, None)
     psg
   }
 
@@ -207,7 +212,7 @@ class MapWriter(
   }
 
   def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup]): (PastedSectorGroup, IdMap) = {
-    sgBuilder.pasteSectorGroup2(sg, translate, floatingGroups)
+    sgBuilder.pasteSectorGroup2(sg, translate, floatingGroups, sgPacker)
   }
 
 

@@ -20,6 +20,12 @@ trait SectorGroupPacker {
 }
 
 
+object SimpleSectorGroupPacker {
+  def apply(topLeft: PointXY, bottomRight: PointXY, margin: Int = 1024): SimpleSectorGroupPacker = {
+    new SimpleSectorGroupPacker(topLeft, bottomRight, margin)
+  }
+}
+
 /**
   * Packer that just places things in a row.
   * @param margin - amount of space to put between groups

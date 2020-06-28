@@ -2,7 +2,7 @@ package trn.bespoke
 
 import trn.duke.TextureList
 import trn.{BuildConstants, HardcodedConfig, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sector, WallView, Map => DMap}
-import trn.prefab.{CompoundGroup, DukeConfig, GameConfig, MapWriter, PasteOptions, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.prefab.{CompoundGroup, DukeConfig, GameConfig, MapWriter, PasteOptions, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SectorGroupPacker, SimpleSectorGroupPacker, SpriteLogicException}
 
 import scala.collection.JavaConverters._
 
@@ -23,7 +23,11 @@ object MoonBase1 {
   def getMoonMap: String = HardcodedConfig.getDosboxPath("MOON1.MAP")
 
   def run(gameCfg: GameConfig): Unit = {
-    val writer = MapWriter(gameCfg)
+    val packer = SimpleSectorGroupPacker(
+      new PointXY(BuildConstants.MIN_X, 0),
+      new PointXY(0, BuildConstants.MAX_Y)
+    )
+    val writer = MapWriter(gameCfg, Some(packer))
     try{
       // run(gameCfg, writer)
       runTest(gameCfg, writer)
@@ -76,6 +80,8 @@ object MoonBase1 {
       moonPalette.getTeleChildren(12).asScala
     )
     require(elevator.teleportChildGroups.size  == 1)
+
+    // elevator.teleportChildGroups(0).allRotations.foreach(r => writer.pasteAnywhere(r))
 
     writer.tryPasteConnectedTo(center, elevator, PasteOptions())
 

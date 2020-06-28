@@ -107,8 +107,40 @@ public class MapUtil {
 		it.remove();
 		return result;
 	}
-	
-	
+
+	public static java.util.Map<Integer, Integer> getTagMap(
+			GameConfig cfg,
+			List<Map> sourceMaps,
+			Map destMap
+	){
+		scala.collection.Seq sourceMaps2 = UniqueTags$.MODULE$.toScalaSeq(sourceMaps);
+		java.util.Map tagMap = UniqueTags$.MODULE$.toJavaMap(
+				UniqueTags$.MODULE$.getUniqueTagCopyMap(cfg, sourceMaps2, destMap)
+		);
+		return tagMap;
+	}
+
+	public static CopyState copySectorGroup(
+			GameConfig cfg,
+			final Map sourceMap,
+			Map destMap,
+			int sourceSectorId,
+			PointXYZ transform
+	){
+		List<Map> sourceMaps = new LinkedList<Map>();
+		sourceMaps.add(sourceMap);
+		// scala.collection.Seq sourceMaps2 = UniqueTags$.MODULE$.toScalaSeq(sourceMaps);
+
+		// java.util.Map tagMap = UniqueTags$.MODULE$.toJavaMap(
+		// 		UniqueTags$.MODULE$.getUniqueTagCopyMap(cfg, sourceMaps2, destMap)
+		// );
+
+        java.util.Map tagMap = getTagMap(cfg, sourceMaps, destMap);
+
+		//java.util.Map<Integer, Integer> tagMap = UniqueTags$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, sourceSectorIds);
+		return copySectorGroup(cfg, sourceMap, destMap, sourceSectorId, transform, tagMap);
+    }
+
 	/**
 	 * Copy a sector, and every sector connected by a redwall.
 	 * 
@@ -121,7 +153,9 @@ public class MapUtil {
 			final Map sourceMap,
 			Map destMap,
 			int sourceSectorId,
-			PointXYZ transform
+			PointXYZ transform,
+			java.util.Map<Integer, Integer> tagMap
+
 	){
 	    if(cfg == null){
 	    	throw new IllegalArgumentException("cfg cannot be null");
@@ -132,16 +166,6 @@ public class MapUtil {
 		//cpstate.usedTagsBeforeCopy.addAll(MapUtilScala$.MODULE$.usedUniqueTagsAsJava(cfg, destMap));
 
 
-		// TODO - idea: what if the solution to the multiswitch and 2-way train tag problem is that, when copying,
-		// TODO - we always condense tags together (e.g. 102,130 =>  ...,4,5,...) and never spread them apart?
-		// so that if there is a multiswitch with 5,6,7,8, then we would always ensure that those number map to
-		// numbers that are consecutive?
-        // TODO - probably need to just sort a sequence, then break it up into blocks of consecutive numbers
-		// e.g. 1,2,4,6,7,8,10 =>  [1,2], [4], [6,7,8], [10]
-		// TODO and THEN we could sort by size, so that the smaller ones go first:  [4], [10], [1,2], [6,7,8]
-		// maybe even put them in a map by size....
-		// TODO - this probably isnt good enough.  what if only 1 or 2 of a multswitch is used?  there will be a gap...
-		
 		Set<Integer> sectorsToCopy = new TreeSet<Integer>();
 		Set<Integer> alreadyCopied = new TreeSet<Integer>();
 		
@@ -159,8 +183,8 @@ public class MapUtil {
 		}
 
 		// now we know which sectors were copied, so we can calculate the unique tag map
-		//java.util.Map<Integer, Integer> tagMap = MapUtilScala$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, cpstate);
-		cpstate.idmap.tagMap = UniqueTags$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, cpstate);
+		// cpstate.idmap.tagMap = UniqueTags$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, cpstate);
+		cpstate.idmap.tagMap = tagMap;
 
 		updateIds(cfg, destMap, cpstate);
 

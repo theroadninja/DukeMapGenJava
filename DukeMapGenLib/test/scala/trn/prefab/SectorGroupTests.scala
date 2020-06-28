@@ -100,7 +100,7 @@ class SectorGroupTests {
     val resultSg = sg.withInnerGroup(sgInner, sourceAnchor.getLocation, destSectorId, destAnchor.getLocation, DukeConfig.empty)
 
     val builder = new TestBuilder(DMap.createNew())
-    val (psg, _) = builder.sgBuilder.pasteSectorGroup2(resultSg, PointXYZ.ZERO, Seq.empty)
+    val (psg, _) = builder.sgBuilder.pasteSectorGroup2(resultSg, PointXYZ.ZERO, Seq.empty, None)
 
     builder.writer.setAnyPlayerStart()
     builder.writer.clearMarkers()

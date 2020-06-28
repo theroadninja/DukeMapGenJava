@@ -16,6 +16,12 @@ import trn.FuncImplicits._
   */
 object UniqueTags {
 
+  def toJavaMap(m: scala.collection.immutable.Map[Int, Int]): java.util.Map[Integer, Integer] = {
+    m.map{ case (k, v) => Integer.valueOf(k) -> Integer.valueOf(v)}.asJava
+  }
+
+  def toScalaSeq[T](list: java.util.List[T]): Seq[T] = list.asScala
+
   def usedUniqueTags(cfg: GameConfig, map: DMap): Set[Int] = {
     require(Option(cfg).isDefined && Option(map).isDefined)
     val tags = map.allSprites.flatMap(s => cfg.uniqueTags(s)) ++ map.allWalls.flatMap(w => cfg.uniqueTags(w))
@@ -80,19 +86,53 @@ object UniqueTags {
   }
 
 
+
+  // def getUniqueTagCopyMap(
+  //   cfg: GameConfig,
+  //   sourceMap: DMap,
+  //   destMap: DMap,
+  //   copyState: CopyState
+  // ): java.util.Map[Integer, Integer] = {
+  //   val sourceSectorIds: Set[Int] = copyState.sourceSectorIds.asScala.map(_.toInt).toSet
+  //   getUniqueTagCopyMap(cfg, sourceMap, destMap, sourceSectorIds)
+  // }
+
+  // def getUniqueTagCopyMap(
+  //   cfg: GameConfig,
+  //   sourceMap: DMap,
+  //   destMap: DMap,
+  //   sourceSectorIdsJava: java.util.Set[Integer]
+  // ): java.util.Map[Integer, Integer] = {
+  //   //val sourceSectorIds: Set[Int] = copyState.sourceSectorIds.asScala.map(_.toInt).toSet
+  //   val sourceSectorIds: Set[Int] = sourceSectorIdsJava.asScala.map(_.toInt).toSet
+  //   getUniqueTagCopyMap(cfg, sourceMap, destMap, sourceSectorIds)
+  // }
+
+  // def getUniqueTagCopyMap(
+  //   cfg: GameConfig,
+  //   sourceMaps: Seq[DMap],
+  //   destMap: DMap,
+  //   sourceSectorIds: Set[Int]
+  // ): java.util.Map[Integer, Integer] = {
+  //   // val sourceSectorIds: Set[Int] = copyState.sourceSectorIds.asScala.map(_.toInt).toSet
+  //   val sourceSprites: Set[Sprite] = sourceMaps.flatMap(_.allSprites.filter(s => sourceSectorIds.contains(s.getSectorId)).toSet)
+  //   val sourceWalls: Set[Wall] = sourceSectorIds.flatMap(sourceMap.allWallsInSector)
+  //   val usedUniqueDestTags = usedUniqueTags(cfg, destMap)
+
+  //   val results = getUniqueTagCopyMap(cfg, sourceSprites, sourceWalls, usedUniqueDestTags)
+  //   results.map{case (k, v) => (Integer.valueOf(k) -> Integer.valueOf(v))}.asJava
+  // }
+
   def getUniqueTagCopyMap(
     cfg: GameConfig,
-    sourceMap: DMap,
-    destMap: DMap,
-    copyState: CopyState
-  ): java.util.Map[Integer, Integer] = {
-    val sourceSectorIds: Set[Int] = copyState.sourceSectorIds.asScala.map(_.toInt).toSet
-    val sourceSprites: Set[Sprite] = sourceMap.allSprites.filter(s => sourceSectorIds.contains(s.getSectorId)).toSet
-    val sourceWalls: Set[Wall] = sourceSectorIds.flatMap(sourceMap.allWallsInSector)
-    val usedUniqueDestTags = usedUniqueTags(cfg, destMap)
+    sourceMaps: Seq[DMap],
+    destMap: DMap
+  ): scala.collection.immutable.Map[Int, Int] = {
 
-    val results = getUniqueTagCopyMap(cfg, sourceSprites, sourceWalls, usedUniqueDestTags)
-    results.map{case (k, v) => (Integer.valueOf(k) -> Integer.valueOf(v))}.asJava
+    val sourceSprites: Set[Sprite] = sourceMaps.flatMap(_.allSprites).toSet
+    val sourceWalls: Set[Wall] = sourceMaps.flatMap(_.allWalls).toSet
+    val usedUniqueDestTags = usedUniqueTags(cfg, destMap)
+    getUniqueTagCopyMap(cfg, sourceSprites, sourceWalls, usedUniqueDestTags)
   }
 
   /**

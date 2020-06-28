@@ -135,6 +135,17 @@ public class PrefabUtils {
 		 */
 		public static int TELEPORT_CHILD = 11;
 
+
+		/**
+		 * Causes the entire sector group to be translazed along the z-axis as it is being read from the source file.
+		 * This is for lazy people who want to use elevators but forgot to pgdown the lower sector group.
+		 *
+		 * Only one of these may exist in a single source file.
+		 *
+		 * Sprite hitag:  set to amount of z to translate by - TODO better explanation - positive for down?
+		 */
+		public static int TRANSLATE_Z = 12;
+
 		/**
 		 * Elevator Connector
 		 *
@@ -190,6 +201,7 @@ public class PrefabUtils {
 				ITEM,
 				INTERNAL_RESERVED,
 				TELEPORT_CHILD,
+				TRANSLATE_Z,
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
 				MULTI_SECTOR,

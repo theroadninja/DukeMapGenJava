@@ -1,6 +1,7 @@
 package trn.prefab
 
-import trn.{MapImplicits, Sprite, Map => DMap}
+import trn.{MapImplicits, PointXYZ, Sprite, Map => DMap}
+
 import scala.collection.JavaConverters._
 import trn.MapImplicits._
 
@@ -26,11 +27,17 @@ object SectorGroupProperties {
     //map.findSprites(PrefabUtils.MARKER_SPRITE_TEX)
     val groupIds = findMarkers(map, PrefabUtils.MarkerSpriteLoTags.GROUP_ID).map(_.getHiTag.toInt)
     SpriteLogicException.throwIf(groupIds.size > 1, s"too many group id sprites in group size=${groupIds.size}")
-    new SectorGroupProperties(groupIds.headOption, hasMarker(map, PrefabUtils.MarkerSpriteLoTags.STAY))
+
+    val zAdjust = findMarkers(map, PrefabUtils.MarkerSpriteLoTags.TRANSLATE_Z).map(_.getHiTag)
+    SpriteLogicException.throwIf(zAdjust.size > 1, "only one 'translate z' marker tag allowed in a sector group")
+
+    new SectorGroupProperties(groupIds.headOption, hasMarker(map, PrefabUtils.MarkerSpriteLoTags.STAY), zAdjust.headOption)
   }
 }
-class SectorGroupProperties(val groupId: Option[Int], stay: Boolean) {
+class SectorGroupProperties(val groupId: Option[Int], stay: Boolean, val zAdjust: Option[Int]) {
 
   def stayFlag: Boolean = stay
+
+  def zAdjustTrx: PointXYZ = new PointXYZ(0, 0, zAdjust.getOrElse(0) << 4)
 
 }

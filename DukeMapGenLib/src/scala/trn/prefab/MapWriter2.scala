@@ -122,7 +122,7 @@ trait MapWriter2 {
       Seq(sg)
     }
     sgs.flatMap{ newSg =>
-      findPlacementsRaw(allConns(psg), newSg.sg, None, sg.teleportChildGroups, allowOverlap = options.allowOverlap)
+      findPlacementsRaw(allConns(psg), newSg.sg, None, newSg.teleportChildGroups, allowOverlap = options.allowOverlap)
     }
   }
 

@@ -92,7 +92,13 @@ public class PrefabPalette {
 				PrefabUtils.checkValid(s);
 			}
 			processedSectorIds.addAll(cpstate.sourceSectorIds());
-			
+			// process z adjust
+			if(props.zAdjust().isDefined()){
+				System.out.println("doing z transform");
+			    // TODO - unit test this feature!
+				clipboard = new MapImplicits.MapExtended(clipboard).translated(props.zAdjustTrx());
+			}
+
 			List<Sprite> idSprite = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
 			List<Sprite> teleChildPointer = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.TELEPORT_CHILD, null);
 			List<Sprite> childPointer = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.REDWALL_CHILD, null);

@@ -1,6 +1,6 @@
 package trn.prefab
 
-import trn.{IdMap, MapUtil, MapView, PlayerStart, PointXY, PointXYZ, Sprite, SpriteFilter, Map => DMap}
+import trn.{IdMap, MapUtil, MapView, PlayerStart, PointXY, PointXYZ, Sprite, SpriteFilter, UniqueTags, Map => DMap}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -36,16 +36,34 @@ class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenera
     i
   }
 
-  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup]): (PastedSectorGroup, IdMap)  = {
+  def pasteSectorGroup2(
+    sg: SectorGroup,
+    translate: PointXYZ,
+    floatingGroups: Seq[SectorGroup],
+    sgPacker: Option[SectorGroupPacker]
+  ): (PastedSectorGroup, IdMap)  = {
     require(!markersCleared)
 
-    if(floatingGroups.nonEmpty){
-      throw new Exception("pasting floating groups not supported yet")
-    }
+    val sourceMaps: Seq[DMap] = Seq(sg.map) ++ floatingGroups.map(_.getMap)
+    val tagMap = UniqueTags.toJavaMap(UniqueTags.getUniqueTagCopyMap(gameCfg, sourceMaps, map))
 
-    val copyState = MapUtil.copySectorGroup(gameCfg, sg.map, map, 0, translate);
+    val copyState = MapUtil.copySectorGroup(gameCfg, sg.map, map, 0, translate, tagMap);
     val tp = (PastedSectorGroup(map, copyState, sg.groupIdOpt), copyState.idmap)
     pastedSectorGroupsMutable.append(tp._1)
+
+    // paste all "floating" sector groups using the same tag map
+    if(floatingGroups.nonEmpty){
+      val packer = sgPacker.getOrElse(throw new IllegalArgumentException("must specify sgPacker if floatingGroups is nonEmpty"))
+
+      floatingGroups.foreach { group =>
+
+        // TODO - current reserveArea() not good enough; needs to do its own check for overlap
+        val topLeft = packer.reserveArea(group)
+        val tr = group.boundingBox.getTranslateTo(topLeft).withZ(0)
+        MapUtil.copySectorGroup(gameCfg, group.map, map, 0, tr, tagMap)
+      }
+    }
+
     tp
   }
 
@@ -57,7 +75,7 @@ class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenera
     require(!pastedStays.isDefined)
     val floating = Seq.empty
     pastedStays = Some(palette.getStaySectorGroups.asScala.map { sg =>
-      val (psg, _) = pasteSectorGroup2(sg, PointXYZ.ZERO, floating)  // no translate == leave where it is
+      val (psg, _) = pasteSectorGroup2(sg, PointXYZ.ZERO, floating, None)  // no translate == leave where it is
       psg
     })
     pastedStays.getOrElse(Seq.empty)
