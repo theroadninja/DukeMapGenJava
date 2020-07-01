@@ -2,9 +2,14 @@ package trn.prefab
 
 import trn.prefab.experiments.Placement
 import trn.{IdMap, PointXYZ, Map => DMap}
+import scala.collection.JavaConverters._
 
 object CompoundGroup {
   def apply(sg: SectorGroup): CompoundGroup = CompoundGroup(sg, Seq.empty)
+
+  def apply(sg: SectorGroup, teleportChildren: java.util.List[SectorGroup]): CompoundGroup = {
+    new CompoundGroup(sg, teleportChildren.asScala)
+  }
 }
 
 /**

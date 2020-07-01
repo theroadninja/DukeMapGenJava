@@ -197,6 +197,21 @@ public class PrefabPalette {
 		return this.getSectorGroup(sectorGroupId);
 	}
 
+	/**
+	 * get a sector group AND all of its "teleport children" -- sectors that belong to it logically (and
+	 * which share unique tag values with it) but are not connected via redwalls.
+	 *
+	 * @param sectorGroupId
+	 * @return
+	 */
+	public CompoundGroup getCompoundGroup(int sectorGroupId){
+	    return CompoundGroup$.MODULE$.apply(getSG(sectorGroupId), getTeleChildren(sectorGroupId));
+	}
+
+	public CompoundGroup getCompoundSG(int sectorGroupId){
+		return this.getCompoundGroup(sectorGroupId);
+	}
+
 	// will return an empty list if the sector group does not have teleport children
 	public List<SectorGroup> getTeleChildren(int parentSectorGroupId){
 	    this.teleportChildGroups.putIfAbsent(parentSectorGroupId, Collections.emptyList());

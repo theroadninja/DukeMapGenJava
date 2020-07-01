@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.commons.io.FileUtils;
+import trn.bespoke.DarkSide$;
 import trn.bespoke.MoonBase1$;
 import trn.duke.MapImageWriter;
 import trn.prefab.DukeConfig;
@@ -67,7 +68,8 @@ public class Main {
 		// writeAndOpenMapPng(outMap);
 		//deployTest(outMap);
 
-		MoonBase1$.MODULE$.run(gameCfg);
+		// MoonBase1$.MODULE$.run(gameCfg);
+		DarkSide$.MODULE$.run(gameCfg);
 	}
 
 	/** compile all test maps, to at least know if they break or not */
