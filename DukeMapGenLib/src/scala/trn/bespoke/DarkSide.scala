@@ -40,6 +40,8 @@ object DarkSide {
     val MedicalArea = 3
     val AirLock = 4
     val Outside = 5
+    val FusionEntrance = 6
+    val FusionReactor = 7
 
     val psgCenter = writer.pasteSectorGroup(palette.getSG(Center), PointXYZ.ZERO)
 
@@ -48,6 +50,8 @@ object DarkSide {
     val airlockPsg = writer.tryPasteConnectedTo(psgCenter, palette.getSG(AirLock), PasteOptions()).get
 
     writer.tryPasteConnectedTo(airlockPsg, palette.getCompoundGroup(Outside), PasteOptions())
+    val psgFusionEntrance = writer.tryPasteConnectedTo(psgCenter, palette.getSG(FusionEntrance), PasteOptions()).get
+    writer.tryPasteConnectedTo(psgFusionEntrance, palette.getSG(FusionReactor), PasteOptions())
 
     writer.disarmAllSkyTextures()
     writer.setAnyPlayerStart(force = true)
