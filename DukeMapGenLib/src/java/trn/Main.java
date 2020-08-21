@@ -136,8 +136,9 @@ public class Main {
 		Main.writeResult(map, resultsFile);
 		
 		//TODO:  this should go in some conf/ini/json file that is not checked in
-		
-		String copyDest = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/" + filename;
+
+		// String copyDest = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/" + filename;
+		String copyDest = HardcodedConfig.getDeployPath(filename);
 		FileUtils.copyFile(new File(resultsFile), new File(copyDest));
 		System.out.println("map generated: " + filename);
 		

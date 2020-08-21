@@ -26,6 +26,11 @@ public final class HardcodedConfig {
         return DOSPATH + filename;
     }
 
+    public static final String getDeployPath(String filename){
+        String copyDest = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/" + filename;
+        return copyDest;
+    }
+
     // TODO - there is also a path in MapLoader
 
     // TODO - also in Testutils.scala (and probably the java one) - util class for loading unit test files
