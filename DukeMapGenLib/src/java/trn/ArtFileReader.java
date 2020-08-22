@@ -234,21 +234,54 @@ public class ArtFileReader {
         return tiles;
     }
 
+
+    /**
+     *
+     * @param paletteFile  path of palette.dat file
+     * @param artPath  path of folder containing the art files
+     * @param destFolder  path of folder to write tile images to
+     */
+    public static void extractTiles(String paletteFile, String artPath, String destFolder) throws IOException {
+        // C:\Users\Dave\Dropbox\workspace\dosdrive\duketmp\tiles
+        final int SCALE = 2;
+
+        Palette palette = readPalette(paletteFile);
+        java.util.List<String> files = ArtFileReader.findArtFiles(artPath);
+
+
+        // for(int fileIndex = 0; fileIndex < files.size(); ++fileIndex){
+        for(int fileIndex = 0; fileIndex < 1; ++fileIndex){
+            List<Tile> tiles = ArtFileReader.read(files.get(fileIndex));
+
+            for(int tileIndex = 0; tileIndex < tiles.size(); ++tileIndex){
+
+                Tile tile = tiles.get(tileIndex);
+                if(tile.isValid()){
+                    // TODO this is wrong: the picnum goes across all files, and does it start at 1 or 0?
+                    String outfile = "file" + fileIndex + "tile" + tileIndex + ".png";
+                    ImageIO.write(tile.toImage(palette, 2), "png", new File(destFolder + outfile));
+
+                }
+            }
+
+        }
+    }
+
     public static void main(String[] args) throws Exception {
 
+
         String paletteFile = HardcodedConfig.PATH_WITH_ART + "PALETTE.DAT";
-        Palette palette = readPalette(paletteFile);
+        extractTiles(paletteFile, HardcodedConfig.PATH_WITH_ART, HardcodedConfig.TILES_OUTPUT_PATH);
 
 
-        java.util.List<String> files = ArtFileReader.findArtFiles(HardcodedConfig.PATH_WITH_ART);
-
-        String ff = files.get(0);
-        List<Tile> results = ArtFileReader.read(files.get(0));
-
-        Tile uglyWall = results.get(0);
-        BufferedImage image = uglyWall.toImage(palette, 10);
-        File output = new File(HardcodedConfig.getDeployPath("output.png"));
-        ImageIO.write(image, "png", output);
+        // Palette palette = readPalette(paletteFile);
+        // java.util.List<String> files = ArtFileReader.findArtFiles(HardcodedConfig.PATH_WITH_ART);
+        // String ff = files.get(0);
+        // List<Tile> results = ArtFileReader.read(files.get(0));
+        // Tile uglyWall = results.get(0);
+        // BufferedImage image = uglyWall.toImage(palette, 10);
+        // File output = new File(HardcodedConfig.getDeployPath("output.png"));
+        // ImageIO.write(image, "png", output);
 
 
 

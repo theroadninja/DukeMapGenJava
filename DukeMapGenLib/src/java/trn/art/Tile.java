@@ -23,6 +23,10 @@ public class Tile {
         }
     }
 
+    public boolean isValid(){
+        return this.width > 0 && this.height > 0;
+    }
+
     public BufferedImage toImage(ArtFileReader.Palette palette, int scale){
         if(scale < 1) throw new IllegalArgumentException();
 
