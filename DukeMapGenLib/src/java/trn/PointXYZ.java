@@ -37,6 +37,10 @@ public class PointXYZ {
 		return asPointXY();
 	}
 
+	public PointXYZ multipliedBy(int factor){
+		return new PointXYZ(x * factor, y * factor, z * factor);
+	}
+
 	/**
 	 * @returns a copy of this object, but with z set to the given value.
 	 */

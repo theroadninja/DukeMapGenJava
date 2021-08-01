@@ -206,6 +206,10 @@ class MapWriter(
     psg
   }
 
+  def pasteSectorGroupAtCustomAnchor(sg: SectorGroup, mapLocation: PointXYZ, sectorGroupAnchor: PointXYZ): PastedSectorGroup = {
+    pasteSectorGroup2(sg, sectorGroupAnchor.getTransformTo(mapLocation), Seq.empty)._1
+  }
+
   def pasteSectorGroup(sg: SectorGroup, translate: PointXYZ): PastedSectorGroup = {
     val (psg, _) = pasteSectorGroup2(sg, translate, Seq.empty)
     psg
@@ -214,6 +218,7 @@ class MapWriter(
   def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup]): (PastedSectorGroup, IdMap) = {
     sgBuilder.pasteSectorGroup2(sg, translate, floatingGroups, sgPacker)
   }
+
 
 
   /** convenience method that tries to autolink any connectors in two PSGs */

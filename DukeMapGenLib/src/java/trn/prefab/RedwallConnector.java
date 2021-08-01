@@ -197,6 +197,10 @@ public class RedwallConnector extends Connector {
         throw new RuntimeException("not implemented yet");
     }
 
+    public final List<Integer> getWallIds(){
+        return Collections.unmodifiableList(this.wallIds);
+    }
+
     public final List<Integer> getSectorIds(){
         return this.allSectorIds;
     }

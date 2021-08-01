@@ -6,6 +6,8 @@ import java.io.File;
 public final class HardcodedConfig {
 
     public static final String DOSPATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";
+    public static final String EDUKE32PATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/EDuke32/";
+
     public static final String PATH_WITH_ART = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3da/dave/";
 
     public static final String TILES_OUTPUT_PATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duketmp/tiles/";
@@ -26,6 +28,10 @@ public final class HardcodedConfig {
      */
     public static final String getDosboxPath(String filename){
         return DOSPATH + filename;
+    }
+
+    public static final String getEduke32Path(String filename){
+        return EDUKE32PATH + filename;
     }
 
     public static final String getDeployPath(String filename){

@@ -132,17 +132,22 @@ public class Main {
 	public static void deployTest(Map map, String filename) throws IOException{
 	    if(map == null) throw new IllegalArgumentException("map is null");
 
+		//TODO:  this should go in some conf/ini/json file that is not checked in
+		String copyDest = HardcodedConfig.getDeployPath(filename);
+		deployTest(map, filename, copyDest);
+	}
+
+	// TODO this design is dumb; you have to specify "output.map" twice
+	public static void deployTest(Map map, String filename, String deployPath) throws IOException {
+
+		// 1. write to temporary location in project
 		String resultsFile = System.getProperty("user.dir") + File.separator + "dukeoutput" + File.separator + filename;
 		Main.writeResult(map, resultsFile);
-		
-		//TODO:  this should go in some conf/ini/json file that is not checked in
 
-		// String copyDest = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/" + filename;
-		String copyDest = HardcodedConfig.getDeployPath(filename);
-		FileUtils.copyFile(new File(resultsFile), new File(copyDest));
+		// 2. "deploy" to deploy path by file copy
+		FileUtils.copyFile(new File(resultsFile), new File(deployPath));
 		System.out.println("map generated: " + filename);
-		
-		//TODO:  can we put build times in the map somewhere?
+		// System.out.println("map generated: " + deployPath);
 	}
 
 }

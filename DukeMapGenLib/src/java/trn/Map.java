@@ -511,6 +511,16 @@ public class Map implements WallContainer {
 		sprites.remove(spriteId);
 		this.spriteCount = sprites.size();
 	}
+
+	public List<Integer> allSpriteIdsInSector(int sectorId){
+		List<Integer> results = new ArrayList<Integer>(sprites.size());
+		for(int i = 0; i < sprites.size(); ++i){
+			if(sectorId == sprites.get(i).getSectorId()){
+				results.add(i);
+			}
+		}
+		return results;
+	}
 	
 
 	public List<Integer> findSpriteIds(ISpriteFilter... filters){
