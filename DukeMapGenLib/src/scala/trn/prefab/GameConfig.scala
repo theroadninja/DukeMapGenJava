@@ -72,6 +72,12 @@ trait GameConfig {
   def updateUniqueTagInPlace(sprite: Sprite, idMap: Map[Int, Int]): Unit
 
   def updateUniqueTagInPlace(wall: Wall, idMap: Map[Int, Int]): Unit
+
+  /** @returns true if the given texture/picnum represents a keycard */
+  def isKeycard(tex: Int): Boolean
+
+  /** @returns true if the given texture/picnum represents a lock ("accessswitch") */
+  def isKeycardLock(tex: Int): Boolean
 }
 
 object DukeConfig {
@@ -128,6 +134,14 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
     * @return true if the texture (picnum) is a switch
     */
   def isSwitch(tex: Int): Boolean = DukeConfig.Switches.contains(tex)
+
+  /** @returns true if the given texture/picnum represents a keycard */
+  def isKeycard(tex: Int): Boolean = tex == 60
+
+  /** @returns true if the given texture/picnum represents a lock ("accessswitch") */
+  def isKeycardLock(tex: Int): Boolean = {
+    Seq(TextureList.Switches.ACCESS_SWITCH, TextureList.Switches.ACCESS_SWITCH_2).contains(tex)
+  }
 
   def isCrack(tex: Int): Boolean = {
     Seq(TextureList.CRACK1, TextureList.CRACK2, TextureList.CRACK3, TextureList.CRACK4).contains(tex)

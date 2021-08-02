@@ -111,6 +111,19 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   /**
+    * @returns a copy of this sector group with ALL keycards and locks set to the given color.
+    */
+  def withKeyLockColor(gameConfig: GameConfig, color: Int): SectorGroup = {
+    val cp = copy()
+    cp.sprites.foreach { sprite =>
+      if(gameConfig.isKeycard(sprite.getTex) || gameConfig.isKeycardLock(sprite.getTex)){
+        sprite.setPal(color)
+      }
+    }
+    cp
+  }
+
+  /**
     * Pastes one sector group, innerGroup, inside this group.   The exact placement is determined by calculating the
     * translate that lines up the anchors.
     *

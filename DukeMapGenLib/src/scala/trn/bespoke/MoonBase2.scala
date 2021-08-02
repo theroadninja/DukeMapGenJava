@@ -354,7 +354,6 @@ object MoonBase2 {
     val positions2 = random.shuffle(positions).toSeq.take(enemies.size)
 
     enemies.zip(positions2).foreach { case (enemy, (position, sectorId)) =>
-      // public Sprite(PointXYZ xyz, int sectnum, int picnum, int hitag, int lotag){
       val s = new Sprite(position, sectorId, enemy.picnum, 0, 0)
       s.setPal(enemy.palette)
       result.getMap.addSprite(s)
@@ -379,6 +378,9 @@ object MoonBase2 {
     val gateSgLeftEdge = moonPalette.getSG(5)
     val gateSgTopEdge = moonPalette.getSG(6)
     val gateSg3 = moonPalette.getSG(7)
+    val windowRoom1 = moonPalette.getSG(8)
+    val conferenceRoom = moonPalette.getSG(9)
+    //val conferenceRoomVertical = moonPalette.getSG(9).rotateCW
     //writer.pasteSectorGroup(startSg, new PointXYZ(0, 0, 0))
 
     // NOTE:  some of my standard space doors are 2048 wide
@@ -387,6 +389,8 @@ object MoonBase2 {
     val marginSize = 1024 // TODO will be different
     val originPoint = logicalMap.center // this point goes at 0, 0
 
+    val keycolors: Seq[Int] = random.shuffle(DukeConfig.KeyColors).toSeq
+
     val pastedGroups = mutable.Map[Point, PastedSectorGroup]()
     logicalMap.nodes.foreach { case (gridPoint, nodeType) =>
       val x = gridPoint.x - originPoint.x
@@ -394,10 +398,6 @@ object MoonBase2 {
       val z = gridPoint.z - originPoint.z
       val mapPoint = new PointXYZ(x, y, z).multipliedBy(gridSize + marginSize)
 
-      // val anchor = startSg.sprites.collectFirst{case s: Sprite if PrefabUtils.isMarker(s) && s.getLotag == PrefabUtils.MarkerSpriteLoTags.GROUP_ID =>
-      //   s.getLocation
-      // }.get
-      // writer.pasteSectorGroupAtCustomAnchor(startSg, mapPoint, anchor)
       val sg = nodeType match {
         case "S" => {
           rotateSingleToEdge(startSg, logicalMap.adjacentEdges(gridPoint).keys)
@@ -405,17 +405,32 @@ object MoonBase2 {
         case "E" => {
           rotateSingleToEdge(endSg, logicalMap.adjacentEdges(gridPoint).keys)
         }
-        case s if s.startsWith("K") => keySg
+        case s if s.startsWith("K") => {
+          val keycolor: Int = keycolors(s(1).toString.toInt - 1)
+          keySg.withKeyLockColor(gameCfg, keycolor)
+        }
         case s if s.startsWith("G") => {
-          if(logicalMap.containsEdge(gridPoint, gridPoint.w)){
+          val keycolor: Int =  keycolors(s(1).toString.toInt - 1)
+          val gateSg = if(logicalMap.containsEdge(gridPoint, gridPoint.w)){
             gateSgLeftEdge
           }else if(logicalMap.containsEdge(gridPoint, gridPoint.n)){
             gateSgTopEdge
           }else{
             gateSg3
           }
+          gateSg.withKeyLockColor(gameCfg, keycolor) // TODO add a withkeylockcolor() function just like MoonBase1 withLockColor
         }
-        case _ => fourWay
+        case _ => {
+          val edges = logicalMap.adjacentEdges(gridPoint)
+          if(edges.size == 2 && edges.contains(Heading.W) && edges.contains(Heading.E)) {
+            random.randomElement(Seq(windowRoom1, conferenceRoom))
+          }else if(edges.size == 2 && edges.contains(Heading.N) && edges.contains(Heading.S)){
+            fourWay // conferenceRoomVertical
+          }else{
+            fourWay
+
+          }
+        }
       }
       // println(mapPoint)
       val psg = writer.pasteSectorGroupAt(adjustEnemies(random, sg), mapPoint)
