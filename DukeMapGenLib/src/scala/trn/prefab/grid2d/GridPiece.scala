@@ -3,22 +3,28 @@ package trn.prefab.grid2d
 import org.junit.{Assert, Test}
 import trn.prefab.{CompassWriter, Heading, MapWriter, RedwallConnector, SectorGroup}
 import trn.FuncImplicits._
+import trn.logic.Tile2d
 import trn.prefab.experiments.{Cell2D, GridUtil, TilePainter}
 
 import scala.collection.JavaConverters._
 
 object Side {
   /** dont know if it has a connection because nothing has been placed there */
-  val Unknown = -1
+  // val Unknown = -1
+  val Unknown = Tile2d.Wildcard
 
   /** there is definitely no connection on that side */
-  val Blocked = 0
+  // val Blocked = 0
+  val Blocked = Tile2d.Blocked
 
   /** there is a connection on that side */
-  val Conn = 1
-
+  // val Conn = 1
+  val Conn = Tile2d.Conn
 }
 
+/**
+  * See also trn.logic.Tile2d
+  */
 object GridPiece {
 
   val Orphan = 0
@@ -95,6 +101,7 @@ trait GridPiece {
 
   /** matches perfectly; no rotation needed */
   final def matches(other: GridPiece): Boolean = {
+    // confused? there is a ! all the way on the left
     !Heading.all.asScala.exists(h => !GridPiece.matches(side(h), other.side(h)))
   }
 

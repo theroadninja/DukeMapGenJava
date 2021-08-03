@@ -1,13 +1,13 @@
-package trn.bespoke
+package trn.bespoke.moonbase2
 
-import com.sun.javafx.geom.Edge
-import trn.bespoke.Enemy.{AssaultCmdr, Drone, Enforcer, LizTroop, LizTroopCmdr, OctaBrain, PigCop}
-import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, Sprite, SpriteFilter}
-import trn.prefab.{CompassWriter, DukeConfig, GameConfig, Heading, MapWriter, PastedSectorGroup, PrefabUtils, RandomX, RedwallConnector, SectorGroup}
+import trn.bespoke.moonbase2.Enemy._
+import trn.logic.{Point3d, Tile2d}
+import trn.prefab._
 import trn.render.{MiscPrinter, Texture}
+import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, Sprite, SpriteFilter}
 
-import scala.collection.mutable
-import scala.collection.JavaConverters._ // this is the good one
+import scala.collection.JavaConverters._
+import scala.collection.mutable // this is the good one
 
 case class Enemy(
   picnum: Int,
@@ -17,8 +17,8 @@ case class Enemy(
   stay: Option[Int] = None // stayput
 )
 
-// TODO add stayput
 object Enemy {
+  // XXX add stayput?
   val LizTroop = Enemy(1680, crouch=Some(1744))
   val LizTroopCmdr = Enemy(1680, palette=21, crouch=Some(1744))
   val OctaBrain = Enemy(1820)
@@ -30,196 +30,6 @@ object Enemy {
 
 }
 
-// TODO really need a generic "grid" or "logical" point that I can reuse
-case class Point(x: Int, y: Int, z: Int) extends Ordered[Point] {
-  def compare(other: Point): Int ={
-    Seq(x.compare(other.x), y.compare(other.y), z.compare(other.z)).find(_ != 0).getOrElse(0)
-  }
-
-  def n: Point = Point(x, y-1, z)
-  def s: Point= Point(x, y+1, z)
-  def e: Point = Point(x+1, y, z)
-  def w: Point = Point(x-1, y, z)
-
-  def adj: Seq[Point] = Seq(n, s, e, w)
-}
-
-object Edge {
-  def sorted(a: Point, b: Point): Edge = {
-    val p = Seq(a, b).sorted
-    Edge(p(0), p(1))
-  }
-}
-case class Edge(p1: Point, p2: Point) {
-  def isHorizontal: Boolean = p1.y == p2.y && p1.x != p2.x
-  def isVertical: Boolean = p1.x == p2.x && p1.y != p2.y
-}
-
-object LogicalMap {
-  def apply[V, E](): LogicalMap[V, E] = new LogicalMap
-}
-
-class LogicalMap[V, E] {
-  val nodes = mutable.Map[Point, V]()
-  val edges = mutable.Map[Edge, E]()
-
-  def get(p: Point): Option[V] = nodes.get(p)
-
-  def contains(p: Point): Boolean = nodes.contains(p)
-
-  def center: Point = {
-    def midpoint(values: Iterable[Int]) = {
-      val minval = values.min
-      minval + (values.max - minval) / 2
-    }
-    val xs = nodes.keys.map(_.x)
-    val ys = nodes.keys.map(_.y)
-    val zs = nodes.keys.map(_.z)
-    Point(midpoint(xs), midpoint(ys), midpoint(zs))
-  }
-
-  def emptyAdj(p: Point): Seq[Point] = {
-    p.adj.filterNot(contains)
-  }
-
-  def put(p: Point, value: V, overwrite: Boolean = false): Unit = {
-    require(overwrite || !nodes.contains(p))
-    nodes.put(p, value)
-  }
-
-  def putEdge(a: Point, b: Point, edgeValue: E): Unit = {
-    require(nodes.isDefinedAt(a) && nodes.isDefinedAt(b))
-//    val p = Seq(a, b).sorted
-//    edges.put(Edge(p(0), p(1)), edgeValue)
-    edges.put(Edge.sorted(a, b), edgeValue)
-  }
-
-  def containsEdge(a: Point, b: Point): Boolean = {
-//    val p = Seq(a, b).sorted
-//    edges.get(Edge(p(0), p(1))).isDefined
-    edges.get(Edge.sorted(a, b)).isDefined
-  }
-
-  /** returns all edges that include this point */
-  def adjacentEdges(p: Point): Map[Int, Edge] = {
-    def edge(heading: Int): Edge = heading match {
-      case Heading.N => Edge.sorted(p, p.n)
-      case Heading.S => Edge.sorted(p, p.s)
-      case Heading.E => Edge.sorted(p, p.e)
-      case Heading.W => Edge.sorted(p, p.w)
-      case _ => throw new Exception(s"invalid heading: ${heading}")
-    }
-    Heading.all.asScala.toSeq.map(_.intValue).flatMap { heading =>
-      val e = edge(heading)
-      if(edges.contains(e)){
-        Some(heading -> e)
-      }else{
-        None
-      }
-    }.toMap
-  }
-
-
-  override def toString: String = {
-    if(nodes.isEmpty){
-      return ""
-    }
-
-    def getxy(x: Int, y: Int): Option[V] ={
-      val k = nodes.keys.filter(p => p.x == x && p.y == y).toSeq.sortBy(_.z).headOption
-      k.flatMap(p => nodes.get(p))
-    }
-
-    // TODO print edges
-    // remember, positive Y goes down
-    val width = nodes.values.map(_.toString.length).max
-    val xs = nodes.keys.map(_.x)
-    val ys = nodes.keys.map(_.y)
-    val lines = (ys.min to ys.max).map{ y =>
-      val nodeline = (xs.min to xs.max).map{ x =>
-        val node: String = getxy(x, y).map(_.toString).getOrElse("")
-        val s = node.padTo(width, ' ')
-
-        val rightEdge = if(containsEdge(Point(x,y,0), Point(x+1,y,0))){ "-" }else{ "" }
-        s + rightEdge.padTo(width, ' ')
-      }.mkString("")
-      val verticalEdges = (xs.min to xs.max).map { x =>
-        val e = if (containsEdge(Point(x,y, 0), Point(x,y+1, 0))){ "|" }else{""}
-        e.padTo(width, ' ') + "".padTo(width, ' ')
-      }.mkString("")
-
-      s"${nodeline}\n${verticalEdges}"
-    }
-    lines.mkString("\n")
-  }
-}
-
-/**
-  * Prototype that generates a "logical" map (a Graph) of locations and key/gate rooms.
-  */
-class RandomWalkGenerator(r: RandomX) {
-
-  private def randomStep(current: Point, map: LogicalMap[String, String]): Option[Point] = {
-    r.randomElementOpt(map.emptyAdj(current))
-  }
-
-  private def randomWalk(start: Point, map: LogicalMap[String, String], value: String, stepCount: Int): Point = {
-    var current = start
-    for(_ <- 0 until stepCount){
-      val next = randomStep(current, map).get // TODO: DFS and backtrack if no options
-      map.put(next, value)
-      map.putEdge(current, next, "")
-      current = next
-    }
-    current
-  }
-
-  private def attachGate(searchLevels: Seq[String], gate: String, map: LogicalMap[String, String]): Point = {
-    val current = r.randomElement(map.nodes.filter { case (p, v) => searchLevels.contains(v) && map.emptyAdj(p).nonEmpty }.keys)
-    val gateLoc = randomStep(current, map).get
-    map.put(gateLoc, gate)
-    map.putEdge(current, gateLoc, "")
-    gateLoc
-  }
-
-  private def addGateKey(at: String, gatekey: String, map: LogicalMap[String, String]): Point = {
-    val p = r.randomElement(map.nodes.filter{case (p, v) => v == at })._1
-    map.put(p, gatekey, overwrite = true)
-    p
-  }
-
-
-
-  def generate(): LogicalMap[String, String] = {
-    val map = LogicalMap[String, String]()
-
-    var current = Point(0, 0, 0)
-    map.put(current, "S")
-    randomWalk(current, map, "0", 3)
-
-    // pick place to add gateway
-    current = attachGate(Seq("0"), "G1", map)
-    randomWalk(current, map, "1", 3)
-
-    current = attachGate(Seq("1", "0"), "G2", map)
-    randomWalk(current, map, "2", 3)
-
-    current = attachGate(Seq("2", "1", "0"), "G3", map)
-    val last = randomWalk(current, map, "3", 3)
-
-    val end = randomStep(last, map).get
-    map.put(end, "E")
-    map.putEdge(last, end, "")
-
-    addGateKey("0", "K1", map)
-    addGateKey("1", "K2", map)
-    addGateKey("2", "K3", map)
-
-
-    map
-  }
-
-}
 
 /** consider moving to trn.render package */
 object HallwayPrinter {
@@ -275,18 +85,14 @@ object HallwayPrinter {
 
 }
 
+// SectorGroup decorated with extra info for this algorithm
+case class SomethingSectorGroup(tile: Tile2d, sg: SectorGroup)
+
 object MoonBase2 {
 
   def getMoon2Map(): String = HardcodedConfig.getEduke32Path("moon2.map")
 
-
-
   def main(args: Array[String]): Unit = {
-    // Testing Logical Map
-//     val r = new RandomX()
-//     val map = new RandomWalkGenerator(r).generate()
-//     println(map)
-
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
     run(gameCfg)
   }
@@ -369,6 +175,7 @@ object MoonBase2 {
     val moonPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon2.map"))
 
     val logicalMap = new RandomWalkGenerator(random).generate()
+    val keycolors: Seq[Int] = random.shuffle(DukeConfig.KeyColors).toSeq
     println(logicalMap)
 
     val startSg = moonPalette.getSG(1)
@@ -381,22 +188,10 @@ object MoonBase2 {
     val windowRoom1 = moonPalette.getSG(8)
     val conferenceRoom = moonPalette.getSG(9)
     //val conferenceRoomVertical = moonPalette.getSG(9).rotateCW
-    //writer.pasteSectorGroup(startSg, new PointXYZ(0, 0, 0))
 
     // NOTE:  some of my standard space doors are 2048 wide
 
-    val gridSize = 12 * 1024 // TODO this will be different for every row and column
-    val marginSize = 1024 // TODO will be different
-    val originPoint = logicalMap.center // this point goes at 0, 0
-
-    val keycolors: Seq[Int] = random.shuffle(DukeConfig.KeyColors).toSeq
-
-    val pastedGroups = mutable.Map[Point, PastedSectorGroup]()
-    logicalMap.nodes.foreach { case (gridPoint, nodeType) =>
-      val x = gridPoint.x - originPoint.x
-      val y = gridPoint.y - originPoint.y
-      val z = gridPoint.z - originPoint.z
-      val mapPoint = new PointXYZ(x, y, z).multipliedBy(gridSize + marginSize)
+    val sgChoices = logicalMap.nodes.map { case (gridPoint: Point3d, nodeType: String) =>
 
       val sg = nodeType match {
         case "S" => {
@@ -432,7 +227,21 @@ object MoonBase2 {
           }
         }
       }
-      // println(mapPoint)
+      gridPoint -> sg
+    }
+
+
+    val gridSize = 12 * 1024 // TODO this will be different for every row and column
+    val marginSize = 1024 // TODO will be different
+    val originPoint = logicalMap.center // this point goes at 0, 0
+
+
+    val pastedGroups = mutable.Map[Point3d, PastedSectorGroup]()
+    sgChoices.foreach { case(gridPoint, sg) =>
+      val x = gridPoint.x - originPoint.x
+      val y = gridPoint.y - originPoint.y
+      val z = gridPoint.z - originPoint.z
+      val mapPoint = new PointXYZ(x, y, z).multipliedBy(gridSize + marginSize)
       val psg = writer.pasteSectorGroupAt(adjustEnemies(random, sg), mapPoint)
       pastedGroups.put(gridPoint, psg)
     }
