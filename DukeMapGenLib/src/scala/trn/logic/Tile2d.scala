@@ -1,6 +1,6 @@
 package trn.logic
 
-import trn.math.SnapAngle
+import trn.math.{RotatesCW, SnapAngle}
 import trn.prefab.Heading
 
 import scala.collection.JavaConverters._
@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
   * @param w status of east side:  1 for conn, 0 for no conn, -1 for unknown/optional
   * @param n status of east side:  1 for conn, 0 for no conn, -1 for unknown/optional
   */
-case class Tile2d(e: Int, s: Int, w: Int, n: Int) {
+case class Tile2d(e: Int, s: Int, w: Int, n: Int) extends RotatesCW[Tile2d] {
 
   /**
     * @param heading
@@ -39,18 +39,35 @@ case class Tile2d(e: Int, s: Int, w: Int, n: Int) {
 
   def rotatedCW: Tile2d = Tile2d(e=n, s=e, w=s, n=w)
 
-  def rotatedToMatch(other: Tile2d): Option[Tile2d] = { // TODO return number of rotations to make it match
-    // TODO invent a stupid angle case class that measures an angle delta in number of rotations?
-    val r90 = this.rotatedCW
-    val r180 = r90.rotatedCW
-    val r270 = r180.rotatedCW
-    Seq(this, r90, r180, r270).find(this2 => this2.matches(other))
+  // Unnecessary?
+  // def rotatedToMatch(other: Tile2d): Option[Tile2d] = { // TODO return number of rotations to make it match
+  //   // TODO invent a stupid angle case class that measures an angle delta in number of rotations?
+  //   val r90 = this.rotatedCW
+  //   val r180 = r90.rotatedCW
+  //   val r270 = r180.rotatedCW
+  //   Seq(this, r90, r180, r270).find(this2 => this2.matches(other))
+  // }
+  // def couldMatch(other: Tile2d): Boolean = rotatedToMatch(other).isDefined
+
+  /**
+    *
+    * @param heading a Heading value that indicates which side (e.g. Heading.E for e)
+    * @param value the value to set (Conn, Blocked, Wildcard)
+    * @return
+    */
+  def withSide(heading: Int, value: Int): Tile2d = {
+    require(Tile2d.ValidSides.contains(value))
+    heading match {
+      case Heading.E => Tile2d(value, s, w, n)
+      case Heading.S => Tile2d(e, value, w, n)
+      case Heading.W => Tile2d(e, s, value, n)
+      case Heading.N => Tile2d(e, s, w, value)
+      case _ => ???
+    }
   }
 
   /** @returns the min number of times to rotate this tile clockwise until it matches the other tile */
-  def rotationTo(other: Tile2d): Option[SnapAngle] = ??? // TODO
-
-  def couldMatch(other: Tile2d): Boolean = rotatedToMatch(other).isDefined
+  def rotationTo(other: Tile2d): Option[SnapAngle] = SnapAngle.rotateUntil(this){ t => t.matches(other) }
 
   def matches(other: Tile2d): Boolean = {
     ! Heading.all.asScala.exists(h => ! Tile2d.matches(side(h), other.side(h)))
@@ -83,6 +100,8 @@ object Tile2d {
   /** there is or must be a connection on that side */
   val Conn = 1
 
+  val ValidSides = Seq(Wildcard, Blocked, Conn)
+
   // GridPiece uses these to classify tiles (not sure if this is helpful though)
   // val Orphan = 0
   // val Single = 1
@@ -98,4 +117,18 @@ object Tile2d {
       side1 == side2
     }
   }
+
+  def apply(e: Boolean, s: Boolean, w: Boolean, n: Boolean): Tile2d = Tile2d(
+    if(e){ Conn }else{ Blocked },
+    if(s){ Conn }else{ Blocked },
+    if(w){ Conn }else{ Blocked },
+    if(n){ Conn }else{ Blocked }
+  )
+
+  def apply(): Tile2d = Tile2d(Wildcard, Wildcard, Wildcard, Wildcard)
+
+  def apply(default: Int): Tile2d = Tile2d(default, default, default, default)
+
+
+
 }

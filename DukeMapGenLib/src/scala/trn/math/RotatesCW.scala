@@ -6,6 +6,6 @@ package trn.math
   */
 trait RotatesCW[T] {
 
-  def rotatedCW: RotatesCW[T]
+  def rotatedCW: T
 
 }

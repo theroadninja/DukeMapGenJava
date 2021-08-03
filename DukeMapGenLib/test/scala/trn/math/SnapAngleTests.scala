@@ -1,6 +1,7 @@
 package trn.math
 
 import org.junit.{Assert, Test}
+import trn.logic.Tile2d
 
 class SnapAngleTests {
 
@@ -82,7 +83,7 @@ class SnapAngleTests {
   }
 
   @Test
-  def testMultiple(): Unit = {
+  def testMultiply(): Unit = {
     // this operator is meant to be used on something like a SectorGroup.  Rotating another angle is just a silly way to
     // test (and for angles, probably works just like +)
     val a = SnapAngle(3)
@@ -96,6 +97,29 @@ class SnapAngleTests {
     Assert.assertEquals(SnapAngle(3), SnapAngle(2) * SnapAngle(1))
     Assert.assertEquals(SnapAngle(3), SnapAngle(1) * SnapAngle(2))
     Assert.assertEquals(SnapAngle(4), SnapAngle(2) * SnapAngle(2))
+  }
+
+  @Test
+  def testRotateUntil(): Unit = {
+    val a = SnapAngle(0)
+    val b = SnapAngle(2)
+    val r = SnapAngle.rotateUntil(a){ x => x == b}.get
+    Assert.assertEquals(SnapAngle(2), r)
+
+    Assert.assertEquals(SnapAngle(0), SnapAngle.rotateUntil(a){ x => x == a}.get)
+    Assert.assertFalse(SnapAngle.rotateUntil(a){ _ => false}.isDefined)
+
+    val t = Tile2d(true, false, false, false)
+    Assert.assertEquals(SnapAngle(0), SnapAngle.rotateUntil(t)(tile => tile.e == Tile2d.Conn).get)
+    Assert.assertEquals(SnapAngle(1), SnapAngle.rotateUntil(t)(tile => tile.s == Tile2d.Conn).get)
+    Assert.assertEquals(SnapAngle(2), SnapAngle.rotateUntil(t)(tile => tile.w == Tile2d.Conn).get)
+    Assert.assertEquals(SnapAngle(3), SnapAngle.rotateUntil(t)(tile => tile.n == Tile2d.Conn).get)
+
+    val t2 = Tile2d(false, false, false, true)
+    Assert.assertEquals(SnapAngle(3), SnapAngle.rotateUntil(t)(tile => tile == t2).get)
+
+    val t3 = Tile2d(false, true, false, true)
+    Assert.assertFalse(SnapAngle.rotateUntil(t)(tile => tile == t3).isDefined)
   }
 
 }

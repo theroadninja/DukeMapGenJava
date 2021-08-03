@@ -3,6 +3,7 @@ package trn.prefab
 import trn.duke.{MapErrorException, TextureList}
 import trn.{DukeConstants, ISpriteFilter, MapUtil, MapUtilScala, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
+import trn.math.RotatesCW
 
 import scala.collection.JavaConverters._ // this is the good one
 
@@ -52,6 +53,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   extends SectorGroupBase
     with ConnectorCollection
     with ISectorGroup
+    with RotatesCW[SectorGroup]
 {
   // val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
   val autoTexts: java.util.List[AutoText] = new java.util.ArrayList[AutoText]
@@ -175,6 +177,8 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   def translated(translation: PointXYZ): SectorGroup = {
     SectorGroupBuilder.createSectorGroup(map.translated(translation), this.sectorGroupId, this.props, this.hints)
   }
+
+  override def rotatedCW: SectorGroup = rotateCW
 
   def rotateCW: SectorGroup = rotateAroundCW(this.rotationAnchor)
 

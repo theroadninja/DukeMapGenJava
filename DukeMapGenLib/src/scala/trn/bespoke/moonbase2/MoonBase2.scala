@@ -2,6 +2,8 @@ package trn.bespoke.moonbase2
 
 import trn.bespoke.moonbase2.Enemy._
 import trn.logic.{Point3d, Tile2d}
+import trn.logic.Tile2d._
+import trn.math.RotatesCW
 import trn.prefab._
 import trn.render.{MiscPrinter, Texture}
 import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, Sprite, SpriteFilter}
@@ -86,7 +88,9 @@ object HallwayPrinter {
 }
 
 // SectorGroup decorated with extra info for this algorithm
-case class SomethingSectorGroup(tile: Tile2d, sg: SectorGroup)
+case class TileSectorGroup(tile: Tile2d, sg: SectorGroup) extends RotatesCW[TileSectorGroup] {
+  override def rotatedCW: TileSectorGroup = TileSectorGroup(tile.rotatedCW, sg.rotatedCW)
+}
 
 object MoonBase2 {
 
@@ -98,18 +102,13 @@ object MoonBase2 {
   }
 
   // a single is a room with one entry
-  def rotateSingleToEdge(sg: SectorGroup, headings: Iterable[Int]): SectorGroup = {
-    // TODO this is a hack:  all singles simply have their entrace on the west side
+  def rotateSingleToEdge(sg: TileSectorGroup, headings: Iterable[Int]): TileSectorGroup = {
     if(headings.isEmpty){
       throw new Exception("headings is empty")
     }
-    // println(headings.head)
-    headings.head match {
-      case Heading.N => sg.rotateCW
-      case Heading.E => sg.rotate180
-      case Heading.S => sg.rotateCCW
-      case Heading.W => sg
-    }
+    val target = headings.foldLeft(Tile2d(Tile2d.Wildcard)){ (tile, heading) => tile.withSide(heading, Tile2d.Conn) }
+    val angle = sg.tile.rotationTo(target).get
+    angle * sg
   }
 
   /**
@@ -178,20 +177,20 @@ object MoonBase2 {
     val keycolors: Seq[Int] = random.shuffle(DukeConfig.KeyColors).toSeq
     println(logicalMap)
 
-    val startSg = moonPalette.getSG(1)
-    val fourWay = moonPalette.getSG(2) // actually supports any number of connections
-    val endSg = moonPalette.getSG(3)
-    val keySg = moonPalette.getSG(4)
-    val gateSgLeftEdge = moonPalette.getSG(5)
-    val gateSgTopEdge = moonPalette.getSG(6)
-    val gateSg3 = moonPalette.getSG(7)
-    val windowRoom1 = moonPalette.getSG(8)
-    val conferenceRoom = moonPalette.getSG(9)
+    val startSg = TileSectorGroup(Tile2d(Blocked).withSide(Heading.W, Conn), moonPalette.getSG(1))
+    val fourWay = TileSectorGroup(Tile2d(Conn), moonPalette.getSG(2))
+    val endSg = TileSectorGroup(Tile2d(Blocked).withSide(Heading.W, Conn), moonPalette.getSG(3))
+    val keySg = TileSectorGroup(Tile2d(Conn), moonPalette.getSG(4))
+    val gateSgLeftEdge = TileSectorGroup(Tile2d(Conn), moonPalette.getSG(5))
+    val gateSgTopEdge = TileSectorGroup(Tile2d(Conn), moonPalette.getSG(6))
+    val gateSg3 = TileSectorGroup(Tile2d(Conn, Conn, Blocked, Blocked), moonPalette.getSG(7))
+    val windowRoom1 = TileSectorGroup(Tile2d(Conn, Blocked, Conn, Blocked), moonPalette.getSG(8))
+    val conferenceRoom = TileSectorGroup(Tile2d(Conn, Blocked, Conn, Blocked), moonPalette.getSG(9))
     //val conferenceRoomVertical = moonPalette.getSG(9).rotateCW
 
     // NOTE:  some of my standard space doors are 2048 wide
 
-    val sgChoices = logicalMap.nodes.map { case (gridPoint: Point3d, nodeType: String) =>
+    val sgChoices: Map[Point3d, TileSectorGroup] = logicalMap.nodes.map { case (gridPoint: Point3d, nodeType: String) =>
 
       val sg = nodeType match {
         case "S" => {
@@ -202,7 +201,7 @@ object MoonBase2 {
         }
         case s if s.startsWith("K") => {
           val keycolor: Int = keycolors(s(1).toString.toInt - 1)
-          keySg.withKeyLockColor(gameCfg, keycolor)
+          TileSectorGroup(keySg.tile, keySg.sg.withKeyLockColor(gameCfg, keycolor))
         }
         case s if s.startsWith("G") => {
           val keycolor: Int =  keycolors(s(1).toString.toInt - 1)
@@ -213,7 +212,7 @@ object MoonBase2 {
           }else{
             gateSg3
           }
-          gateSg.withKeyLockColor(gameCfg, keycolor) // TODO add a withkeylockcolor() function just like MoonBase1 withLockColor
+          TileSectorGroup(gateSg.tile, gateSg.sg.withKeyLockColor(gameCfg, keycolor))
         }
         case _ => {
           val edges = logicalMap.adjacentEdges(gridPoint)
@@ -228,7 +227,7 @@ object MoonBase2 {
         }
       }
       gridPoint -> sg
-    }
+    }.toMap
 
 
     val gridSize = 12 * 1024 // TODO this will be different for every row and column
@@ -242,7 +241,7 @@ object MoonBase2 {
       val y = gridPoint.y - originPoint.y
       val z = gridPoint.z - originPoint.z
       val mapPoint = new PointXYZ(x, y, z).multipliedBy(gridSize + marginSize)
-      val psg = writer.pasteSectorGroupAt(adjustEnemies(random, sg), mapPoint)
+      val psg = writer.pasteSectorGroupAt(adjustEnemies(random, sg.sg), mapPoint)
       pastedGroups.put(gridPoint, psg)
     }
 
