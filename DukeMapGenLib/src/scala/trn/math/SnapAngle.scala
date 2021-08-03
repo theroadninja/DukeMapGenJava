@@ -18,9 +18,22 @@ package trn.math
   *
   * See also trn.AngleUtil
   */
-case class SnapAngle(cwCount: Int) {
+case class SnapAngle(cwCount: Int) extends RotatesCW[SnapAngle] {
   def +(other: SnapAngle): SnapAngle = SnapAngle(cwCount + other.cwCount)
   def -(other: SnapAngle): SnapAngle = SnapAngle(cwCount - other.cwCount)
+
+  override def rotatedCW: SnapAngle = SnapAngle(cwCount + 1)
+
+  def *(other: RotatesCW[_]): RotatesCW[_] = if(cwCount == 0) {
+    other
+  }else{
+    var result = other
+    (0 until cwCount).foreach { _ =>
+      result = result.rotatedCW
+    }
+    result
+  }
+  // TODO define a * operator that works against things with a "rotateable" Trait?
 }
 
 object SnapAngle {
