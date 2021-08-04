@@ -2,7 +2,7 @@ package trn.bespoke.moonbase2
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import trn.logic.Point3d
+import trn.logic.{Point3d, Tile2d}
 import trn.prefab.Heading
 
 object Edge {
@@ -80,6 +80,16 @@ class LogicalMap[V, E] {
         None
       }
     }.toMap
+  }
+
+  /**
+    * Like adjacentEdges but returns them as a tile.
+    * @param p
+    * @param blankVal - value to use when there is no edge on that side
+    * @return a Tile2d describing the point `p` in terms of its edges.
+    */
+  def getTile(p: Point3d, blankVal: Int = Tile2d.Wildcard): Tile2d = {
+    adjacentEdges(p).keys.foldLeft(Tile2d(blankVal)) { (tile, heading) => tile.withSide(heading, Tile2d.Conn)}
   }
 
 

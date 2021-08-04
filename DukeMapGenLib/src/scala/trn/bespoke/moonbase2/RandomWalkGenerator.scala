@@ -9,7 +9,11 @@ import trn.prefab.RandomX
 class RandomWalkGenerator(r: RandomX) {
 
   private def randomStep(current: Point3d, map: LogicalMap[String, String]): Option[Point3d] = {
-    r.randomElementOpt(map.emptyAdj(current).filter(_.z == current.z))
+    val available = map.emptyAdj(current).filter(_.z == current.z)
+    if(available.isEmpty){
+      throw new Exception("no empty spaces")
+    }
+    r.randomElementOpt(available)
   }
 
   private def randomWalk(start: Point3d, map: LogicalMap[String, String], value: String, stepCount: Int): Point3d = {

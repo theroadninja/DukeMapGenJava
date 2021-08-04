@@ -47,7 +47,7 @@ case class Tile2d(e: Int, s: Int, w: Int, n: Int) extends RotatesCW[Tile2d] {
   //   val r270 = r180.rotatedCW
   //   Seq(this, r90, r180, r270).find(this2 => this2.matches(other))
   // }
-  // def couldMatch(other: Tile2d): Boolean = rotatedToMatch(other).isDefined
+  def couldMatch(other: Tile2d): Boolean = rotationTo(other).isDefined
 
   /**
     *

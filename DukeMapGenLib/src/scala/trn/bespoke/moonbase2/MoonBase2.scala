@@ -1,7 +1,7 @@
 package trn.bespoke.moonbase2
 
 import trn.bespoke.moonbase2.Enemy._
-import trn.logic.{Point3d, Tile2d}
+import trn.logic.{Point3d, Tile2d, VariableGridLayout}
 import trn.logic.Tile2d._
 import trn.math.RotatesCW
 import trn.prefab._
@@ -101,12 +101,7 @@ object MoonBase2 {
     run(gameCfg)
   }
 
-  // a single is a room with one entry
-  def rotateSingleToEdge(sg: TileSectorGroup, headings: Iterable[Int]): TileSectorGroup = {
-    if(headings.isEmpty){
-      throw new Exception("headings is empty")
-    }
-    val target = headings.foldLeft(Tile2d(Tile2d.Wildcard)){ (tile, heading) => tile.withSide(heading, Tile2d.Conn) }
+  def rotateToMatch(sg: TileSectorGroup, target: Tile2d): TileSectorGroup = {
     val angle = sg.tile.rotationTo(target).get
     angle * sg
   }
@@ -194,10 +189,10 @@ object MoonBase2 {
 
       val sg = nodeType match {
         case "S" => {
-          rotateSingleToEdge(startSg, logicalMap.adjacentEdges(gridPoint).keys)
+          rotateToMatch(startSg, logicalMap.getTile(gridPoint))
         }
         case "E" => {
-          rotateSingleToEdge(endSg, logicalMap.adjacentEdges(gridPoint).keys)
+          rotateToMatch(endSg, logicalMap.getTile(gridPoint))
         }
         case s if s.startsWith("K") => {
           val keycolor: Int = keycolors(s(1).toString.toInt - 1)
@@ -215,24 +210,31 @@ object MoonBase2 {
           TileSectorGroup(gateSg.tile, gateSg.sg.withKeyLockColor(gameCfg, keycolor))
         }
         case _ => {
-          val edges = logicalMap.adjacentEdges(gridPoint)
-          if(edges.size == 2 && edges.contains(Heading.W) && edges.contains(Heading.E)) {
-            random.randomElement(Seq(windowRoom1, conferenceRoom))
-          }else if(edges.size == 2 && edges.contains(Heading.N) && edges.contains(Heading.S)){
-            fourWay // conferenceRoomVertical
-          }else{
-            fourWay
-
-          }
+          val target = logicalMap.getTile(gridPoint, Tile2d.Blocked)
+          val target2 = logicalMap.getTile(gridPoint, Tile2d.Wildcard) // fourWay has 4 connections
+          val room = random.shuffle(Seq(windowRoom1, conferenceRoom)).find(_.tile.couldMatch(target)).getOrElse(fourWay)
+          rotateToMatch(room, target2)
         }
       }
       gridPoint -> sg
     }.toMap
 
+    val columns = sgChoices.keys.map(_.x).toSet
+    val rows = sgChoices.keys.map(_.y).toSet
+    val columnWidths = columns.map{ col =>
+      val maxWidth = sgChoices.collect{ case(point, tsg) if col ==  point.x => tsg.sg.bbWidth }.max
+      col -> maxWidth
+    }.toMap
+    val rowHeights = rows.map { row =>
+      val maxHeight = sgChoices.collect { case(point, tsg) if row == point.y => tsg.sg.bbHeight }.max
+      row -> maxHeight
+    }.toMap
+    val vgrid = VariableGridLayout(columnWidths, rowHeights, 0, 0)
 
     val gridSize = 12 * 1024 // TODO this will be different for every row and column
     val marginSize = 1024 // TODO will be different
     val originPoint = logicalMap.center // this point goes at 0, 0
+    // TODO val originPoint = vgrid.center.withZ(0) // this point goes at 0, 0
 
 
     val pastedGroups = mutable.Map[Point3d, PastedSectorGroup]()
