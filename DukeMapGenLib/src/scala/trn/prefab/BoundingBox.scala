@@ -84,6 +84,8 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
     new PointXY(xMax, yMax),
   )
 
+  lazy val center: PointXY = new PointXY(xMin + w/2, yMin + h/2)
+
   def area: Int = w * h
 
   /**

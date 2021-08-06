@@ -63,7 +63,10 @@ class LogicalMap[V, E] {
     edges.get(Edge.sorted(a, b)).isDefined
   }
 
-  /** returns all edges that include this point */
+  /**
+    * returns all edges that include this point
+    * @returns Map(Heading -> Edge)
+    */
   def adjacentEdges(p: Point3d): Map[Int, Edge] = { // TODO doesnt handle Z ...
     def edge(heading: Int): Edge = heading match {
       case Heading.N => Edge.sorted(p, p.n)
@@ -80,6 +83,10 @@ class LogicalMap[V, E] {
         None
       }
     }.toMap
+  }
+
+  def adjacentNodes(p: Point3d): Map[Point3d, V] = {
+    p.adj.collect { case p if nodes.contains(p) => p -> nodes(p)}.toMap
   }
 
   /**

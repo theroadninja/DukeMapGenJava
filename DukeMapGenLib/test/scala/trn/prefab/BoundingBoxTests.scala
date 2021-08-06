@@ -16,6 +16,7 @@ class BoundingBoxTests {
   def testBoundingBox: Unit = {
 
     BoundingBox(0, 0, 0, 0) // this should be allowed
+    Assert.assertEquals(p(0, 0), BoundingBox(0, 0, 0, 0).center)
 
     val bb = BoundingBox(0, 0, 10, 10)
 
@@ -168,6 +169,11 @@ class BoundingBoxTests {
     Assert.assertFalse(b(0, 0, 0, 0).containsAny(p(1, 0), p(0, 1)))
     Assert.assertTrue(b(0, 0, 0, 0).containsAny(p(0, 0), p(0, 0)))
     Assert.assertTrue(b(0, 0, 0, 0).containsAny(p(0, 0), p(0, 1)))
+  }
+
+  @Test
+  def testCenter: Unit = {
+    Assert.assertEquals(p(15, 32), b(10, 0, 21, 64).center)
   }
 
   @Test

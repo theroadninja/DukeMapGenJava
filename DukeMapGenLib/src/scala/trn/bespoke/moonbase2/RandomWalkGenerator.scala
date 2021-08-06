@@ -46,6 +46,10 @@ class RandomWalkGenerator(r: RandomX) {
   }
 
 
+  /** find all points in map, and all of their neighboors */
+  def allPoints(map: LogicalMap[String, String]): Set[Point3d] = {
+    map.nodes.keys.flatMap(p => p.adj).toSet
+  }
 
   def generate(): LogicalMap[String, String] = {
     val map = LogicalMap[String, String]()
@@ -72,6 +76,35 @@ class RandomWalkGenerator(r: RandomX) {
     addGateKey("1", "K2", map)
     addGateKey("2", "K3", map)
 
+    // add a one-way node
+    // TODO allow it to connect to gates and keys also
+    def onewayNode(p: Point3d): Option[(Point3d, String)] = {
+      val nodes = map.adjacentNodes(p).values.toSeq
+      Seq(0, 1, 2).collectFirst{
+        case i if nodes.count(_ == i.toString) == 1 && nodes.count(_ == (i+1).toString) == 1 =>
+          (p, i.toString)
+      }
+    }
+    // val oneway = map.nodes.keys.flatMap(p => map.emptyAdj(p)).find{ p =>
+    //   val nodes = map.adjacentNodes(p).values.toSeq
+    //   Seq(0, 1, 2).exists { i =>
+    //     val j = i + 1
+    //     nodes.count(_ == i.toString) == 1 && nodes.count(_ == j.toString) == 1
+    //   }
+    // }
+    //val oneway = map.nodes.keys.flatMap(p => map.adjacentNodes(p)).collectFirst { case p if onewayNode(p).isDefined => onewayNode(p).get }
+    val oneway = allPoints(map).filterNot(map.contains).collectFirst{
+      case p if onewayNode(p).isDefined => onewayNode(p).get
+    }
+    oneway.foreach { case (p, lower) =>
+      map.put(p, s"${lower}<")
+      val higher = (1 + Integer.parseInt(lower)).toString
+
+      val lowerNode = p.adj.collectFirst{case adj if map.nodes.get(adj).getOrElse("") == lower => adj}.get
+      val higherNode = p.adj.collectFirst{case adj if map.nodes.get(adj).getOrElse("") == higher => adj}.get
+      map.putEdge(p, lowerNode, lower)
+      map.putEdge(p, higherNode, higher)
+    }
 
     map
   }

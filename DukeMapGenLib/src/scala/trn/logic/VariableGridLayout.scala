@@ -20,6 +20,8 @@ import trn.prefab.BoundingBox
   *     +--+------+---+------+-+-------+
   *
   * column and row ids can be negative (the edge of the layout starts at the smallest values)
+  *
+  * TODO add z coordinate?
   */
 case class VariableGridLayout(
   private[logic] val colWidths: Seq[Int],

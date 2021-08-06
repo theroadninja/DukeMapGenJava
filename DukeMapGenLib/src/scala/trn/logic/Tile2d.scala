@@ -56,7 +56,7 @@ case class Tile2d(e: Int, s: Int, w: Int, n: Int) extends RotatesCW[Tile2d] {
     * @return
     */
   def withSide(heading: Int, value: Int): Tile2d = {
-    require(Tile2d.ValidSides.contains(value))
+    // require(Tile2d.ValidSides.contains(value))
     heading match {
       case Heading.E => Tile2d(value, s, w, n)
       case Heading.S => Tile2d(e, value, w, n)

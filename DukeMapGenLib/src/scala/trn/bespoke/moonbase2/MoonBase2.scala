@@ -181,6 +181,9 @@ object MoonBase2 {
     val gateSg3 = TileSectorGroup(Tile2d(Conn, Conn, Blocked, Blocked), moonPalette.getSG(7))
     val windowRoom1 = TileSectorGroup(Tile2d(Conn, Blocked, Conn, Blocked), moonPalette.getSG(8))
     val conferenceRoom = TileSectorGroup(Tile2d(Conn, Blocked, Conn, Blocked), moonPalette.getSG(9))
+
+    // ONE-WAY
+    val area51 = TileSectorGroup(Tile2d(Conn, Conn, Conn, 2), moonPalette.getSG(10))
     //val conferenceRoomVertical = moonPalette.getSG(9).rotateCW
 
     // NOTE:  some of my standard space doors are 2048 wide
@@ -209,6 +212,14 @@ object MoonBase2 {
           }
           TileSectorGroup(gateSg.tile, gateSg.sg.withKeyLockColor(gameCfg, keycolor))
         }
+        case s if s.endsWith("<") => {
+          // TODO this did it backwards...
+          val higherLevel = (s(0).toString.toInt + 1).toString
+          println(higherLevel)
+          val (h, _) = logicalMap.adjacentEdges(gridPoint).filter{ case (_, edge) => logicalMap.edges(edge) == higherLevel}.head
+          val target = Tile2d(Wildcard).withSide(h, 2)
+          rotateToMatch(area51, target)
+        }
         case _ => {
           val target = logicalMap.getTile(gridPoint, Tile2d.Blocked)
           val target2 = logicalMap.getTile(gridPoint, Tile2d.Wildcard) // fourWay has 4 connections
@@ -229,20 +240,25 @@ object MoonBase2 {
       val maxHeight = sgChoices.collect { case(point, tsg) if row == point.y => tsg.sg.bbHeight }.max
       row -> maxHeight
     }.toMap
-    val vgrid = VariableGridLayout(columnWidths, rowHeights, 0, 0)
+
+    val marginSize = 1024 * 2 // TODO will be different
+    val vgrid = VariableGridLayout(columnWidths, rowHeights, marginSize, marginSize)
 
     val gridSize = 12 * 1024 // TODO this will be different for every row and column
-    val marginSize = 1024 // TODO will be different
     val originPoint = logicalMap.center // this point goes at 0, 0
-    // TODO val originPoint = vgrid.center.withZ(0) // this point goes at 0, 0
+
+    val gridTopLeft = PointXY.ZERO.subtractedBy(vgrid.center)
 
 
     val pastedGroups = mutable.Map[Point3d, PastedSectorGroup]()
     sgChoices.foreach { case(gridPoint, sg) =>
-      val x = gridPoint.x - originPoint.x
-      val y = gridPoint.y - originPoint.y
-      val z = gridPoint.z - originPoint.z
-      val mapPoint = new PointXYZ(x, y, z).multipliedBy(gridSize + marginSize)
+      // val x = gridPoint.x - originPoint.x
+      // val y = gridPoint.y - originPoint.y
+      // val z = gridPoint.z - originPoint.z
+      // val mapPoint = new PointXYZ(x, y, z).multipliedBy(gridSize + marginSize)
+
+      val mapPoint: PointXYZ = gridTopLeft.withZ(0).add(vgrid.boundingBox(gridPoint.x, gridPoint.y).center.withZ(0))
+
       val psg = writer.pasteSectorGroupAt(adjustEnemies(random, sg.sg), mapPoint)
       pastedGroups.put(gridPoint, psg)
     }
