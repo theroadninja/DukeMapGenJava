@@ -6,6 +6,8 @@ import trn.Sector;
  * Like wall prefab, but for sectors.
  * @author Dave
  *
+ * TODO intend to replace this with a new SectorPrefab in trn.render
+ *
  */
 public class SectorPrefab {
 

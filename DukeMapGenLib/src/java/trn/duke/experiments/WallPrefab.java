@@ -4,8 +4,9 @@ import trn.Wall;
 
 /**
  * Spec that describes a wall to create, to make it easier to create multiple walls.
- * 
- * 
+ *
+ * TODO intend to replace this with a new WallPrefab in trn.render
+ *
  * @author Dave
  *
  */

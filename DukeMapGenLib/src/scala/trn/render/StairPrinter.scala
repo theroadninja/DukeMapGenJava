@@ -18,6 +18,10 @@ object StairEntrance {
   }
 
 }
+
+/**
+  * TODO replace wih WallAnchor, which is meant to be a more generic version of this
+  */
 case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sectorId: Option[Int]) {
   def isDiagonal: Boolean = p0.x != p1.x && p0.y != p1.y
 }
@@ -29,6 +33,14 @@ case class StairTextures(wallTex: Texture)
 // Notes on approximating a half circle with a bezier curve
 // http://digerati-illuminatus.blogspot.com/2008/05/approximating-semicircle-with-cubic.html
 object StairPrinter {
+
+  /**
+    * Max stair slope you can get and still walk down the stairs (any steeper and duke ends up jumping/falling).
+    *
+    * vertical change / horizontal distance
+    *
+    */
+  val MaxStairSlope = 0.84506 // 40.2 degrees, angle of ascent.  (I actually tested slope .84210 though)
 
   def snapToNearest(value: Int, increment: Int): Int = value / increment * increment
 
@@ -159,8 +171,8 @@ object StairPrinter {
     *  so to define a "minimum" length for stairs, or really the maximum slope,
     *  i looked at how step they could be before Duke starts jumping down them
     *  at walking speed.  Roughly 40 degrees seems to be the max you can get without
-    *  any jumping/falling.  So, with script mode on, this is enforced.  If you dont
-    *  like it, turn script mode off.
+    *  any jumping/falling.  So, with strict mode on, this is enforced.  If you dont
+    *  like it, turn strict mode off.
     *
     *  NOTE:  according to the internet, 37 degrees is the preferred stair angle
     *
@@ -204,7 +216,7 @@ object StairPrinter {
     val stairCount2 = Math.max(2, if(stairHeight == 0){ 0 }else{ verticalDrop / stairHeight })
 
     // COUNTING FOR DUMMIES
-    // observse that the highest "stair" is really just the next sector, so:
+    // observe that the highest "stair" is really just the next sector, so:
     // # divisions of height = StairCount (divide vertical drop by this to gets number of steps)
     // # step wall = StairCount
     // # floors (including start and end) = StairCount + 1

@@ -29,6 +29,10 @@ public class LineXY {
         return this.vector;
     }
 
+    public FVectorXY getNormalizedVector(){
+        return toF(this.vector).normalized();
+    }
+
     @Override
     public boolean equals(Object other){
         if(other == this){
@@ -69,5 +73,44 @@ public class LineXY {
         int x2 = vector.y;
         int y2 = -vector.x;
         return new LineXY(point, new PointXY(x2, y2));
+    }
+
+    /**
+     *
+     *
+     *             U
+     *   A --------+---------->  A + V
+     *             .
+     *             .
+     *             .
+     *             P
+     *
+     * where
+     * A = this.point
+     * V = this.vector
+     * P = point p
+     *
+     * N = normalized V  (unit vector of V)
+     * U = A + tN
+     * t = (P-A) * n
+     *
+     * |U-P| = the distance from p to the line
+     *
+     * @param p
+     * @return the shortest distance between point p and the line
+     */
+    public double distanceTo(PointXY p){
+
+        PointXY a = this.point;
+        FVectorXY n = toF(this.vector).normalized();
+
+        double t = n.dotProduct(p.subtractedBy(a));
+        FVectorXY u = toF(a).add(n.multipliedBy(t));
+
+        return u.subtractedBy(toF(p)).length();
+    }
+
+    private FVectorXY toF(PointXY p){
+        return new FVectorXY(p.x, p.y);
     }
 }

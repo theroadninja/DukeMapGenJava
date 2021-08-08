@@ -5,6 +5,10 @@ import org.junit.Test;
 
 public class MapUtilTests {
 
+    private PointXY p(int x, int y){
+        return new PointXY(x, y);
+    }
+
     private Wall w(int x, int y){
         Wall w = new Wall();
         w.x = x;
@@ -52,4 +56,13 @@ public class MapUtilTests {
         Assert.assertFalse(MapUtil.isSpritePointedAtWall(s(2, 0, AngleUtil.ANGLE_UP), w(-1, -10), w(1, -10)));
 
     }
+
+    @Test
+    public void testDistanceToLineSpecial(){
+        Assert.assertEquals(5, (int)MapUtil.distanceToLineSpecial(p(0, 0), p(0, 1), p(5, 10)));
+        Assert.assertEquals(-5, (int)MapUtil.distanceToLineSpecial(p(0, 0), p(0, 1), p(-5, 10)));
+        Assert.assertEquals(Math.sqrt(2*2 + 1*1), MapUtil.distanceToLineSpecial(p(0,0), p(2, 1), p(-1, -3)), 0.000001);
+        Assert.assertEquals(-Math.sqrt(2*2 + 1*1), MapUtil.distanceToLineSpecial(p(0,0), p(2, 1), p(3, 4)), 0.000001);
+    }
+
 }

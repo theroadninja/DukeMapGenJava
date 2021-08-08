@@ -3,7 +3,8 @@ package trn.prefab
 import java.util
 
 import trn.{DukeConstants, HardcodedConfig, Sprite, Wall, WallView}
-import trn.duke.{PaletteList, TextureList}
+import trn.duke.{Lotags, PaletteList, TextureList}
+import trn.render.Texture
 
 import scala.collection.JavaConverters._
 import scala.io.Source
@@ -23,6 +24,8 @@ trait GameConfig {
     * @return the width of the texture, in pixels.
     */
   def textureWidth(texture: Int): Int
+
+  def tex(picnum: Int): Texture = Texture(picnum, textureWidth(picnum))
 
   /**
     * Method for reading all of the unique hi or lo tag values from a sprite, which is any tag used to link sprites
@@ -78,7 +81,16 @@ trait GameConfig {
 
   /** @returns true if the given texture/picnum represents a lock ("accessswitch") */
   def isKeycardLock(tex: Int): Boolean
+
+  def ST: SectorTags
 }
+
+// I'm thinking about using this to replace trn.duke.Lotags
+case class SectorTags(
+  elevatorDown: Int,
+  elevatorUp: Int
+)
+
 
 object DukeConfig {
   def load(texWidthsFilePath: String): GameConfig = {
@@ -226,4 +238,9 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
       wall.setLotag(idMap(wall.getLotag))
     }
   }
+
+  override def ST: SectorTags = SectorTags(
+    elevatorDown = Lotags.ST.ELEVATOR_DOWN,
+    elevatorUp = Lotags.ST.ELEVATOR_UP
+  )
 }

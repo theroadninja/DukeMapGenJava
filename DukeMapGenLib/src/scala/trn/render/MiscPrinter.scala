@@ -40,6 +40,8 @@ object MiscPrinter {
     wall
   }
 
+  def wall(p: PointXY, wallPrefab: WallPrefab): Wall = wallPrefab.create(p)
+
   // From working on StairPrinter:
   // // This code makes the north wall a curved dome
   // val nw = new PointXY(0, 0)

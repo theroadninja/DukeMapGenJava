@@ -24,6 +24,16 @@ public class Sector {
 	
 	
 	private short ceilingStat;
+
+	/**
+	 * bit 0: 1 = parallaxing, 0 = not [P]
+	 * bit 1: 1 = sloped, 0 = not
+	 * bit 2: 1 = swap x&y, 0 = not   [F]
+	 * bit 3: double smooshiness (make it smaller)  [E]
+	 * bit 4: x-flip [F]
+	 * bit 5: y-flip [F]
+	 * bit 6: align texture to first wall of sector [R]
+	 */
 	private short floorstat;
 	private short ceilingPicNum;
 	private short ceilingheinum; //slope value?
@@ -156,10 +166,25 @@ public class Sector {
 	public void setFloorZ(int z){
 		this.floorz = z;
 	}
+
+	public void setFloorRelative(boolean relative){
+	    // TODO make a FloorState object just like WallStat ?
+		if(relative){
+			this.floorstat |= FloorCeilStat.RELATIVE;
+		}else{
+		    // this.floorstat = WallState.removebits(this.floorstate, FloorCeilStat.RELATIVE)
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
+	/**
+	 * @return the z coord of the floor at the first wall only.  If the sector is sloped you need to use
+	 * MapUtils.getFloorZAt() to get the correct height for any point not on the sector's first wall.
+	 */
 	public int getFloorZ(){
 		return this.floorz;
 	}
-	
+
 	public void setCeilingTexture(int i){
 		this.ceilingPicNum = (short)i;
 	}
@@ -172,6 +197,14 @@ public class Sector {
 	}
 	public short getFloorTexture(){
 		return this.floorpicnum;
+	}
+
+	/**
+	 * TODO explanation of how the value works...  rise/run, 0 = flat and 4096 = 45 degrees...
+	 * @return
+	 */
+	public int getFloorSlope(){
+		return this.floorheinum;
 	}
 
 	public CFStat getFloorStat(){
@@ -238,6 +271,37 @@ public class Sector {
 
 	public int getLotag(){
 		return this.lotag;
+	}
+
+	/**
+     * Calculates the height of a sector's floor or ceiling at a certain distance from the first wall,
+	 * based on the sector floor/ceiling slope angle.o
+	 *
+	 * The slope angle in a value like `floorheinum` is rise/run, where 0 = flat and 4096 is 45 degrees.
+     *
+	 *                   (x=0,z=0) --------------------> (x=distance,z=0)
+	 *                            .
+	 *                               .
+	 *                                  .
+	 *                                     .
+	 *                                        .
+	 *                                           .
+	 *                                              .  (x=distance, z=RETURN VALUE)
+	 *
+	 * @param slope the slope, in the same units as `floorheinum`, a.k.s. Sector.getFloorSlope()
+	 * @param distanceFromFirstWall the horizontal distance from the first wall, in the coordinate scale used by x and y coordinates
+	 *         Note:  use a negative distance to indicate a place "behind" the first wall of a sector
+	 * @return  the height of the floor (starting from 0), in z units (which are a different scale than x and y units) at distance `distance`
+	 * 		from the first wall of a sector
+	 */
+	public static int getSlopedZ(int slope, int distanceFromFirstWall){
+	    int slope2 = slope / 256; // I have no idea why the slope value is bitshifted also
+	    return distanceFromFirstWall * slope2;
+	}
+
+	// TODO good documentation, and put this function at the correct place
+	public int getFloorZAt(int distanceFromFirstWall){
+		return getSlopedZ(this.floorheinum, distanceFromFirstWall);
 	}
 	
 	public void toBytes(OutputStream output) throws IOException {

@@ -44,5 +44,30 @@ public final class FVectorXY {
         return new FVectorXY(y, -x);
     }
 
+    public FVectorXY add(FVectorXY p){
+        return new FVectorXY(x + p.x, y + p.y);
+    }
+
+    public FVectorXY subtractedBy(FVectorXY other){
+        return new FVectorXY(this.x - other.x, this.y - other.y);
+    }
+
+    public FVectorXY multipliedBy(double f){
+        return new FVectorXY(x * f, y * f);
+    }
+
+    public double dotProduct(PointXY other){
+        return this.x * other.x + this.y * other.y;
+    }
+
+    public double dotProduct(FVectorXY other){
+        return this.x * other.x + this.y * other.y;
+    }
+
+    @Override
+    public String toString(){
+        return "{ FVectorXY x=" + this.x + " y=" + y + " }";
+    }
+
 
 }

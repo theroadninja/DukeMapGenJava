@@ -26,6 +26,57 @@ public class MapUtil {
 			return total / count;
 		}
 	}
+
+	public static int getFloorZAtWall(Map map, int sectorId, int wallId){
+		return getFloorZAt(map, sectorId, map.getWallView(wallId).getLineSegment().midpoint());
+	}
+
+	/**
+	 * Calculates the floor height of a sector at a given point based on the slope of the floor from its first wall.
+	 *
+	 * @param map  the map containing the sector
+	 * @param sectorId  the id of the sector whose floor you want to learn about
+	 * @param at  the point where you want to get the z value (doesnt have to be in the sector)
+	 * @return the z coordinate of a sector's floor at point `at`, taking into account the floors slope (warning: this
+	 * 	might not return the exact same coordinate that the build engine is calculating, and the given point doesnt
+	 * 	have to be in the sector, so you could get a z value that doesnt exist on any floor in the map).
+	 */
+	public static int getFloorZAt(Map map, int sectorId, PointXY at){
+		Sector sector = map.getSector(sectorId);
+		WallView firstWall = map.getWallView(sector.getFirstWall());
+		double dist = distanceToLineSpecial(firstWall.p1(), firstWall.p2(), at);
+
+		return sector.getFloorZAt((int)dist);
+	}
+
+	/**
+	 * This is a "special" distance to line formula that returns a negative number to indicate that the point
+	 * is on the other side of the line.
+	 *
+	 *               -P
+     *                .
+	 *      A -----------------> B
+	 *                .
+	 *               +P
+	 *
+	 * @param a first point on the line
+	 * @param b second point on the line
+	 * @param p the point to get a distance to
+	 * @return the distance to line, making it negative if its on the left
+	 */
+	static double distanceToLineSpecial(PointXY a, PointXY b, PointXY p){
+		LineXY line = LineXY.fromPoints(a, b);
+		double distance = line.distanceTo(p);
+		if(0 == (int)distance){
+			return 0;
+		}
+		// use cross product to figure out which side of the line its on
+		if (0 < b.subtractedBy(a).crossProduct2d(p.subtractedBy(a))){
+			return -1 * distance;
+		}else{
+			return distance;
+		}
+	}
 	
 	
 	/**

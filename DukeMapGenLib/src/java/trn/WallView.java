@@ -1,5 +1,8 @@
 package trn;
 
+import trn.prefab.ConnectorType;
+import trn.prefab.Heading;
+
 import javax.sound.sampled.Line;
 import java.util.ArrayList;
 import java.util.List;
@@ -138,6 +141,33 @@ public class WallView {
         PointXY p1 = getLineSegment().getP1();
         PointXY p2 = getLineSegment().getP2();
         return p1.x == p2.x && p1.y != p2.y;
+    }
+
+    /**
+     * Determines if this is  "compass wall", i.e. an axis-aligned wall on the "east", "west", "north" or "south" side
+     * of a sector.  Note that compassWallSide()==East does not necessarily mean that the wall is the _farthest_ wall
+     * east, just that is has valid sector space on the left and null space (or another sector) on the right.
+     *
+     *            ...>  +
+     * East Wall:      |
+     *                \/
+     *            <... +
+     *
+     * @return which "side" of the sector the wall is on, or -1 if its not a compass wall
+     */
+    public final int compassWallSide(){
+        PointXY vector = this.getUnitVector();
+        if(vector.x == 1) {
+            return Heading.N;
+        }else if(vector.x == -1){
+            return Heading.S;
+        }else if(vector.y == 1){ // y is pointed down
+            return Heading.E;
+        }else if(vector.y == -1){ // y is pointed up
+            return Heading.W;
+        }else{
+            return -1;
+        }
     }
 
     public final boolean isRedwall(){

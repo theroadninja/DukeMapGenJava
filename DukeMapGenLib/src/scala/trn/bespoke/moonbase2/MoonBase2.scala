@@ -8,8 +8,8 @@ import trn.prefab._
 import trn.render.{MiscPrinter, Texture}
 import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, Sprite, SpriteFilter}
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable // this is the good one
+import scala.collection.JavaConverters._// this is the good one
+import scala.collection.mutable
 
 case class Enemy(
   picnum: Int,

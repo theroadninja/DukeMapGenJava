@@ -1,10 +1,14 @@
 package trn.prefab
 
+import trn.{WallView, Map => DMap}
 import trn.FuncImplicits._
+import scala.collection.JavaConverters._
 
 /**
   * Provides methods for dealing with axis-aligned redwall connectors that are at the edges of sector groups, named
   * after compass directions, e.g. north, east, south, west.  May be useful for grids and hypercubes.
+  *
+  * TODO see also RedConnUtil.connectorTypeForWall
   */
 object CompassWriter {
   val WestConn = RedConnUtil.WestConnector
@@ -63,5 +67,13 @@ object CompassWriter {
     case Heading.S => farthestSouth(conns)
     case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
   }
+
+  private def compassWalls(map: DMap, sectorId: Int, heading: Int): Seq[WallView] = {
+    map.getWallViews(map.getAllSectorWallIds(sectorId)).asScala.filter(w => w.compassWallSide() == heading)
+  }
+  def eastWalls(map: DMap, sectorId: Int): Seq[WallView] = compassWalls(map, sectorId, Heading.E)
+  def southWalls(map: DMap, sectorId: Int): Seq[WallView] = compassWalls(map, sectorId, Heading.S)
+  def westWalls(map: DMap, sectorId: Int): Seq[WallView] = compassWalls(map, sectorId, Heading.W)
+  def northWalls(map: DMap, sectorId: Int): Seq[WallView] = compassWalls(map, sectorId, Heading.N)
 
 }

@@ -43,6 +43,14 @@ object BuildConstants {
   val TexScalingFactorX = 16;
 
 
+  /**
+    *  This is the smallest width gap the player can squeeze through.  I only tested in Duke3d so far.  The player
+    *  barely fits through this width, and usually gets stuck and requires some fiddling to get through the gap.
+    *
+    *  The player has no trouble getting through a width of 352.
+    */
+  val MinHallwayWidth = 336
+
 
   /** default sector height, in PgUp/PgDown steps */
   val DefaultSectorHeightStep = 16
