@@ -135,6 +135,11 @@ object DukeConfig {
   private[prefab] lazy val Fems: Seq[Int] = TextureList.FEM.ALL.asScala.map(_.intValue)
 
   val KeyColors: Seq[Int] = Seq(PaletteList.KEYCARD_BLUE, PaletteList.KEYCARD_RED, PaletteList.KEYCARD_YELLOW)
+
+  def ST: SectorTags = SectorTags(
+    elevatorDown = Lotags.ST.ELEVATOR_DOWN,
+    elevatorUp = Lotags.ST.ELEVATOR_UP
+  )
 }
 
 /** TODO - move this somewhere else? */
@@ -239,8 +244,35 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
     }
   }
 
-  override def ST: SectorTags = SectorTags(
-    elevatorDown = Lotags.ST.ELEVATOR_DOWN,
-    elevatorUp = Lotags.ST.ELEVATOR_UP
-  )
+  override def ST: SectorTags = DukeConfig.ST
+  // override def ST: SectorTags = SectorTags(
+  //   elevatorDown = Lotags.ST.ELEVATOR_DOWN,
+  //   elevatorUp = Lotags.ST.ELEVATOR_UP
+  // )
+}
+
+/**
+  * Hardcoded stuff to allow code that depends on GameConfig to run in unit tests.
+  *
+  * TODO get rid of this if it is unused
+  */
+object TestGameConfig extends GameConfig {
+
+  override def textureWidth(texture: Int): Int = 128
+
+  override def uniqueTags(sprite: Sprite): Seq[Int] = ???
+
+  override def groupedUniqueTags(sprite: Sprite): Seq[Int] = ???
+
+  override def uniqueTags(wall: Wall): Seq[Int] = ???
+
+  override def updateUniqueTagInPlace(sprite: Sprite, idMap: Map[Int, Int]): Unit = ???
+
+  override def updateUniqueTagInPlace(wall: Wall, idMap: Map[Int, Int]): Unit = ???
+
+  override def isKeycard(tex: Int): Boolean = ???
+
+  override def isKeycardLock(tex: Int): Boolean = ???
+
+  override def ST: SectorTags = DukeConfig.ST
 }

@@ -1,5 +1,7 @@
 # XRepeat Explanation
 
+See also [YRepeat Explanation](YRepeat.md)
+
 This page describes the `xrepeat` field (a.k.a. `x-repeat`) of the walls in a Build map.  I don't know if this information is relevant to `yrepeat` also; I haven't tested that yet.
 
 Also, it is likely that xrepeat can be defined more simply by describing how the build engine uses it to execute, however I want definitions that are complete on their own.

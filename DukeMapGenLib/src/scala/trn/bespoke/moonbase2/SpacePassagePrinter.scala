@@ -1,7 +1,7 @@
 package trn.bespoke.moonbase2
 
 import trn.duke.Lotags
-import trn.{BuildConstants, DukeConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sector, Wall, WallView, Map => DMap}
+import trn.{BuildConstants, DukeConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
 import trn.prefab.{CompassWriter, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, RandomX, RedwallConnector}
 import trn.render.{MiscPrinter, Texture, WallAnchor, WallPrefab}
 
@@ -10,18 +10,34 @@ import trn.render.{MiscPrinter, Texture, WallAnchor, WallPrefab}
   * All of the textures needed to paint the elevator.  Maybe also shading rules?
   * @param wallTex
   */
-case class ElevatorPassageConfig(
-  wallTex: Texture,
+case class ElevatorPassageConfig(  // TODO change 'Config' to something else
+  wallTex: WallPrefab,
   floorTex: Texture,
+  ceilTex: Texture,
   elevatorFloorTex: Texture,
+  elevatorCeilTex: Texture,
 
   /** the texture on the walls of the moving part of the elevator */
-  elevatorSideTex: Texture
+  elevatorSideTex: Texture,
 
+  /** the texture you face as you enter the elevator (on the opposite wall of the elevator side tex) */
+  rails: WallPrefab,
 
+  /** (start sound, stop sound) */
+  sounds: (Int, Int)
 
-  // 354 for the elevator texture
 )
+
+object ElevatorPassageConfig {
+
+  /** from E2L6 */
+  val DefaultSounds = (71, 73)
+
+  /** for unit tests */
+  def testDefaults(): ElevatorPassageConfig = {
+    ElevatorPassageConfig(WallPrefab(Texture(0, 128)), Texture(0, 128), Texture(0, 128), Texture(0, 128), Texture(0, 128), Texture(0, 128), WallPrefab(Texture(0, 128)), DefaultSounds)
+  }
+}
 
 case class ResultAnchor(wall: WallView, sectorId: Int)
 
@@ -33,6 +49,14 @@ case class ResultAnchor(wall: WallView, sectorId: Int)
   * Previous I was going to call this "DeltaZPassagePrinter"
   */
 object SpacePassagePrinter {
+
+  def sfxSprite(p: PointXY, z: Int, sectorId: Int, hitag: Int, lotag: Int): Sprite = {
+    val sfx = new Sprite(p, z, sectorId)
+    sfx.setTexture(5) // TODO 5 is hardcoded picnum for MUSICANDSFX sprite
+    sfx.setHiTag(hitag)
+    sfx.setLotag(lotag)
+    sfx
+  }
 
   def printHallway(
     gameCfg: GameConfig,
@@ -127,34 +151,45 @@ object SpacePassagePrinter {
        *     |       |       |       \/
        *     0-------C5------C4------1
        */
-      val w = config.wallTex
-      val left: Seq[Wall] = Seq((wallA.p0, w), (wallA.p1, w), (c2, config.elevatorSideTex), (c5, w)).map{case (p, tex) => MiscPrinter.wall(p, tex)}
+      val wp = config.wallTex //WallPrefab(config.wallTex)
+      val ep = WallPrefab(config.elevatorSideTex).copy(xTileRepeat = Some(1), xrepeat = None, yrepeat=Some(16))
+      val left: Seq[Wall] = Seq((wallA.p0, wp), (wallA.p1, wp), (c2, ep), (c5, wp)).map{case (p, tex) => MiscPrinter.wall(p, tex)}
       val leftId = map.createSectorFromLoop(left: _*)
       val leftSector = map.getSector(leftId)
       leftSector.setFloorZ(wallA.floorZ)
       leftSector.setCeilingZ(wallA.ceilZ)
       leftSector.setFloorTexture(config.floorTex.picnum)
+      leftSector.setCeilingTexture(config.ceilTex.picnum)
 
-      // val lift: Seq[Wall] = Seq(c2, c3, c4, c5).map(p => MiscPrinter.wall(p, config.wallTex))
-      val wp = WallPrefab(config.wallTex)
-      val lift = Seq((c2, wp), (c3, wp), (c4, wp), (c5, wp)).map{ case (p, prefab) => MiscPrinter.wall(p, prefab)}
-
-
+      val lift = Seq((c2, wp), (c3, config.rails), (c4, wp), (c5, config.rails)).map{ case (p, prefab) => MiscPrinter.wall(p, prefab)}
       val liftId = map.createSectorFromLoop(lift: _*)
       MiscPrinter.autoLinkRedWalls(map, leftId, liftId)
       val liftSector = map.getSector(liftId)
       liftSector.setFloorTexture(config.elevatorFloorTex.picnum)
       liftSector.setFloorRelative(true)
+      liftSector.setCeilingTexture(config.elevatorCeilTex.picnum)
+      liftSector.setCeilingRelative(true)
+      liftSector.setFloorZ(wallA.floorZ)
+      liftSector.setCeilingZ(wallA.ceilZ)
+
+      val sfx = sfxSprite(
+        new LineSegmentXY(c2, c4).midpoint(),
+        liftSector.getFloorZ,
+        liftId,
+        config.sounds._2,
+        config.sounds._1
+      )
+      // sfx.setTexture(5) // TODO 5 is hardcoded picnum for MUSICANDSFX sprite
+      map.addSprite(sfx)
 
 
-      val ep = WallPrefab(config.elevatorSideTex).copy(xTileCount = Some(1), xrepeat = None)
       val right = Seq((wallB.p0, wp), (wallB.p1, wp), (c4, ep), (c3, wp)).map{case (p, prefab) => MiscPrinter.wall(p, prefab)}
-
       val rightId = map.createSectorFromLoop(right: _*)
       val rightSector = map.getSector(rightId)
       rightSector.setFloorZ(wallB.floorZ)
       rightSector.setCeilingZ(wallB.ceilZ)
       rightSector.setFloorTexture(config.floorTex.picnum)
+      rightSector.setCeilingTexture(config.ceilTex.picnum)
       MiscPrinter.autoLinkRedWalls(map, liftId, rightId)
 
       val liftTag = if(wallA.floorZ < wallB.floorZ){
@@ -164,6 +199,8 @@ object SpacePassagePrinter {
         gameConfig.ST.elevatorUp
       }
       map.getSector(liftId).setLotag(liftTag)
+
+      // TODO:  shading!
 
       (ResultAnchor(CompassWriter.westWalls(map, leftId).head, leftId), ResultAnchor(CompassWriter.eastWalls(map, rightId).head, rightId))
 
@@ -248,7 +285,7 @@ object SpacePassagePrinter {
     val wallA = WallAnchor.fromExistingWall(CompassWriter.eastWalls(writer.getMap, leftSectorId).head)
     val wallB = WallAnchor.fromExistingWall2(CompassWriter.westWalls(writer.getMap, rightSectorId).head, writer.getMap.getSector(rightSectorId))
 
-    val textures = ElevatorPassageConfig(gameCfg.tex(258), gameCfg.tex(183), gameCfg.tex(380), gameCfg.tex(354))
+    val textures = ElevatorPassageConfig(WallPrefab(gameCfg.tex(258)), gameCfg.tex(183), gameCfg.tex(181), gameCfg.tex(380), gameCfg.tex(126), gameCfg.tex(354), WallPrefab(gameCfg.tex(353)), ElevatorPassageConfig.DefaultSounds)
     val (resultLeft, resultRight) = SpacePassagePrinter.printSpacePassageElevator(gameCfg, writer.outMap, wallA, wallB, textures)
 
     MiscPrinter.autoLinkRedWalls(writer.getMap, leftSectorId, resultLeft.sectorId)

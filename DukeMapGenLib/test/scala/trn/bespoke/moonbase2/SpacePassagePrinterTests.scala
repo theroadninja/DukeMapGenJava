@@ -9,7 +9,7 @@ class SpacePassagePrinterTests {
 
   private def p(x: Int, y: Int): PointXY = new PointXY(x, y)
 
-  val tex = ElevatorPassageConfig(Texture(0, 128), Texture(183, 128), Texture(380, 128), Texture(380, 128))
+  val tex = ElevatorPassageConfig.testDefaults()
 
   @Test
   def testElevatorControlPoints(): Unit = {

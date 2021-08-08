@@ -191,6 +191,14 @@ public class Sector {
 	public short getCeilingTexture(){
 		return this.ceilingPicNum;
 	}
+
+	public void setCeilingRelative(boolean relative){
+		if(relative){
+			this.ceilingStat |= FloorCeilStat.RELATIVE;
+		}else{
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
 	
 	public void setFloorTexture(int i){
 		this.floorpicnum = (short)i;
