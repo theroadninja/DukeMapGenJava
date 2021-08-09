@@ -17,6 +17,9 @@ case class WallAnchor(
   def width: Double = p0.distanceTo(p1)
 
   val axisAligned: Boolean = p0.x == p1.x || p0.y == p1.y
+
+  /** @returns the vector p0->p1 */
+  def vector: PointXY = p1.subtractedBy(p0)
 }
 
 object WallAnchor {

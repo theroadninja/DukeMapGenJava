@@ -1,11 +1,38 @@
 package trn.render
 
 import trn.math.Interpolate
-import trn.{BuildConstants, FVectorXY, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sector, Wall, WallView, Map => DMap}
+import trn.{BuildConstants, FVectorXY, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sector, Wall, WallView, render, Map => DMap}
 import trn.prefab.{GameConfig, PrefabPalette}
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
+
+/**
+  * ---+
+  *    |
+  *    |
+  *    +-tread--+
+  *             |
+  *           riser
+  *             |
+  *             +-----------
+  *
+  *
+  * @param wallTex
+  * @param riser
+  * @param tread
+  */
+case class StairTex(
+  wallTex: WallPrefab, // side walls
+  riser: WallPrefab, // TODO need some kind of
+  tread: HorizontalBrush, // what you step on
+  ceil: HorizontalBrush
+)
+
+object StairTex {
+  def apply(wall: Texture): StairTex = StairTex(WallPrefab(wall), WallPrefab(Texture(0, 128)), HorizontalBrush(0), HorizontalBrush(0))
+}
 
 object StairEntrance {
   def apply(w: WallView, sector: Sector, sectorId: Int): StairEntrance = {
@@ -21,12 +48,12 @@ object StairEntrance {
 
 /**
   * TODO replace wih WallAnchor, which is meant to be a more generic version of this
+  * @deprecated use WallAnchor instead
   */
 case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sectorId: Option[Int]) {
   def isDiagonal: Boolean = p0.x != p1.x && p0.y != p1.y
 }
 
-case class StairTextures(wallTex: Texture)
 
 // TODO - support auomatic light intersection (like in curved stairwell: one side of inner colum is a light...)
 // TODO - when interpolating; add an extra check to make sure the integer vertexes are actually different
@@ -181,16 +208,17 @@ object StairPrinter {
     * @param map
     * @param e0
     * @param e1
-    * @param wallTex
-    * @param strict
+    * @param stairTex
+    * @param strict  just enforces a max slope
     * @return
     */
   def straightStairs(
     map: DMap,
     e0: StairEntrance,
     e1: StairEntrance,
-    wallTex: Texture,
+    stairTex: StairTex,
     strict: Boolean = true
+    // TODO add option for a "flush stair" that is a star sector on the same level as the start/end z
   ): Seq[Int] = {
     require(!e0.isDiagonal)
     require(!e1.isDiagonal)
@@ -211,10 +239,10 @@ object StairPrinter {
     }
     val stairHeight = stepSizeForSlope(slope) * BuildConstants.ZStepHeight
 
-
     // min count is 2 for linear interpolation
     val stairCount2 = Math.max(2, if(stairHeight == 0){ 0 }else{ verticalDrop / stairHeight })
 
+    // TODO this is out of date, because i want the bottom riser to get painted as a part of this
     // COUNTING FOR DUMMIES
     // observe that the highest "stair" is really just the next sector, so:
     // # divisions of height = StairCount (divide vertical drop by this to gets number of steps)
@@ -237,26 +265,56 @@ object StairPrinter {
     // the highest "stair" and highest level is not a stair sector, but the ending sector
     val sideL = Interpolate.linear(e0.p0, e1.p1, stairCount2)
     val sideR = Interpolate.linear(e0.p1, e1.p0, stairCount2)
-    val floorZs = Interpolate.linear(e0.floorZ, e1.floorZ, stairCount2 + 1)
-    val ceilZs = Interpolate.linear(e0.ceilZ, e1.ceilZ, stairCount2 + 1)
+    // val floorZs = Interpolate.linear(e0.floorZ, e1.floorZ, stairCount2 + 1)
+    // val ceilZs = Interpolate.linear(e0.ceilZ, e1.ceilZ, stairCount2 + 1)
+    val floorZs = Interpolate.linear(e0.floorZ, e1.floorZ, stairCount2 - 1)
+    val ceilZs = Interpolate.linear(e0.ceilZ, e1.ceilZ, stairCount2 - 1)
 
     // loops are always made clockwise
     var prevSector = -1
+
+    val leftWalls = mutable.ArrayBuffer[Wall]()
+    val rightWalls = mutable.ArrayBuffer[Wall]()
+    //val sectorIds = (0 until stairCount2 - 1).map { i =>
     val sectorIds = (0 until stairCount2 - 1).map { i =>
       val j = i + 1
-      val loop = Seq(sideL(i), sideL(j), sideR(j), sideR(i)).map(p => wall(p, wallTex))
-      TextureUtil.setWallXScale(loop, 1.0)
-      val sId = map.createSectorFromLoop(loop: _*)
+      val w = stairTex.wallTex
+      val riser = stairTex.riser
 
-      // snap to nearest 1024 so we dont do something people using the build editor cant do
-      map.getSector(sId).setFloorZ(snapToNearest(floorZs(j), BuildConstants.ZStepHeight))
-      map.getSector(sId).setCeilingZ(snapToNearest(ceilZs(j), BuildConstants.ZStepHeight))
+      val leftWall = MiscPrinter.wall(sideL(i), w)
+      val rightWall = MiscPrinter.wall(sideR(j), w)
+      val loop: Seq[Wall] = Seq(leftWall, MiscPrinter.wall(sideL(j), riser), rightWall, MiscPrinter.wall(sideR(i), riser))
+      leftWalls.append(leftWall)
+      rightWalls.append(rightWall)
+
+      TextureUtil.setWallXScale(loop, 1.0)
+      val sId = MiscPrinter.createSector(
+        map,
+        loop,
+        // snap to nearest 1024 so we dont do something people using the build editor cant do
+        // snapToNearest(floorZs(j), BuildConstants.ZStepHeight),
+        // snapToNearest(ceilZs(j), BuildConstants.ZStepHeight)
+        snapToNearest(floorZs(i), BuildConstants.ZStepHeight),
+        snapToNearest(ceilZs(i), BuildConstants.ZStepHeight)
+      )
+      // val sId = map.createSectorFromLoop(loop: _*)
+
+      val sector = map.getSector(sId)
+      // sector.setFloorZ(snapToNearest(floorZs(j), BuildConstants.ZStepHeight))
+      // sector.setCeilingZ(snapToNearest(ceilZs(j), BuildConstants.ZStepHeight))
+      stairTex.tread.writeToFloor(sector)
+      stairTex.ceil.writeToCeil(sector)
       if(prevSector != -1){
         MiscPrinter.autoLinkRedWalls(map, sId, prevSector)
       }
       prevSector = sId
       sId
     }
+    val fakeWall: Wall = new Wall(e1.p1.x, e1.p1.y, 0)
+    TextureUtil.lineUpTextures(leftWalls ++ Seq(fakeWall), 1.0, stairTex.wallTex.tex.get.widthPx)
+
+    val fakeWallRight: Wall = new Wall(e0.p1.x, e0.p1.y, 0)
+    TextureUtil.lineUpTextures(rightWalls.reverse ++ Seq(fakeWallRight), 1.0, stairTex.wallTex.tex.get.widthPx)
 
     val linkSectors  = Seq(e0.sectorId, e1.sectorId).flatten
     linkSectors.foreach{sId2 =>
@@ -266,11 +324,28 @@ object StairPrinter {
     sectorIds
   }
 
+  def printStraight(
+    map: DMap,
+    wallA: WallAnchor,
+    wallB: WallAnchor,
+    stairTex: StairTex
 
-  // for the straight stairs, though maybe curved will also work
-  def paintStairs(): Unit = {
-    // TODO - dont forget the wall on the inside of the lower sector!  might need to make it a '2' wall
-    ???
+  ): (ResultAnchor, ResultAnchor) = {
+    def toStairEntrance(anchor: WallAnchor) = StairEntrance(anchor.p1, anchor.p0, anchor.floorZ, anchor.ceilZ, None)
+    val paintedSectorIds = StairPrinter.straightStairs(
+      map,
+      toStairEntrance(wallA),
+      toStairEntrance(wallB),
+      stairTex,
+    )
+    val aid = paintedSectorIds.head
+    val bid = paintedSectorIds.last
+    val wA = map.getAllSectorWallIds(aid).asScala.map(wallId => map.getWallView(wallId)).find(!_.isRedwall).get
+    val wB = map.getAllSectorWallIds(bid).asScala.map(wallId => map.getWallView(wallId)).find(!_.isRedwall).get
+    (render.ResultAnchor(wA, aid), render.ResultAnchor(wB, bid))
   }
+
+
+
 
 }

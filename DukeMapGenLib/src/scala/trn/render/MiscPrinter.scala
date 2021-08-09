@@ -56,6 +56,14 @@ object MiscPrinter {
   // val loop = topRow.map(p => w(p)) ++ Seq(w(se), w(sw))
   // val sectorId = map.createSectorFromLoop(loop: _*)
 
+  def createSector(map: DMap, walls: Seq[Wall], floorZ: Int, ceilZ: Int): Int = {
+    val sectorId = map.createSectorFromLoop(walls: _*)
+    val sector = map.getSector(sectorId)
+    sector.setFloorZ(floorZ)
+    sector.setCeilingZ(ceilZ)
+    sectorId
+  }
+
 
   def box(
     map: DMap,

@@ -47,7 +47,11 @@ public class Wall {
 	short picnum; //INT16LE --- why the fuck is this signed?
 	
 	short overpicnum; //INT16LE  masked/oneway walls
-	
+
+	/**
+	 * to set directly in build editor:  ' + s
+	 * 0 is brightest, 32 is darkest?
+	 */
 	short shade; //should be INT8, i'm pretending its UINT8
 	
 	short pal; //UINT8

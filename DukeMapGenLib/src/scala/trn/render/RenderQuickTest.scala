@@ -102,7 +102,7 @@ object RenderQuickTest {
     val sector1 = MiscPrinter.box(map, p(box1start, 0), p(box1start + boxWidth, 2048), floor2, ceil2)
     val wall1 = westMostWall(sector1)
     val e1 = StairEntrance(wall1, map.getSector(sector1), sector1)
-    StairPrinter.straightStairs(map, e0, e1, WallTex)
+    StairPrinter.straightStairs(map, e0, e1, StairTex(WallTex))
 
     // TODO - idea: separate construction of sectors and walls from how they are painted?
 

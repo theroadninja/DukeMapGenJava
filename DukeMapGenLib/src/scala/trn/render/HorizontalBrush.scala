@@ -1,0 +1,41 @@
+package trn.render
+
+import trn.Sector
+
+/**
+  * Describes the appearance of a floor, or a ceiling.
+  */
+case class HorizontalBrush(
+  tex: Option[Int],
+  shade: Option[Int],
+  relative: Option[Boolean]
+) {
+  def withShade(s: Int): HorizontalBrush = this.copy(shade=Some(s))
+  def withRelative(b: Boolean): HorizontalBrush = this.copy(relative=Some(b))
+
+  def writeToFloor(sector: Sector): Unit = {
+    tex.foreach(picnum => sector.setFloorTexture(picnum))
+    shade.foreach(s => sector.setFloorShade(s.toShort))
+    relative.foreach(b => sector.setFloorRelative(b))
+  }
+
+  def writeToCeil(sector: Sector): Unit = {
+    tex.foreach(picnum => sector.setCeilingTexture(picnum))
+    shade.foreach(s => sector.setCeilingShade(s.toShort))
+    relative.foreach(b => sector.setCeilingRelative(b))
+  }
+}
+
+object HorizontalBrush {
+
+  def apply(): HorizontalBrush = {
+    HorizontalBrush(None, None, None)
+  }
+
+  def apply(tex: Int): HorizontalBrush = {
+    HorizontalBrush(Some(tex), None, None)
+  }
+
+  def apply(tex: Texture): HorizontalBrush = apply(tex.picnum)
+
+}
