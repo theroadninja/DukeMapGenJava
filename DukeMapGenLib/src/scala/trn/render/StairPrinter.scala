@@ -224,6 +224,9 @@ object StairPrinter {
     require(!e1.isDiagonal)
 
     val verticalDrop = Math.abs(e0.floorZ - e1.floorZ)
+
+    // TODO this whole this is all fucked up now, because having flush start and end stairs screwed up the slope calculations
+    // TODO this is wrong, now that the first and last stairs are flush with the entrance and exit floors
     val stairLength = Math.max(e0.p0.distanceTo(e1.p1), e0.p1.distanceTo(e1.p0))
     val slope = BuildConstants.ztoxy(verticalDrop).toDouble / stairLength
     if(strict){
@@ -237,9 +240,13 @@ object StairPrinter {
         throw new IllegalArgumentException(s"Strict mode: slope ${slope} exceeds max ${MaxSlope}")
       }
     }
-    val stairHeight = stepSizeForSlope(slope) * BuildConstants.ZStepHeight
+    // val stairHeight = stepSizeForSlope(slope) * BuildConstants.ZStepHeight
+    // println(s"step size: ${stepSizeForSlope(slope)}")
+    // TODO hacky increase for number of steps
+    val stairHeight = Math.max(1, stepSizeForSlope(slope) - 1) * BuildConstants.ZStepHeight
 
     // min count is 2 for linear interpolation
+    // val stairCount2 = 2 + Math.max(2, if(stairHeight == 0){ 0 }else{ verticalDrop / stairHeight })
     val stairCount2 = Math.max(2, if(stairHeight == 0){ 0 }else{ verticalDrop / stairHeight })
 
     // TODO this is out of date, because i want the bottom riser to get painted as a part of this
@@ -251,7 +258,7 @@ object StairPrinter {
     // # stair sectors = StairCount - 1
     // 4 stairs(StairCount) == 3 stair sectors == 5 stair heights
     //
-    //                    .      .      .      .  (not stair sector)
+    //                    .      .      .      .  (not stair sector) - WRONG
     //                    .      .      .      4--------------------
     //                    .      .       stair2|
     //                    .      .      3------+
@@ -259,16 +266,16 @@ object StairPrinter {
     //                    .      2------+
     //                     stair0|
     //                    1------+
-    // (not stair sector) |
+    // (not stair sector) | <- WRONG
     // -------------------+
     // the lowest stair is the second lowest level; the lowest level is in the sector before the lower stair
     // the highest "stair" and highest level is not a stair sector, but the ending sector
     val sideL = Interpolate.linear(e0.p0, e1.p1, stairCount2)
     val sideR = Interpolate.linear(e0.p1, e1.p0, stairCount2)
-    // val floorZs = Interpolate.linear(e0.floorZ, e1.floorZ, stairCount2 + 1)
-    // val ceilZs = Interpolate.linear(e0.ceilZ, e1.ceilZ, stairCount2 + 1)
-    val floorZs = Interpolate.linear(e0.floorZ, e1.floorZ, stairCount2 - 1)
-    val ceilZs = Interpolate.linear(e0.ceilZ, e1.ceilZ, stairCount2 - 1)
+    val floorZs = Interpolate.linear(e0.floorZ, e1.floorZ, stairCount2 + 1)
+    val ceilZs = Interpolate.linear(e0.ceilZ, e1.ceilZ, stairCount2 + 1)
+    // val floorZs = Interpolate.linear(e0.floorZ, e1.floorZ, stairCount2 - 1)
+    // val ceilZs = Interpolate.linear(e0.ceilZ, e1.ceilZ, stairCount2 - 1)
 
     // loops are always made clockwise
     var prevSector = -1
@@ -292,10 +299,10 @@ object StairPrinter {
         map,
         loop,
         // snap to nearest 1024 so we dont do something people using the build editor cant do
-        // snapToNearest(floorZs(j), BuildConstants.ZStepHeight),
-        // snapToNearest(ceilZs(j), BuildConstants.ZStepHeight)
-        snapToNearest(floorZs(i), BuildConstants.ZStepHeight),
-        snapToNearest(ceilZs(i), BuildConstants.ZStepHeight)
+        snapToNearest(floorZs(j), BuildConstants.ZStepHeight),
+        snapToNearest(ceilZs(j), BuildConstants.ZStepHeight)
+        // snapToNearest(floorZs(i), BuildConstants.ZStepHeight),
+        // snapToNearest(ceilZs(i), BuildConstants.ZStepHeight)
       )
       // val sId = map.createSectorFromLoop(loop: _*)
 

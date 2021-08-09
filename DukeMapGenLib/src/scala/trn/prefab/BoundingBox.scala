@@ -169,9 +169,13 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
     )
   }
 
-  def topLeft: PointXY = {
-    new PointXY(xMin, yMin)
-  }
+  def topLeft: PointXY = new PointXY(xMin, yMin)
+
+  def topRight: PointXY = new PointXY(xMax, yMin)
+
+  def bottomRight: PointXY = new PointXY(xMax, yMax)
+
+  def bottomLeft: PointXY = new PointXY(xMin, yMax)
 
   /**
     *  returns the vector that would move the top left of this bounding box to that point

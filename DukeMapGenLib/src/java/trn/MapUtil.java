@@ -1,6 +1,7 @@
 package trn;
 
 import trn.prefab.GameConfig;
+import trn.prefab.Heading;
 import trn.prefab.SectorGroup;
 
 import java.util.*;
@@ -454,5 +455,35 @@ public class MapUtil {
 			results.add(map.getWallView(wallId));
 		}
 		return results;
+	}
+
+	/**
+	 * Determines if this UNIT vector (representing the direction from a walls first point to its second point) is a
+	 * "compass wall", i.e. an axis-aligned wall on the "east", "west", "north" or "south" side
+	 * of a sector.  Note that compassWallSide()==East does not necessarily mean that the wall is the _farthest_ wall
+	 * east, just that is has valid sector space on the left and null space (or another sector) on the right.
+	 *
+	 *            ...>  +
+	 * East Wall:      |
+	 *                \/
+	 *            <... +
+	 *
+	 * @param unitVector vector in the direction of the wall (goes to the right if you're looking at it).  Must be a unit
+	 *                   vector!
+	 * @return which "side" of the sector the wall is on, or -1 if its not a compass wall
+	 */
+	public static int compassWallSide(PointXY unitVector){
+		if(unitVector.x == 1) {
+			return Heading.N;
+		}else if(unitVector.x == -1){
+			return Heading.S;
+		}else if(unitVector.y == 1){ // y is pointed down
+			return Heading.E;
+		}else if(unitVector.y == -1){ // y is pointed up
+			return Heading.W;
+		}else{
+			return -1;
+		}
+
 	}
 }

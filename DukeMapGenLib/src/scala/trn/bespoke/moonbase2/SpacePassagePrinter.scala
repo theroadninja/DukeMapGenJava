@@ -109,8 +109,9 @@ object SpacePassagePrinter {
 
     // TODO the elevator needs a minimum vertical drop of 10240 in order to not be stupid
 
-    val niceElevatorDrop = MinElevatorDrop + (1024 * 2)
-    if(Math.abs(wallA.floorZ - wallB.floorZ) > niceElevatorDrop){
+    // useful for testing:
+    // val niceElevatorDrop = MinElevatorDrop + (1024 * 2)
+    if(Math.abs(wallA.floorZ - wallB.floorZ) >= MinElevatorDrop){
       val opts = ElevatorPassageConfig(
         WallPrefab(gameCfg.tex(258)).copy(shade=Some(16)),
         HorizontalBrush(gameCfg.tex(183)),
@@ -126,7 +127,6 @@ object SpacePassagePrinter {
 
     }else{
 
-      // TODO make it use: TextureUtil.lineUpTextures(loop2, 1.0, tex.widthPx)
       val stairTex = StairTex(
         WallPrefab(gameCfg.tex(258)),
         riser=WallPrefab(gameCfg.tex(349)),
@@ -157,11 +157,13 @@ object SpacePassagePrinter {
 
     val liftSize = if(wallA.width < 512) {
       512
-    }else if(wallA.width < 3072){
+    }else{ // if(wallA.width < 3072) {
       1024
-    }else{
-      2048
     }
+    // This was a nice idea, but I dont like how it increases the min length
+    // }else{
+    //   2048
+    // }
     require(wallA.p0.distanceTo(wallB.p1) > liftSize, "passage must be longer than lift size")
 
 
@@ -402,8 +404,10 @@ object SpacePassagePrinter {
 
     // testing stairs
     val changeMe = 2048
+    val rightSideStart = 2048 + 256
+    val verticalDrop = 1024 * 3
     val leftSectorId = MiscPrinter.box(writer.getMap, new PointXY(0, 0), new PointXY(2048, changeMe), BuildConstants.DefaultFloorZ, BuildConstants.DefaultCeilZ);
-    val rightSectorId = MiscPrinter.box(writer.getMap, new PointXY(4096, 0), new PointXY(8192, changeMe), BuildConstants.DefaultFloorZ + (1024 * 10), BuildConstants.DefaultCeilZ);
+    val rightSectorId = MiscPrinter.box(writer.getMap, new PointXY(rightSideStart, 0), new PointXY(rightSideStart + 2048, changeMe), BuildConstants.DefaultFloorZ + verticalDrop, BuildConstants.DefaultCeilZ);
 
     val wallA = WallAnchor.fromExistingWall(CompassWriter.eastWalls(writer.getMap, leftSectorId).head)
     val wallB = WallAnchor.fromExistingWall2(CompassWriter.westWalls(writer.getMap, rightSectorId).head, writer.getMap.getSector(rightSectorId))

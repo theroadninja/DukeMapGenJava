@@ -157,17 +157,7 @@ public class WallView {
      */
     public final int compassWallSide(){
         PointXY vector = this.getUnitVector();
-        if(vector.x == 1) {
-            return Heading.N;
-        }else if(vector.x == -1){
-            return Heading.S;
-        }else if(vector.y == 1){ // y is pointed down
-            return Heading.E;
-        }else if(vector.y == -1){ // y is pointed up
-            return Heading.W;
-        }else{
-            return -1;
-        }
+        return MapUtil.compassWallSide(vector);
     }
 
     public final boolean isRedwall(){

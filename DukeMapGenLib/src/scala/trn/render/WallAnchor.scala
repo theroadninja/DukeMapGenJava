@@ -20,6 +20,10 @@ case class WallAnchor(
 
   /** @returns the vector p0->p1 */
   def vector: PointXY = p1.subtractedBy(p0)
+
+  def points: Seq[PointXY] = Seq(p0, p1)
+
+  def reversed: WallAnchor = WallAnchor(p1, p0, floorZ, ceilZ)
 }
 
 object WallAnchor {
