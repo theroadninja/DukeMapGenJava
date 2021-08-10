@@ -18,6 +18,8 @@ case class WallPrefab(
 
   xTileRepeat: Option[Int],  // the number of times the texture is repeated
   // TODO? xscale: Option[Double]  // TODO make sure this cannot be set along with x-repeat
+
+  alignBottom: Option[Boolean]
 ){
   require(xrepeat.isEmpty || xTileRepeat.isEmpty)
   require(tex.isDefined || xTileRepeat.isEmpty)
@@ -33,6 +35,10 @@ case class WallPrefab(
       wall.setXRepeat(xrepeat)
     }
 
+    alignBottom.foreach{ b =>
+      wall.setStat(wall.getStat.withAlignBottom(b))
+    }
+
   }
 
   def create(p: PointXY): Wall = {
@@ -40,12 +46,16 @@ case class WallPrefab(
     this.writeTo(wall)
     wall
   }
+
+  def withShade(s: Int): WallPrefab = this.copy(shade=Some(s))
 }
 
 
 object WallPrefab {
 
-  def apply(tex: Texture): WallPrefab = WallPrefab(Some(tex), None, Some(8), Some(8), None)
+  def Empty = WallPrefab(Texture(0, 64))
+
+  def apply(tex: Texture): WallPrefab = WallPrefab(Some(tex), None, Some(8), Some(8), None, None)
 
   def apply(tex: Int, texWidth: Int): WallPrefab = WallPrefab(Texture(tex, texWidth))
 }

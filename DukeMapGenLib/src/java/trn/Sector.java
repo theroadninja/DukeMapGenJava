@@ -168,11 +168,19 @@ public class Sector {
 	}
 
 	public void setFloorRelative(boolean relative){
-	    // TODO make a FloorState object just like WallStat ?
+	    // TODO make a FloorState object just like WallStat
 		if(relative){
 			this.floorstat |= FloorCeilStat.RELATIVE;
 		}else{
 		    // this.floorstat = WallState.removebits(this.floorstate, FloorCeilStat.RELATIVE)
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
+	public void setFloorSmaller(boolean smaller){
+		if(smaller){
+			this.floorstat |= FloorCeilStat.SMALLER;
+		}else{
 			throw new RuntimeException("Not Implemented Yet");
 		}
 	}
@@ -199,7 +207,14 @@ public class Sector {
 			throw new RuntimeException("Not Implemented Yet");
 		}
 	}
-	
+	public void setCeilingSmaller(boolean smaller){
+		if(smaller){
+			this.ceilingStat |= FloorCeilStat.SMALLER;
+		}else{
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
 	public void setFloorTexture(int i){
 		this.floorpicnum = (short)i;
 	}

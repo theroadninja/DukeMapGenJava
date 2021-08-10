@@ -2,7 +2,7 @@ package trn.bespoke.moonbase2
 
 import trn.{BuildConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sector, Wall, WallView, Map => DMap}
 import trn.prefab.{BoundingBox, DukeConfig, GameConfig, Heading, MapWriter, RandomX}
-import trn.render.{MiscPrinter, Texture, TextureUtil, WallAnchor, WallPrefab}
+import trn.render.{HorizontalBrush, MiscPrinter, Texture, TextureUtil, WallAnchor, WallPrefab}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -34,13 +34,61 @@ case class SectorPrefab(
   }
 }
 
+/**
+  * Here "wall" refers to the entire side of a room, which may itself contain multiple Build walls.
+  */
 case class LoungeWall(
   heading: Int,
-  controlPoints: Seq[PointXY],
-  sections: Seq[String]
+  points: Seq[PointXY],
+  wallTypes: Seq[String]
 ){
   require(Heading.all.contains(heading))
-  require(controlPoints.nonEmpty)
+  require(points.nonEmpty)
+}
+
+case class LoungeControlPoints(
+  east: LoungeWall,
+  south: LoungeWall,
+  west: LoungeWall,
+  north: LoungeWall
+) {
+  val all = Seq(east, south, west, north)
+
+  def allPoints = all.flatMap(_.points)
+  def allWallTypes = all.flatMap(_.wallTypes)
+  def allEastPoints: Seq[PointXY] = east.points :+ south.points(0)
+  def allSouthPoints: Seq[PointXY] = south.points :+ west.points(0)
+  def allWestPoints: Seq[PointXY] = west.points :+ north.points(0)
+  def allNorthPoints: Seq[PointXY] = north.points :+ east.points(0)
+
+  def allEastSections: Seq[String] = east.wallTypes :+ south.wallTypes(0)
+  def allSouthSections: Seq[String] = south.wallTypes :+ west.wallTypes(0)
+  def allWestSections: Seq[String] = west.wallTypes :+ north.wallTypes(0)
+  def allNorthSections: Seq[String] = north.wallTypes :+ east.wallTypes(0)
+
+  def NW: PointXY = north.points(0)
+  def NE: PointXY = east.points(0)
+  def SE: PointXY = south.points(0)
+  def SW: PointXY = west.points(0)
+
+  def points(heading: Int): Seq[PointXY] = {
+    require(heading >= 0 && heading < 4)
+    // the other corner is always the beginning of the next wall
+    all(heading).points :+ all((heading+1) % 4).points(0)
+  }
+  def wallTypes(heading: Int): Seq[String] = {
+    require(heading >= 0 && heading < 4)
+    // the other corner is always the beginning of the next wall
+    all(heading).wallTypes :+ all((heading+1) % 4).wallTypes(0)
+  }
+
+  def sections(heading: Int): Seq[(PointXY, String)] = points(heading).zip(wallTypes(heading))
+
+}
+
+object LoungeWall {
+  val Empty = "EMPTY"
+  val Anchor = "ANCHOR"
 }
 
 
@@ -73,7 +121,7 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
   private[moonbase2] def controlPointsSimple(
     wallA: WallAnchor,
     wallB: WallAnchor
-  ): Seq[LoungeWall] = {
+  ): LoungeControlPoints = {
     require(wallA.axisAligned && wallB.axisAligned)
     require(compassWall(wallA) != compassWall(wallB))
 
@@ -104,22 +152,23 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
       val points = mutable.ArrayBuffer[PointXY]()
       val sections = mutable.ArrayBuffer[String]()
       points.append(corner0)
-      sections.append("EMPTY")
+      sections.append(LoungeWall.Empty)
       anchorOpt.foreach { anchor =>
         if(anchor.p0 == corner0 && anchor.p1 == corner1){
           // do nothing; we already added corner0 and p1/corner one gets added in the next side
-          sections.update(0, "ANCHOR")
+          sections.update(0, LoungeWall.Anchor)
         }else if(anchor.p0 == corner0){
           points.append(anchor.p1)
-          sections.append("ANCHOR")
+          sections.update(0, LoungeWall.Anchor)
+          sections.append(LoungeWall.Empty)
         }else if(anchor.p1 == corner1){
           points.append(anchor.p0)
-          sections.append("ANCHOR")
+          sections.append(LoungeWall.Anchor)
         }else{
           points.append(anchor.p0)
           points.append(anchor.p1)
-          sections.append("ANCHOR")
-          sections.append("EMPTY")
+          sections.append(LoungeWall.Anchor)
+          sections.append(LoungeWall.Empty)
         }
       }
       // points.append(corner1) leave this corner for the next edge?
@@ -130,7 +179,8 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     val east = sideControlPoints(Heading.E, bb.topRight, bb.bottomRight, anchors(Heading.E))
     val south = sideControlPoints(Heading.S, bb.bottomRight, bb.bottomLeft, anchors(Heading.S))
     val west = sideControlPoints(Heading.W, bb.bottomLeft, bb.topLeft, anchors(Heading.W))
-    Seq(north, east, south, west)
+    //Seq(north, east, south, west)
+    LoungeControlPoints(east, south, west, north)
   }
 
 
@@ -149,8 +199,6 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     *     p0----->p1
     *      |   A  |
     *
-    * @param entAfloorZ floor Z of room A
-    * @param entAceilZ  ceiling Z of room A
     *
     * @param entBfloorZ floor Z of room B
     * @param entBceilZ ceiling Z of room B
@@ -159,8 +207,8 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     gameCfg: GameConfig,
     map: DMap,
     wallA: WallAnchor,
-    entAfloorZ: Int, // TODO floor and ceil can come from the anchor objects
-    entAceilZ: Int,
+    // entAfloorZ: Int, // TODO floor and ceil can come from the anchor objects
+    // entAceilZ: Int,
 
     wallB: WallAnchor,
     //point0B: PointXY,
@@ -168,58 +216,200 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     entBfloorZ: Int,
     entBceilZ: Int,
   ): Unit = {
-    // val point0A = wallA.p1 // TODO these stupid points are backwards
-    // val point1A = wallA.p0
-    // val point0B = wallB.p1
-    // val point1B = wallB.p0
     require(wallA.axisAligned && wallB.axisAligned)
 
-    // first, we need to make little entrances, because the given walls could be flush with other walls in the sector
-    // and it will look weird
-    // TODO:  move walls (point0A->point1A) and (point0B->point1B) forward along their normals
+    val loungeZ: Int = (wallA.floorZ + entBfloorZ) / 2
+    val loungeCeilZ: Int = loungeZ - (32 * BuildConstants.ZStepHeight)
 
-
-    val verticalDrop = Math.abs(entAfloorZ - entBfloorZ)
-    val entranceLength = if(verticalDrop > SpacePassagePrinter.MinElevatorDrop){
-      1024 + 16 // 1024+ is min length for elevator
-    }else if(verticalDrop > 1024 * 6){
-      768
-    }else if(verticalDrop > 1024 * 3){
-      512
-    }else{
-      256
+    def entranceLength(verticalDrop: Int): Int = if (verticalDrop > SpacePassagePrinter.MinElevatorDrop) {
+        1024 + 16 // 1024+ is min length for elevator
+      }else if(verticalDrop > 1024 * 6){
+        768
+      }else if(verticalDrop > 1024 * 3){
+        512
+      }else{
+        256
     }
 
-    val entranceWall = gameCfg.tex(258)
-    val entrancePrefab = SectorPrefab(183, 181)
+    // TODO draw this all in a separate map and make a sector group out of it?
+    // val entranceWall = gameCfg.tex(258)
+    // val entrancePrefab = SectorPrefab(183, 181)
 
-    val normalA = wallA.p0.vectorTo(wallA.p1).toF.rotatedCW.normalized.multipliedBy(entranceLength).toPointXY
+    // val normalA = wallA.p0.vectorTo(wallA.p1).toF.rotatedCW.normalized.multipliedBy(entranceLength(Math.abs(wallA.floorZ - loungeZ))).toPointXY
+    val normalA = wallA.vector.toF.rotatedCW.normalized.multipliedBy(entranceLength(Math.abs(wallA.floorZ - loungeZ))).toPointXY
     println(normalA)
-    val newWallA = WallAnchor(wallA.p0.add(normalA), wallA.p1.add(normalA), wallA.floorZ, wallA.ceilZ)
+    val newWallA = WallAnchor(wallA.p0.add(normalA), wallA.p1.add(normalA), wallA.floorZ, loungeCeilZ)
     val entranceAResult = SpacePassagePrinter.printSpacePassage(gameCfg, map, wallA, newWallA.reversed)
 
-    val normalB = wallB.p0.vectorTo(wallB.p1).toF.rotatedCW.normalized.multipliedBy(entranceLength).toPointXY
+    val normalB = wallB.p0.vectorTo(wallB.p1).toF.rotatedCW.normalized.multipliedBy(entranceLength(Math.abs(entBfloorZ - loungeZ))).toPointXY
     //val (newPoint0B, newPoint1B) = drawEntrance(map, point0B, point1B, normalB, entranceLength, entranceWall, entrancePrefab)
-    val newWallB = WallAnchor(wallB.p0.add(normalB), wallB.p1.add(normalB), wallA.floorZ, wallA.ceilZ)
+    val newWallB = WallAnchor(wallB.p0.add(normalB), wallB.p1.add(normalB), wallA.floorZ, loungeCeilZ)
     val entranceBResult = SpacePassagePrinter.printSpacePassage(gameCfg, map, wallB, newWallB.reversed)
 
-    val sides = controlPointsSimple(
+    println(s"newWallA=${newWallA} newWallB=${newWallB}")
+    val controlPoints = controlPointsSimple(
       newWallA, newWallB
     )
-    val points = sides.flatMap(_.controlPoints)
-    val walls = points.map(p => MiscPrinter.wall(p, WallPrefab(gameCfg.tex(215))))
+    val points = controlPoints.allPoints
+    val sections = controlPoints.allWallTypes
 
-    val sectorId = MiscPrinter.createSector(map, walls, entAfloorZ, entAceilZ )  // TODO use the space passage thing; pick z halfway between
+    val loungeWall = WallPrefab(gameCfg.tex(215)).copy(yrepeat = Some(8), shade = Some(15))
+    //val walls = points.map(p => MiscPrinter.wall(p, loungeWall))
+    val innerFloor = HorizontalBrush(183).withRelative(true).withSmaller(true).withShade(15)
+    val edgeFloor = HorizontalBrush(898).withShade(15)
+    val ceiling = HorizontalBrush(182).withShade(15)
 
-    Seq(entranceAResult._1.sectorId, entranceAResult._2.sectorId, entranceBResult._1.sectorId, entranceBResult._2.sectorId).foreach { entranceId =>
-      MiscPrinter.autoLinkRedWalls(map, sectorId, entranceId)
+
+    val outerNW = controlPoints.NW
+    val outerNE = controlPoints.NE
+    val outerSE = controlPoints.SE
+    val outerSW = controlPoints.SW
+
+    val innerNW = outerNW.add(new PointXY(512, 512))
+    val innerNE = outerNE.add(new PointXY(-512, 512))
+    val innerSE = outerSE.add(new PointXY(-512, -512))
+    val innerSW = outerSW.add(new PointXY(512, -512))
+
+    def wallForSection(section: String): WallPrefab = {
+      if(section == LoungeWall.Empty){
+        loungeWall
+      }else if(section == LoungeWall.Anchor){
+        loungeWall.copy(alignBottom = Some(true))
+      }else{
+        WallPrefab(gameCfg.tex(0))
+      }
     }
 
-    // TODO parallelogram test
+
+    def edgeSector(sections: Seq[(PointXY, String)]): Int = {
+      val loop = sections.map { case(p, s) => MiscPrinter.wall(p, wallForSection(s))}
+      val sectorId = MiscPrinter.createSector(map, loop, loungeZ, loungeCeilZ)
+      edgeFloor.writeToFloor(map.getSector(sectorId))
+      ceiling.writeToCeil(map.getSector(sectorId))
+      sectorId
+    }
+
+    val eSectorId = edgeSector(controlPoints.sections(Heading.E) ++ Seq((innerSE, "RW"), (innerNE, "RW")))
+    val sSectorId = edgeSector(controlPoints.sections(Heading.S) ++ Seq((innerSW, "RW"), (innerSE, "RW")))
+    val wSectorId = edgeSector(controlPoints.sections(Heading.W) ++ Seq((innerNW, "RW"), (innerSW, "RW")))
+    val nSectorId = edgeSector(controlPoints.sections(Heading.N) ++ Seq((innerNE, "RW"), (innerNW, "RW")))
 
 
+    val innerSectorId = printInnerSector(gameCfg, map, innerSE, innerSW, innerNW, innerNE, loungeZ, loungeCeilZ, innerFloor, ceiling)
+    // val innerWalls = Seq(innerSE, innerSW, innerNW, innerNE).map(p => MiscPrinter.wall(p, WallPrefab.Empty))
+    // val innerSectorId = MiscPrinter.createSector(map, innerWalls, loungeZ, loungeCeilZ)
+    // innerFloor.writeToFloor(map.getSector(innerSectorId))
+    // ceiling.writeToCeil(map.getSector(innerSectorId))
+
+    val sectorIds = Seq(innerSectorId, eSectorId, sSectorId, wSectorId, nSectorId, entranceAResult._2.sectorId, entranceBResult._2.sectorId)
+    sectorIds.foreach { id0 =>
+      sectorIds.foreach { id1 =>
+        MiscPrinter.autoLinkRedWalls(map, id0, id1)
+      }
+    }
 
 
+    // val eloop = e.map { case(p, section) => MiscPrinter.wall(p, wallForSection(section))}
+    // val eSectorId = MiscPrinter.createSector(map, eloop, loungeZ, loungeCeilZ)
+
+    // val northPattern: Seq[(PointXY, String)] = sides(0).controlPoints.zip(sides(0).sections) ++ Seq((innerNE, "RW"), (innerNW, "RW"), (outerNW, "RW"))
+    // val northLoop: Seq[Wall] = northPattern.map { case (p, section) =>
+    //   MiscPrinter.wall(p, wallForSection(section))
+    // }
+    // val northSectorId = MiscPrinter.createSector(map, northLoop, loungeZ, loungeCeilZ)
+
+    //
+
+    // // drawing the entire room at once
+    // val walls = points.zip(sections).map { case(p,section) =>
+    //   if (section == LoungeWall.Empty) {
+    //     MiscPrinter.wall(p, loungeWall)
+    //   } else {
+    //     val w = loungeWall.copy(alignBottom = Some(true))
+    //     MiscPrinter.wall(p, w)
+    //   }
+    // }
+    // val sectorId = MiscPrinter.createSector(map, walls, loungeZ, loungeCeilZ)
+    // map.getSector(sectorId).setFloorTexture(898)
+    // map.getSector(sectorId).setCeilingTexture(182)
+    // Seq(entranceAResult._1.sectorId, entranceAResult._2.sectorId, entranceBResult._1.sectorId, entranceBResult._2.sectorId).foreach { entranceId =>
+    //   MiscPrinter.autoLinkRedWalls(map, sectorId, entranceId)
+    // }
+
+  }
+
+  def printInnerSector(gameCfg: GameConfig, map: DMap, innerSE: PointXY, innerSW: PointXY, innerNW: PointXY, innerNE: PointXY, loungeZ: Int, loungeCeilZ: Int, innerFloor: HorizontalBrush, ceiling: HorizontalBrush): Int = {
+
+    val xSize = Math.abs(innerSE.x - innerSW.x)
+    val ySize = Math.abs(innerSE.y - innerNE.y)
+
+    // with at least this much distance, we can have a kiosk at either end of the room.  Any less, and we just put
+    // one in the middle
+    val KioskFootPrint = 1536 // amount of space kiosk needs, including margin for people to walk
+    val MinDist2Kiosks = 3840
+    val kioskCenterX: Seq[Int] = if(xSize < KioskFootPrint){
+      Seq()
+    }else if(xSize < MinDist2Kiosks){
+      Seq((innerSE.x + innerSW.x) / 2)
+    }else{
+      Seq(innerSW.x + 768, innerSE.x - 768)
+    }
+    val kioskCenterY: Seq[Int] = if(ySize < 1536) {
+      Seq()
+    }else if(ySize < MinDist2Kiosks) {
+      Seq((innerNE.y + innerSE.y) / 2)
+    }else{
+      Seq(innerNE.y + 768, innerSE.y - 768)
+    }
+
+    val kiosks = kioskCenterX.flatMap(x => kioskCenterY.map(y => (x, y)))
+
+    val kioskResults = kiosks.map{ case(centerx, centery) =>
+      printKiosk(gameCfg, map, centerx, centery, loungeZ, loungeCeilZ, HorizontalBrush(183).withShade(0).withSmaller(true))
+    }
+
+
+    val innerWalls = Seq(innerSE, innerSW, innerNW, innerNE).map(p => MiscPrinter.wall(p, WallPrefab.Empty))
+    // val innerSectorId = MiscPrinter.createSector(map, innerWalls, loungeZ, loungeCeilZ)
+
+    // these pop down from the ceiling
+    val KioskOuterWall = WallPrefab(gameCfg.tex(182)).withShade(15)
+
+    val moreWalls = kioskResults.map(r => r._2.map(p => MiscPrinter.wall(p, KioskOuterWall)).reverse)
+    val innerSectorId = MiscPrinter.createMultiLoopSector(map, innerWalls +: moreWalls, loungeZ, loungeCeilZ)
+    innerFloor.writeToFloor(map.getSector(innerSectorId))
+    ceiling.writeToCeil(map.getSector(innerSectorId))
+
+    kioskResults.map(r => MiscPrinter.autoLinkRedWalls(map, innerSectorId, r._1))
+    innerSectorId
+  }
+
+  def printKiosk(gameCfg: GameConfig, map: DMap, centerx: Int, centery: Int, loungeZ: Int, loungeCeilZ: Int, kioskFloor: HorizontalBrush): (Int, Seq[PointXY]) = {
+    val KioskWidth = 768 // width of the outer kios sector(s).
+    def box(cx: Int, cy: Int, hw: Int) = Seq(new PointXY(cx - hw, cy - hw), new PointXY(cx + hw, cy - hw), new PointXY(cx + hw, cy + hw), new PointXY(cx - hw, cy + hw))
+
+    // val w = centerx - KioskWidth / 2
+    // val e = centerx + KioskWidth / 2
+    // val n = centery - KioskWidth / 2
+    // val s = centery + KioskWidth / 2
+    // val loop = Seq(new PointXY(w, n), new PointXY(e, n), new PointXY(e, s), new PointXY(w, s))
+    val innerWall = WallPrefab(Some(gameCfg.tex(297)), Some(7), Some(8), Some(16), None, None)
+    val innerLoop = box(centerx, centery, 256).reverse.map(p => MiscPrinter.wall(p, innerWall))
+    val kioskCeil = HorizontalBrush(708).withShade(7).withSmaller(true)
+
+
+    val outerLoop = box(centerx, centery, KioskWidth / 2)
+    val kioskSectorId = MiscPrinter.createMultiLoopSector(
+      map,
+      Seq(outerLoop.map(p => MiscPrinter.wall(p, WallPrefab.Empty)), innerLoop),
+      loungeZ,
+      loungeZ - (BuildConstants.ZStepHeight * 24)
+    )
+    val kioskSector = map.getSector(kioskSectorId)
+    kioskFloor.writeToFloor(kioskSector)
+    kioskCeil.writeToCeil(kioskSector)
+
+    (kioskSectorId, outerLoop)
   }
 
   private def drawMainRoom(
@@ -236,49 +426,6 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
   ): Unit = {
     BoundingBox(Seq(point0A, point1A, point0B, point1B))
 
-  }
-
-  /**
-    * Given:         .
-    *     . room A   .
-    *     .          .
-    *    p0A <-----  p1A
-    *         |
-    *         \/(normalA)
-    *
-    * Make:
-    *
-    *    p1A <-----  p0A
-    *    p2 ------>  p3
-    *    /\          |
-    *    |          \/
-    *    p1 <------ p0
-    *
-    * @param p0A
-    * @param p1A
-    * @param normalA vector pointing OUT OF whatever sector p0->p1 is a part of
-    * @param length  distance from p1 to p2 and from p0 to p3
-    * @return a new (point0, point1) on the other side of the new room (is as if p0,p1 is a cursor that moved forward
-    *       after "printing" the room.
-    */
-  private def drawEntrance(map: DMap, p0A: PointXY, p1A: PointXY, normalA: PointXY, length: Int, wallTex: Texture, sectorPrefab: SectorPrefab): (PointXY, PointXY) = {
-    def isUnit(p: PointXY): Boolean = (p.x == 0 && Math.abs(p.y) == 1) || (Math.abs(p.x) == 1 && p.y == 0)
-    require(isUnit(normalA), s"not a normal vector: ${normalA}")
-
-    // TODO use the new space passage thing that I just spent all week on!
-
-    val p3 = p0A
-    val p2 = p1A
-    val p1 = p1A.add(normalA.multipliedBy(length))
-    val p0 = p0A.add(normalA.multipliedBy(length))
-
-    //val WallTex = Texture(1097, gameCfg.textureWidth(1097)) // or 791, 1097
-    val loop = Seq(p0, p1, p2, p3).map(p => MiscPrinter.wall(p, wallTex))
-    TextureUtil.setWallXScale(loop, 1.0)
-    val sectorId = map.createSectorFromLoop(loop: _*)
-    val sector = map.getSector(sectorId)
-    sectorPrefab.writeTo(sector)
-    (p0, p1)
   }
 
   def axisAligned(a: PointXY, b: PointXY): Boolean = a.x == b.x || a.y == b.y
@@ -353,44 +500,11 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     val wallB = WallAnchor(new PointXY(4096, -2048), new PointXY(4096+1024, -2048), BuildConstants.DefaultFloorZ, BuildConstants.DefaultCeilZ)
     printLounge(gameCfg, map: DMap,
       wallA: WallAnchor,
-      BuildConstants.DefaultFloorZ,
-      BuildConstants.DefaultCeilZ,
       wallB: WallAnchor,
       BuildConstants.DefaultFloorZ,
       BuildConstants.DefaultCeilZ)
   }
 
-  def test(gameCfg: GameConfig, map: DMap): Unit = {
-
-    def p(x: Int, y: Int): PointXY = new PointXY(x, y)
-
-    val p0 = p(0, 0)
-    val p1 = p(0, 2048)
-    val n = p0.vectorTo(p1).toF.rotatedCCW.normalized.toPointXY
-    println(n)
-    // val WallTex = Texture(258, gameCfg.textureWidth(1097)) // or 791, 1097
-    val WallTex = gameCfg.tex(258)
-
-    drawEntrance(map, p0, p1, n, 512, WallTex, SectorPrefab(183, 181))
-
-    // def eastMostWall(sectorId: Int): WallView = {
-    //   val walls = map.getAllWallLoopsAsViews(sectorId).asScala.map(_.asScala).flatten
-    //   walls.filter(_.isAlignedY).sortBy(w => w.getLineSegment.getP1.x).last
-    // }
-    // def westMostWall(sectorId: Int): WallView = {
-    //   val walls = map.getAllWallLoopsAsViews(sectorId).asScala.map(_.asScala).flatten
-    //   walls.filter(_.isAlignedY).sortBy(w => w.getLineSegment.getP1.x).head
-    // }
-    // val sector0 = MiscPrinter.box(map, p(start, 0), p(start + boxWidth, 2048), floor0, ceil0)
-    // val wall0 = eastMostWall(sector0)
-    // val e0 = StairEntrance(wall0, map.getSector(sector0), sector0)
-
-    // val box1start = start + boxWidth + stairLength
-    // val sector1 = MiscPrinter.box(map, p(box1start, 0), p(box1start + boxWidth, 2048), floor2, ceil2)
-    // val wall1 = westMostWall(sector1)
-    // val e1 = StairEntrance(wall1, map.getSector(sector1), sector1)
-    // StairPrinter.straightStairs(map, e0, e1, WallTex)
-  }
 
 
 }

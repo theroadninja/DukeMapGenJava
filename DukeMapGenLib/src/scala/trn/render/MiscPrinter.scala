@@ -64,6 +64,15 @@ object MiscPrinter {
     sectorId
   }
 
+  def createMultiLoopSector(map: DMap, loops: Seq[Iterable[Wall]], floorZ: Int, ceilZ: Int): Int = {
+    val loops2 = loops.map(_.toArray)
+    val sectorId = map.createSectorFromMultipleLoops(loops2: _*)
+    val sector = map.getSector(sectorId)
+    sector.setFloorZ(floorZ)
+    sector.setCeilingZ(ceilZ)
+    sectorId
+  }
+
 
   def box(
     map: DMap,

@@ -65,4 +65,8 @@ public class WallStat {
         }
     }
 
+    public WallStat withAlignBottom(boolean value){
+        return withValueChanged(ALIGN_BOTTOM, value);
+    }
+
 }
