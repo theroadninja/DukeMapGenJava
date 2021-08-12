@@ -3,6 +3,7 @@ package trn.bespoke.moonbase2
 import trn.{BuildConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sector, Wall, WallView, Map => DMap}
 import trn.prefab.{BoundingBox, DukeConfig, GameConfig, Heading, MapWriter, RandomX}
 import trn.render.{HorizontalBrush, MiscPrinter, Texture, TextureUtil, WallAnchor, WallPrefab}
+import trn.render.MiscPrinter.wall
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -253,8 +254,8 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     val points = controlPoints.allPoints
     val sections = controlPoints.allWallTypes
 
-    //val walls = points.map(p => MiscPrinter.wall(p, loungeWall))
-    val innerFloor = HorizontalBrush(183).withRelative(true).withSmaller(true).withShade(15)
+    val innerFloor = HorizontalBrush(898).withRelative(true).withSmaller(true).withShade(15)
+    val edgeFloor = HorizontalBrush(183).withShade(15).withSmaller(true)
     val ceiling = HorizontalBrush(182).withShade(15)
 
     val outerNW = controlPoints.NW
@@ -275,10 +276,10 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
       list.dropRight(1) :+ (last._1, "RW")
     }
 
-    val eSectorId = edgeSector(gameCfg, map, ceiling, loungeZ, loungeCeilZ, sectionList(Heading.E) ++ Seq((innerSE, "RW"), (innerNE, "RW")))
-    val sSectorId = edgeSector(gameCfg, map, ceiling, loungeZ, loungeCeilZ, sectionList(Heading.S) ++ Seq((innerSW, "RW"), (innerSE, "RW")))
-    val wSectorId = edgeSector(gameCfg, map, ceiling, loungeZ, loungeCeilZ, sectionList(Heading.W) ++ Seq((innerNW, "RW"), (innerSW, "RW")))
-    val nSectorId = edgeSector(gameCfg, map, ceiling, loungeZ, loungeCeilZ, sectionList(Heading.N) ++ Seq((innerNE, "RW"), (innerNW, "RW")))
+    val eSectorId = edgeSector(gameCfg, map, edgeFloor, ceiling, loungeZ, loungeCeilZ, sectionList(Heading.E) ++ Seq((innerSE, "RW"), (innerNE, "RW")))
+    val sSectorId = edgeSector(gameCfg, map, edgeFloor, ceiling, loungeZ, loungeCeilZ, sectionList(Heading.S) ++ Seq((innerSW, "RW"), (innerSE, "RW")))
+    val wSectorId = edgeSector(gameCfg, map, edgeFloor, ceiling, loungeZ, loungeCeilZ, sectionList(Heading.W) ++ Seq((innerNW, "RW"), (innerSW, "RW")))
+    val nSectorId = edgeSector(gameCfg, map, edgeFloor, ceiling, loungeZ, loungeCeilZ, sectionList(Heading.N) ++ Seq((innerNE, "RW"), (innerNW, "RW")))
 
     val innerSectorId = printInnerSector(gameCfg, map, innerSE, innerSW, innerNW, innerNE, loungeZ, loungeCeilZ, innerFloor, ceiling)
 
@@ -291,54 +292,151 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
 
   }
 
-  def wallSection(gameCfg: GameConfig, p0: PointXY, p1: PointXY, wallType: String): Seq[Wall] = {
+  /**
+    * --->p0     c5--->   p1
+    *     |      |
+    *     c1     c4
+    *     |      |
+    *     |      |
+    *     c2----c3
+    *
+    * @param p0
+    * @param p1
+    * @param chairCount
+    * @return
+    */
+  def chairControlPoints(p0: PointXY, p1: PointXY, chairCount: Int): Seq[PointXY] = {
+    require(axisAligned(p0, p1))
+    require(chairCount >= 2)
+    val ChairLength = 256 // width of single chair
+    val across = p0.vectorTo(p1).toF.normalized
+    val down = across.rotatedCW
+
+    val c1 = p0.add(toI(down.multipliedBy(128)))
+    val c2 = c1.add(toI(down.multipliedBy(256)))
+
+    val c5 = p0.add(toI(across.multipliedBy(ChairLength * chairCount)))
+    val c4 = c5.add(toI(down.multipliedBy(128)))
+    val c3 = c4.add(toI(down.multipliedBy(256)))
+
+    Seq(p0, c1, c2, c3, c4, c5)
+  }
+
+  def fillWallSection(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, loungeWall: WallPrefab, loungeCeil: HorizontalBrush): (Seq[Int], Seq[Wall], PointXY) = {
+
+    /** return  (list of new sector ids, walls for main loop, "new p0" point) */
+    def chairs(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, chairCount: Int): (Seq[Int], Seq[Wall], PointXY) = {
+
+      val SeatBackHeight = 7 * BuildConstants.ZStepHeight
+      val SeatHeight = 4 * BuildConstants.ZStepHeight
+      val ChairBackSide = WallPrefab(gameCfg.tex(786)).copy(xrepeat=Some(4), yrepeat=Some(8)).withShade(15)
+      val ChairSeatSide = WallPrefab(gameCfg.tex(788)).copy(xrepeat=Some(4), yrepeat=Some(16)).withShade(15) // TODO need to adjust xrepeat based on wall length
+      val ChairSeatFloor = HorizontalBrush(gameCfg.tex(786)).withRelative(true).withSmaller(true)
+      val chairFrontXRepeat = ChairSeatSide.tex.get.xRepeatForNRepetitions(chairCount)     //c2.distanceTo(c3).toInt
+
+      val _ :: c1 :: c2 :: c3 :: c4 :: c5 :: Nil = chairControlPoints(p0, p1, chairCount)
+      val seatBackTex = WallPrefab(gameCfg.tex(786)).withShade(15).copy(xrepeat = Some(24), yrepeat = Some(8))
+
+      // TODO in addition to xRepeatForScale, also need ot calculate an offset.  Maybe its best to use do a mod on its global position (set the offset so the texture always begins at x=0)
+      val seatBackId = MiscPrinter.createSector(map, Seq(wall(p0, loungeWall.withXRepeatForScale(1.0, p0.distanceTo(c5).toInt)), wall(c5, WallPrefab.Empty), wall(c4, WallPrefab.Empty), wall(c1, WallPrefab.Empty)), floorZ - SeatBackHeight, ceilZ)
+      ChairSeatFloor.writeToFloor(map.getSector(seatBackId))
+      loungeCeil.writeToCeil(map.getSector(seatBackId))
+      val seatId = MiscPrinter.createSector(map, Seq(c1, c4, c3, c2).map(MiscPrinter.wall(_, seatBackTex.copy(xrepeat=Some(chairFrontXRepeat)))), floorZ - SeatHeight, ceilZ)
+      ChairSeatFloor.writeToFloor(map.getSector(seatId))
+      loungeCeil.writeToCeil(map.getSector(seatId))
+      MiscPrinter.autoLinkRedWalls(map, seatBackId, seatId)
+
+
+      val outerWalls = Seq(
+        wall(p0, ChairBackSide), wall(c1, ChairSeatSide), wall(c2, ChairSeatSide.copy(xrepeat=Some(chairFrontXRepeat))), wall(c3, ChairSeatSide), wall(c4, ChairBackSide)
+      )
+
+      // (Seq(seatBackId, seatId), Seq(p0, c1, c2, c3, c4).map(MiscPrinter.wall(_, loungeWall)), c5)
+      (Seq(seatBackId, seatId), outerWalls, c5)
+
+    }
+
+    val parts = LoungePlanner2.planWall(p0.manhattanDistanceTo(p1))
+
+    val sectorIds = mutable.ArrayBuffer[Int]()
+    val outsideWalls = mutable.ArrayBuffer[Wall]()
+    var cursor: PointXY = p0
+    parts.foreach { part =>
+      part match {
+        case LoungePlanner2.S => {
+          val newCursor = cursor.add(toI(cursor.vectorTo(p1).toF.normalized.multipliedBy(512)))
+          require(axisAligned(cursor, newCursor))
+          outsideWalls.append(MiscPrinter.wall(cursor, loungeWall))
+          cursor = newCursor
+        }
+        case LoungePlanner2.C2 => {
+          val (newSectorIds, newOutsideWalls, newP0) = chairs(gameCfg, map, cursor, p1, 2)
+          sectorIds ++= newSectorIds
+          outsideWalls ++= newOutsideWalls
+          cursor = newP0
+
+        }
+        case _ => throw new Exception(s"part ${part} not implemented yet")
+      }
+
+    }
+
+    // val (newSectorIds, newOutsideWalls, newP0) = chairs(gameCfg, map, p0, p1)
+
+    //val outsideWalls = newOutsideWalls :+ lastWall
+    //val outsideWalls = Seq(p0, c1, c2, c3, c4, c5).map(MiscPrinter.wall(_, something))
+
+    // (Seq(seatBackId, seatId), outsideWalls)
+    val lastWall = wall(cursor, loungeWall)
+    (sectorIds, outsideWalls :+ lastWall, cursor)
+  }
+
+
+  /**
+    * so this thing is going to create some sectors (returning their ids) and then return SOME OF the walls in the main loop
+    * of the "edge" area.
+    */
+  def wallSection(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, wallType: String, floorZ: Int, ceilZ: Int, loungeCeil: HorizontalBrush): (Seq[Int], Seq[Wall]) = {
     val loungeWall = WallPrefab(gameCfg.tex(215)).copy(yrepeat = Some(8), shade = Some(15))
 
     if(wallType == LoungeWall.Empty){
 
-      val pp = new LineSegmentXY(p0, p1).midpoint()
-      Seq(
-        MiscPrinter.wall(p0, loungeWall.withShade(22)),
-        MiscPrinter.wall(pp, loungeWall)
-      )
+      // val pp = new LineSegmentXY(p0, p1).midpoint()
+      // Seq(
+      //   MiscPrinter.wall(p0, loungeWall.withShade(22)),
+      //   MiscPrinter.wall(pp, loungeWall)
+      // )
+
+
+      val (sectorIds, walls, newP0) = fillWallSection(gameCfg, map, p0, p1, floorZ, ceilZ, loungeWall, loungeCeil: HorizontalBrush)
+      val lastWall = MiscPrinter.wall(newP0, loungeWall) // TODO do i need this?
+      // TODO: join the sector ids
+      // (sectorIds, Seq(MiscPrinter.wall(p0, loungeWall)) ++ walls)
+      (sectorIds, walls)
 
     }else if(wallType == LoungeWall.Anchor){
-      Seq(MiscPrinter.wall(p0, loungeWall.copy(alignBottom = Some(true))))
+      (Seq.empty, Seq(MiscPrinter.wall(p0, loungeWall.copy(alignBottom = Some(true)))))
     }else{
-      Seq(MiscPrinter.wall(p0, WallPrefab.Empty))
+      (Seq.empty, Seq(MiscPrinter.wall(p0, WallPrefab.Empty)))
     }
 
   }
 
-  def edgeSector(gameCfg: GameConfig, map: DMap, ceiling: HorizontalBrush, loungeZ: Int, loungeCeilZ: Int, sections: Seq[(PointXY, String)]): Int = {
-    val edgeFloor = HorizontalBrush(898).withShade(15)
+  def edgeSector(gameCfg: GameConfig, map: DMap, edgeFloor: HorizontalBrush, ceiling: HorizontalBrush, loungeZ: Int, loungeCeilZ: Int, sections: Seq[(PointXY, String)]): Int = {
 
-    // val listA = sections.map(_._1)
-    // val listB = sections.map(_._1)
-    // val listC = listA.zip(listB.drop(1) ++ listB.take(1))
-    // for(i <- 0 until listC.size){
-    //   val j = (i + 1) % listC.size
-    //   val (_, p1) = listC(i)
-    //   val (p2, _) = listC(j)
-    //   println(s"i=${i} j=${j} ${p1} ${p2}")
-    //   require(p1 == p2)
-    // }
+    val (points, wallTypes) = sections.unzip
+    val withNextPoints = MiscPrinter.withP2(points).zip(wallTypes)
 
-    // val loop = sections.map { case(p, s) => MiscPrinter.wall(p, wallForSection(s))}
-    val nextPoints: Seq[PointXY] = sections.map(_._1)// (sections.drop(1) ++ sections.take(1)).map(_._1)
-    val withNextPoints = sections.zip(nextPoints.drop(1) ++ nextPoints.take(1))
-    for(i <- 0 until withNextPoints.size){
-      val j = (i + 1) % withNextPoints.size
-      val ((p0, _), p1) = withNextPoints(i)
-      val ((p2, _), _) = withNextPoints(j)
-      println(s"i=${i} j=${j} ${p1} ${p2}")
-      require(p1 == p2)
+    val wallSectorIds = mutable.ArrayBuffer[Int]()
+    val loop = withNextPoints.flatMap { case ((p, nextPoint), wallType) =>
+      val (sectorIds, loop) = wallSection(gameCfg, map, p, nextPoint, wallType, loungeZ, loungeCeilZ, ceiling)
+      wallSectorIds.append(sectorIds: _*)
+      loop
     }
-    val loop = withNextPoints.flatMap { case ((p, wallType), nextPoint) => wallSection(gameCfg, p, nextPoint, wallType) }
-    //require(loop.size > withNextPoints.size)
-
 
     val sectorId = MiscPrinter.createSector(map, loop, loungeZ, loungeCeilZ)
+    MiscPrinter.autoLinkRedWalls(map, wallSectorIds :+ sectorId)
+
     edgeFloor.writeToFloor(map.getSector(sectorId))
     ceiling.writeToCeil(map.getSector(sectorId))
     sectorId
@@ -369,7 +467,7 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     }
     val kiosks = kioskCenterX.flatMap(x => kioskCenterY.map(y => (x, y)))
     val kioskResults = kiosks.map{ case(centerx, centery) =>
-      printKiosk(gameCfg, map, centerx, centery, loungeZ, loungeCeilZ, HorizontalBrush(183).withShade(0).withSmaller(true))
+      printKiosk(gameCfg, map, centerx, centery, loungeZ, loungeCeilZ, innerFloor.withShade(0).withSmaller(true))
     }
 
     val outerWalls = Seq(innerSE, innerSW, innerNW, innerNE).map(p => MiscPrinter.wall(p, WallPrefab.Empty))

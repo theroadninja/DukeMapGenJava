@@ -132,12 +132,12 @@ object LoungePlanner {
 
 
   def main(args: Array[String]): Unit = {
-    println("test")
-    // printSomeGroups()
-    printrow(planWall(400))
-    printrow(planWall(600))
-    printrow(planWall(1000))
-    printrow(planWall(2048))
+    printSomeGroups()
+    // printrow(planWall(400))
+    // printrow(planWall(600))
+    // printrow(planWall(1000))
+    // printrow(planWall(2048))
+    // printrow(planWall(4096))
   }
 
   def printrow(items: Seq[Item]): Unit = {

@@ -77,4 +77,12 @@ class LoungePrinterTests {
 
   }
 
+  @Test
+  def testChairControlPoints(): Unit = {
+    val results2 = LoungePrinter.chairControlPoints(p(0, 0), p(1000000, 0), 2)
+
+    Assert.assertEquals(Seq(p(0, 0), p(0, 128), p(0, 384), p(512, 384), p(512, 128), p(512, 0)), results2)
+
+  }
+
 }

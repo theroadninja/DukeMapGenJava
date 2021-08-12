@@ -41,6 +41,14 @@ case class WallPrefab(
 
   }
 
+  def withXRepeatForNRepetitions(repetitionCount: Int): WallPrefab = {
+    this.copy(xrepeat=Some(tex.get.xRepeatForNRepetitions(repetitionCount)))
+  }
+
+  def withXRepeatForScale(scaleFactor: Double, wallSize: Int): WallPrefab = {
+    this.copy(xrepeat=Some(tex.get.xRepeatForScaleF(scaleFactor, wallSize)))
+  }
+
   def create(p: PointXY): Wall = {
     val wall = new Wall(p.x, p.y)
     this.writeTo(wall)

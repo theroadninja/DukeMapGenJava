@@ -3,7 +3,26 @@ package trn.render
 import trn.{BuildConstants, Main, MapLoader, PlayerStart, PointXY, Wall, Map => DMap}
 import scala.collection.JavaConverters._
 
+/**
+  * Collection of methods for rendering/printing sectors directly into maps.
+  */
 object MiscPrinter {
+
+  /**
+    * Given a sequence of points that form a wall loop, return a sequence of tuples where the second point is the "next"
+    * point in the wall loop.  It wraps around, so the last element in the seq will have the point at index 0 for its second member.
+    *
+    * This is for convenience; e.g. it makes it easier for low level functions to know how long a wall is
+    *
+    * So in general,  returnSeq(i)._2 == returnSeq(i+1)._1
+    *
+    * @param wallLoop
+    * @return  Seq(point, nextPointInLoop)
+    */
+  def withP2(wallLoop: Seq[PointXY]): Seq[(PointXY, PointXY)] = {
+    val nextPoints: Seq[PointXY] = wallLoop.drop(1) ++ wallLoop.take(1)
+    wallLoop.zip(nextPoints)
+  }
 
   def autoLinkRedWalls(map: DMap, sectorId0: Int, sectorId1: Int): Unit ={
     map.getAllWallLoopsAsViews(sectorId0).asScala.flatMap(_.asScala).foreach { w0 =>
@@ -18,6 +37,12 @@ object MiscPrinter {
           //println(s"${w0.getLineSegment()} vs ${w1.getLineSegment}")
         }
       }
+    }
+  }
+
+  def autoLinkRedWalls(map: DMap, sectors: Seq[Int]): Unit = sectors.foreach { s0 =>
+    sectors.foreach { s1 =>
+      autoLinkRedWalls(map, s0, s1)
     }
   }
 
