@@ -66,6 +66,9 @@ case class WallPrefab(
     this.copy(xrepeat=Some(tex.get.xRepeatForScaleF(scaleFactor, wallSize)))
   }
 
+  /** set the raw xrepeat and yrepeat values */
+  def withRepeats(xr: Int, yr: Int): WallPrefab = this.copy(xrepeat=Some(xr), yrepeat=Some(yr))
+
   def withXPan(xp: Int): WallPrefab = this.copy(xpan=Some(xp))
   def withYPan(yp: Int): WallPrefab = this.copy(ypan=Some(yp))
 

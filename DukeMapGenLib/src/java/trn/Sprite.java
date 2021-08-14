@@ -316,6 +316,10 @@ public class Sprite implements IRayXY {
 	}
 	public void setYRepeat(int i){ setYRepeat((short)i); }
 
+	public void setRepeats(int xr, int yr){
+		setXRepeat(xr);
+		setYRepeat(yr);
+	}
 
 	@Override
 	public String toString(){

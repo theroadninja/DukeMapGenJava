@@ -350,8 +350,10 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
         case LoungePlanner2.WI => {
           // val (newSectorIds, newOutSideWalls, newP0) = LoungeWallPrinter.medCabinet(gameCfg, map, cursor, p1, floorZ, loungeWall)
           // LoungeWallPrinter.powerCabinet(gameCfg, map, cursor, p1, 28, floorZ, loungeWall) // 28 == shotgun
-          // TODO water fountain
-          LoungeWallPrinter.securityScreen(gameCfg, map, cursor, p1,floorZ, loungeWall)
+          LoungeWallPrinter.waterFountain(gameCfg, map, cursor, p1, floorZ, loungeWall)
+          // LoungeWallPrinter.securityScreen(gameCfg, map, cursor, p1,floorZ, loungeWall)
+          // TODO: tripbomb placement
+          // TODO: window
         }
         case _ => throw new Exception(s"part ${part} not implemented yet")
       }

@@ -25,11 +25,21 @@ class LoungeWallPrinterTests {
   }
 
   @Test
-  def testSecurityScreenCtlPoints(): Unit = {
+  def testSecurityScreenCtrlPoints(): Unit = {
     val results = LoungeWallPrinter.securityScreenCtrlPoints(p(0, 0), p(4096, 0))
     Assert.assertEquals(
       Seq(p(128, 0), p(128, -32), p(128, -64), p(640, -64), p(640, -32), p(640, 0), p(768, 0)),
       results
     )
+  }
+
+  @Test
+  def testWaterFountainCtrlPoints(): Unit = {
+    val results = LoungeWallPrinter.waterFountainCtrlPoints(p(0, 0), p(4096, 0))
+    Assert.assertEquals(
+      Seq(p(192, 0), p(192, -192), p(576, -192), p(576, 0), p(768, 0)),
+      results
+    )
+
   }
 }

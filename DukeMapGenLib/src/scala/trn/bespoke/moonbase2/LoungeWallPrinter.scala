@@ -214,4 +214,63 @@ object LoungeWallPrinter {
     val outerWalls: Seq[Wall] = Seq(wall(p0, loungeWall), wall(c1, loungeWall.withAlignBottom()), wall(c6, loungeWall))
     (Seq(edgeId, screenId), outerWalls, c7)
   }
+
+  /**
+    *        c2 -------- c3
+    *         |          |
+    * p0 --> c1 -------- c4 -- c5 ...> p1
+    *
+    * @param p0
+    * @param p1
+    * @return
+    */
+  def waterFountainCtrlPoints(p0: PointXY, p1: PointXY): Seq[PointXY] = {
+    val across = p0.vectorTo(p1).toF.normalized
+    val up = across.rotatedCCW()
+    val c1 = p0 + across * 192
+    val c4 = c1 + across * 384
+    val c5 = c4 + across * 192
+    val c2 = c1 + up * 192
+    val c3 = c4 + up * 192
+    Seq(c1, c2, c3, c4, c5)
+  }
+
+  def waterFountain(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int, loungeWall: WallPrefab): (Seq[Int], Seq[Wall], PointXY) = {
+    val c1 :: c2 :: c3 :: c4 :: c5 :: Nil = waterFountainCtrlPoints(p0, p1)
+    val SideWall = WallPrefab(gameCfg.tex(883)).withShade(11).withRepeats(4, 8)
+    val BackWall = SideWall.withRepeats(8, 8)
+    val walls = Seq(wall(c2, BackWall), wall(c3, SideWall), wall(c4, E), wall(c1, SideWall))
+    val z = floorZ - BuildConstants.ZStepHeight * 6
+    val sectorId = createAndPaintSector(
+      map,
+      walls,
+      z,
+      z - BuildConstants.ZStepHeight * 6,
+      HorizontalBrush(372).withShade(15),
+      HorizontalBrush(128).withSmaller()
+    )
+
+    val fountain = new Sprite(((c2 + c4)/2).withZ(z), sectorId, 563, 0, 0)
+    fountain.setRepeats(40, 40)
+    map.addSprite(fountain)
+    val decal = new Sprite(((c2 + c3)/2).withZ(z - BuildConstants.ZStepHeight * 3), sectorId, 592, 0, 0)
+    decal.setCstat((Sprite.CSTAT_FLAGS.PLACED_ON_WALL).toShort)
+    decal.setAngle(AngleUtil.angleOf(p0.vectorTo(p1).toF.rotatedCW().toI))
+    decal.setRepeats(24, 24)
+    map.addSprite(decal)
+
+    (Seq(sectorId), Seq(wall(p0, loungeWall), wall(c1, loungeWall.withAlignBottom().withBlockable()), wall(c4, loungeWall)), c5)
+  }
+
+  def tripBombPlacement(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int): (Seq[Int], Seq[Wall], PointXY) = {
+
+    // its a post:
+    // 256 wide
+    // 32 deep
+    // 11 pgup high
+
+    // frontpic: 797
+    // side & top: 355
+    ???
+  }
 }
