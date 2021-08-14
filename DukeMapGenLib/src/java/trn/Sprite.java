@@ -41,7 +41,7 @@ public class Sprite implements IRayXY {
 		public static final int PLACED_ON_FLOOR_FLOOR_ALIGNED = 33; // bit 0 blocking, bit 5 floor
 		
 		/** cstat you get if you place a sprite directly on the wall */
-		public static final short PLACED_ON_WALL = 80; // bit 4 wall sprite, bit 6 one-sided sprite
+		public static final int PLACED_ON_WALL = 80; // bit 4 wall sprite, bit 6 one-sided sprite
 		
 		
 		//TODO
@@ -315,7 +315,7 @@ public class Sprite implements IRayXY {
 		this.yrepeat = yr;
 	}
 	public void setYRepeat(int i){ setYRepeat((short)i); }
-	
+
 
 	@Override
 	public String toString(){

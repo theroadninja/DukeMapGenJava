@@ -89,6 +89,14 @@ object MiscPrinter {
     sectorId
   }
 
+  def createAndPaintSector(map: DMap, walls: Seq[Wall], floorZ: Int, ceilZ: Int, floorBrush: HorizontalBrush, ceilBrush: HorizontalBrush): Int = {
+    val sectorId = createSector(map, walls, floorZ, ceilZ)
+    val sector = map.getSector(sectorId)
+    floorBrush.writeToFloor(sector)
+    ceilBrush.writeToCeil(sector)
+    sectorId
+  }
+
   def createMultiLoopSector(map: DMap, loops: Seq[Iterable[Wall]], floorZ: Int, ceilZ: Int): Int = {
     val loops2 = loops.map(_.toArray)
     val sectorId = map.createSectorFromMultipleLoops(loops2: _*)

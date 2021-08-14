@@ -29,6 +29,20 @@ object LoungePlanner2 {
     // TODO
 
     var length2 = length
+    length2 -= 512 // this is for the space at the end
+
+    // TEMPORARY
+    if(length2 > 768 + 512){
+      results += WI
+      length2 -= 768
+    }
+
+    while(length2 > 1024 + 512){
+      results += S
+      results += C4
+      length2 -= (1024 + 512)
+    }
+
     while(length2 > 1024){
       if(length2 > 512){
         results += S

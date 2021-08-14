@@ -7,7 +7,11 @@ import trn.render.MiscPrinter.wall
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import trn.PointImplicits._
 
+
+
+/** TODO replaced by HorizontalBrush? */
 object SectorPrefab {
   val DefaultFloorZ = Sector.DEFAULT_FLOOR_Z
   val DefaultCeilZ = Sector.DEFAULT_CEILING_Z
@@ -292,35 +296,6 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
 
   }
 
-  /**
-    * --->p0     c5--->   p1
-    *     |      |
-    *     c1     c4
-    *     |      |
-    *     |      |
-    *     c2----c3
-    *
-    * @param p0
-    * @param p1
-    * @param chairCount
-    * @return
-    */
-  def chairControlPoints(p0: PointXY, p1: PointXY, chairCount: Int): Seq[PointXY] = {
-    require(axisAligned(p0, p1))
-    require(chairCount >= 2)
-    val ChairLength = 256 // width of single chair
-    val across = p0.vectorTo(p1).toF.normalized
-    val down = across.rotatedCW
-
-    val c1 = p0.add(toI(down.multipliedBy(128)))
-    val c2 = c1.add(toI(down.multipliedBy(256)))
-
-    val c5 = p0.add(toI(across.multipliedBy(ChairLength * chairCount)))
-    val c4 = c5.add(toI(down.multipliedBy(128)))
-    val c3 = c4.add(toI(down.multipliedBy(256)))
-
-    Seq(p0, c1, c2, c3, c4, c5)
-  }
 
   def fillWallSection(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, loungeWall: WallPrefab, loungeCeil: HorizontalBrush): (Seq[Int], Seq[Wall], PointXY) = {
 
@@ -334,7 +309,7 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
       val ChairSeatFloor = HorizontalBrush(gameCfg.tex(786)).withRelative(true).withSmaller(true)
       val chairFrontXRepeat = ChairSeatSide.tex.get.xRepeatForNRepetitions(chairCount)     //c2.distanceTo(c3).toInt
 
-      val _ :: c1 :: c2 :: c3 :: c4 :: c5 :: Nil = chairControlPoints(p0, p1, chairCount)
+      val _ :: c1 :: c2 :: c3 :: c4 :: c5 :: Nil = LoungeWallPrinter.chairControlPoints(p0, p1, chairCount)
       val seatBackTex = WallPrefab(gameCfg.tex(786)).withShade(15).copy(xrepeat = Some(24), yrepeat = Some(8))
 
       // TODO in addition to xRepeatForScale, also need ot calculate an offset.  Maybe its best to use do a mod on its global position (set the offset so the texture always begins at x=0)
@@ -362,22 +337,27 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     val outsideWalls = mutable.ArrayBuffer[Wall]()
     var cursor: PointXY = p0
     parts.foreach { part =>
-      part match {
+      val (newSectorIds, newOutsideWalls, newP0) = part match {
         case LoungePlanner2.S => {
-          val newCursor = cursor.add(toI(cursor.vectorTo(p1).toF.normalized.multipliedBy(512)))
-          require(axisAligned(cursor, newCursor))
-          outsideWalls.append(MiscPrinter.wall(cursor, loungeWall))
-          cursor = newCursor
+          LoungeWallPrinter.emptyWall(cursor, p1, 512, loungeWall)
         }
         case LoungePlanner2.C2 => {
-          val (newSectorIds, newOutsideWalls, newP0) = chairs(gameCfg, map, cursor, p1, 2)
-          sectorIds ++= newSectorIds
-          outsideWalls ++= newOutsideWalls
-          cursor = newP0
-
+          chairs(gameCfg, map, cursor, p1, 2)
+        }
+        case LoungePlanner2.C4 => {
+          chairs(gameCfg, map, cursor, p1, 4)
+        }
+        case LoungePlanner2.WI => {
+          // val (newSectorIds, newOutSideWalls, newP0) = LoungeWallPrinter.medCabinet(gameCfg, map, cursor, p1, floorZ, loungeWall)
+          // LoungeWallPrinter.powerCabinet(gameCfg, map, cursor, p1, 28, floorZ, loungeWall) // 28 == shotgun
+          // TODO water fountain
+          LoungeWallPrinter.securityScreen(gameCfg, map, cursor, p1,floorZ, loungeWall)
         }
         case _ => throw new Exception(s"part ${part} not implemented yet")
       }
+      sectorIds ++= newSectorIds
+      outsideWalls ++= newOutsideWalls
+      cursor = newP0
 
     }
 
@@ -487,7 +467,8 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     val KioskWidth = 768 // width of the outer kios sector(s).
     def box(cx: Int, cy: Int, hw: Int) = Seq(new PointXY(cx - hw, cy - hw), new PointXY(cx + hw, cy - hw), new PointXY(cx + hw, cy + hw), new PointXY(cx - hw, cy + hw))
 
-    val innerWall = WallPrefab(Some(gameCfg.tex(297)), Some(7), Some(8), Some(16), None, None)
+    // val innerWall = WallPrefab(Some(gameCfg.tex(297)), Some(7), None, Some(8), Some(16), None, None, None, None)
+    val innerWall = WallPrefab(gameCfg.tex(297)).withShade(7).copy(xrepeat=Some(8), yrepeat=Some(16))
     val innerLoop = box(centerx, centery, 256).reverse.map(p => MiscPrinter.wall(p, innerWall))
     val kioskCeil = HorizontalBrush(708).withShade(7).withSmaller(true)
 
@@ -521,10 +502,10 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
 
   }
 
-  def axisAligned(a: PointXY, b: PointXY): Boolean = a.x == b.x || a.y == b.y
 
   /** for testing */
   def main(args: Array[String]): Unit = {
+    //testReadForceField()
     //testGetSectorZ()
 
     // TODO: make sure we use something like this from StairPrinter
@@ -542,6 +523,14 @@ case class StairEntrance(p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, sect
     writer.sgBuilder.clearMarkers()
     writer.checkSectorCount()
     Main.deployTest(writer.outMap, "output.map", HardcodedConfig.getEduke32Path("output.map"))
+  }
+
+  def testReadForceField(): Unit = {
+    val map = new MapLoader(HardcodedConfig.EDUKE32PATH).load("test.map")
+    (0 until map.getWallCount).map(map.getWall).filter(_.isRedWall).foreach { w =>
+      println(w)
+    }
+
   }
 
   def testGetSectorZ(): Unit = {

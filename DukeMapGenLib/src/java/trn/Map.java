@@ -469,14 +469,15 @@ public class Map implements WallContainer {
 		Wall w1 = getWall(wallIndex);
 		// TODO - instead of throwing, just disable...
 		if(w1.getStat().blockPlayer()){
-			throw new RuntimeException("wall has blocking enabled near " + w1.getLocation());
+			// Actually, this is legitimate for forcefields
+			// throw new RuntimeException("wall has blocking enabled near " + w1.getLocation());
 			//TODO - warn
 		}
 		Wall w1End = getWall(w1.getPoint2Id());
 		Wall w2 = getWall(wallIndex2);
 		// the below condition can easily happen as soon as any red wall in the sector group has blocking,
 		// even the solid walls seem to inherit it somehow.
-		if(w2.getStat().blockPlayer()) throw new RuntimeException("wall has blocking enabled " + w2.getLocation());
+		// if(w2.getStat().blockPlayer()) throw new RuntimeException("wall has blocking enabled " + w2.getLocation());
 		Wall w2End = getWall(w2.getPoint2Id());
 		if(w1.isRedWall()) throw new IllegalArgumentException("wall " + wallIndex + " is already a red wall");
 		if(w2.isRedWall()) throw new IllegalArgumentException("wall " + wallIndex2 + " is already a red wall");

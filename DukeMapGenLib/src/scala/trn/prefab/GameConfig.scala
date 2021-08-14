@@ -87,6 +87,7 @@ trait GameConfig {
 
 // I'm thinking about using this to replace trn.duke.Lotags
 case class SectorTags(
+  ceilingDoor: Int,
   liftDown: Int,
   liftUp: Int,
   elevatorDown: Int,
@@ -146,9 +147,8 @@ object DukeConfig {
   val KeyColors: Seq[Int] = Seq(PaletteList.KEYCARD_BLUE, PaletteList.KEYCARD_RED, PaletteList.KEYCARD_YELLOW)
 
   def ST: SectorTags = SectorTags(
-
+    ceilingDoor = Lotags.ST.CEILING_DOOR,
     liftDown = Lotags.ST.LIFT_DOWN,
-
     liftUp = Lotags.ST.LIFT_UP,
 
     /** starts high, and travels DOWN, with ceiling */

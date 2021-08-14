@@ -48,6 +48,8 @@ public class Lotags {
         public static final int WATER_BELOW = 2;
         public static final int ELEVATOR = 15; // matches with SE 17  (maybe should call this ELEVATOR_TRANSPORT)
 
+        public static final int CEILING_DOOR = 20;
+
         public static final int LIFT_DOWN = 16; // no transport; floor only moves, starts high
         public static final int LIFT_UP = 17; // no transport, floor only moves, starts low
         public static final int ELEVATOR_DOWN = 18;  // no transport; floor + ceiling move, starts high
