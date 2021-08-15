@@ -84,6 +84,7 @@ public class PointXY {
 	}*/
 
 
+	// TODO: return an Int: the scala Int is larger than the max build distance by many orders of magnitude
 	public long manhattanDistanceTo(PointXY dest) {
 		long dx = Math.abs(dest.x - this.x);
 		long dy = Math.abs(dest.y - this.y);

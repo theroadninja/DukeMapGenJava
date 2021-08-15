@@ -3,7 +3,7 @@ package trn.prefab
 import java.util
 
 import trn.duke.{PaletteList, TextureList}
-import trn.{BuildConstants, ISpriteFilter, IdMap, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{BuildConstants, ISpriteFilter, IdMap, PlayerStart, PointXY, PointXYZ, RandomX, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.FuncImplicits._
 import trn.prefab.experiments._

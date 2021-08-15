@@ -6,9 +6,9 @@ import trn.logic.Tile2d._
 import trn.math.RotatesCW
 import trn.prefab._
 import trn.render.{MiscPrinter, Texture}
-import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, Sprite, SpriteFilter}
+import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, Sprite, SpriteFilter}
 
-import scala.collection.JavaConverters._// this is the good one
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 case class Enemy(

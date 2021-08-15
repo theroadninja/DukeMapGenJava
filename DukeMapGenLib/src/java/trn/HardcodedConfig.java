@@ -35,7 +35,8 @@ public final class HardcodedConfig {
     }
 
     public static final String getDeployPath(String filename){
-        String copyDest = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/" + filename;
+        // String copyDest = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/" + filename;
+        String copyDest = EDUKE32PATH + filename;
         return copyDest;
     }
 

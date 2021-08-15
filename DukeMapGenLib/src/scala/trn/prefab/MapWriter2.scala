@@ -1,7 +1,8 @@
 package trn.prefab
 
 import trn.prefab.experiments.Placement
-import trn.{IdMap, PointXYZ, Map => DMap}
+import trn.{IdMap, PointXYZ, RandomX, Map => DMap}
+
 import scala.collection.JavaConverters._
 
 object CompoundGroup {

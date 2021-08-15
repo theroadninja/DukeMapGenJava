@@ -183,7 +183,8 @@ object LoungePlanner {
     // TODO also need stuff between the groups
     printrow(Seq(C4, WI, C4)) // 2816
     printrow(Seq(C4, T, C4, WI, C4, T, C4)) // 5888
-    printrow(Seq(C4, T, C4, WI, C4, T, C4, Item("centerpiece", 1024), C4, T, C4, WI, C4, T, C4)) // 12800
+    printrow(Seq(C6, T, C6, WI, C6, T, C6)) // 5888
+    // printrow(Seq(C4, T, C4, WI, C4, T, C4, Item("centerpiece", 1024), C4, T, C4, WI, C4, T, C4)) // 12800
 
   }
 }

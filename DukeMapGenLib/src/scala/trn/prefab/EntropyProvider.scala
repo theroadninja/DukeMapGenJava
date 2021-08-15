@@ -1,5 +1,7 @@
 package trn.prefab
 
+import trn.RandomX
+
 trait EntropyProvider {
   def random: RandomX
   //

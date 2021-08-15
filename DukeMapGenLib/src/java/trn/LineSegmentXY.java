@@ -10,7 +10,8 @@ public class LineSegmentXY {
     private final PointXY p2;
 
     public LineSegmentXY(PointXY p1, PointXY p2){
-        if(p1 == null || p2 == null || p1.equals(p2)) throw new IllegalArgumentException();
+        if(p1 == null || p2 == null) throw new IllegalArgumentException();
+        if(p1.equals(p2)) throw new IllegalArgumentException("points cannot be equal " + p1.toString());
         this.p1 = p1;
         this.p2 = p2;
     }

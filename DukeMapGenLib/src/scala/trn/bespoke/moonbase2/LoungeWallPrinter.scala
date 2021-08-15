@@ -220,9 +220,6 @@ object LoungeWallPrinter {
     *         |          |
     * p0 --> c1 -------- c4 -- c5 ...> p1
     *
-    * @param p0
-    * @param p1
-    * @return
     */
   def waterFountainCtrlPoints(p0: PointXY, p1: PointXY): Seq[PointXY] = {
     val across = p0.vectorTo(p1).toF.normalized
@@ -260,6 +257,33 @@ object LoungeWallPrinter {
     map.addSprite(decal)
 
     (Seq(sectorId), Seq(wall(p0, loungeWall), wall(c1, loungeWall.withAlignBottom().withBlockable()), wall(c4, loungeWall)), c5)
+  }
+
+  /**
+    * Total Width:  512
+    *
+    * p0 --> c1 -------- c4 -- c5 ...> p1
+    *         |          |
+    *        c2 -------- c3
+    */
+  def tableCtrlPoints(p0: PointXY, p1: PointXY): Seq[PointXY] = {
+    val across = p0.vectorTo(p1).toF.normalized
+    val down = across.rotatedCW()
+    val c1 = p0 + across * 64
+    val c4 = c1 + across * 384
+    val c5 = c4 + across * 64
+    val c2 = c1 + down * 448
+    val c3 = c4 + down * 448
+    Seq(c1, c2, c3, c4, c5)
+  }
+
+  def table(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int): (Seq[Int], Seq[Wall], PointXY) = {
+
+    ???
+  }
+
+  def window(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int): (Seq[Int], Seq[Wall], PointXY) = {
+    ???
   }
 
   def tripBombPlacement(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int): (Seq[Int], Seq[Wall], PointXY) = {

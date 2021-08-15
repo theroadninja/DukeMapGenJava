@@ -1,7 +1,7 @@
 package trn.bespoke.moonbase2
 
+import trn.RandomX
 import trn.logic.Point3d
-import trn.prefab.RandomX
 
 /**
   * Prototype that generates a "logical" map (a Graph) of locations and key/gate rooms.

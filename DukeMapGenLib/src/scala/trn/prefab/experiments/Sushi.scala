@@ -1,7 +1,8 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{MapLoader, PointXY, PointXYZ, Wall, Map => DMap}
+import trn.{MapLoader, PointXY, PointXYZ, RandomX, Wall, Map => DMap}
+
 import scala.collection.JavaConverters._ // this is the good one
 
 class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = new RandomX()) extends MapBuilder with HardcodedGameConfigProvider {

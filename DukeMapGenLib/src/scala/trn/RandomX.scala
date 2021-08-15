@@ -1,6 +1,7 @@
-package trn.prefab
+package trn
 
 import java.util.Random
+
 import scala.util.{Random => ScalaRandom}
 
 class RandomX(seed: Long = System.currentTimeMillis()) {
@@ -24,4 +25,15 @@ class RandomX(seed: Long = System.currentTimeMillis()) {
 
   def nextInt(bound: Int): Int = random.nextInt(bound)
 
+  /** randomly executes 1 of 2 blocks of code and returns the result. */
+  def flipCoin[T](head: => T)(tails: => T): T = nextInt(100) match {
+    // using nextInt(100) because nextInt(2) behaved a little weirdly in unit tests
+    case i if i < 50 => head
+    case _ => tails
+  }
+
+}
+
+object RandomX {
+  def apply(seed: Long = System.currentTimeMillis()): RandomX = new RandomX(seed)
 }
