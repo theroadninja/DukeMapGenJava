@@ -14,7 +14,7 @@ case class HorizontalBrush(
 ) {
   def withShade(s: Int): HorizontalBrush = this.copy(shade=Some(s))
   def withPal(pal: Int): HorizontalBrush = this.copy(pal=Some(pal))
-  def withRelative(b: Boolean): HorizontalBrush = this.copy(relative=Some(b))
+  def withRelative(b: Boolean = true): HorizontalBrush = this.copy(relative=Some(b))
   def withSmaller(b: Boolean = true): HorizontalBrush = this.copy(smaller=Some(b))
 
   def writeToFloor(sector: Sector): Unit = {

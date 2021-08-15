@@ -228,6 +228,7 @@ object LoungePlanner2 {
   }
 
   def planWallOld(length: Long): Seq[Item] = {
+    return Seq(Item(BulkHead, 2048))
 
 
 

@@ -1,6 +1,6 @@
 package trn.bespoke.moonbase2
 
-import trn.{AngleUtil, BuildConstants, PointXY, Sprite, Wall, Map => DMap}
+import trn.{AngleUtil, BuildConstants, PointXY, RandomX, Sprite, Wall, Map => DMap}
 import trn.PointImplicits._
 import trn.prefab.GameConfig
 import trn.render.MiscPrinter._
@@ -44,6 +44,33 @@ object LoungeWallPrinter {
     Seq(p0, c1, c2, c3, c4, c5)
   }
 
+  /** return  (list of new sector ids, walls for main loop, "new p0" point) */
+  def chairs(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, loungeWall: WallPrefab, loungeCeil: HorizontalBrush, chairCount: Int): (Seq[Int], Seq[Wall], PointXY) = {
+
+    val SeatBackHeight = 7 * BuildConstants.ZStepHeight
+    val SeatHeight = 4 * BuildConstants.ZStepHeight
+    val ChairBackSide = WallPrefab(gameCfg.tex(786)).copy(xrepeat=Some(4), yrepeat=Some(8)).withShade(15)
+    val ChairSeatSide = WallPrefab(gameCfg.tex(788)).copy(xrepeat=Some(4), yrepeat=Some(16)).withShade(15) // TODO need to adjust xrepeat based on wall length
+    val ChairSeatFloor = HorizontalBrush(gameCfg.tex(786)).withRelative(true).withSmaller(true)
+    val chairFrontXRepeat = ChairSeatSide.tex.get.xRepeatForNRepetitions(chairCount)     //c2.distanceTo(c3).toInt
+
+    val _ :: c1 :: c2 :: c3 :: c4 :: c5 :: Nil = LoungeWallPrinter.chairControlPoints(p0, p1, chairCount)
+    val seatBackTex = WallPrefab(gameCfg.tex(786)).withShade(15).copy(xrepeat = Some(24), yrepeat = Some(8))
+
+    // TODO in addition to xRepeatForScale, also need ot calculate an offset.  Maybe its best to use do a mod on its global position (set the offset so the texture always begins at x=0)
+    val seatBackId = MiscPrinter.createSector(map, Seq(wall(p0, loungeWall.withXRepeatForScale(1.0, p0.distanceTo(c5).toInt)), wall(c5, WallPrefab.Empty), wall(c4, WallPrefab.Empty), wall(c1, WallPrefab.Empty)), floorZ - SeatBackHeight, ceilZ)
+    ChairSeatFloor.writeToFloor(map.getSector(seatBackId))
+    loungeCeil.writeToCeil(map.getSector(seatBackId))
+    val seatId = MiscPrinter.createSector(map, Seq(c1, c4, c3, c2).map(MiscPrinter.wall(_, seatBackTex.copy(xrepeat=Some(chairFrontXRepeat)))), floorZ - SeatHeight, ceilZ)
+    ChairSeatFloor.writeToFloor(map.getSector(seatId))
+    loungeCeil.writeToCeil(map.getSector(seatId))
+    MiscPrinter.autoLinkRedWalls(map, seatBackId, seatId)
+
+    val outerWalls = Seq(
+      wall(p0, ChairBackSide), wall(c1, ChairSeatSide), wall(c2, ChairSeatSide.copy(xrepeat=Some(chairFrontXRepeat))), wall(c3, ChairSeatSide), wall(c4, ChairBackSide)
+    )
+    (Seq(seatBackId, seatId), outerWalls, c5)
+  }
 
   /**
     *
@@ -277,9 +304,65 @@ object LoungeWallPrinter {
     Seq(c1, c2, c3, c4, c5)
   }
 
-  def table(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int): (Seq[Int], Seq[Wall], PointXY) = {
+  def table(r: RandomX, gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, loungeWall: WallPrefab, loungeCeil: HorizontalBrush): (Seq[Int], Seq[Wall], PointXY) = {
+    val c1 :: c2 :: c3 :: c4 :: c5 :: Nil = tableCtrlPoints(p0, p1)
+    val TableFloor = HorizontalBrush(3387).withShade(15).withSmaller().withRelative()
+    val tableZ = floorZ - BuildConstants.ZStepHeight * 4
+    val tableWalls = Seq(wall(c1, loungeWall), wall(c4, E), wall(c3, E), wall(c2, E))
+    val tableId = createAndPaintSector(map, tableWalls, tableZ, ceilZ, TableFloor, loungeCeil)
 
-    ???
+    val across = p0.vectorTo(p1).toF.normalized
+    val plantP = c1 + across * 192 + across.rotatedCW() * 128
+    val plant = new Sprite(plantP.withZ(tableZ), tableId, 1025, 0, 0)
+    plant.setShade(10)
+    plant.setRepeats(24, 24)
+    map.addSprite(plant)
+
+    r.flipCoin{
+      val glassP = c1 + across * 320 + across.rotatedCW() * 384
+      val glass = new Sprite(glassP.withZ(tableZ), tableId, 957, 0, 0)
+      glass.setRepeats(24, 24)
+      glass.setShade(7)
+      map.addSprite(glass)
+      ()
+    }{}
+
+    val TableWall = WallPrefab(gameCfg.tex(3387)).withRepeats(12, 16).withShade(15)
+    val outerWalls = Seq(wall(p0, loungeWall), wall(c1, TableWall), wall(c2, TableWall), wall(c3, TableWall), wall(c4, loungeWall))
+    (Seq(tableId), outerWalls, c5)
+  }
+
+  /**
+    * p0 --> c1           c4 --> c5 ..> p1
+    *         \          /
+    *          \        /
+    *           c2 --- c3
+    *
+    * @param p0
+    * @param p1
+    * @return
+    */
+  def bulkheadCtlPoints(p0: PointXY, p1: PointXY, length: Int): Seq[PointXY] = {
+    require(length >= 2048)
+    val middleLength = length - 256 * 2 - 448 * 2
+    val across = p0.vectorTo(p1).toF.normalized
+    val down = across.rotatedCW()
+    val c1 = p0 + across * 256
+    val c2 = c1 + across * 448 + down * 448
+    val c3 = c2 + across * middleLength
+    val c4 = c1 + across * (middleLength + 448 * 2)
+    val c5 = c4 + across * 256
+    Seq(c1, c2, c3, c4, c5)
+  }
+
+  def bulkhead(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, loungeWall: WallPrefab, length: Int): (Seq[Int], Seq[Wall], PointXY) = {
+
+    val Bulkhead = WallPrefab(gameCfg.tex(367)).withRepeats(4, 8).withShade(15)
+    val c1 :: c2 :: c3 :: c4 :: c5 :: Nil = bulkheadCtlPoints(p0, p1, length)
+
+    val middleWallLength = c2.manhattanDistanceTo(c3).toInt
+    val outerWalls = Seq(wall(p0, loungeWall), wall(c1, Bulkhead), wall(c2, Bulkhead.withXRepeatForScale(1, middleWallLength)), wall(c3, Bulkhead), wall(c4, loungeWall))
+    (Seq.empty, outerWalls, c5)
   }
 
   def window(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int): (Seq[Int], Seq[Wall], PointXY) = {
