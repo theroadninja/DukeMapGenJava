@@ -1,6 +1,8 @@
 package trn.render
 
+import trn.prefab.GameConfig
 import trn.{BuildConstants, Main, MapLoader, PlayerStart, PointXY, Wall, Map => DMap}
+
 import scala.collection.JavaConverters._
 
 /**
@@ -66,6 +68,25 @@ object MiscPrinter {
   }
 
   def wall(p: PointXY, wallPrefab: WallPrefab): Wall = wallPrefab.create(p)
+
+  /**
+    * THIS IS THE ONE FOR A VISIBLE FORCE FIELD, not the invisible kind
+    *
+    *
+    *
+    * @return a wall prefab to paint a force field wall - TODO it doesnt handle scaling for you
+    */
+  def forceField(gameCfg: GameConfig): WallPrefab = WallPrefab(gameCfg.visibleForceField)
+    .withOverpic(gameCfg.visibleForceField).withBlockable().withMask().withHitscan().copy(yrepeat = Some(16))   // 87 = 64(Hitscan) + 16(mask) + 4 + 2 + 1(blockable)
+
+  /**
+    * For force fields that are invisible until hit.
+    *
+    * @param gameCfg
+    * @return
+    */
+  def invisibleForceField(gameCfg: GameConfig, wallLength: Int): WallPrefab = WallPrefab(gameCfg.invisibleForceField)
+    .withOverpic(gameCfg.invisibleForceField).withHitscan().copy(yrepeat = Some(8)).withXRepeatForScale(1.0, wallLength)
 
   // From working on StairPrinter:
   // // This code makes the north wall a curved dome

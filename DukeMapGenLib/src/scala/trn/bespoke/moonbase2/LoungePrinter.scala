@@ -253,7 +253,7 @@ object LoungePrinter {
   }
 
 
-  def fillWallSection(r: RandomX, gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, loungeWall: WallPrefab, loungeCeil: HorizontalBrush): (Seq[Int], Seq[Wall]) = {
+  def fillWallSection(r: RandomX, gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, loungeWall: WallPrefab, loungeFloor: HorizontalBrush, loungeCeil: HorizontalBrush): (Seq[Int], Seq[Wall]) = {
 
     val parts = LoungePlanner2.planWallOld(p0.manhattanDistanceTo(p1).toInt)
 
@@ -265,6 +265,7 @@ object LoungePrinter {
     val sectorIds = mutable.ArrayBuffer[Int]()
     val outsideWalls = mutable.ArrayBuffer[Wall]()
     var cursor: PointXY = p0
+    val outerSector = OuterSector(floorZ, ceilZ, loungeFloor, loungeWall)
     parts.foreach { part =>
       val (newSectorIds, newOutsideWalls, newP0) = part match {
         case Item(LoungePlanner2.S.name, dist) => {
@@ -294,7 +295,7 @@ object LoungePrinter {
         case LoungePlanner2.WI => {
           // val (newSectorIds, newOutSideWalls, newP0) = LoungeWallPrinter.medCabinet(gameCfg, map, cursor, p1, floorZ, loungeWall)
           // LoungeWallPrinter.powerCabinet(gameCfg, map, cursor, p1, 28, floorZ, loungeWall) // 28 == shotgun
-          LoungeWallPrinter.waterFountain(gameCfg, map, cursor, p1, floorZ, loungeWall)
+          LoungeWallPrinter.waterFountain(gameCfg, map, cursor, p1, outerSector)
           // LoungeWallPrinter.securityScreen(gameCfg, map, cursor, p1,floorZ, loungeWall)
           // TODO: window
           // TODO (and then the table...maybe centerpiece ideas, etc)
@@ -316,6 +317,26 @@ object LoungePrinter {
           // - set of lockers ... like E2L7
         }
         case Item(LoungePlanner2.BulkHead, length) => LoungeWallPrinter.bulkhead(gameCfg, map, cursor, p1, loungeWall, length)
+        case Item(LoungePlanner2.Window, length) => LoungeWallPrinter.window(gameCfg, map, cursor, p1, outerSector, length)
+        case Item(LoungePlanner2.Medkit, length) => {
+          require(length == 768) // TODO actually these functions should be capable of taking a length
+          LoungeWallPrinter.medCabinet(gameCfg, map, cursor, p1, floorZ, loungeWall)
+        }
+        case Item(LoungePlanner2.SecurityScreen, length) => {
+          require(length == 768)
+          LoungeWallPrinter.securityScreen(gameCfg, map, cursor, p1, outerSector)
+        }
+        case Item(LoungePlanner2.PowerCabinet, length) => {
+          require(length == 768)
+          val Shotgun = 28 // TODO
+          LoungeWallPrinter.powerCabinet(gameCfg, map, cursor, p1, Shotgun, outerSector)
+        }
+        case Item(LoungePlanner2.Fountain, length) => {
+          require(length == 768)
+          LoungeWallPrinter.waterFountain(gameCfg, map, cursor, p1, outerSector)
+        }
+        case Item(LoungePlanner2.Fans, length) => LoungeWallPrinter.fan(gameCfg, map, cursor, p1, outerSector, length)
+        case Item(LoungePlanner2.PowerHole, length) => LoungeWallPrinter.powerHole(gameCfg, map, cursor, p1, outerSector, length, 54) // TODO 54 == Armor
         case x => {
           // throw new Exception(s"part ${part} not implemented yet")
 
@@ -342,11 +363,11 @@ object LoungePrinter {
     * so this thing is going to create some sectors (returning their ids) and then return SOME OF the walls in the main loop
     * of the "edge" area.
     */
-  def wallSection(r: RandomX, gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, wallType: String, floorZ: Int, ceilZ: Int, loungeCeil: HorizontalBrush): (Seq[Int], Seq[Wall]) = {
+  def wallSection(r: RandomX, gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, wallType: String, floorZ: Int, ceilZ: Int, loungeCeil: HorizontalBrush, edgeFloor: HorizontalBrush): (Seq[Int], Seq[Wall]) = {
     val loungeWall = WallPrefab(gameCfg.tex(215)).copy(yrepeat = Some(8), shade = Some(15))
 
     if(wallType == LoungeWall.Empty){
-      val (sectorIds, walls) = fillWallSection(r, gameCfg, map, p0, p1, floorZ, ceilZ, loungeWall, loungeCeil: HorizontalBrush)
+      val (sectorIds, walls) = fillWallSection(r, gameCfg, map, p0, p1, floorZ, ceilZ, loungeWall, edgeFloor, loungeCeil: HorizontalBrush)
       (sectorIds, walls)
 
     }else if(wallType == LoungeWall.Anchor){
@@ -364,7 +385,7 @@ object LoungePrinter {
 
     val wallSectorIds = mutable.ArrayBuffer[Int]()
     val loop = withNextPoints.flatMap { case ((p, nextPoint), wallType) =>
-      val (sectorIds, loop) = wallSection(r, gameCfg, map, p, nextPoint, wallType, loungeZ, loungeCeilZ, ceiling)
+      val (sectorIds, loop) = wallSection(r, gameCfg, map, p, nextPoint, wallType, loungeZ, loungeCeilZ, ceiling, edgeFloor)
       wallSectorIds.append(sectorIds: _*)
       loop
     }

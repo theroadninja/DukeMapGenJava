@@ -83,6 +83,9 @@ trait GameConfig {
   def isKeycardLock(tex: Int): Boolean
 
   def ST: SectorTags
+
+  def visibleForceField: Texture
+  def invisibleForceField: Texture
 }
 
 // I'm thinking about using this to replace trn.duke.Lotags
@@ -266,6 +269,9 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
   //   elevatorDown = Lotags.ST.ELEVATOR_DOWN,
   //   elevatorUp = Lotags.ST.ELEVATOR_UP
   // )
+
+  override def visibleForceField: Texture = tex(663)
+  override def invisibleForceField: Texture = tex(230) // BigForce
 }
 
 /**
@@ -292,4 +298,7 @@ object TestGameConfig extends GameConfig {
   override def isKeycardLock(tex: Int): Boolean = ???
 
   override def ST: SectorTags = DukeConfig.ST
+
+  def visibleForceField: Texture = ???
+  def invisibleForceField: Texture = ???
 }

@@ -64,7 +64,7 @@ object LoungePlanner2 {
     Medkit -> 768,
     Fountain -> 640,
     SecurityScreen -> 640,
-    Fans -> 1312, // two fans
+    Fans -> LoungeWallPrinter.MinFanLength, // two fans
     // Fans3 -> 1824,
     SpaceSuits -> 896,
     TwoScreens -> 1024,
@@ -228,7 +228,11 @@ object LoungePlanner2 {
   }
 
   def planWallOld(length: Long): Seq[Item] = {
-    return Seq(Item(BulkHead, 2048))
+    //return Seq(Item(Space, 512), Item(Window, 384), Item(Space, 512))
+    // return Seq(Item(BulkHead, 2048))
+    // return Seq(Item(Fountain, 768))
+    // return Seq(Item(Fans, 2048))
+    return Seq(Item(PowerHole, 768))
 
 
 

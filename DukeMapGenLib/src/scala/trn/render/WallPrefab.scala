@@ -45,7 +45,7 @@ case class WallPrefab(
       wall.setXRepeat(xrepeat)
     }
     xpan.foreach(x => wall.setXPanning(x))
-    ypan.foreach(y => wall.setXPanning(y))
+    ypan.foreach(y => wall.setYPanning(y))
 
     blockable.foreach(b => wall.setStat(wall.getStat.withValueChanged(WallStat.BLOCKABLE, b)))
     alignBottom.foreach{ b =>

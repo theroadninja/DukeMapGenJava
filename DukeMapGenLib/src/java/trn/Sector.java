@@ -153,7 +153,21 @@ public class Sector {
 		sb.append("}").append(ln);
 		return sb.toString();
 	}
-	
+
+
+	public void setFloorXPan(int xpan){
+		this.floorxpanning = (short)xpan;
+	}
+	public void setFloorYPan(int ypan){
+		this.floorypanning = (short)ypan;
+	}
+
+	public void setCeilingXPan(int xpan){
+		this.ceilingxpanning = (short)xpan;
+	}
+	public void setCeilingYPan(int ypan){
+		this.ceilingypanning = (short)ypan;
+	}
 
 	
 	public void setCeilingZ(int z){
@@ -167,12 +181,36 @@ public class Sector {
 		this.floorz = z;
 	}
 
+	public void setFloorParallax(boolean parallax){
+		if(parallax){
+			this.floorstat |= FloorCeilStat.PARALLAX;
+		}else{
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
+	public void setFloorSloped(boolean sloped){
+		if(sloped){
+			this.floorstat |= FloorCeilStat.SLOPED;
+		}else{
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
 	public void setFloorRelative(boolean relative){
 	    // TODO make a FloorState object just like WallStat
 		if(relative){
 			this.floorstat |= FloorCeilStat.RELATIVE;
 		}else{
 		    // this.floorstat = WallState.removebits(this.floorstate, FloorCeilStat.RELATIVE)
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
+	public void setFloorSwapXY(boolean swap){
+		if(swap){
+			this.floorstat |= FloorCeilStat.SWAPXY;
+		}else{
 			throw new RuntimeException("Not Implemented Yet");
 		}
 	}
@@ -200,6 +238,22 @@ public class Sector {
 		return this.ceilingPicNum;
 	}
 
+	public void setCeilingParallax(boolean parallax){
+		if(parallax){
+			this.ceilingStat |= FloorCeilStat.PARALLAX;
+		}else{
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
+	public void setCeilingSloped(boolean sloped){
+		if(sloped){
+			this.ceilingStat |= FloorCeilStat.SLOPED;
+		}else{
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
 	public void setCeilingRelative(boolean relative){
 		if(relative){
 			this.ceilingStat |= FloorCeilStat.RELATIVE;
@@ -207,6 +261,15 @@ public class Sector {
 			throw new RuntimeException("Not Implemented Yet");
 		}
 	}
+
+	public void setCeilingSwapXY(boolean swap){
+		if(swap){
+			this.ceilingStat |= FloorCeilStat.SWAPXY;
+		}else{
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
 	public void setCeilingSmaller(boolean smaller){
 		if(smaller){
 			this.ceilingStat |= FloorCeilStat.SMALLER;
@@ -228,6 +291,16 @@ public class Sector {
 	 */
 	public int getFloorSlope(){
 		return this.floorheinum;
+	}
+	public void setFloorSlope(int slope){
+		this.floorheinum = (short)slope;
+	}
+
+	public int getCeilingSlope(){
+		return this.ceilingheinum;
+	}
+	public void setCeilingSlope(int slope){
+		this.ceilingheinum = (short)slope;
 	}
 
 	public CFStat getFloorStat(){

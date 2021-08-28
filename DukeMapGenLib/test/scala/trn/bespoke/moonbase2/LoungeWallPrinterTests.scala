@@ -50,4 +50,16 @@ class LoungeWallPrinterTests {
     val results2 = LoungeWallPrinter.bulkheadCtlPoints(p(0, 0), p(4096, 0), 3072)
     Assert.assertEquals(Seq(p(256, 0), p(704, 448), p(1344 + 1024, 448), p(1792 + 1024, 0), p(2048 + 1024, 0)), results2)
   }
+
+  @Test
+  def testWindowCtrlPoints(): Unit = {
+    val results = LoungeWallPrinter.windowCtrlPoints(p(0, 0), p(4096, 0))
+    Assert.assertEquals(Seq(p(64, 0), p(320, 0), p(32, -128), p(64,-128), p(320,-128), p(352,-128), p(192,-160), p(192,-192), p(384, 0)), results)
+  }
+
+  @Test
+  def testFanCtrlPoints(): Unit = {
+    val results = LoungeWallPrinter.fanCtrlPoints(p(0, 0), p(4096, 0), 2048)
+    Assert.assertEquals(Seq(p(256, 0), p(1792, 0), p(1792, 128), p(256, 128), p(2048, 0)), results)
+  }
 }

@@ -376,7 +376,14 @@ public class Wall {
 		this.yrepeat = yr;
 	}
 	public void setYRepeat(int i){ setYRepeat((short)i); }
-	
+
+	public int getYPanning(){
+		return this.ypanning;
+	}
+
+	public void setYPanning(int ypan){
+		this.ypanning = (short)ypan;
+	}
 	public void setTexture(int texture, int xr, int yr){
 		this.setTexture(texture);
 		this.setXRepeat((short)xr);
