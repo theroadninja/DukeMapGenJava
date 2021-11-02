@@ -27,7 +27,8 @@ case class WallPrefab(
   alignBottom: Option[Boolean],
   xflip: Option[Boolean],
   mask: Option[Boolean],
-  hitscan: Option[Boolean]
+  hitscan: Option[Boolean],
+  transparent: Option[Boolean],
 ){
   require(xrepeat.isEmpty || xTileRepeat.isEmpty)
   require(tex.isDefined || xTileRepeat.isEmpty)
@@ -54,6 +55,7 @@ case class WallPrefab(
     xflip.foreach(b => wall.setStat(wall.getStat.withValueChanged(WallStat.XFLIP, b)))
     mask.foreach(b => wall.setStat(wall.getStat.withValueChanged(WallStat.MASK_2SIDE, b)))
     hitscan.foreach(b => wall.setStat(wall.getStat.withValueChanged(WallStat.HITSCAN, b)))
+    transparent.foreach(b => wall.setStat(wall.getStat.withValueChanged(WallStat.TRANSPARENT, b)))
   }
 
   def withOverpic(tex: Texture): WallPrefab = this.copy(overpic=Option(tex))
@@ -87,6 +89,7 @@ case class WallPrefab(
   def withXflip(b: Boolean = true): WallPrefab = this.copy(xflip=Some(b))
   def withMask(b: Boolean = true): WallPrefab = this.copy(mask=Some(b))
   def withHitscan(b: Boolean = true): WallPrefab = this.copy(hitscan=Some(b))
+  def withTransparent(b: Boolean = true): WallPrefab = this.copy(transparent=Some(b))
 }
 
 
@@ -95,7 +98,7 @@ object WallPrefab {
   def Empty = WallPrefab(Texture(0, 64))
 
   def apply(tex: Texture): WallPrefab = {
-    WallPrefab(Some(tex), None, None, None, Some(8), Some(8), None, None, None, None, None, None, None, None)
+    WallPrefab(Some(tex), None, None, None, Some(8), Some(8), None, None, None, None, None, None, None, None, None)
   }
 
   def apply(tex: Int, texWidth: Int): WallPrefab = WallPrefab(Texture(tex, texWidth))

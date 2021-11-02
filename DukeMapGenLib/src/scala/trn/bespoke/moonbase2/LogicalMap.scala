@@ -1,5 +1,7 @@
 package trn.bespoke.moonbase2
 
+import trn.logic.Tile2d.Wildcard
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import trn.logic.{Point3d, Tile2d}
@@ -97,6 +99,16 @@ class LogicalMap[V, E] {
     */
   def getTile(p: Point3d, blankVal: Int = Tile2d.Wildcard): Tile2d = {
     adjacentEdges(p).keys.foldLeft(Tile2d(blankVal)) { (tile, heading) => tile.withSide(heading, Tile2d.Conn)}
+  }
+
+  /**
+    * TODO obviously this should not be different from getTile().  Also, it should use the new TileSpec class
+    * instead of Tile2d
+    * @return
+    */
+  def getTileForOneway(p: Point3d, higherZone: Int): Tile2d = {
+    val (h, _) = adjacentEdges(p).filter{ case (_, edge) => edges(edge) == higherZone.toString}.head
+    Tile2d(Wildcard).withSide(h, 2)
   }
 
 

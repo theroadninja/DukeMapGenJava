@@ -2,7 +2,9 @@ package trn
 
 import trn.prefab.{IntMatrix, Matrix2D}
 
-/** TODO PointImplicits is newer and better ... see if most of these functions can be deleted */
+/** TODO PointImplicits is newer and better ... see if most of these functions can be deleted
+  * @deprecated
+  */
 object PointXYImplicits {
   class PointXYExtended(point: PointXY) {
 

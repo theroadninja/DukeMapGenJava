@@ -5,16 +5,18 @@ import trn.{BuildConstants, RandomX}
 import scala.collection.mutable
 
 /** Item that goes along the wall */
-case class Item(name: String, length: Int)
+// TODO dedupe this with LoungePlanner.scala
+// I had this as `Item` but then got "already defind" compile errors bc of lounge planner
+case class Item3(name: String, length: Int)
 
-object Item {
+object Item3 {
 
-  def apply(name: String, length: Int): Item = {
+  def apply(name: String, length: Int): Item3 = {
     require(length > 0)
-    new Item(name, length)
+    new Item3(name, length)
   }
 
-  def unapply(item: Item): Option[(String, Int)] = Some((item.name, item.length))
+  def unapply(item: Item3): Option[(String, Int)] = Some((item.name, item.length))
 }
 
 /**
@@ -69,9 +71,9 @@ object LoungePlanner2 {
     SpaceSuits -> 896,
     TwoScreens -> 1024,
     PowerHole -> 768,
-    EDFDecal -> 1536,
+    EDFDecal -> 1920,
 
-    BulkHead -> 2048
+    BulkHead -> LoungeWallPrinter.BulkheadMinLength,
   )
 
   val Unique = Set(Medkit, SecurityScreen, Fans, SpaceSuits, EDFDecal)
@@ -91,6 +93,9 @@ object LoungePlanner2 {
   val Chairs: Seq[Item] = Seq(C2, C3, C4, C5, C6)
 
   def planWall(length: Int, uniqueItemsTaken: Set[String], r: RandomX): (Seq[Item]) = {
+
+    // TODO this strategy does not leave enough space in the corners!
+    // TODO also there is a bug where things to off the edge of the wall
 
     if(length <= 2048){
       // S
@@ -232,7 +237,7 @@ object LoungePlanner2 {
     // return Seq(Item(BulkHead, 2048))
     // return Seq(Item(Fountain, 768))
     // return Seq(Item(Fans, 2048))
-    return Seq(Item(PowerHole, 768))
+    return Seq(Item(SpaceSuits, 1024))
 
 
 

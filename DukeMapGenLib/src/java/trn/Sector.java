@@ -223,6 +223,14 @@ public class Sector {
 		}
 	}
 
+	public void setFloorYFlip(boolean yflip){
+		if(yflip){
+			this.floorstat |= FloorCeilStat.YFLIP;
+		}else{
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
 	/**
 	 * @return the z coord of the floor at the first wall only.  If the sector is sloped you need to use
 	 * MapUtils.getFloorZAt() to get the correct height for any point not on the sector's first wall.
@@ -273,6 +281,15 @@ public class Sector {
 	public void setCeilingSmaller(boolean smaller){
 		if(smaller){
 			this.ceilingStat |= FloorCeilStat.SMALLER;
+		}else{
+			throw new RuntimeException("Not Implemented Yet");
+		}
+	}
+
+	// TODO: should have a single method like: setSomething(Floor vs Ceiling, bit, value)
+	public void setCeilingYFlip(boolean yflip){
+		if(yflip){
+			this.floorstat |= FloorCeilStat.YFLIP;
 		}else{
 			throw new RuntimeException("Not Implemented Yet");
 		}

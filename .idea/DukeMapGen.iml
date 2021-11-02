@@ -3,10 +3,10 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/DukeMapGenLib/src/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/DukeMapGenLib/test/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/DukeMapGenLib/src/scala" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/DukeMapGenLib/test/scala" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/DukeMapGenLib/src/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/DukeMapGenLib/src/scala" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

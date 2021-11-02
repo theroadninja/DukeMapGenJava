@@ -3,12 +3,83 @@ package trn.bespoke.moonbase2
 import trn.RandomX
 import trn.logic.Point3d
 
+
+
+object LogicalRoom {
+  def apply(s: String): LogicalRoom = {
+    val tag: Option[String] = s match {
+      case "S" => Some("START")
+      case "E" => Some("END")
+      case s if s.endsWith("<") => Some("ONEWAY")
+      case s if s.startsWith("K") => Some("KEY")
+      case s if s.startsWith("G") => Some("GATE")
+      case _ => None
+    }
+    val zone = s match {
+      case "S" => 0
+      case "E" => 3
+      case s if s.startsWith("K") => s(1).toString.toInt - 1
+      case s if s.startsWith("G") => s(1).toString.toInt - 1
+      case s if s.endsWith("<") => s(0).toString.toInt
+      case s => s.toInt
+    }
+
+    /** which key color, for keys and gates with locks.
+      * Not the actual color, but the index of a color in a shuffled Seq of colors
+      */
+    val keyindex: Option[Int] = if(s.startsWith("K") || s.startsWith("G")){
+      Some(s(1).toString.toInt - 1)
+    }else{
+      None
+    }
+
+    // TODO rename to higher zone or something
+    val higherLevel: Option[Int] = if(s.endsWith("<")){
+      Some(s(0).toString.toInt + 1)
+    }else{
+      None
+    }
+
+    LogicalRoom(s, zone, tag, keyindex, higherLevel)
+  }
+
+  /**
+    * `p` is a point in the grid and `heading` says which side of p were are interested in.  It calculates
+    * the "Side" spec of that side of p, namely whether it can have/needs to have a player-traversable connection
+    * on that side, and the plot "zone" of the adjacent node, if there is one
+    * @param p
+    * @param heading which side of the tile at p to calculate
+    * @param logicalMap
+    * @tparam E
+    * @return
+    */
+  def readSide[E](p: Point3d, heading: Int, logicalMap: LogicalMap[LogicalRoom, E]): Side = {
+    val adjEdges = logicalMap.adjacentEdges(p)
+    val adjNodes = logicalMap.adjacentNodes(p)
+    val e = adjEdges.get(heading)
+    val n = adjNodes.get(p + heading)
+
+    val conn = if(n.isDefined){
+      e.map(_ => TileSpec.ConnRequired).getOrElse(TileSpec.ConnBlocked)
+    }else{
+      // no node, can do whatever you want
+      require(! e.isDefined)
+      TileSpec.ConnOptional
+    }
+    Side(conn, n.map(_.zone))
+  }
+}
+
+case class LogicalRoom(s: String, zone: Int, tag: Option[String], keyindex: Option[Int], higherZone: Option[Int]) {
+  override def toString(): String = s
+}
+
 /**
   * Prototype that generates a "logical" map (a Graph) of locations and key/gate rooms.
   */
 class RandomWalkGenerator(r: RandomX) {
 
-  private def randomStep(current: Point3d, map: LogicalMap[String, String]): Option[Point3d] = {
+  private def randomStep(current: Point3d, map: LogicalMap[LogicalRoom, String]): Option[Point3d] = {
     val available = map.emptyAdj(current).filter(_.z == current.z)
     if(available.isEmpty){
       throw new Exception("no empty spaces")
@@ -16,46 +87,47 @@ class RandomWalkGenerator(r: RandomX) {
     r.randomElementOpt(available)
   }
 
-  private def randomWalk(start: Point3d, map: LogicalMap[String, String], value: String, stepCount: Int): Point3d = {
+  private def randomWalk(start: Point3d, map: LogicalMap[LogicalRoom, String], value: String, stepCount: Int): Point3d = {
     var current = start
     for(_ <- 0 until stepCount){
       val nextOpt = randomStep(current, map) // TODO: DFS and backtrack if no options
       val next = nextOpt.getOrElse(throw new Exception("ran out of space; need to backtrack"))
-      map.put(next, value)
+      map.put(next, LogicalRoom(value))
       map.putEdge(current, next, "")
       current = next
     }
     current
   }
 
-  private def attachGate(searchLevels: Seq[String], gate: String, map: LogicalMap[String, String]): Point3d = {
+  private def attachGate(searchLevels: Seq[String], gate: String, map: LogicalMap[LogicalRoom, String]): Point3d = {
     val availableNodes = map.nodes.filter { case (p, v) =>
-      searchLevels.contains(v) && map.emptyAdj(p).filter(_.z == p.z).nonEmpty
+      searchLevels.contains(v.s) && map.emptyAdj(p).filter(_.z == p.z).nonEmpty
     }.keys
+    require(availableNodes.size > 0)
     val current = r.randomElement(availableNodes)
     val gateLoc = randomStep(current, map).get
-    map.put(gateLoc, gate)
+    map.put(gateLoc, LogicalRoom(gate))
     map.putEdge(current, gateLoc, "")
     gateLoc
   }
 
-  private def addGateKey(at: String, gatekey: String, map: LogicalMap[String, String]): Point3d = {
-    val p = r.randomElement(map.nodes.filter{case (p, v) => v == at })._1
-    map.put(p, gatekey, overwrite = true)
+  private def addGateKey(at: String, gatekey: String, map: LogicalMap[LogicalRoom, String]): Point3d = {
+    val p = r.randomElement(map.nodes.filter{case (p, v) => v.s == at })._1
+    map.put(p, LogicalRoom(gatekey), overwrite = true)
     p
   }
 
 
   /** find all points in map, and all of their neighboors */
-  def allPoints(map: LogicalMap[String, String]): Set[Point3d] = {
+  def allPoints[N](map: LogicalMap[N, String]): Set[Point3d] = {
     map.nodes.keys.flatMap(p => p.adj).toSet
   }
 
-  def generate(): LogicalMap[String, String] = {
-    val map = LogicalMap[String, String]()
+  def generate(): LogicalMap[LogicalRoom, String] = {
+    val map = LogicalMap[LogicalRoom, String]()
 
     var current = Point3d(0, 0, 0)
-    map.put(current, "S")
+    map.put(current, LogicalRoom("S"))
     randomWalk(current, map, "0", 3)
 
     // pick place to add gateway
@@ -69,7 +141,7 @@ class RandomWalkGenerator(r: RandomX) {
     val last = randomWalk(current, map, "3", 3)
 
     val end = randomStep(last, map).get
-    map.put(end, "E")
+    map.put(end, LogicalRoom("E"))
     map.putEdge(last, end, "")
 
     addGateKey("0", "K1", map)
@@ -81,7 +153,7 @@ class RandomWalkGenerator(r: RandomX) {
     def onewayNode(p: Point3d): Option[(Point3d, String)] = {
       val nodes = map.adjacentNodes(p).values.toSeq
       Seq(0, 1, 2).collectFirst{
-        case i if nodes.count(_ == i.toString) == 1 && nodes.count(_ == (i+1).toString) == 1 =>
+        case i if nodes.count(_.s == i.toString) == 1 && nodes.count(_.s == (i+1).toString) == 1 =>
           (p, i.toString)
       }
     }
@@ -97,11 +169,11 @@ class RandomWalkGenerator(r: RandomX) {
       case p if onewayNode(p).isDefined => onewayNode(p).get
     }
     oneway.foreach { case (p, lower) =>
-      map.put(p, s"${lower}<")
+      map.put(p, LogicalRoom(s"${lower}<"))
       val higher = (1 + Integer.parseInt(lower)).toString
 
-      val lowerNode = p.adj.collectFirst{case adj if map.nodes.get(adj).getOrElse("") == lower => adj}.get
-      val higherNode = p.adj.collectFirst{case adj if map.nodes.get(adj).getOrElse("") == higher => adj}.get
+      val lowerNode = p.adj.collectFirst{case adj if map.nodes.get(adj).map(_.s).getOrElse("") == lower => adj}.get
+      val higherNode = p.adj.collectFirst{case adj if map.nodes.get(adj).map(_.s).getOrElse("") == higher => adj}.get
       map.putEdge(p, lowerNode, lower)
       map.putEdge(p, higherNode, higher)
     }

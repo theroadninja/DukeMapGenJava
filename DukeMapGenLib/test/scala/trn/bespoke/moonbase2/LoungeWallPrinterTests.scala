@@ -53,7 +53,7 @@ class LoungeWallPrinterTests {
 
   @Test
   def testWindowCtrlPoints(): Unit = {
-    val results = LoungeWallPrinter.windowCtrlPoints(p(0, 0), p(4096, 0))
+    val results = LoungeWallPrinter.windowCtrlPoints(p(0, 0), p(4096, 0), 384)
     Assert.assertEquals(Seq(p(64, 0), p(320, 0), p(32, -128), p(64,-128), p(320,-128), p(352,-128), p(192,-160), p(192,-192), p(384, 0)), results)
   }
 

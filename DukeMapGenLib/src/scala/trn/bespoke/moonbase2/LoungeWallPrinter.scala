@@ -14,7 +14,7 @@ import trn.render.{HorizontalBrush, MiscPrinter, WallPrefab}
   * @param wall has the tex & shading of the wall we are building into (for example, if LoungeWallPrinter adds a window,
   *             it needs the texture for above & below the window, etc)
   */
-case class OuterSector(floorZ: Int, ceilZ: Int, floor: HorizontalBrush, wall: WallPrefab)
+case class OuterSector(floorZ: Int, ceilZ: Int, floor: HorizontalBrush, ceil: HorizontalBrush, wall: WallPrefab)
 
 
 object LoungeWallPrinter {
@@ -56,7 +56,11 @@ object LoungeWallPrinter {
   }
 
   /** return  (list of new sector ids, walls for main loop, "new p0" point) */
-  def chairs(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, loungeWall: WallPrefab, loungeCeil: HorizontalBrush, chairCount: Int): (Seq[Int], Seq[Wall], PointXY) = {
+  def chairs(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, outerSector: OuterSector, chairCount: Int): (Seq[Int], Seq[Wall], PointXY) = {
+    val floorZ = outerSector.floorZ
+    val ceilZ = outerSector.ceilZ
+    val loungeWall = outerSector.wall
+    val loungeCeil = outerSector.ceil
 
     val SeatBackHeight = 7 * BuildConstants.ZStepHeight
     val SeatHeight = 4 * BuildConstants.ZStepHeight
@@ -350,6 +354,9 @@ object LoungeWallPrinter {
     (Seq(tableId), outerWalls, c5)
   }
 
+
+  val BulkheadMinLength = 2304
+
   /**
     * p0 --> c1           c4 --> c5 ..> p1
     *         \          /
@@ -361,15 +368,16 @@ object LoungeWallPrinter {
     * @return
     */
   def bulkheadCtlPoints(p0: PointXY, p1: PointXY, length: Int): Seq[PointXY] = {
-    require(length >= 2048)
-    val middleLength = length - 256 * 2 - 448 * 2
+    require(length >= 2304)
+    val margin = 384
+    val middleLength = length - margin * 2 - 448 * 2
     val across = p0.vectorTo(p1).toF.normalized
     val down = across.rotatedCW()
-    val c1 = p0 + across * 256
+    val c1 = p0 + across * margin
     val c2 = c1 + across * 448 + down * 448
     val c3 = c2 + across * middleLength
     val c4 = c1 + across * (middleLength + 448 * 2)
-    val c5 = c4 + across * 256
+    val c5 = c4 + across * margin
     Seq(c1, c2, c3, c4, c5)
   }
 
@@ -393,7 +401,7 @@ object LoungeWallPrinter {
     * p0 ---> c1 ---- c2 -----c9 ...> p1
     *
     */
-  def windowCtrlPoints(p0: PointXY, p1: PointXY): Seq[PointXY] = {
+  def windowCtrlPoints(p0: PointXY, p1: PointXY, length: Int): Seq[PointXY] = {
     // 384 wide, so that is from p0 to c3
     // 256 from c1 to c2
 
@@ -401,9 +409,12 @@ object LoungeWallPrinter {
     val backwards = p1.vectorTo(p0).toF.normalized
     val up = across.rotatedCCW()
 
-    val c1 = p0 + across * 64
-    val c2 = c1 + across * 256
-    val c9 = c2 + across * 64
+    val WindowLength = 256
+
+    val (margin1, margin2) = LoungePlanner2.split(length - WindowLength)
+    val c1 = p0 + across * margin1
+    val c2 = c1 + across * WindowLength
+    val c9 = c2 + across * margin2
 
     val c4 = c1 + up * 128
     val c5 = c2 + up * 128
@@ -418,9 +429,9 @@ object LoungeWallPrinter {
   }
 
   def window(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, outerSector: OuterSector, length: Int): (Seq[Int], Seq[Wall], PointXY) = {
-    require(length == 384) // TODO support other lengths
+    require(length >= 384)
 
-    val c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: c7 :: c8 :: c9 :: Nil = windowCtrlPoints(p0, p1)
+    val c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: c7 :: c8 :: c9 :: Nil = windowCtrlPoints(p0, p1, length)
     val windowSide = WallPrefab(gameCfg.tex(225)).withShade(15).withRepeats(2, 8)
     val forceField = MiscPrinter.invisibleForceField(gameCfg, 256)
     val windowWalls = Seq(wall(c1, windowSide), wall(c4, forceField), wall(c5, windowSide), wall(c2, E))
@@ -561,8 +572,151 @@ object LoungeWallPrinter {
     (Seq(leftId, middleId, rightId), outerWalls, c9)
   }
 
+  /**
+    *        c2 ------- c3 -------- c4
+    *         |                      |
+    * p0 --> c1 ------------------- c5 --- c6 ....> p1
+    */
+  def twoScreensCtrlPoints(p0: PointXY, p1: PointXY, length: Int): Seq[PointXY] = {
+    require(length >= 1024)
+
+    val across = p0.vectorTo(p1).toF.normalized
+    val up = across.rotatedCCW()
+    val screenLength = 448
+    val (margin0, margin1) = LoungePlanner2.split(length - screenLength * 2)
+
+    val c1 = p0 + across * margin0
+    val c5 = c1 + across * (screenLength * 2)
+    val c6 = c5 + across * margin1
+
+    val c2 = c1 + up * 16
+    val c3 = c2 + across * screenLength
+    val c4 = c3 + across * screenLength
+
+
+    Seq(c1, c2, c3, c4, c5, c6)
+  }
+
+  def twoScreens(r: RandomX, gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, outerSector: OuterSector, length: Int): (Seq[Int], Seq[Wall], PointXY) = {
+    val loungeWall = outerSector.wall
+    val c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: Nil = twoScreensCtrlPoints(p0, p1, length)
+
+    val Side = WallPrefab(gameCfg.tex(797)).withShade(15).withRepeats(1, 8)
+    // 267 is mood, 266 is earch
+    val screenTex = r.shuffle(Seq(267, 266) ++ r.flipCoin(Seq(265))(Seq.empty)).toSeq
+    val screens: Seq[WallPrefab] = screenTex.distinct.map(pic => WallPrefab(gameCfg.tex(pic)).withShade(7).withRepeats(8, 18))
+
+    val walls = Seq(wall(c1, Side), wall(c2, screens(0)), wall(c3, screens(1)), wall(c4, Side), wall(c5, E))
+    val zStep = BuildConstants.ZStepHeight
+    val edgeFloorZ = outerSector.floorZ - zStep * 6
+    val edgeFloor = HorizontalBrush(181).withShade(15)
+    val edgeId = createAndPaintSector(map, walls, edgeFloorZ, edgeFloorZ - zStep * 7, edgeFloor, edgeFloor)
+
+    val outerWalls = Seq(wall(p0, loungeWall), wall(c1, loungeWall.withAlignBottom()), wall(c5, loungeWall))
+    (Seq(edgeId), outerWalls, c6)
+  }
+
+  /** this is kind of lame because, due to my design, I have to add a sector just for the decal */
+  def edfDecal(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, outerSector: OuterSector, length: Int): (Seq[Int], Seq[Wall], PointXY) = {
+    require(length >= 1536)
+    val loungeWall = outerSector.wall
+    val across = p0.vectorTo(p1).toF.normalized
+    val down = across.rotatedCW
+    /*
+         p0 ------->  s1 ---------> c2 ...> p1
+            \                    /
+                       c1
+     */
+    val c2 = p0 + across * length
+    val s1 = (p0 + c2)/2
+    val c1 = s1 + (down * 16)
+    val walls = Seq(wall(p0, loungeWall.withXRepeatForScale(1, length)), wall(c2, E), wall(c1, E))
+    val sectorId = createAndPaintSector(map, walls, outerSector.floorZ, outerSector.ceilZ, outerSector.floor, outerSector.ceil)
+
+    val decalZ = outerSector.floorZ - BuildConstants.ZStepHeight * 4
+    val decal = new Sprite(s1.withZ(decalZ), sectorId, 498, 0, 0)
+    decal.setShade(15)
+    decal.setCstat(Sprite.CSTAT_FLAGS.PLACED_ON_WALL.toShort)
+    decal.setRepeats(48, 46)
+    decal.setAngle(AngleUtil.angleOf(down.toI))
+    map.addSprite(decal)
+
+    val outerWalls = Seq(wall(p0, E), wall(c1, E))
+    (Seq(sectorId), outerWalls, c2)
+  }
+
+
+  /**
+    *
+    *                  c3 ------------- c4
+    *                /                    \
+    *              /                       \
+    *           c2 -----------------------  c5
+    *            |                          |
+    * p0 ---->  c1 ----------------------- c6 ----- c7 ....> p1
+    *
+    */
+  def spaceSuitsCtrlPoints(p0: PointXY, p1: PointXY, length: Int): Seq[PointXY] = {
+    require(length >= 896)
+    val across = p0.vectorTo(p1).toF.normalized
+    val up = across.rotatedCCW
+
+    val WindowLength = 768
+
+    val (margin0, margin1) = LoungePlanner2.split(length - WindowLength)
+    val c1 = p0 + across * margin0
+    val c6 = c1 + across * WindowLength
+    val c7 = c6 + across * margin1
+
+    val c2 = c1 + up * 64
+    val c5 = c6 + up * 64
+
+    val c3 = c2 + (up * 256) + (across * 128)
+    val c4 = c3 + across * 512
+
+    Seq(c1, c2, c3, c4, c5, c6, c7)
+  }
+
+  def spaceSuits(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, outerSector: OuterSector, length: Int): (Seq[Int], Seq[Wall], PointXY) = {
+    val loungeWall = outerSector.wall
+    val c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: c7 :: Nil = spaceSuitsCtrlPoints(p0, p1, length)
+
+    val across = p0.vectorTo(p1).toF.normalized
+    val up = across.rotatedCCW
+    val s1 = c2 + (across * 224) + (up * 128)
+    val s2 = s1 + (across * 320)
+
+
+    val side = WallPrefab(gameCfg.tex(218)).withShade(15).withRepeats(2, 15)
+    val glass = WallPrefab(gameCfg.tex(215)).withShade(15).withTransparent().withMask().withRepeats(6, 8).withOverpic(gameCfg.tex(503)).withHitscan().withBlockable()
+    val thresholdWalls = Seq(wall(c1, side), wall(c2, glass), wall(c5, side), wall(c6, E))
+    val thresholdFloor = HorizontalBrush(761).withShade(15).withRelative().withSwapXY().withYFlip()
+    val thresholdCeil = HorizontalBrush(708).withShade(15).withRelative().withSmaller()
+    val thresholdFloorZ = outerSector.floorZ - BuildConstants.ZStepHeight
+
+    val thresholdId = createAndPaintSector(map, thresholdWalls, thresholdFloorZ, thresholdFloorZ - BuildConstants.ZStepHeight * 17, thresholdFloor, thresholdCeil)
+
+    val suitFloor = HorizontalBrush(1173).withPal(24).withShade(15).withXPan(61).withRelative().withSmaller()
+
+    val wall1 = WallPrefab(gameCfg.tex(1173)).withShade(15).withPal(24).withRepeats(4, 18)
+    val wall2 = wall1.withRepeats(8, 18).withXPan(32)
+    val wall3 = wall1.withXPan(255).withXflip()
+    val suitWalls = Seq(wall(c3, wall2), wall(c4, wall3), wall(c5, E), wall(c2, wall1))
+    val suitId = createAndPaintSector(map, suitWalls, thresholdFloorZ, thresholdFloorZ - BuildConstants.ZStepHeight * 14, suitFloor, suitFloor)
+
+    val suit1 = MiscPrinter.sprite(s1.withZ(thresholdFloorZ), suitId, 58, xrepeat=32, yrepeat=32, cstat=64)
+    map.addSprite(suit1)
+    val suit2 = MiscPrinter.sprite(s2.withZ(thresholdFloorZ), suitId, 58, xrepeat=32, yrepeat=32, cstat=64)
+    map.addSprite(suit2)
+
+    val outerWalls = Seq(wall(p0, loungeWall), wall(c1, loungeWall.withAlignBottom()), wall(c6, loungeWall))
+
+    (Seq(thresholdId, suitId), outerWalls, c7)
+  }
+
   def tripBombPlacement(gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int): (Seq[Int], Seq[Wall], PointXY) = {
 
+    // TODO trip mine placement, also cabinet where sentry drones come out
     // its a post:
     // 256 wide
     // 32 deep

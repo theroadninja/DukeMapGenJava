@@ -12,6 +12,7 @@ import trn.javax.MultiIterable;
  * 
  * @author Dave
  *
+ * TODO move this to the scala code as soon as I get compilation working again
  */
 public class PrefabPalette {
 

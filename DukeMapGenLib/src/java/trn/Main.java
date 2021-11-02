@@ -8,13 +8,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.commons.io.FileUtils;
-import trn.bespoke.DarkSide$;
-import trn.bespoke.MoonBase1$;
+// import trn.bespoke.DarkSide$;
+//import trn.bespoke.MoonBase1$;
 import trn.duke.MapImageWriter;
-import trn.prefab.DukeConfig;
-import trn.prefab.GameConfig;
-import trn.prefab.abandoned.JigsawPlacerMain$;
-import trn.prefab.experiments.*;
+// import trn.prefab.DukeConfig;
+// import trn.prefab.GameConfig;
+// import trn.prefab.abandoned.JigsawPlacerMain$;
+// import trn.prefab.experiments.*;
 
 import javax.imageio.ImageIO;
 
@@ -22,6 +22,8 @@ import javax.imageio.ImageIO;
  * Main entry point for map compiler.
  *
  * For a reference to my sprite logic @see trn.prefab.PrefabUtils
+ *
+ * See   settings -> Build, Execution, Deployment -> Compiler > Scala Compiler > Build Order
  */
 public class Main {
 
@@ -33,7 +35,7 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 
-		GameConfig gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile());
+		// GameConfig gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile());
 
 		File f = new File(DOSPATH);
 		if(!(f.exists() && f.isDirectory())){
@@ -44,7 +46,7 @@ public class Main {
 		//run(FirstPrefabExperiment$.MODULE$);
 		//run(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
 		//run(Hypercube1$.MODULE$);
-		run(Hypercube2$.MODULE$); //Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
+		// run(Hypercube2$.MODULE$); //Map outMap = Hypercube2.run(MapLoader.loadMap(DOSPATH + "hyper2.map"));
         //superTest();
 
 		//run(SoundListMap$.MODULE$);
@@ -72,34 +74,34 @@ public class Main {
 		// DarkSide$.MODULE$.run(gameCfg);
 	}
 
-	/** compile all test maps, to at least know if they break or not */
-	private static void superTest() throws Exception {
-	    java.util.List<PrefabExperiment> all = new ArrayList<PrefabExperiment>(){{
-	    	add(ChildSectorTest$.MODULE$);
-	    	add(FirstPrefabExperiment$.MODULE$);
-	    	add(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
-	    	add(Hypercube1$.MODULE$);
-	    	add(Hypercube2$.MODULE$);
-	    	add(SoundListMap$.MODULE$);
-	    	add(PipeDream$.MODULE$);
-	    	add(PoolExperiment$.MODULE$);
-	    	add(Sushi$.MODULE$);
-	    	add(Hypercube4$.MODULE$);
-	    	add(JigsawPlacerMain$.MODULE$);
-	    	add(PersonalStorage$.MODULE$); // sometimes with fails with "cant place player start"
-		}};
-	    for(PrefabExperiment experiment: all){
-	        System.out.println("starting: " + experiment.Filename());
-	    	run(experiment);
-		}
+	// /** compile all test maps, to at least know if they break or not */
+	// private static void superTest() throws Exception {
+	//     java.util.List<PrefabExperiment> all = new ArrayList<PrefabExperiment>(){{
+	//     	add(ChildSectorTest$.MODULE$);
+	//     	add(FirstPrefabExperiment$.MODULE$);
+	//     	add(new SquareTileMain(SquareTileMain.TestFile1(), GridBuilderInput.defaultInput()));
+	//     	add(Hypercube1$.MODULE$);
+	//     	add(Hypercube2$.MODULE$);
+	//     	add(SoundListMap$.MODULE$);
+	//     	add(PipeDream$.MODULE$);
+	//     	add(PoolExperiment$.MODULE$);
+	//     	add(Sushi$.MODULE$);
+	//     	add(Hypercube4$.MODULE$);
+	//     	add(JigsawPlacerMain$.MODULE$);
+	//     	add(PersonalStorage$.MODULE$); // sometimes with fails with "cant place player start"
+	// 	}};
+	//     for(PrefabExperiment experiment: all){
+	//         System.out.println("starting: " + experiment.Filename());
+	//     	run(experiment);
+	// 	}
 
-	}
+	// }
 
 
-	private static void run(PrefabExperiment exp) throws IOException {
-		Map outMap = exp.run(new MapLoader(DOSPATH));
-		deployTest(outMap);
-	}
+	// private static void run(PrefabExperiment exp) throws IOException {
+	// 	Map outMap = exp.run(new MapLoader(DOSPATH));
+	// 	deployTest(outMap);
+	// }
 
 	public static void writeAndOpenMapPng(Map map) throws IOException {
 		File picfile = writeMapPng("output.png", map);

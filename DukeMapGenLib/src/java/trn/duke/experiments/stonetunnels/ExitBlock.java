@@ -65,7 +65,7 @@ public class ExitBlock extends AbstractBlock implements Block {
 				(short)sectorIndex);
 		
 		exitSprite.setTexture(TextureList.Switches.NUKE_BUTTON);
-		exitSprite.setCstat(Sprite.CSTAT_FLAGS.PLACED_ON_WALL);
+		exitSprite.setCstat((short)Sprite.CSTAT_FLAGS.PLACED_ON_WALL);
 		exitSprite.setXRepeat(21);
 		exitSprite.setYRepeat(26);
 		exitSprite.setAngle(DukeConstants.ANGLE_NORTH);

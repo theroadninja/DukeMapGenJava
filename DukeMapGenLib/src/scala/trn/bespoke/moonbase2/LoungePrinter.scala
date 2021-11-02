@@ -2,7 +2,7 @@ package trn.bespoke.moonbase2
 
 import trn.{BuildConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, RandomX, Sector, Wall, WallView, Map => DMap}
 import trn.prefab.{BoundingBox, DukeConfig, GameConfig, Heading, MapWriter}
-import trn.render.{HorizontalBrush, MiscPrinter, Texture, TextureUtil, WallAnchor, WallPrefab}
+import trn.render.{HorizontalBrush, MiscPrinter, ResultAnchor, Texture, TextureUtil, WallAnchor, WallPrefab}
 import trn.render.MiscPrinter.wall
 
 import scala.collection.JavaConverters._
@@ -155,6 +155,14 @@ object LoungePrinter {
     LoungeControlPoints(east, south, west, north)
   }
 
+  def canPrintLounge(
+    wallA: WallAnchor,
+    wallB: WallAnchor,
+  ): Boolean = {
+    // TODO need to make sure they are facing each other.  And this distance test is nearly worthless (I'm being lazy right now)
+    wallA.axisAligned && wallB.axisAligned && wallA.p0.distanceTo(wallB.p0) > 1024 * 4
+  }
+
 
   /**
     * Creates a "Lounge Hallway" between sectors A and B, positioned to match the walls (entApoint0->entAPoint1) and
@@ -178,8 +186,9 @@ object LoungePrinter {
     map: DMap,
     wallA: WallAnchor,
     wallB: WallAnchor,
-  ): Unit = {
-    require(wallA.axisAligned && wallB.axisAligned)
+  ): (ResultAnchor, ResultAnchor) = {
+    require(canPrintLounge(wallA, wallB))
+    // require(wallA.axisAligned && wallB.axisAligned)
 
     val loungeZ: Int = (wallA.floorZ + wallB.floorZ) / 2
     val loungeCeilZ: Int = loungeZ - (32 * BuildConstants.ZStepHeight)
@@ -250,47 +259,38 @@ object LoungePrinter {
       }
     }
 
+    (entranceAResult._1, entranceBResult._1)
   }
 
 
   def fillWallSection(r: RandomX, gameCfg: GameConfig, map: DMap, p0: PointXY, p1: PointXY, floorZ: Int, ceilZ: Int, loungeWall: WallPrefab, loungeFloor: HorizontalBrush, loungeCeil: HorizontalBrush): (Seq[Int], Seq[Wall]) = {
 
-    val parts = LoungePlanner2.planWallOld(p0.manhattanDistanceTo(p1).toInt)
+    // Did this for testing:
+    // val parts = LoungePlanner2.planWallOld(p0.manhattanDistanceTo(p1).toInt)
 
-    // val TODO: Set[String] = Set.empty
-    // val parts = LoungePlanner2.planWall(p0.manhattanDistanceTo(p1).toInt, TODO, r)
+    val TODO: Set[String] = Set.empty
+    val totalLength = p0.manhattanDistanceTo(p1).toInt
+    val parts = LoungePlanner2.planWall(totalLength, TODO, r)
     require(parts.head.length >= 512)
     require(parts.head.length >= 512 && parts.last.length >= 512)
+    require(parts.map(_.length).sum <= totalLength)
 
     val sectorIds = mutable.ArrayBuffer[Int]()
     val outsideWalls = mutable.ArrayBuffer[Wall]()
     var cursor: PointXY = p0
-    val outerSector = OuterSector(floorZ, ceilZ, loungeFloor, loungeWall)
+    val outerSector = OuterSector(floorZ, ceilZ, loungeFloor, loungeCeil, loungeWall)
     parts.foreach { part =>
       val (newSectorIds, newOutsideWalls, newP0) = part match {
         case Item(LoungePlanner2.S.name, dist) => {
           LoungeWallPrinter.emptyWall(cursor, p1, dist, loungeWall)
         }
-        case LoungePlanner2.C2 => {
-          LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, floorZ, ceilZ, loungeWall, loungeCeil, 2)
-        }
-        case LoungePlanner2.C3 => {
-          LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, floorZ, ceilZ, loungeWall, loungeCeil, 3)
-        }
-        case LoungePlanner2.C4 => {
-          LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, floorZ, ceilZ, loungeWall, loungeCeil, 4)
-        }
-        case LoungePlanner2.C5 => {
-          LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, floorZ, ceilZ, loungeWall, loungeCeil, 5)
-        }
-        case LoungePlanner2.C6 => {
-          LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, floorZ, ceilZ, loungeWall, loungeCeil, 6)
-        }
+        case LoungePlanner2.C2 => LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, outerSector, 2)
+        case LoungePlanner2.C3 => { LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, outerSector, 3) }
+        case LoungePlanner2.C4 => { LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, outerSector, 4) }
+        case LoungePlanner2.C5 => { LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, outerSector, 5) }
+        case LoungePlanner2.C6 => { LoungeWallPrinter.chairs(gameCfg, map, cursor, p1, outerSector, 6) }
         case LoungePlanner2.T => {
-
           LoungeWallPrinter.table(r, gameCfg, map, cursor, p1, floorZ, ceilZ, loungeWall, loungeCeil)
-          //LoungeWallPrinter.emptyWall(cursor, p1, 512, loungeWall)
-
         }
         case LoungePlanner2.WI => {
           // val (newSectorIds, newOutSideWalls, newP0) = LoungeWallPrinter.medCabinet(gameCfg, map, cursor, p1, floorZ, loungeWall)
@@ -305,7 +305,6 @@ object LoungePrinter {
 
           // TODO: adjustable:  fans
 
-
           // later:
           // TODO: tripbomb placement
           // TODO: gun placement (classic E1 red door, long and short like in E2L1, is in red band and opens up to multiple guns
@@ -315,33 +314,36 @@ object LoungePrinter {
           //TODO ideas
           // - window onto pipes?
           // - set of lockers ... like E2L7
+          ???
         }
         case Item(LoungePlanner2.BulkHead, length) => LoungeWallPrinter.bulkhead(gameCfg, map, cursor, p1, loungeWall, length)
         case Item(LoungePlanner2.Window, length) => LoungeWallPrinter.window(gameCfg, map, cursor, p1, outerSector, length)
         case Item(LoungePlanner2.Medkit, length) => {
-          require(length == 768) // TODO actually these functions should be capable of taking a length
+          // require(length == 768) // TODO actually these functions should be capable of taking a length
           LoungeWallPrinter.medCabinet(gameCfg, map, cursor, p1, floorZ, loungeWall)
         }
         case Item(LoungePlanner2.SecurityScreen, length) => {
-          require(length == 768)
+          // require(length == 768) // TODO
           LoungeWallPrinter.securityScreen(gameCfg, map, cursor, p1, outerSector)
         }
         case Item(LoungePlanner2.PowerCabinet, length) => {
-          require(length == 768)
+          // require(length == 512) // TODO
           val Shotgun = 28 // TODO
           LoungeWallPrinter.powerCabinet(gameCfg, map, cursor, p1, Shotgun, outerSector)
         }
         case Item(LoungePlanner2.Fountain, length) => {
-          require(length == 768)
+          // require(length == 640) // TODO
           LoungeWallPrinter.waterFountain(gameCfg, map, cursor, p1, outerSector)
         }
         case Item(LoungePlanner2.Fans, length) => LoungeWallPrinter.fan(gameCfg, map, cursor, p1, outerSector, length)
         case Item(LoungePlanner2.PowerHole, length) => LoungeWallPrinter.powerHole(gameCfg, map, cursor, p1, outerSector, length, 54) // TODO 54 == Armor
+        case Item(LoungePlanner2.TwoScreens, length) => LoungeWallPrinter.twoScreens(r, gameCfg, map, cursor, p1, outerSector, length)
+        case Item(LoungePlanner2.EDFDecal, length) => LoungeWallPrinter.edfDecal(gameCfg, map, cursor, p1, outerSector, length)
+        case Item(LoungePlanner2.SpaceSuits, length) => LoungeWallPrinter.spaceSuits(gameCfg, map, cursor, p1, outerSector, length)
         case x => {
-          // throw new Exception(s"part ${part} not implemented yet")
-
+          throw new Exception(s"part ${part} not implemented yet")
           // TODO
-          LoungeWallPrinter.emptyWall(cursor, p1, x.length, loungeWall)
+          // LoungeWallPrinter.emptyWall(cursor, p1, x.length, loungeWall)
         }
       }
       sectorIds ++= newSectorIds
@@ -475,10 +477,8 @@ object LoungePrinter {
     val writer = MapWriter(gameCfg)
 
     test2(gameCfg, writer.getMap)
-    // test(gameCfg, writer.getMap)
 
     writer.disarmAllSkyTextures()
-    // writer.setAnyPlayerStart(force = true)
     writer.getMap.setPlayerStart(new PlayerStart(512, 512, 0, PlayerStart.NORTH))
     writer.sgBuilder.clearMarkers()
     writer.checkSectorCount()

@@ -8,6 +8,8 @@ object PointImplicits {
 
     def + (other: FVectorXY): PointXY = p.add(toI(other))
 
+    def - (other: PointXY): PointXY = p.subtractedBy(other)
+
     /** integer division */
     def / (other: Int): PointXY = new PointXY(p.x / other, p.y / other)
   }

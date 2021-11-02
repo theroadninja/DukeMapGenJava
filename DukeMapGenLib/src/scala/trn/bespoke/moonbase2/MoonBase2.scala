@@ -5,9 +5,10 @@ import trn.logic.{Point3d, Tile2d, VariableGridLayout}
 import trn.logic.Tile2d._
 import trn.math.RotatesCW
 import trn.prefab._
-import trn.render.{MiscPrinter, Texture}
+import trn.render.{MiscPrinter, Texture, WallAnchor}
 import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, Sprite, SpriteFilter}
 
+import trn.PointImplicits._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -48,7 +49,9 @@ object HallwayPrinter {
     points
   }
 
+  /** this is called to fill in a passage between the nodes */
   def printHallway(
+    r: RandomX,
     gameCfg: GameConfig,
     writer: MapWriter,
     psgA: PastedSectorGroup,
@@ -59,38 +62,67 @@ object HallwayPrinter {
     // see also StairPrinter.straightStairs()
     val wallPointsA = wallPoints(psgA, connA).reverse
     val wallPointsB = wallPoints(psgB, connB).reverse
-    val wallTex = Texture(258, gameCfg.textureWidth(258))
-
-    val wallLoop = (wallPointsA ++ wallPointsB).map (p => MiscPrinter.wall(p, wallTex))
-    val sectorId = writer.getMap.createSectorFromLoop(wallLoop: _*)
-
-    connA.getSectorIds.asScala.map { sectorIdA =>
-      MiscPrinter.autoLinkRedWalls(writer.getMap, sectorIdA, sectorId)
-    }
-    connB.getSectorIds.asScala.map { sectorIdB =>
-      MiscPrinter.autoLinkRedWalls(writer.getMap, sectorIdB, sectorId)
-    }
-
-
     // TODO interpolate, automatically make it ramp, etc
     val copyFrom = writer.getMap.getSector(connA.getSectorIds.get(0))
     val copyFrom2 = writer.getMap.getSector(connB.getSectorIds.get(0))
 
-    val sector = writer.getMap.getSector(sectorId)
-    sector.setFloorTexture(181)
-    sector.setCeilingTexture(182)
-    sector.setFloorZ((copyFrom.getFloorZ + copyFrom2.getFloorZ)/2)
-    sector.setCeilingZ(copyFrom.getCeilingZ)
-    // TODO link them
+    require(wallPointsA.length == 2) // TODO support connectors with more than 1 segment
+    require(wallPointsB.length == 2)
+
+    val wallAnchorA = WallAnchor(wallPointsA(0), wallPointsA(1), copyFrom.getFloorZ, copyFrom.getCeilingZ)
+    val wallAnchorB = WallAnchor(wallPointsB(0), wallPointsB(1), copyFrom2.getFloorZ, copyFrom2.getCeilingZ)
+
+    if(false && LoungePrinter.canPrintLounge(wallAnchorA, wallAnchorB)){
+      try {
+
+        val (r0, r1) = LoungePrinter.printLounge(r, gameCfg, writer.getMap, wallAnchorA, wallAnchorB)
+        Seq(r0.sectorId, r1.sectorId).map{ sectorId =>
+          connA.getSectorIds.asScala.map( sectorA => MiscPrinter.autoLinkRedWalls(writer.getMap, sectorId, sectorA))
+          connB.getSectorIds.asScala.map( sectorA => MiscPrinter.autoLinkRedWalls(writer.getMap, sectorId, sectorA))
+        }
+      }catch {
+        case e: Exception => println(e)
+      }
+
+    }else{
+      // just print a shitty hallway
+      val wallTex = Texture(258, gameCfg.textureWidth(258))
+      val wallLoop = (wallPointsA ++ wallPointsB).map (p => MiscPrinter.wall(p, wallTex))
+      val sectorId = writer.getMap.createSectorFromLoop(wallLoop: _*)
+
+      connA.getSectorIds.asScala.map { sectorIdA =>
+        MiscPrinter.autoLinkRedWalls(writer.getMap, sectorIdA, sectorId)
+      }
+      connB.getSectorIds.asScala.map { sectorIdB =>
+        MiscPrinter.autoLinkRedWalls(writer.getMap, sectorIdB, sectorId)
+      }
+
+      val sector = writer.getMap.getSector(sectorId)
+      sector.setFloorTexture(181)
+      sector.setCeilingTexture(182)
+      sector.setFloorZ((copyFrom.getFloorZ + copyFrom2.getFloorZ)/2)
+      sector.setCeilingZ(copyFrom.getCeilingZ)
+    }
 
   }
 
 }
 
 // SectorGroup decorated with extra info for this algorithm
-case class TileSectorGroup(tile: Tile2d, sg: SectorGroup) extends RotatesCW[TileSectorGroup] {
-  override def rotatedCW: TileSectorGroup = TileSectorGroup(tile.rotatedCW, sg.rotatedCW)
+case class TileSectorGroup(
+  id: String, // used to identify which logical room, to prevent unique rooms being used more than once
+  tile: Tile2d,
+  sg: SectorGroup,
+  tags: Set[String]
+) extends RotatesCW[TileSectorGroup] {
+  override def rotatedCW: TileSectorGroup = TileSectorGroup(id, tile.rotatedCW, sg.rotatedCW, Set.empty)
+
+  def withKeyLockColor(gameCfg: GameConfig, color: Int): TileSectorGroup = copy(sg=sg.withKeyLockColor(gameCfg, color))
+
+  // TODO plotzone: Int  (0, 1, 2, K, G, ...) ??  (more like PlacedTileSectorGroup)
 }
+
+// TODO case class PlacedTileSectorGroup
 
 object MoonBase2 {
 
@@ -162,69 +194,174 @@ object MoonBase2 {
     result
   }
 
+  /**
+    * Calculates how large the column needs to be to include all of the points of the sector group if the sector group's
+    * anchor is at the center of the column.
+    */
+  def columnWidth(tsg: TileSectorGroup): Int = {
+    val bb = tsg.sg.boundingBox
+    val anchor = tsg.sg.getAnchor.asXY
+    2 * Math.max(Math.abs(anchor.x - bb.xMin), Math.abs(anchor.x - bb.xMax))
+  }
+
+  def rowHeight(tsg: TileSectorGroup): Int = {
+    val bb = tsg.sg.boundingBox
+    val anchor = tsg.sg.getAnchor.asXY
+    2 * Math.max(Math.abs(anchor.y - bb.yMin), Math.abs(anchor.y - bb.yMax))
+  }
+
+  def getTileSpec(logicalMap: LogicalMap[LogicalRoom, String], p: Point3d): TileSpec = {
+    TileSpec(
+      LogicalRoom.readSide(p, Heading.E, logicalMap),
+      LogicalRoom.readSide(p, Heading.S, logicalMap),
+      LogicalRoom.readSide(p, Heading.W, logicalMap),
+      LogicalRoom.readSide(p, Heading.N, logicalMap)
+    )
+  }
+
   def run(gameCfg: GameConfig): Unit = {
+    println("starting run()")
     val random = new RandomX()
     val writer = MapWriter(gameCfg)
     val spacePalette = MapLoader.loadPalette(HardcodedConfig.getMapDataPath("SPACE.MAP"))
     val moonPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon2.map"))
+    println("loaded moon2.map")
 
     val logicalMap = new RandomWalkGenerator(random).generate()
     val keycolors: Seq[Int] = random.shuffle(DukeConfig.KeyColors).toSeq
     println(logicalMap)
 
-    val startSg = TileSectorGroup(Tile2d(Blocked).withSide(Heading.W, Conn), moonPalette.getSG(1))
-    val fourWay = TileSectorGroup(Tile2d(Conn), moonPalette.getSG(2))
-    val endSg = TileSectorGroup(Tile2d(Blocked).withSide(Heading.W, Conn), moonPalette.getSG(3))
-    val keySg = TileSectorGroup(Tile2d(Conn), moonPalette.getSG(4))
-    val gateSgLeftEdge = TileSectorGroup(Tile2d(Conn), moonPalette.getSG(5))
-    val gateSgTopEdge = TileSectorGroup(Tile2d(Conn), moonPalette.getSG(6))
-    val gateSg3 = TileSectorGroup(Tile2d(Conn, Conn, Blocked, Blocked), moonPalette.getSG(7))
-    val windowRoom1 = TileSectorGroup(Tile2d(Conn, Blocked, Conn, Blocked), moonPalette.getSG(8))
-    val conferenceRoom = TileSectorGroup(Tile2d(Conn, Blocked, Conn, Blocked), moonPalette.getSG(9))
+    def getTsg(tile: Tile2d, sgNumber: Int, tags: Set[String] = Set.empty): TileSectorGroup = TileSectorGroup(sgNumber.toString, tile, moonPalette.getSG(sgNumber), tags)
+
+    val startSg = getTsg(Tile2d(Blocked).withSide(Heading.W, Conn), 1, Set("START"))
+    val fourWay = TileSectorGroup("2", Tile2d(Conn), moonPalette.getSG(2), Set.empty)
+    val endSg = TileSectorGroup("3", Tile2d(Blocked).withSide(Heading.W, Conn), moonPalette.getSG(3), Set("END"))
+    val keySg = TileSectorGroup("4", Tile2d(Conn), moonPalette.getSG(4), Set.empty)
+    val gateSgLeftEdge = getTsg(Tile2d(Conn), 5)
+    val gateSgTopEdge = getTsg(Tile2d(Conn), 6)
+    val gateSg3 = getTsg(Tile2d(Conn, Conn, Blocked, Blocked), 7)
+    val windowRoom1 = getTsg(Tile2d(Conn, Blocked, Conn, Blocked), 8)
+    val conferenceRoom = getTsg(Tile2d(Conn, Blocked, Conn, Blocked), 9)
+    val conveyor = getTsg(Tile2d(Blocked, Conn, Blocked, Conn), 11)
+    val bar = getTsg(Tile2d(Blocked, Conn, Conn, Blocked), 12)
+
+    // TODO this room thing should tell you it can be a key tile...
+    val lectureHall = getTsg(Tile2d(Blocked, Conn, Blocked, Blocked), 13) // its a key tile
+    val blastDoorsRoom = getTsg(Tile2d(Blocked, Conn, Blocked, Conn), 14)
+
+
+    val blueRoom = getTsg(Tile2d(Wildcard), 15) // modular room
+    val fanRoom = getTsg(Tile2d(Wildcard), 20)
+
+    val standardRooms = Seq(windowRoom1, conferenceRoom, conveyor, bar, blastDoorsRoom, fanRoom, blueRoom)
+    // TODO run validation code check that there is at least a redwall connector on every side marked with a connection
+
+    // TODO need a more advanced tile class, to track things like whether they can stretch, etc.
 
     // ONE-WAY
-    val area51 = TileSectorGroup(Tile2d(Conn, Conn, Conn, 2), moonPalette.getSG(10))
+    val area51 = getTsg(Tile2d(Conn, Conn, Conn, 2), 10, Set("ONEWAY"))
     //val conferenceRoomVertical = moonPalette.getSG(9).rotateCW
 
     // NOTE:  some of my standard space doors are 2048 wide
 
-    val sgChoices: Map[Point3d, TileSectorGroup] = logicalMap.nodes.map { case (gridPoint: Point3d, nodeType: String) =>
+
+    val uniqueTiles = Set(bar, conveyor, conferenceRoom, windowRoom1).map(_.id)
+    val usedTiles = mutable.Set[String]()
+
+
+    def getKeyTile(gameCfg: GameConfig, r: RandomX, target: Tile2d, keycolor: Int): TileSectorGroup = {
+      val options = r.shuffle(Seq(keySg, lectureHall)).filter(t => t.tile.couldMatch(target)).toSeq
+      rotateToMatch(options.head, target).withKeyLockColor(gameCfg, keycolor)
+    }
+
+    /**
+      * @param tileSpec the shape (connector vs no conn on each side) it needs to fit
+      */
+    def getTile(
+      r: RandomX,
+      node: LogicalRoom,
+      tileSpec: TileSpec, // target: Tile2d,
+      wildcardTarget: Tile2d, // stupid hack so that tiles with too many connections are still allowed
+      tag: Option[String]
+    ): TileSectorGroup = {
+
+      val target = tileSpec.toTile2d(Tile2d.Blocked)
+      val rooms = Seq(startSg, endSg, area51) ++ standardRooms // TODO more here
+
+      // TODO "START" should be a constant
+      if(tag == Some("KEY")){
+        val keycolor = keycolors(node.keyindex.get)
+
+        getKeyTile(gameCfg, random, wildcardTarget, keycolor) // TODO getKeyTile already rotated it...
+
+      }else if(tag == Some("GATE")) {
+        //val keycolor: Int =  keycolors(s(1).toString.toInt - 1)
+        val keycolor = keycolors(node.keyindex.get)
+
+
+        // TODO cant do a simply rotation because it matters wich conns are blocked by the gate
+        // TODO this is a good first adopter for the code that will calculate each tile based on neighboors
+        val gateSg = if (target.w == Tile2d.Conn) {
+          gateSgLeftEdge
+        } else if (target.n == Tile2d.Conn) {
+          gateSgTopEdge
+        } else {
+          gateSg3
+        }
+        gateSg.withKeyLockColor(gameCfg, keycolor)
+
+      }else if(tag == Some("ONEWAY")){
+        r.shuffle(rooms.filter(_.tags.contains(tag.get))).toSeq.head
+      }else if(tag.isDefined){
+        val t = r.shuffle(rooms.filter(_.tags.contains(tag.get))).toSeq.head
+        rotateToMatch(t, target)
+      }else{
+        // TODO make sure to exclude rooms with tags (because of end room, and oneway rooms)
+        val room = random.shuffle(standardRooms).find(t => t.tile.couldMatch(target) && !(uniqueTiles.contains(t.id) && usedTiles.contains(t.id))).getOrElse(fourWay)
+        usedTiles.add(room.id)
+        rotateToMatch(room, wildcardTarget)
+      }
+
+    }
+
+
+    println("generating map")
+    val sgChoices: Map[Point3d, TileSectorGroup] = logicalMap.nodes.map { case (gridPoint: Point3d, node: LogicalRoom) =>
+      val nodeType = node.s
+
+      val tileSpec = getTileSpec(logicalMap, gridPoint)
+      val target = logicalMap.getTile(gridPoint, Tile2d.Blocked)
+      val wildcardTarget = logicalMap.getTile(gridPoint, Tile2d.Wildcard)
+
+      require(target == tileSpec.toTile2d(Tile2d.Blocked))
+
+      // TODO this fails because getTileSpec() is the only one that enforces the blocked thing based on node presence (
+      // TODO getTile() only cares if there is an edge)
+      //require(wildcardTarget == tileSpec.toTile2d(Tile2d.Wildcard), s"${wildcardTarget} != ${tileSpec.toTile2d(Tile2d.Wildcard)}")
+
 
       val sg = nodeType match {
         case "S" => {
-          rotateToMatch(startSg, logicalMap.getTile(gridPoint))
+          getTile(random, node, tileSpec, wildcardTarget, node.tag)
         }
         case "E" => {
-          rotateToMatch(endSg, logicalMap.getTile(gridPoint))
+          getTile(random, node, tileSpec, wildcardTarget, node.tag)
         }
         case s if s.startsWith("K") => {
-          val keycolor: Int = keycolors(s(1).toString.toInt - 1)
-          TileSectorGroup(keySg.tile, keySg.sg.withKeyLockColor(gameCfg, keycolor))
+          getTile(random, node, tileSpec, wildcardTarget, node.tag)
         }
         case s if s.startsWith("G") => {
-          val keycolor: Int =  keycolors(s(1).toString.toInt - 1)
-          val gateSg = if(logicalMap.containsEdge(gridPoint, gridPoint.w)){
-            gateSgLeftEdge
-          }else if(logicalMap.containsEdge(gridPoint, gridPoint.n)){
-            gateSgTopEdge
-          }else{
-            gateSg3
-          }
-          TileSectorGroup(gateSg.tile, gateSg.sg.withKeyLockColor(gameCfg, keycolor))
+          getTile(random, node, tileSpec, wildcardTarget, node.tag)
         }
         case s if s.endsWith("<") => {
-          // TODO this did it backwards...
-          val higherLevel = (s(0).toString.toInt + 1).toString
-          println(higherLevel)
-          val (h, _) = logicalMap.adjacentEdges(gridPoint).filter{ case (_, edge) => logicalMap.edges(edge) == higherLevel}.head
-          val target = Tile2d(Wildcard).withSide(h, 2)
-          rotateToMatch(area51, target)
+          val onewaySg = getTile(random, node, tileSpec, wildcardTarget, node.tag)
+          // so the edges have a value that is a string, usually z-length but set to the node level when near a oneway...
+          // TODO calculate this from tileSpec instead
+          val targetOneway = logicalMap.getTileForOneway(gridPoint, node.higherZone.get)
+          rotateToMatch(onewaySg, targetOneway)
         }
         case _ => {
-          val target = logicalMap.getTile(gridPoint, Tile2d.Blocked)
-          val target2 = logicalMap.getTile(gridPoint, Tile2d.Wildcard) // fourWay has 4 connections
-          val room = random.shuffle(Seq(windowRoom1, conferenceRoom)).find(_.tile.couldMatch(target)).getOrElse(fourWay)
-          rotateToMatch(room, target2)
+          getTile(random, node, tileSpec, wildcardTarget, node.tag)
         }
       }
       gridPoint -> sg
@@ -233,14 +370,15 @@ object MoonBase2 {
     val columns = sgChoices.keys.map(_.x).toSet
     val rows = sgChoices.keys.map(_.y).toSet
     val columnWidths = columns.map{ col =>
-      val maxWidth = sgChoices.collect{ case(point, tsg) if col ==  point.x => tsg.sg.bbWidth }.max
+      val maxWidth = sgChoices.collect{case (point, tsg) if col == point.x => columnWidth(tsg)}.max
       col -> maxWidth
     }.toMap
     val rowHeights = rows.map { row =>
-      val maxHeight = sgChoices.collect { case(point, tsg) if row == point.y => tsg.sg.bbHeight }.max
+      val maxHeight = sgChoices.collect { case(point, tsg) if row == point.y => rowHeight(tsg) }.max
       row -> maxHeight
     }.toMap
 
+    // controls the gaps between the grids:
     val marginSize = 1024 * 2 // TODO will be different
     val vgrid = VariableGridLayout(columnWidths, rowHeights, marginSize, marginSize)
 
@@ -259,7 +397,7 @@ object MoonBase2 {
 
       val mapPoint: PointXYZ = gridTopLeft.withZ(0).add(vgrid.boundingBox(gridPoint.x, gridPoint.y).center.withZ(0))
 
-      val psg = writer.pasteSectorGroupAt(adjustEnemies(random, sg.sg), mapPoint)
+      val psg = writer.pasteSectorGroupAt(adjustEnemies(random, sg.sg), mapPoint) // TODO this uses the anchor
       pastedGroups.put(gridPoint, psg)
     }
 
@@ -269,6 +407,7 @@ object MoonBase2 {
       val psgB = pastedGroups(edge.p2)
       if(edge.isHorizontal){
         HallwayPrinter.printHallway(
+          random,
           gameCfg,
           writer,
           psgA,
@@ -279,6 +418,7 @@ object MoonBase2 {
 
       }else if(edge.isVertical){
         HallwayPrinter.printHallway(
+          random,
           gameCfg,
           writer,
           psgA,

@@ -23,4 +23,20 @@ case class Point3d(x: Int, y: Int, z: Int) extends Ordered[Point3d] {
   // TODO what about diagonals?
   def adj: Seq[Point3d] = Seq(n, s, e, w, u, d)
 
+  def +(heading: Int): Point3d = heading match {
+    case Point3d.EAST => e
+    case Point3d.SOUTH => s
+    case Point3d.WEST => w
+    case Point3d.NORTH => n
+  }
+
+}
+
+object Point3d {
+  /** TODO DRY with trn.prefab.Heading (that heading probably needs to be moved to trn.logic ... ) */
+  val EAST = 0
+  val SOUTH = 1
+  val WEST = 2
+  val NORTH = 3
+
 }

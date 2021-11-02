@@ -1,7 +1,7 @@
 package trn.render
 
 import trn.prefab.GameConfig
-import trn.{BuildConstants, Main, MapLoader, PlayerStart, PointXY, Wall, Map => DMap}
+import trn.{AngleUtil, BuildConstants, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -69,6 +69,28 @@ object MiscPrinter {
 
   def wall(p: PointXY, wallPrefab: WallPrefab): Wall = wallPrefab.create(p)
 
+  def sprite(
+    p: PointXYZ,
+    sectorId: Int,
+    picnum: Int,
+    shade: Int = 0,
+    pal: Int = 0,
+    xrepeat: Int = 64, // 64 seems to be the default
+    yrepeat: Int = 64,
+    hitag: Int = 0,
+    lotag: Int = 0,
+    angle: Int = AngleUtil.ANGLE_UP,
+    cstat: Int = 0,
+  ): Sprite = {
+    val s = new Sprite(p, sectorId, picnum, hitag, lotag)
+    s.setShade(shade)
+    s.setPal(pal)
+    s.setRepeats(xrepeat, yrepeat)
+    s.setAng(angle)
+    s.setCstat(cstat.toShort)
+    s
+  }
+
   /**
     * THIS IS THE ONE FOR A VISIBLE FORCE FIELD, not the invisible kind
     *
@@ -126,7 +148,6 @@ object MiscPrinter {
     sector.setCeilingZ(ceilZ)
     sectorId
   }
-
 
   def box(
     map: DMap,

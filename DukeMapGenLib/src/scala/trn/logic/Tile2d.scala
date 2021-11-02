@@ -6,6 +6,8 @@ import trn.prefab.Heading
 import scala.collection.JavaConverters._
 
 /**
+  * TODO this probably still isn't generic enough :(
+  *
   * Tracks the orientation and connections of a part of a map, but not its position.  Its like a free floating puzzle
   * piece.
   *

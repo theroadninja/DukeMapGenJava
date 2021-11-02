@@ -15,7 +15,8 @@ case class HorizontalBrush(
   slope: Option[Int],
   relative: Option[Boolean],
   swapXY: Option[Boolean],
-  smaller: Option[Boolean]   // a.k.a. "double smooshiness"
+  smaller: Option[Boolean],   // a.k.a. "double smooshiness"
+  yflip: Option[Boolean],
 ) {
   def withShade(s: Int): HorizontalBrush = this.copy(shade=Some(s))
   def withPal(pal: Int): HorizontalBrush = this.copy(pal=Some(pal))
@@ -27,6 +28,7 @@ case class HorizontalBrush(
   def withRelative(b: Boolean = true): HorizontalBrush = this.copy(relative=Some(b))
   def withSwapXY(b: Boolean = true): HorizontalBrush = this.copy(swapXY=Some(b))
   def withSmaller(b: Boolean = true): HorizontalBrush = this.copy(smaller=Some(b))
+  def withYFlip(b: Boolean = true): HorizontalBrush = this.copy(yflip=Some(b))
 
   def writeToFloor(sector: Sector): Unit = {
     tex.foreach(picnum => sector.setFloorTexture(picnum))
@@ -42,6 +44,7 @@ case class HorizontalBrush(
     relative.foreach(b => sector.setFloorRelative(b))
     swapXY.foreach(b => sector.setFloorSwapXY(b))
     smaller.foreach(b => sector.setFloorSmaller(b))
+    yflip.foreach(b => sector.setFloorYFlip(b))
   }
 
   def writeToCeil(sector: Sector): Unit = {
@@ -58,17 +61,18 @@ case class HorizontalBrush(
     relative.foreach(b => sector.setCeilingRelative(b))
     swapXY.foreach(b => sector.setCeilingSwapXY(b))
     smaller.foreach(b => sector.setCeilingSmaller(b))
+    yflip.foreach(b => sector.setCeilingYFlip(b))
   }
 }
 
 object HorizontalBrush {
 
   def apply(): HorizontalBrush = {
-    HorizontalBrush(None, None, None, None, None, None, None, None, None, None)
+    HorizontalBrush(None, None, None, None, None, None, None, None, None, None, None)
   }
 
   def apply(tex: Int): HorizontalBrush = {
-    HorizontalBrush(Some(tex), None, None, None, None, None, None, None, None, None)
+    HorizontalBrush(Some(tex), None, None, None, None, None, None, None, None, None, None)
   }
 
   def apply(tex: Texture): HorizontalBrush = apply(tex.picnum)

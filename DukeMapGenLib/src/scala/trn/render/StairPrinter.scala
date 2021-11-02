@@ -344,6 +344,7 @@ object StairPrinter {
       toStairEntrance(wallA),
       toStairEntrance(wallB),
       stairTex,
+      false
     )
     val aid = paintedSectorIds.head
     val bid = paintedSectorIds.last

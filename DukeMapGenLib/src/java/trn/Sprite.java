@@ -30,7 +30,23 @@ public class Sprite implements IRayXY {
 	public static final short DEFAULT_Y_REPEAT = 64;
 	
 	public static class CSTAT_FLAGS {
-		
+
+		/**
+		 * From Build Docs:
+		 *
+		 * 1    bit 0	1 = blocking sprite	  B
+		 * 2    bit 1	translucent			  T
+		 * 4    bit 2	xflip			 	  F
+		 * 8    bit 3	yflip			 	  F
+		 *      bit 5,4  				 	  R
+		 * 64   bit 6    1-sided              1
+		 * 128  bit 7    centering?           C
+		 * 256  bit 8    blocking(hitscan)    H
+		 *      bit 10-14 reserved
+		 * 32758  bit 15   invisible
+		 */
+
+
 		/** cstat you get if you place a sprite on the floor in build */
 		public static final int PLACED_ON_FLOOR = 1;
 		
