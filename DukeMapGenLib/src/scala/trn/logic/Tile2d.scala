@@ -90,6 +90,22 @@ case class Tile2d(e: Int, s: Int, w: Int, n: Int) extends RotatesCW[Tile2d] {
   //   case 4 => Tile2d.Plus
   //   case _ => throw new RuntimeException
   // }
+  def toPrettyStr(): String = {
+    def caption(i: Int) = i match {
+      case 0 =>  "Blocked "
+      case 1 =>  "  Conn  "
+      case -1 => "Optional"
+      case _ =>  "  ????  "
+    }
+
+    s"""
+       |    +----${caption(n)}----+
+       |    |                 |
+       | ${caption(w)}         ${caption(e)}
+       |    |                 |
+       |    +----${caption(s)}----+
+       |""".stripMargin
+  }
 }
 
 object Tile2d {

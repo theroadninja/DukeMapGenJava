@@ -147,6 +147,12 @@ public class PrefabUtils {
 		public static int TRANSLATE_Z = 12;
 
 		/**
+		 * Generic algorithm "Hint" sprite.  The meaning of the sprite is specific to the algorithm being used to
+		 * generate the map.
+		 */
+		public static int ALGO_HINT = 13;
+
+		/**
 		 * Elevator Connector
 		 *
 		 * To make an elevator with this:
@@ -202,6 +208,7 @@ public class PrefabUtils {
 				INTERNAL_RESERVED,
 				TELEPORT_CHILD,
 				TRANSLATE_Z,
+				ALGO_HINT,
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
 				MULTI_SECTOR,
@@ -213,6 +220,10 @@ public class PrefabUtils {
 
 	public static boolean isMarker(Sprite s) {
 		return s.getTexture() == MARKER_SPRITE_TEX && s.getPal() == 0 && s.getLotag() > 0;
+	}
+
+	public static boolean isMarker(Sprite s, int hitag, int lotag){
+	    return isMarker(s) && s.getHiTag() == hitag && s.getLotag() == lotag;
 	}
 
 	public static void checkValid(Sprite s) throws SpriteLogicException {

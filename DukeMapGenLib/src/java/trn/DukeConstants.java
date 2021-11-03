@@ -55,7 +55,8 @@ public class DukeConstants {
 	}
 	@Deprecated // use trn.duke.Lotags.SE instead
 	public static final class LOTAGS {
-		
+
+		// TODO apparently any nonzero value will work, and buildhlp claims it should be 32767....
 		public static final int NUKE_BUTTON_END_LEVEL = 65535;
 		
 		/** simple door that comes down from ceiling */

@@ -33,6 +33,17 @@ object Enemy {
 
 }
 
+object RoomTags {
+  val Start = "START"
+  val End = "END"
+  val Key = "KEY"
+  val Gate = "GATE"
+  val OneWay = "ONEWAY"
+  val Unique = "UNIQUE"
+
+  val Special = Set(Start, End, Key, Gate, OneWay)
+}
+
 
 /** consider moving to trn.render package */
 object HallwayPrinter {
@@ -120,6 +131,18 @@ case class TileSectorGroup(
   def withKeyLockColor(gameCfg: GameConfig, color: Int): TileSectorGroup = copy(sg=sg.withKeyLockColor(gameCfg, color))
 
   // TODO plotzone: Int  (0, 1, 2, K, G, ...) ??  (more like PlacedTileSectorGroup)
+}
+
+object TileSectorGroup {
+  /**
+    * Returns true if the tsg is marked as Unique AND a tsg with the same id has already been placed
+    * @param alreadyPlaced set of ids of tsgs that have already been placed
+    * @param tsg the tsg to check
+    * @return
+    */
+  def uniqueViolation(alreadyPlaced: collection.Set[String], tsg: TileSectorGroup): Boolean = {
+    tsg.tags.contains(RoomTags.Unique) && alreadyPlaced.contains(tsg.id)
+  }
 }
 
 // TODO case class PlacedTileSectorGroup
@@ -233,39 +256,40 @@ object MoonBase2 {
 
     def getTsg(tile: Tile2d, sgNumber: Int, tags: Set[String] = Set.empty): TileSectorGroup = TileSectorGroup(sgNumber.toString, tile, moonPalette.getSG(sgNumber), tags)
 
-    val startSg = getTsg(Tile2d(Blocked).withSide(Heading.W, Conn), 1, Set("START"))
-    val fourWay = TileSectorGroup("2", Tile2d(Conn), moonPalette.getSG(2), Set.empty)
-    val endSg = TileSectorGroup("3", Tile2d(Blocked).withSide(Heading.W, Conn), moonPalette.getSG(3), Set("END"))
-    val keySg = TileSectorGroup("4", Tile2d(Conn), moonPalette.getSG(4), Set.empty)
+    val startSg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 1)
+    val fourWay = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 2)
+    val endSg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 3)
+    val keySg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 4)
+
     val gateSgLeftEdge = getTsg(Tile2d(Conn), 5)
     val gateSgTopEdge = getTsg(Tile2d(Conn), 6)
     val gateSg3 = getTsg(Tile2d(Conn, Conn, Blocked, Blocked), 7)
-    val windowRoom1 = getTsg(Tile2d(Conn, Blocked, Conn, Blocked), 8)
-    val conferenceRoom = getTsg(Tile2d(Conn, Blocked, Conn, Blocked), 9)
-    val conveyor = getTsg(Tile2d(Blocked, Conn, Blocked, Conn), 11)
-    val bar = getTsg(Tile2d(Blocked, Conn, Conn, Blocked), 12)
 
-    // TODO this room thing should tell you it can be a key tile...
-    val lectureHall = getTsg(Tile2d(Blocked, Conn, Blocked, Blocked), 13) // its a key tile
-    val blastDoorsRoom = getTsg(Tile2d(Blocked, Conn, Blocked, Conn), 14)
-
+    val windowRoom1 = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 8)
+    val conferenceRoom = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 9)
+    val conveyor = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 11)
+    val bar = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 12)
+    val lectureHall = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 13)
+    val blastDoorsRoom = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 14)
 
     val blueRoom = getTsg(Tile2d(Wildcard), 15) // modular room
-    val fanRoom = getTsg(Tile2d(Wildcard), 20)
 
-    val standardRooms = Seq(windowRoom1, conferenceRoom, conveyor, bar, blastDoorsRoom, fanRoom, blueRoom)
-    // TODO run validation code check that there is at least a redwall connector on every side marked with a connection
+    val fanRoom = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 20)
 
-    // TODO need a more advanced tile class, to track things like whether they can stretch, etc.
+    val standardRooms = Seq(windowRoom1, conferenceRoom, conveyor, bar, blastDoorsRoom, fanRoom, blueRoom, fourWay)
+
 
     // ONE-WAY
     val area51 = getTsg(Tile2d(Conn, Conn, Conn, 2), 10, Set("ONEWAY"))
-    //val conferenceRoomVertical = moonPalette.getSG(9).rotateCW
 
     // NOTE:  some of my standard space doors are 2048 wide
 
+    val allRooms = Seq(startSg, fourWay, endSg, keySg, gateSgLeftEdge, gateSgTopEdge, gateSg3, windowRoom1,
+      conferenceRoom, conveyor, bar, lectureHall, blastDoorsRoom, blueRoom, fanRoom) ++ (21 to 23).map(i => MoonBase3.readTileSectorGroup(gameCfg, moonPalette, i))
+    // TODO MoonBase3.sanityCheck(allRooms)
 
-    val uniqueTiles = Set(bar, conveyor, conferenceRoom, windowRoom1).map(_.id)
+    // val uniqueTiles = Set(bar, conveyor, conferenceRoom, windowRoom1).map(_.id)
+    require(standardRooms.filter(_.tags.contains(RoomTags.Unique)).size == 4)
     val usedTiles = mutable.Set[String]()
 
 
@@ -317,7 +341,8 @@ object MoonBase2 {
         rotateToMatch(t, target)
       }else{
         // TODO make sure to exclude rooms with tags (because of end room, and oneway rooms)
-        val room = random.shuffle(standardRooms).find(t => t.tile.couldMatch(target) && !(uniqueTiles.contains(t.id) && usedTiles.contains(t.id))).getOrElse(fourWay)
+        // val room = random.shuffle(standardRooms).find(t => t.tile.couldMatch(target) && !(uniqueTiles.contains(t.id) && usedTiles.contains(t.id))).getOrElse(fourWay)
+        val room = random.shuffle(standardRooms).find(t => t.tile.couldMatch(target) && !TileSectorGroup.uniqueViolation(usedTiles, t)).getOrElse(fourWay)
         usedTiles.add(room.id)
         rotateToMatch(room, wildcardTarget)
       }
@@ -366,6 +391,22 @@ object MoonBase2 {
       }
       gridPoint -> sg
     }.toMap
+
+    pasteRooms(gameCfg, writer, random, logicalMap, sgChoices)
+
+    finishAndWrite(writer)
+  }
+
+  def finishAndWrite(writer: MapWriter): Unit = {
+    // ////////////////////////
+    writer.disarmAllSkyTextures()
+    writer.setAnyPlayerStart(force = true)
+    writer.sgBuilder.clearMarkers()
+    writer.checkSectorCount()
+    Main.deployTest(writer.outMap, "output.map", HardcodedConfig.getEduke32Path("output.map"))
+  }
+
+  def pasteRooms(gameCfg: GameConfig, writer: MapWriter, random: RandomX, logicalMap: LogicalMap[LogicalRoom, String], sgChoices: Map[Point3d, TileSectorGroup]): Unit = {
 
     val columns = sgChoices.keys.map(_.x).toSet
     val rows = sgChoices.keys.map(_.y).toSet
@@ -431,13 +472,6 @@ object MoonBase2 {
         throw new Exception(s"cant handle edge ${edge}")
       }
     }
-
-    // ////////////////////////
-    writer.disarmAllSkyTextures()
-    writer.setAnyPlayerStart(force = true)
-    writer.sgBuilder.clearMarkers()
-    writer.checkSectorCount()
-    Main.deployTest(writer.outMap, "output.map", HardcodedConfig.getEduke32Path("output.map"))
   }
 
 }

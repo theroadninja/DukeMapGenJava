@@ -473,7 +473,10 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   def hasPlayerStart: Boolean = hasMarker(PrefabUtils.MarkerSpriteLoTags.PLAYER_START)
 
   def hasEndGame: Boolean = containsSprite{ s =>
-    s.getTexture == DukeConstants.TEXTURES.NUKE_BUTTON && s.getLotag == DukeConstants.LOTAGS.NUKE_BUTTON_END_LEVEL
+    // buildhlp says to set it to 32767.  something else said 65535 and something else said just not zero, so I'm
+    // going to just test for not zero for now
+    // verified that Eduke32 will not end the level if the lotag is zero, but WILL end it if its 1.
+    s.getTexture == DukeConstants.TEXTURES.NUKE_BUTTON && s.getLotag != 0
   }
 
   def getAnchor: PointXYZ = getAnchorSprite.getOrElse(
