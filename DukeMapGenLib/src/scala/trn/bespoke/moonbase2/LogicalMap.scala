@@ -101,15 +101,16 @@ class LogicalMap[V, E] {
     adjacentEdges(p).keys.foldLeft(Tile2d(blankVal)) { (tile, heading) => tile.withSide(heading, Tile2d.Conn)}
   }
 
-  /**
-    * TODO obviously this should not be different from getTile().  Also, it should use the new TileSpec class
-    * instead of Tile2d
-    * @return
-    */
-  def getTileForOneway(p: Point3d, higherZone: Int): Tile2d = {
-    val (h, _) = adjacentEdges(p).filter{ case (_, edge) => edges(edge) == higherZone.toString}.head
-    Tile2d(Wildcard).withSide(h, 2)
-  }
+  // /**
+  //   * TODO DRY with TileSpec.toOneWayTile2d
+  //   * TODO obviously this should not be different from getTile().  Also, it should use the new TileSpec class
+  //   * instead of Tile2d
+  //   * @return
+  //   */
+  // def getTileForOneway(p: Point3d, higherZone: Int): Tile2d = {
+  //   val (h, _) = adjacentEdges(p).filter{ case (_, edge) => edges(edge) == higherZone.toString}.head
+  //   Tile2d(Wildcard).withSide(h, 2)
+  // }
 
 
   override def toString: String = {

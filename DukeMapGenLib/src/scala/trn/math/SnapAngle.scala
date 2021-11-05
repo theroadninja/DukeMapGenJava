@@ -1,5 +1,7 @@
 package trn.math
 
+import trn.prefab.Heading
+
 /**
   * Describes an angle as a count of 90 degree, "clockwise" (Build editor POV) rotations.
   *
@@ -30,6 +32,14 @@ case class SnapAngle(cwCount: Int) extends RotatesCW[SnapAngle] {
     var result = other
     (0 until cwCount).foreach { _ =>
       result = result.rotatedCW
+    }
+    result
+  }
+
+  def rotateHeading(heading: Int): Int = {
+    var result = heading
+    (0 until cwCount).foreach { _ =>
+      result = Heading.rotateCW(result)
     }
     result
   }

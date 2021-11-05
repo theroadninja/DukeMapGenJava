@@ -16,6 +16,12 @@ object AlgoHint {
   // val OnewayFromW = 0
   // val OnewayFromN = 0
   val Gate = 4
+  // something about a key? = 5
+
+  /** allows the group to function as a "wildcard" that can connect with any number of connections.  It MUST have four
+    * connections
+    */
+  val WildcardConns = 6
   val Unique = 69
 
   // TODO a "dont-auto-scan" marker for things that have multiple components (or need to be manually built for some other reason)
@@ -32,7 +38,15 @@ object MoonBase3 {
 
   def readTileSectorGroup(gameCfg: GameConfig, palette: PrefabPalette, groupId: Int): TileSectorGroup = {
     val sg = palette.getSG(groupId)
-    val tile = autoReadTile(sg)
+    val connsOptional: Boolean = sg.containsSprite(s => PrefabUtils.isMarker(s, AlgoHint.WildcardConns, PrefabUtils.MarkerSpriteLoTags.ALGO_HINT))
+    val tile = if(connsOptional){
+      val tmp = autoReadTile(sg)
+      require(tmp == Tile2d(Tile2d.Conn), s"group ${groupId} marked as wildcard but does not have all 4 connections")
+      Tile2d(Tile2d.Wildcard)
+    }else{
+      autoReadTile(sg)
+
+    }
     val tags = mutable.Set[String]()
     if(sg.hasPlayerStart){
       tags.add(RoomTags.Start)
@@ -52,20 +66,12 @@ object MoonBase3 {
     val oneway = sg.allSprites.find(s => PrefabUtils.isMarker(s, AlgoHint.OneWay, PrefabUtils.MarkerSpriteLoTags.ALGO_HINT))
     oneway.foreach { s =>
       tags.add(RoomTags.OneWay)
-
-      // TODO this part is a hack.  I should be using the new TileSpec class but I'm already rewriting so much that
-      // I want to just get this working.
-      // TODO also it should verify that the hint sprite is pointing to a side that actually has a connector
-      s.getAngle match {
-        case AngleUtil.ANGLE_RIGHT => tags.add("ONEWAY_E")
-        case AngleUtil.ANGLE_DOWN => tags.add("ONEWAY_S")
-        case AngleUtil.ANGLE_LEFT => tags.add("ONEWAY_W")
-        case AngleUtil.ANGLE_UP => tags.add("ONEWAY_N")
-        case _ => throw new Exception(s"invalid angle for Algo Hint Oneway: ${s.getAngle}")
-      }
-
     }
-    TileSectorGroup(groupId.toString, tile, sg, tags.toSet)
+    if(oneway.isDefined){
+      TileSectorGroup.oneWay(groupId.toString, tile, sg, tags.toSet, oneway.get.getAngle)
+    }else{
+      TileSectorGroup(groupId.toString, tile, sg, tags.toSet)
+    }
   }
 
 
@@ -112,6 +118,12 @@ object MoonBase3 {
       if(! rooms.exists(r => r.tags.contains(RoomTags.Gate) && r.tile.couldMatch(tile))){
         throw new Exception(s"no gate room matches tile ${tile}")
       }
+
+      // TODO this isnt enough, because a (1,1,0,0) is really (2,1,0,0) vs (1,2,0,0) ... one conn goes to a room with
+      // the higher zone, so they are not interchangeable
+      if(! rooms.exists(r => r.tags.contains(RoomTags.OneWay) && r.tile.couldMatch(tile))){
+        throw new Exception(s"no one-way room matches tile ${tile}")
+      }
     }
 
 
@@ -124,8 +136,7 @@ object MoonBase3 {
     val moonPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon3.map"))
     println("loaded moon3.map successfully")
 
-    val allRooms = (1 to 16).map(i => readTileSectorGroup(gameCfg, moonPalette, i))
-    require(moonPalette.numberedSectorGroupCount() == 16)
+    val allRooms = (1 to moonPalette.numberedSectorGroupCount()).map(i => readTileSectorGroup(gameCfg, moonPalette, i))
     sanityCheck(allRooms)
 
 
@@ -140,59 +151,6 @@ object MoonBase3 {
     // }
 
 
-    // TODO DRY with MoonBase2.getTile()
-    def getTile(
-      r: RandomX,
-      node: LogicalRoom,
-      tileSpec: TileSpec, // target: Tile2d,
-      // wildcardTarget: Tile2d, // stupid hack so that tiles with too many connections are still allowed
-      tag: Option[String], // <- the tag requested by the logic map
-      keycolors: Seq[Int]
-    ): TileSectorGroup = {
-
-      val target = tileSpec.toTile2d(Tile2d.Blocked)
-
-      tag match {
-        case Some(RoomTags.Key) => {
-          val keycolor = keycolors(node.keyindex.get)
-          val options = r.shuffle(allRooms.filter(_.tags.contains(RoomTags.Key))).filter(_.tile.couldMatch(target)).toSeq
-          if(options.isEmpty){
-            println(target.toPrettyStr)
-          }
-
-
-
-          val sg = options.head
-          MoonBase2.rotateToMatch(sg, target).withKeyLockColor(gameCfg, keycolor)
-        }
-        case Some(RoomTags.Gate) => {
-          val keycolor = keycolors(node.keyindex.get)
-          val gateSg = r.shuffle(allRooms.filter(_.tags.contains(RoomTags.Gate))).filter(_.tile.couldMatch(target)).toSeq.head
-          MoonBase2.rotateToMatch(gateSg, target).withKeyLockColor(gameCfg, keycolor)
-
-        }
-        case Some(RoomTags.OneWay) => ???
-        case Some(tag) => {
-          // start and end are done here
-          val t = r.shuffle(allRooms.filter(_.tags.contains(tag))).toSeq.head
-          MoonBase2.rotateToMatch(t, target)
-        }
-        case None => {
-          // TODO:  apply the uniqueness requirement to gate and key rooms also!
-          val options = allRooms.find{ tsg =>
-            tsg.tags.intersect(RoomTags.Special).isEmpty && !TileSectorGroup.uniqueViolation(usedTiles, tsg) && tsg.tile.couldMatch(target)
-          }
-          if(options.isEmpty){
-            println(target.toPrettyStr)
-          }
-          val room = r.shuffle(options).toSet.head
-          usedTiles.add(room.id)
-          rotateToMatch(room, target)
-        }
-      }
-
-
-    }
 
 
     val logicalMap = new RandomWalkGenerator(random).generate()
@@ -203,7 +161,7 @@ object MoonBase3 {
       val tileSpec = getTileSpec(logicalMap, gridPoint)
       val target = logicalMap.getTile(gridPoint, Tile2d.Blocked)
       require(target == tileSpec.toTile2d(Tile2d.Blocked))
-      val sg = getTile(random, node, tileSpec, node.tag, keycolors)
+      val sg = getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
       gridPoint -> sg
     }.toMap
 
@@ -214,5 +172,65 @@ object MoonBase3 {
   def main(args: Array[String]): Unit = {
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
     run(gameCfg)
+  }
+
+
+  // TODO DRY with MoonBase2.getTile()
+  def getTile(
+    gameCfg: GameConfig,
+    r: RandomX,
+    allRooms: Seq[TileSectorGroup],
+    usedTiles: mutable.Set[String],
+    node: LogicalRoom,
+    tileSpec: TileSpec, // target: Tile2d,
+    // wildcardTarget: Tile2d, // stupid hack so that tiles with too many connections are still allowed
+    tag: Option[String], // <- the tag requested by the logic map
+    keycolors: Seq[Int]
+  ): TileSectorGroup = {
+
+    val target = tileSpec.toTile2d(Tile2d.Blocked)
+
+    tag match {
+      case Some(RoomTags.Key) => {
+        val keycolor = keycolors(node.keyindex.get)
+        val options = r.shuffle(allRooms.filter(_.tags.contains(RoomTags.Key))).filter(_.tile.couldMatch(target)).toSeq
+        if(options.isEmpty){
+          println(target.toPrettyStr)
+        }
+
+        val sg = options.head
+        MoonBase2.rotateToMatch(sg, target).withKeyLockColor(gameCfg, keycolor)
+      }
+      case Some(RoomTags.Gate) => {
+        val keycolor = keycolors(node.keyindex.get)
+        val gateSg = r.shuffle(allRooms.filter(_.tags.contains(RoomTags.Gate))).filter(_.tile.couldMatch(target)).toSeq.head
+        MoonBase2.rotateToMatch(gateSg, target).withKeyLockColor(gameCfg, keycolor)
+
+      }
+      case Some(RoomTags.OneWay) => {
+        val oneWayTarget = tileSpec.toOneWayTile2d(Tile2d.Blocked)
+        val room = r.shuffle(allRooms.filter(r => r.tags.contains(RoomTags.OneWay) && r.oneWayTile.isDefined && r.oneWayTile.get.couldMatch(oneWayTarget))).toSeq.head
+        MoonBase2.rotateOneWayToMatch(room, room.oneWayTile.get, oneWayTarget)
+      }
+      case Some(tag) => {
+        // start and end are done here
+        val t = r.shuffle(allRooms.filter(_.tags.contains(tag))).toSeq.head
+        MoonBase2.rotateToMatch(t, target)
+      }
+      case None => {
+        // TODO:  apply the uniqueness requirement to gate and key rooms also!
+        val options = allRooms.find{ tsg =>
+          tsg.tags.intersect(RoomTags.Special).isEmpty && !TileSectorGroup.uniqueViolation(usedTiles, tsg) && tsg.tile.couldMatch(target)
+        }
+        if(options.isEmpty){
+          println(target.toPrettyStr)
+        }
+        val room = r.shuffle(options).toSet.head
+        usedTiles.add(room.id)
+        rotateToMatch(room, target)
+      }
+    }
+
+
   }
 }

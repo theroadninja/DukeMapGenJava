@@ -19,6 +19,8 @@ case class TileSpec(e: Side, s: Side, w: Side, n: Side) { // does this need to e
     }
   }
 
+  private[moonbase2] def allSides = Map(Heading.E -> e, Heading.S -> s, Heading.W -> w, Heading.N -> n)
+
   /**
     * TODO - should be temporary
     * @param default - what value to use when encountering an "optional" conn
@@ -33,6 +35,18 @@ case class TileSpec(e: Side, s: Side, w: Side, n: Side) { // does this need to e
       f(n.conn)
     )
   }
+
+  def toOneWayTile2d(default: Int): Tile2d = {
+
+    val zones = allSides.collect { case (_, side) if side.conn == TileSpec.ConnRequired => side.plotZone}.flatten
+    val minZone = zones.min
+    val maxZone = zones.max
+    // val minZone = allSides.filter(_._2.conn == TileSpec.ConnRequired).values.flatMap(_.plotZone).min
+    // val maxZone = allSides.filter(_._2.conn == TileSpec.ConnRequired).values.flatMap(_.plotZone).max
+    require(minZone + 1 == maxZone, s"${toString} min=${minZone} max=${maxZone}")
+    val maxHeading = allSides.collectFirst{ case (heading,side) if side.plotZone == Some(maxZone)  => heading }.get
+    toTile2d(default).withSide(maxHeading, TileSpec.SpecialOneWayVal)
+  }
 }
 
 object TileSpec {
@@ -42,6 +56,8 @@ object TileSpec {
   val ConnBlocked = 0
   /** No requirement about having a connection or not */
   val ConnOptional = -1
+
+  val SpecialOneWayVal = 2
 
   def apply(s: Side): TileSpec = TileSpec(s, s, s, s)
 }

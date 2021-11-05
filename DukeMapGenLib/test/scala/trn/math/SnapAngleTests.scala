@@ -2,6 +2,7 @@ package trn.math
 
 import org.junit.{Assert, Test}
 import trn.logic.Tile2d
+import trn.prefab.Heading
 
 class SnapAngleTests {
 
@@ -80,6 +81,17 @@ class SnapAngleTests {
     Assert.assertEquals(SnapAngle(0), SnapAngle(3).rotatedCW)
 
     Assert.assertEquals(SnapAngle(3), SnapAngle(0).rotatedCW.rotatedCW.rotatedCW)
+  }
+
+  @Test
+  def testRotateHeading(): Unit = {
+    Assert.assertEquals(Heading.E, SnapAngle(0).rotateHeading(Heading.E))
+    Assert.assertEquals(Heading.S, SnapAngle(0).rotateHeading(Heading.S))
+
+    Assert.assertEquals(Heading.S, SnapAngle(1).rotateHeading(Heading.E))
+    Assert.assertEquals(Heading.W, SnapAngle(2).rotateHeading(Heading.E))
+    Assert.assertEquals(Heading.N, SnapAngle(3).rotateHeading(Heading.E))
+    Assert.assertEquals(Heading.E, SnapAngle(4).rotateHeading(Heading.E))
   }
 
   @Test

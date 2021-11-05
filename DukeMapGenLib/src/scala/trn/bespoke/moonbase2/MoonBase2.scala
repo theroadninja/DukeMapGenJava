@@ -6,9 +6,9 @@ import trn.logic.Tile2d._
 import trn.math.RotatesCW
 import trn.prefab._
 import trn.render.{MiscPrinter, Texture, WallAnchor}
-import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, Sprite, SpriteFilter}
-
+import trn.{AngleUtil, HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, Sprite, SpriteFilter}
 import trn.PointImplicits._
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -119,31 +119,9 @@ object HallwayPrinter {
 
 }
 
-// SectorGroup decorated with extra info for this algorithm
-case class TileSectorGroup(
-  id: String, // used to identify which logical room, to prevent unique rooms being used more than once
-  tile: Tile2d,
-  sg: SectorGroup,
-  tags: Set[String]
-) extends RotatesCW[TileSectorGroup] {
-  override def rotatedCW: TileSectorGroup = TileSectorGroup(id, tile.rotatedCW, sg.rotatedCW, Set.empty)
 
-  def withKeyLockColor(gameCfg: GameConfig, color: Int): TileSectorGroup = copy(sg=sg.withKeyLockColor(gameCfg, color))
 
-  // TODO plotzone: Int  (0, 1, 2, K, G, ...) ??  (more like PlacedTileSectorGroup)
-}
 
-object TileSectorGroup {
-  /**
-    * Returns true if the tsg is marked as Unique AND a tsg with the same id has already been placed
-    * @param alreadyPlaced set of ids of tsgs that have already been placed
-    * @param tsg the tsg to check
-    * @return
-    */
-  def uniqueViolation(alreadyPlaced: collection.Set[String], tsg: TileSectorGroup): Boolean = {
-    tsg.tags.contains(RoomTags.Unique) && alreadyPlaced.contains(tsg.id)
-  }
-}
 
 // TODO case class PlacedTileSectorGroup
 
@@ -159,6 +137,13 @@ object MoonBase2 {
   def rotateToMatch(sg: TileSectorGroup, target: Tile2d): TileSectorGroup = {
     val angle = sg.tile.rotationTo(target).get
     angle * sg
+  }
+
+  def rotateOneWayToMatch(sg: TileSectorGroup, sgTile: Tile2d, target: Tile2d): TileSectorGroup = {
+    sg.rotatedToOneWayTarget(target)
+    // val angle = sgTile.rotationTo(target)
+    // require(angle.isDefined, s"sgTile=${sgTile},id=${sg.id} target=${target}")
+    // angle.get * sg
   }
 
   /**
@@ -254,49 +239,47 @@ object MoonBase2 {
     val keycolors: Seq[Int] = random.shuffle(DukeConfig.KeyColors).toSeq
     println(logicalMap)
 
-    def getTsg(tile: Tile2d, sgNumber: Int, tags: Set[String] = Set.empty): TileSectorGroup = TileSectorGroup(sgNumber.toString, tile, moonPalette.getSG(sgNumber), tags)
+    // def getTsg(tile: Tile2d, sgNumber: Int, tags: Set[String] = Set.empty): TileSectorGroup = TileSectorGroup(sgNumber.toString, tile, moonPalette.getSG(sgNumber), tags)
 
-    val startSg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 1)
-    val fourWay = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 2)
-    val endSg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 3)
-    val keySg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 4)
+    // val startSg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 1)
+    // val fourWay = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 2)
+    // val endSg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 3)
+    // val keySg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 4)
+    // val gateSgLeftEdge = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 5)
+    // val someT = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 6)
+    // val gateSg3 = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 7)
+    // val windowRoom1 = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 8)
+    // val conferenceRoom = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 9)
+    // val conveyor = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 11)
+    // val bar = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 12)
+    // val lectureHall = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 13)
+    // val blastDoorsRoom = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 14)
+    // val blueRoom = getTsg(Tile2d(Wildcard), 15) // modular room
+    // val blueRoom = getTsg(Tile2d(Conn), 15) // modular room
+    // val fanRoom = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 20)
+    // println(fanRoom.tile)
+    // require(fanRoom.tile.couldMatch(Tile2d(Conn, Blocked, Blocked, Blocked)))
 
-    val gateSgLeftEdge = getTsg(Tile2d(Conn), 5)
-    val gateSgTopEdge = getTsg(Tile2d(Conn), 6)
-    val gateSg3 = getTsg(Tile2d(Conn, Conn, Blocked, Blocked), 7)
+    require(MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 25).oneWayTile.isDefined)
+    require(MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 25).tags.contains(RoomTags.OneWay))
 
-    val windowRoom1 = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 8)
-    val conferenceRoom = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 9)
-    val conveyor = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 11)
-    val bar = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 12)
-    val lectureHall = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 13)
-    val blastDoorsRoom = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 14)
 
-    val blueRoom = getTsg(Tile2d(Wildcard), 15) // modular room
+    val sg24 = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 24)
+    require(sg24.oneWayTile.get == Tile2d(Tile2d.Blocked, Tile2d.Conn, 2, Tile2d.Blocked), s"${sg24.oneWayTile.get}")
 
-    val fanRoom = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 20)
-
-    val standardRooms = Seq(windowRoom1, conferenceRoom, conveyor, bar, blastDoorsRoom, fanRoom, blueRoom, fourWay)
-
+    val sg = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 10)
+    require(sg.oneWayTile.get == Tile2d(Tile2d.Blocked, Tile2d.Conn, Tile2d.Blocked, 2), s"${sg.oneWayTile.get}")
 
     // ONE-WAY
-    val area51 = getTsg(Tile2d(Conn, Conn, Conn, 2), 10, Set("ONEWAY"))
+    // val area51 = getTsg(Tile2d(Conn, Conn, Conn, 2), 10, Set("ONEWAY"))
+    //val area51 = MoonBase3.readTileSectorGroup(gameCfg, moonPalette, 10)
 
     // NOTE:  some of my standard space doors are 2048 wide
 
-    val allRooms = Seq(startSg, fourWay, endSg, keySg, gateSgLeftEdge, gateSgTopEdge, gateSg3, windowRoom1,
-      conferenceRoom, conveyor, bar, lectureHall, blastDoorsRoom, blueRoom, fanRoom) ++ (21 to 23).map(i => MoonBase3.readTileSectorGroup(gameCfg, moonPalette, i))
-    // TODO MoonBase3.sanityCheck(allRooms)
+    val allRooms = (1 to 15).map(i => MoonBase3.readTileSectorGroup(gameCfg, moonPalette, i)) ++ (20 to 25).map(i => MoonBase3.readTileSectorGroup(gameCfg, moonPalette, i))
+    MoonBase3.sanityCheck(allRooms)
 
-    // val uniqueTiles = Set(bar, conveyor, conferenceRoom, windowRoom1).map(_.id)
-    require(standardRooms.filter(_.tags.contains(RoomTags.Unique)).size == 4)
     val usedTiles = mutable.Set[String]()
-
-
-    def getKeyTile(gameCfg: GameConfig, r: RandomX, target: Tile2d, keycolor: Int): TileSectorGroup = {
-      val options = r.shuffle(Seq(keySg, lectureHall)).filter(t => t.tile.couldMatch(target)).toSeq
-      rotateToMatch(options.head, target).withKeyLockColor(gameCfg, keycolor)
-    }
 
     /**
       * @param tileSpec the shape (connector vs no conn on each side) it needs to fit
@@ -306,43 +289,36 @@ object MoonBase2 {
       node: LogicalRoom,
       tileSpec: TileSpec, // target: Tile2d,
       wildcardTarget: Tile2d, // stupid hack so that tiles with too many connections are still allowed
-      tag: Option[String]
+      tag: Option[String],
+      keycolors: Seq[Int],
     ): TileSectorGroup = {
 
       val target = tileSpec.toTile2d(Tile2d.Blocked)
-      val rooms = Seq(startSg, endSg, area51) ++ standardRooms // TODO more here
 
       // TODO "START" should be a constant
       if(tag == Some("KEY")){
         val keycolor = keycolors(node.keyindex.get)
+        val options = r.shuffle(allRooms.filter(r => r.tags.contains(RoomTags.Key) && r.tile.couldMatch(target))).toSeq
+        rotateToMatch(options.head, target).withKeyLockColor(gameCfg, keycolor)
 
-        getKeyTile(gameCfg, random, wildcardTarget, keycolor) // TODO getKeyTile already rotated it...
+        // getKeyTile(gameCfg, random, wildcardTarget, keycolor) // TODO getKeyTile already rotated it...
 
       }else if(tag == Some("GATE")) {
-        //val keycolor: Int =  keycolors(s(1).toString.toInt - 1)
         val keycolor = keycolors(node.keyindex.get)
-
-
-        // TODO cant do a simply rotation because it matters wich conns are blocked by the gate
-        // TODO this is a good first adopter for the code that will calculate each tile based on neighboors
-        val gateSg = if (target.w == Tile2d.Conn) {
-          gateSgLeftEdge
-        } else if (target.n == Tile2d.Conn) {
-          gateSgTopEdge
-        } else {
-          gateSg3
-        }
-        gateSg.withKeyLockColor(gameCfg, keycolor)
+        val gateSg = random.shuffle(allRooms.filter(r => r.tags.contains(RoomTags.Gate) && r.tile.couldMatch(target))).toSeq.head
+        val gateSg2 = gateSg.withKeyLockColor(gameCfg, keycolor)
+        rotateToMatch(gateSg2, target)
 
       }else if(tag == Some("ONEWAY")){
-        r.shuffle(rooms.filter(_.tags.contains(tag.get))).toSeq.head
+        r.shuffle(allRooms.filter(_.tags.contains(tag.get))).toSeq.head
+
+
+
       }else if(tag.isDefined){
-        val t = r.shuffle(rooms.filter(_.tags.contains(tag.get))).toSeq.head
+        val t = r.shuffle(allRooms.filter(_.tags.contains(tag.get))).toSeq.head
         rotateToMatch(t, target)
       }else{
-        // TODO make sure to exclude rooms with tags (because of end room, and oneway rooms)
-        // val room = random.shuffle(standardRooms).find(t => t.tile.couldMatch(target) && !(uniqueTiles.contains(t.id) && usedTiles.contains(t.id))).getOrElse(fourWay)
-        val room = random.shuffle(standardRooms).find(t => t.tile.couldMatch(target) && !TileSectorGroup.uniqueViolation(usedTiles, t)).getOrElse(fourWay)
+        val room = random.shuffle(allRooms).find(t => t.tags.intersect(RoomTags.Special).isEmpty && t.tile.couldMatch(target) && !TileSectorGroup.uniqueViolation(usedTiles, t)).get
         usedTiles.add(room.id)
         rotateToMatch(room, wildcardTarget)
       }
@@ -367,26 +343,36 @@ object MoonBase2 {
 
       val sg = nodeType match {
         case "S" => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag)
+          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
         }
         case "E" => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag)
+          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
         }
         case s if s.startsWith("K") => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag)
+          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
         }
         case s if s.startsWith("G") => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag)
+          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
         }
         case s if s.endsWith("<") => {
-          val onewaySg = getTile(random, node, tileSpec, wildcardTarget, node.tag)
+          //val onewaySg = getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
+          require(node.tag == Some("ONEWAY"))
+          val onewaySg = MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
+          require(onewaySg.tags.contains(RoomTags.OneWay))
+          require(onewaySg.oneWayTile.isDefined, s"sg id=${onewaySg.id}")
+
+
+
+
           // so the edges have a value that is a string, usually z-length but set to the node level when near a oneway...
           // TODO calculate this from tileSpec instead
-          val targetOneway = logicalMap.getTileForOneway(gridPoint, node.higherZone.get)
-          rotateToMatch(onewaySg, targetOneway)
+          // val targetOneway = logicalMap.getTileForOneway(gridPoint, node.higherZone.get)
+          val targetOneway = tileSpec.toOneWayTile2d(Tile2d.Blocked)
+          rotateOneWayToMatch(onewaySg, onewaySg.oneWayTile.get, targetOneway)
+          //rotateToMatch(onewaySg, targetOneway)
         }
         case _ => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag)
+          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
         }
       }
       gridPoint -> sg
