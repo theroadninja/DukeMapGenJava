@@ -77,6 +77,9 @@ object MoonBase3 {
 
   /**
     * Make sure that we have all the shapes X room types that we need.
+    *
+    * // TODO filter out uniqe rooms first!  for example if the only corner-shaped key room is unique, that will
+    * cause a failure later.
     * @param rooms
     */
   def sanityCheck(rooms: Seq[TileSectorGroup]): Unit = {
@@ -190,37 +193,41 @@ object MoonBase3 {
 
     val target = tileSpec.toTile2d(Tile2d.Blocked)
 
+    def uniqOk(tsg: TileSectorGroup): Boolean = !TileSectorGroup.uniqueViolation(usedTiles, tsg)
+
     tag match {
       case Some(RoomTags.Key) => {
         val keycolor = keycolors(node.keyindex.get)
-        val options = r.shuffle(allRooms.filter(_.tags.contains(RoomTags.Key))).filter(_.tile.couldMatch(target)).toSeq
-        if(options.isEmpty){
-          println(target.toPrettyStr)
+        val sg = r.randomElementOpt(allRooms.filter(r => r.hasTag(RoomTags.Key) && r.tile.couldMatch(target) && uniqOk(r))).getOrElse{
+          throw new Exception(s"could not find Key room to match ${target}")
         }
-
-        val sg = options.head
+        usedTiles.add(sg.id)
         MoonBase2.rotateToMatch(sg, target).withKeyLockColor(gameCfg, keycolor)
       }
       case Some(RoomTags.Gate) => {
         val keycolor = keycolors(node.keyindex.get)
-        val gateSg = r.shuffle(allRooms.filter(_.tags.contains(RoomTags.Gate))).filter(_.tile.couldMatch(target)).toSeq.head
+        val gateSg = r.randomElement(allRooms.filter(r => r.hasTag(RoomTags.Gate) && r.tile.couldMatch(target) && uniqOk(r)))
+        usedTiles.add(gateSg.id)
         MoonBase2.rotateToMatch(gateSg, target).withKeyLockColor(gameCfg, keycolor)
-
       }
       case Some(RoomTags.OneWay) => {
         val oneWayTarget = tileSpec.toOneWayTile2d(Tile2d.Blocked)
-        val room = r.shuffle(allRooms.filter(r => r.tags.contains(RoomTags.OneWay) && r.oneWayTile.isDefined && r.oneWayTile.get.couldMatch(oneWayTarget))).toSeq.head
+        // println(oneWayTarget)
+        require(allRooms.exists(r => r.hasTag(RoomTags.OneWay) && r.oneWayTile.isDefined))
+        val room = r.randomElement(allRooms.filter(r => r.hasTag(RoomTags.OneWay) && r.oneWayTile.isDefined && r.oneWayTile.get.couldMatch(oneWayTarget) && uniqOk(r)))
+        usedTiles.add(room.id)
         MoonBase2.rotateOneWayToMatch(room, room.oneWayTile.get, oneWayTarget)
       }
       case Some(tag) => {
         // start and end are done here
-        val t = r.shuffle(allRooms.filter(_.tags.contains(tag))).toSeq.head
+        val t = r.randomElement(allRooms.filter(r => r.tags.contains(tag) && uniqOk(r)))
+        usedTiles.add(t.id)
         MoonBase2.rotateToMatch(t, target)
       }
       case None => {
         // TODO:  apply the uniqueness requirement to gate and key rooms also!
         val options = allRooms.find{ tsg =>
-          tsg.tags.intersect(RoomTags.Special).isEmpty && !TileSectorGroup.uniqueViolation(usedTiles, tsg) && tsg.tile.couldMatch(target)
+          tsg.tags.intersect(RoomTags.Special).isEmpty && uniqOk(tsg) && tsg.tile.couldMatch(target)
         }
         if(options.isEmpty){
           println(target.toPrettyStr)

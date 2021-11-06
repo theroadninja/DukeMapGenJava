@@ -119,12 +119,6 @@ object HallwayPrinter {
 
 }
 
-
-
-
-
-// TODO case class PlacedTileSectorGroup
-
 object MoonBase2 {
 
   def getMoon2Map(): String = HardcodedConfig.getEduke32Path("moon2.map")
@@ -141,9 +135,6 @@ object MoonBase2 {
 
   def rotateOneWayToMatch(sg: TileSectorGroup, sgTile: Tile2d, target: Tile2d): TileSectorGroup = {
     sg.rotatedToOneWayTarget(target)
-    // val angle = sgTile.rotationTo(target)
-    // require(angle.isDefined, s"sgTile=${sgTile},id=${sg.id} target=${target}")
-    // angle.get * sg
   }
 
   /**
@@ -235,6 +226,7 @@ object MoonBase2 {
     val moonPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon2.map"))
     println("loaded moon2.map")
 
+    // val logicalMap = new RandomWalkGenerator(random).hardcodedTest() // TODO doesnt pull in all the rooms
     val logicalMap = new RandomWalkGenerator(random).generate()
     val keycolors: Seq[Int] = random.shuffle(DukeConfig.KeyColors).toSeq
     println(logicalMap)
@@ -281,100 +273,43 @@ object MoonBase2 {
 
     val usedTiles = mutable.Set[String]()
 
-    /**
-      * @param tileSpec the shape (connector vs no conn on each side) it needs to fit
-      */
-    def getTile(
-      r: RandomX,
-      node: LogicalRoom,
-      tileSpec: TileSpec, // target: Tile2d,
-      wildcardTarget: Tile2d, // stupid hack so that tiles with too many connections are still allowed
-      tag: Option[String],
-      keycolors: Seq[Int],
-    ): TileSectorGroup = {
-
-      val target = tileSpec.toTile2d(Tile2d.Blocked)
-
-      // TODO "START" should be a constant
-      if(tag == Some("KEY")){
-        val keycolor = keycolors(node.keyindex.get)
-        val options = r.shuffle(allRooms.filter(r => r.tags.contains(RoomTags.Key) && r.tile.couldMatch(target))).toSeq
-        rotateToMatch(options.head, target).withKeyLockColor(gameCfg, keycolor)
-
-        // getKeyTile(gameCfg, random, wildcardTarget, keycolor) // TODO getKeyTile already rotated it...
-
-      }else if(tag == Some("GATE")) {
-        val keycolor = keycolors(node.keyindex.get)
-        val gateSg = random.shuffle(allRooms.filter(r => r.tags.contains(RoomTags.Gate) && r.tile.couldMatch(target))).toSeq.head
-        val gateSg2 = gateSg.withKeyLockColor(gameCfg, keycolor)
-        rotateToMatch(gateSg2, target)
-
-      }else if(tag == Some("ONEWAY")){
-        r.shuffle(allRooms.filter(_.tags.contains(tag.get))).toSeq.head
-
-
-
-      }else if(tag.isDefined){
-        val t = r.shuffle(allRooms.filter(_.tags.contains(tag.get))).toSeq.head
-        rotateToMatch(t, target)
-      }else{
-        val room = random.shuffle(allRooms).find(t => t.tags.intersect(RoomTags.Special).isEmpty && t.tile.couldMatch(target) && !TileSectorGroup.uniqueViolation(usedTiles, t)).get
-        usedTiles.add(room.id)
-        rotateToMatch(room, wildcardTarget)
-      }
-
-    }
-
-
     println("generating map")
     val sgChoices: Map[Point3d, TileSectorGroup] = logicalMap.nodes.map { case (gridPoint: Point3d, node: LogicalRoom) =>
       val nodeType = node.s
 
       val tileSpec = getTileSpec(logicalMap, gridPoint)
       val target = logicalMap.getTile(gridPoint, Tile2d.Blocked)
-      val wildcardTarget = logicalMap.getTile(gridPoint, Tile2d.Wildcard)
-
       require(target == tileSpec.toTile2d(Tile2d.Blocked))
 
-      // TODO this fails because getTileSpec() is the only one that enforces the blocked thing based on node presence (
-      // TODO getTile() only cares if there is an edge)
-      //require(wildcardTarget == tileSpec.toTile2d(Tile2d.Wildcard), s"${wildcardTarget} != ${tileSpec.toTile2d(Tile2d.Wildcard)}")
-
-
-      val sg = nodeType match {
-        case "S" => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-        }
-        case "E" => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-        }
-        case s if s.startsWith("K") => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-        }
-        case s if s.startsWith("G") => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-        }
-        case s if s.endsWith("<") => {
-          //val onewaySg = getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-          require(node.tag == Some("ONEWAY"))
-          val onewaySg = MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
-          require(onewaySg.tags.contains(RoomTags.OneWay))
-          require(onewaySg.oneWayTile.isDefined, s"sg id=${onewaySg.id}")
-
-
-
-
-          // so the edges have a value that is a string, usually z-length but set to the node level when near a oneway...
-          // TODO calculate this from tileSpec instead
-          // val targetOneway = logicalMap.getTileForOneway(gridPoint, node.higherZone.get)
-          val targetOneway = tileSpec.toOneWayTile2d(Tile2d.Blocked)
-          rotateOneWayToMatch(onewaySg, onewaySg.oneWayTile.get, targetOneway)
-          //rotateToMatch(onewaySg, targetOneway)
-        }
-        case _ => {
-          getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-        }
-      }
+      val sg = MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
+      // val sg = nodeType match {
+      //   case "S" => {
+      //     // getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
+      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
+      //   }
+      //   case "E" => {
+      //     //getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
+      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
+      //   }
+      //   case s if s.startsWith("K") => {
+      //     // getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
+      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
+      //   }
+      //   case s if s.startsWith("G") => {
+      //     // getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
+      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
+      //   }
+      //   case s if s.endsWith("<") => {
+      //     val onewaySg = MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
+      //     //val targetOneway = tileSpec.toOneWayTile2d(Tile2d.Blocked)
+      //     //rotateOneWayToMatch(onewaySg, onewaySg.oneWayTile.get, targetOneway)
+      //     onewaySg
+      //   }
+      //   case _ => {
+      //     // getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
+      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
+      //   }
+      // }
       gridPoint -> sg
     }.toMap
 

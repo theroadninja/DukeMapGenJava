@@ -123,6 +123,41 @@ class RandomWalkGenerator(r: RandomX) {
     map.nodes.keys.flatMap(p => p.adj).toSet
   }
 
+
+  /** for testing */
+  def hardcodedTest(): LogicalMap[LogicalRoom, String] = {
+    val map = LogicalMap[LogicalRoom, String]()
+
+    def putRow(map: LogicalMap[LogicalRoom, String], p: Point3d, rooms: Seq[String]): Unit = {
+      (0 until rooms.size).zip(rooms).foreach { case(index, room) =>
+        val p2 = p.copy(x = p.x + index)
+        map.put(p2, LogicalRoom(room))
+      }
+    }
+
+    putRow(map, Point3d(0, 0, 0), Seq("1",  "K2", "1<", "2"))
+    putRow(map, Point3d(0, 1, 0), Seq("G1", "K1", "G2", "K3"))
+    putRow(map, Point3d(0, 2, 0), Seq("E",  "0",  "0"))
+    putRow(map, Point3d(0, 3, 0), Seq("3",  "G3", "S"))
+
+    map.putEdge(Point3d(0, 0, 0), Point3d(1, 0, 0), "")
+    map.putEdge(Point3d(1, 0, 0), Point3d(2, 0, 0), "1")
+    map.putEdge(Point3d(2, 0, 0), Point3d(3, 0, 0), "2")
+
+    (0 until 3).foreach(i => map.putEdge(Point3d(i, 1, 0), Point3d(i+1, 1, 0), "")) // horizontal edges, second row
+    map.putEdge(Point3d(1, 2, 0), Point3d(2, 2, 0), "")
+    map.putEdge(Point3d(0, 3, 0), Point3d(1, 3, 0), "")
+
+    // vertical
+    map.putEdge(Point3d(0, 0, 0), Point3d(0, 1, 0), "")
+    map.putEdge(Point3d(3, 0, 0), Point3d(3, 1, 0), "")
+    map.putEdge(Point3d(1, 1, 0), Point3d(1, 2, 0), "")
+    (0 until 3).foreach(i => map.putEdge(Point3d(i, 2, 0), Point3d(i, 3, 0), ""))
+
+    map
+  }
+
+  /** main generation code */
   def generate(): LogicalMap[LogicalRoom, String] = {
     val map = LogicalMap[LogicalRoom, String]()
 

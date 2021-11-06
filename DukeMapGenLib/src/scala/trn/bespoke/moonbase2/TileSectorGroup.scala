@@ -14,6 +14,7 @@ case class TileSectorGroup(
   oneWayHigherSideHeading: Option[Int]
 ) extends RotatesCW[TileSectorGroup] {
 
+  def hasTag(tag: String): Boolean = tags.contains(tag)
 
   // TODO rotate the heading
   override def rotatedCW: TileSectorGroup = TileSectorGroup(id, tile.rotatedCW, sg.rotatedCW, tags, oneWayHigherSideHeading.map(Heading.rotateCW))
