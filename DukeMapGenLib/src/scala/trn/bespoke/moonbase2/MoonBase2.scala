@@ -268,7 +268,9 @@ object MoonBase2 {
 
     // NOTE:  some of my standard space doors are 2048 wide
 
-    val allRooms = (1 to 15).map(i => MoonBase3.readTileSectorGroup(gameCfg, moonPalette, i)) ++ (20 to 25).map(i => MoonBase3.readTileSectorGroup(gameCfg, moonPalette, i))
+    // TODO remove the filterNot
+    val allRooms = ((1 to 16).map(i =>
+      MoonBase3.readTileSectorGroup(gameCfg, moonPalette, i)) ++ (19 to 27).map(i => MoonBase3.readTileSectorGroup(gameCfg, moonPalette, i)))//.filterNot(r => r.id == 2.toString || r.id == 15.toString)
     MoonBase3.sanityCheck(allRooms)
 
     val usedTiles = mutable.Set[String]()

@@ -44,8 +44,11 @@ case class TileSpec(e: Side, s: Side, w: Side, n: Side) { // does this need to e
     // val minZone = allSides.filter(_._2.conn == TileSpec.ConnRequired).values.flatMap(_.plotZone).min
     // val maxZone = allSides.filter(_._2.conn == TileSpec.ConnRequired).values.flatMap(_.plotZone).max
     require(minZone + 1 == maxZone, s"${toString} min=${minZone} max=${maxZone}")
-    val maxHeading = allSides.collectFirst{ case (heading,side) if side.plotZone == Some(maxZone)  => heading }.get
-    toTile2d(default).withSide(maxHeading, TileSpec.SpecialOneWayVal)
+    val maxHeading = allSides.collectFirst{ case (heading,side) if side.conn == TileSpec.ConnRequired && side.plotZone == Some(maxZone)  => heading }.get
+    val result = toTile2d(default).withSide(maxHeading, TileSpec.SpecialOneWayVal)
+    require(result.sides.count(_ != Tile2d.Blocked) == 2, s"toOneWayTile2d error default=${default} this=${this} result=${result}")
+
+    result
   }
 }
 

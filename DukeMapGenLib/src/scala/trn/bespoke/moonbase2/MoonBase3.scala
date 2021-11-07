@@ -214,7 +214,9 @@ object MoonBase3 {
         val oneWayTarget = tileSpec.toOneWayTile2d(Tile2d.Blocked)
         // println(oneWayTarget)
         require(allRooms.exists(r => r.hasTag(RoomTags.OneWay) && r.oneWayTile.isDefined))
-        val room = r.randomElement(allRooms.filter(r => r.hasTag(RoomTags.OneWay) && r.oneWayTile.isDefined && r.oneWayTile.get.couldMatch(oneWayTarget) && uniqOk(r)))
+        val room = r.randomElementOpt(allRooms.filter(r => r.hasTag(RoomTags.OneWay) && r.oneWayTile.isDefined && r.oneWayTile.get.couldMatch(oneWayTarget) && uniqOk(r))).getOrElse{
+          throw new Exception(s"could not find oneway room for ${oneWayTarget}")
+        }
         usedTiles.add(room.id)
         MoonBase2.rotateOneWayToMatch(room, room.oneWayTile.get, oneWayTarget)
       }
@@ -225,14 +227,13 @@ object MoonBase3 {
         MoonBase2.rotateToMatch(t, target)
       }
       case None => {
-        // TODO:  apply the uniqueness requirement to gate and key rooms also!
-        val options = allRooms.find{ tsg =>
+        val options = allRooms.filter{ tsg =>
           tsg.tags.intersect(RoomTags.Special).isEmpty && uniqOk(tsg) && tsg.tile.couldMatch(target)
         }
         if(options.isEmpty){
           println(target.toPrettyStr)
         }
-        val room = r.shuffle(options).toSet.head
+        val room = r.randomElement(options)
         usedTiles.add(room.id)
         rotateToMatch(room, target)
       }

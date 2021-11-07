@@ -10,6 +10,8 @@ import scala.collection.JavaConverters._
 import scala.io.Source
 
 /**
+  * TODO there is some stuff about sprite angles in GameLogic
+  *
   * This is intended to represent game-specific information, as an input, so avoid hard coding things.
   * For example, the fact that a sprite with texture 142 ends a level is specific to Duke3d and probably
   * not relevant to other build games.

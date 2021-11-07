@@ -51,6 +51,8 @@ case class Tile2d(e: Int, s: Int, w: Int, n: Int) extends RotatesCW[Tile2d] {
   // }
   def couldMatch(other: Tile2d): Boolean = rotationTo(other).isDefined
 
+  def sides: Seq[Int] = Seq(e, s, w, n)
+
   /**
     *
     * @param heading a Heading value that indicates which side (e.g. Heading.E for e)
