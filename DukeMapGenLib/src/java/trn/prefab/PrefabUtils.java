@@ -1,6 +1,5 @@
 package trn.prefab;
 
-import trn.DukeConstants;
 import trn.ISpriteFilter;
 import trn.Sprite;
 import trn.SpriteFilter;
@@ -216,7 +215,7 @@ public class PrefabUtils {
 				});
 	}
 
-	public static int MARKER_SPRITE_TEX = DukeConstants.TEXTURES.CONSTRUCTION_SPRITE;
+	public static int MARKER_SPRITE_TEX = 355;  // the construction sprite
 
 	public static boolean isMarker(Sprite s) {
 		return s.getTexture() == MARKER_SPRITE_TEX && s.getPal() == 0 && s.getLotag() > 0;

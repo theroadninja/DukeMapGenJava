@@ -2,11 +2,7 @@ package trn.duke.experiments.stonetunnels;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import trn.DukeConstants;
-import trn.Map;
-import trn.PointXY;
-import trn.Sprite;
-import trn.Wall;
+import trn.*;
 import trn.duke.TextureList;
 import trn.duke.experiments.gridblock.AbstractBlock;
 import trn.duke.experiments.gridblock.Block;
@@ -20,7 +16,10 @@ import trn.maze.Heading;
  *
  */
 public class ExitBlock extends AbstractBlock implements Block {
-	
+
+	// TODO apparently any nonzero value will work, and buildhlp claims it should be 32767....
+	public static final int NUKE_BUTTON_END_LEVEL = 65535;
+
 	private Connector connector;
 	
 	private final Heading connectorEdge = Heading.NORTH;
@@ -68,8 +67,8 @@ public class ExitBlock extends AbstractBlock implements Block {
 		exitSprite.setCstat((short)Sprite.CSTAT_FLAGS.PLACED_ON_WALL);
 		exitSprite.setXRepeat(21);
 		exitSprite.setYRepeat(26);
-		exitSprite.setAngle(DukeConstants.ANGLE_NORTH);
-		exitSprite.setLotag(DukeConstants.LOTAGS.NUKE_BUTTON_END_LEVEL);
+		exitSprite.setAngle(AngleUtil.ANGLE_UP);
+		exitSprite.setLotag(NUKE_BUTTON_END_LEVEL);
 		
 		map.addSprite(exitSprite);
 		

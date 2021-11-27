@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import trn.duke.Util;
+import trn.duke.experiments.ExperimentUtil;
 
 /**
  * See also MapUtil
@@ -26,13 +26,13 @@ public class GridUtils {
 	 */
 	public static void linkSectors(trn.Map map, int sector0, int sector1){
 
-		Pair<List<Integer>, List<Integer>> overlappingWalls = Util.filterOverlappingPoints(map, sector0, sector1);
+		Pair<List<Integer>, List<Integer>> overlappingWalls = ExperimentUtil.filterOverlappingPoints(map, sector0, sector1);
 		
 		if(overlappingWalls.getLeft().size() != 2) throw new RuntimeException(String.format("sector0=%d sector1=%d", sector0, sector1));
 		if(overlappingWalls.getRight().size() != 2) throw new RuntimeException();
 		
-		Util.orderWalls(map, overlappingWalls.getLeft());
-		Util.orderWalls(map, overlappingWalls.getRight());
+		ExperimentUtil.orderWalls(map, overlappingWalls.getLeft());
+		ExperimentUtil.orderWalls(map, overlappingWalls.getRight());
 		
 		/*
 		System.out.println("-----wall set 1");

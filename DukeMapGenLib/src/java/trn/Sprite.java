@@ -160,7 +160,7 @@ public class Sprite implements IRayXY {
 		this.yoffset = 0;
 		this.sectnum = sectnum;
 		this.statnum = 0;
-		this.ang = DukeConstants.DEFAULT_ANGLE;
+		this.ang = AngleUtil.ANGLE_UP;
 		this.owner = -1;
 		this.xvel = this.yvel = this.zvel = 0;
 		this.lotag = 0;

@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 import trn.prefab.PrefabPalette
 import trn.prefab.experiments.Hypercube4.{Filename, run}
-import trn.{DukeConstants, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 
 trait PrefabExperiment {
 

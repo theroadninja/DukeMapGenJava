@@ -1,5 +1,6 @@
 package trn.prefab;
 
+@Deprecated
 public interface ConnectorFilter {
 	boolean matches(Connector c);
 	

@@ -7,6 +7,20 @@ import trn.prefab.BoundingBox
 // TODO - should this be merged with GameConfig ?
 object BuildConstants {
 
+  /*
+  Notes on the grid sizes from the DOS version of BUILD that came with Duke3d (Mapster32 has more)
+
+	public static final class GridSizes {
+		public static final int LARGEST = 1024;
+		//512
+		//256
+		//128
+		//64
+		//32
+		public static final int SMALLEST = 32;
+	}
+   */
+
   // These are duplicated in Map.java, but I don't want to created a reference to it
   val MAX_X = 65536
   val MIN_X: Int = -65536
@@ -23,6 +37,9 @@ object BuildConstants {
 
   /** Height in z units of a single PGUP / PGDOWN action in the build editor */
   val ZStepHeight = 1024
+
+  /** from http://infosuite.duke4.net/index.php?page=references_dimensions */
+  // public static final int MAX_DUKE_JUMP_HEIGHT = 20;
 
   /** minimum sector height, in PgUp/PgDown steps, that duke can enter without ducking */
   val MinStandingSectorHeightSteps = 11

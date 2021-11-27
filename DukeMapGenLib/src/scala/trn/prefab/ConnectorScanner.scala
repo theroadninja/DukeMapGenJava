@@ -1,6 +1,6 @@
 package trn.prefab
 
-import trn.{AngleUtil, DukeConstants, IRayXY, ISpriteFilter, IntersectXY, LineSegmentXY, LineXY, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
+import trn.{AngleUtil, IRayXY, IntersectXY, LineSegmentXY, LineXY, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
 import trn.MapImplicits._
 import org.apache.commons.lang3.tuple.{Pair => ApachePair}
 

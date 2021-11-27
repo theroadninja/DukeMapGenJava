@@ -1,7 +1,7 @@
 package trn.prefab
 
 import trn.duke.{MapErrorException, TextureList}
-import trn.{DukeConstants, ISpriteFilter, MapUtil, MapUtilScala, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, Map => DMap}
+import trn.{ISpriteFilter, MapUtil, MapUtilScala, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
 import trn.math.RotatesCW
 
@@ -472,11 +472,12 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
   def hasPlayerStart: Boolean = hasMarker(PrefabUtils.MarkerSpriteLoTags.PLAYER_START)
 
+  // TODO this is duke-specific logic
   def hasEndGame: Boolean = containsSprite{ s =>
     // buildhlp says to set it to 32767.  something else said 65535 and something else said just not zero, so I'm
     // going to just test for not zero for now
     // verified that Eduke32 will not end the level if the lotag is zero, but WILL end it if its 1.
-    s.getTexture == DukeConstants.TEXTURES.NUKE_BUTTON && s.getLotag != 0
+    s.getTexture == TextureList.Switches.NUKE_BUTTON && s.getLotag != 0
   }
 
   def getAnchor: PointXYZ = getAnchorSprite.getOrElse(

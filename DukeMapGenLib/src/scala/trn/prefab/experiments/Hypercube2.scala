@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{DukeConstants, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.{PaletteList, TextureList}
 import trn.prefab.experiments.Hyper2MapBuilder.Cell

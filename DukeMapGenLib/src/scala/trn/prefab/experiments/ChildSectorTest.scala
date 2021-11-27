@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab.{DukeConfig, GameConfig, HardcodedGameConfigProvider, MapBuilder, MapWriter, PrefabPalette}
-import trn.{DukeConstants, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 
 import scala.collection.JavaConverters._
 

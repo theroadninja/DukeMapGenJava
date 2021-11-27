@@ -1,5 +1,5 @@
 package trn.prefab.experiments
-import trn.{BuildConstants, DukeConstants, FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
+import trn.{BuildConstants, FuncUtils, MapLoader, MapUtil, PointXY, Map => DMap}
 import trn.prefab.{BoundingBox, CompassWriter, DukeConfig, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
 import trn.duke.TextureList

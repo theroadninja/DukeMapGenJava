@@ -9,10 +9,8 @@ import trn.Main;
 import trn.Map;
 import trn.PlayerStart;
 import trn.Sector;
-import trn.duke.Util;
 import trn.duke.experiments.gridblock.Block;
 import trn.duke.experiments.gridblock.Grid;
-import trn.duke.experiments.gridblock.GridUtils;
 import trn.maze.DfsMazeGen;
 import trn.maze.Heading;
 
@@ -46,8 +44,8 @@ public class E7BetterBlocks {
 		//2. assign random integers to represent tilesets/blocks
 		for(Pair<Integer, Integer> node : graph.getAdjacencyList().keySet()){
 			LegacyGrid.BlockInfo bi = graph.getBlockInfo(node);
-			bi.tileset = BLOCKS[Util.getRandom().nextInt(BLOCKS.length)];
-			bi.floorZ = Integer.valueOf(floorz[Util.getRandom().nextInt(floorz.length)]);
+			bi.tileset = BLOCKS[ExperimentUtil.getRandom().nextInt(BLOCKS.length)];
+			bi.floorZ = Integer.valueOf(floorz[ExperimentUtil.getRandom().nextInt(floorz.length)]);
 		}
 		
 		

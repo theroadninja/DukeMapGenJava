@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{DukeConstants, Main, MapLoader, MapUtil, PointXY, PointXYZ, Map => DMap}
+import trn.{Main, MapLoader, MapUtil, PointXY, PointXYZ, Map => DMap}
 import scala.collection.JavaConverters._
 
 class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder with HardcodedGameConfigProvider {

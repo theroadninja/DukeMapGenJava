@@ -2,7 +2,6 @@ package trn.duke.experiments.gridblock;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import trn.DukeConstants;
 import trn.Map;
 import trn.Sector;
 import trn.Sprite;
@@ -16,6 +15,11 @@ import trn.duke.TextureList;
  *
  */
 public class VertDoorBlock extends VertBlock implements Block {
+
+	/** simple door that comes down from ceiling */
+	public static final int DOOR = 20;
+
+	public static final int DOOR_OPERATE1 = 74;
 
 	/** its the red one with black trim, looks like a garage door */
 	public static final int DAVES_FAV_DOOR = 1173;
@@ -100,7 +104,7 @@ public class VertDoorBlock extends VertBlock implements Block {
 			s.setCeilingTexture(0);
 			s.setFloorZ(this.floorZ);
 			s.setCeilingZ(this.floorZ); //this is what makes it a door
-			s.setLotag(DukeConstants.LOTAGS.DOOR); //also this
+			s.setLotag(DOOR); //also this
 		}
 		
 		
@@ -109,7 +113,7 @@ public class VertDoorBlock extends VertBlock implements Block {
 		Sprite doorSound = new Sprite(centerx - 128, centery, floorZ, (short)sectorIndexes[1]);
 		
 		doorSound.setTexture(TextureList.MUSIC_AND_SFX);
-		doorSound.setLotag(DukeConstants.SOUNDS.DOOR_OPERATE1); //starting sound
+		doorSound.setLotag(DOOR_OPERATE1); //starting sound
 		map.addSprite(doorSound);
 		
 		

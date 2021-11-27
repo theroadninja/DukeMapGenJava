@@ -1,7 +1,7 @@
 package trn.prefab
 
 import trn.duke.{MapErrorException, TextureList}
-import trn.{CopyState, DukeConstants, ISpriteFilter, MapUtil, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
+import trn.{CopyState, ISpriteFilter, MapUtil, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._ // this is the good one

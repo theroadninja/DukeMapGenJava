@@ -2,7 +2,7 @@ package trn.prefab
 
 import java.util
 
-import trn.{DukeConstants, HardcodedConfig, Sprite, Wall, WallView}
+import trn.{HardcodedConfig, Sprite, Wall, WallView}
 import trn.duke.{Lotags, PaletteList, TextureList}
 import trn.render.Texture
 
@@ -219,7 +219,7 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
     // TODO - verify we can use locator lotags without interference...
 
     if(sprite.getTex == TextureList.SE) {
-      if (DukeConstants.LOTAGS.TWO_WAY_TRAIN == sprite.getLotag) {
+      if (Lotags.SE.TWO_WAY_TRAIN == sprite.getLotag) {
         (sprite.getHiTag to sprite.getHiTag + 2) // must come before normal SE logic
       } else if (DukeConfig.UniqueHiSE.contains(sprite.getLotag) && sprite.getHiTag != 0) {
         Seq(sprite.getHiTag)

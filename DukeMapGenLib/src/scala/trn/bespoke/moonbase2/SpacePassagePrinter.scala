@@ -1,7 +1,7 @@
 package trn.bespoke.moonbase2
 
 import trn.duke.Lotags
-import trn.{BuildConstants, DukeConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, render, Map => DMap}
+import trn.{BuildConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, render, Map => DMap}
 import trn.prefab.{CompassWriter, DukeConfig, GameConfig, Heading, MapWriter, PastedSectorGroup, RedwallConnector}
 import trn.render.{HorizontalBrush, MiscPrinter, ResultAnchor, StairEntrance, StairPrinter, StairTex, Texture, WallAnchor, WallPrefab}
 

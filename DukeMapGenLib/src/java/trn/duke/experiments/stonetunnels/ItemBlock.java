@@ -9,7 +9,7 @@ import trn.MapUtil;
 import trn.PointXY;
 import trn.Sector;
 import trn.Sprite;
-import trn.SpritePrefab;
+import trn.duke.experiments.SpritePrefab;
 import trn.Wall;
 import trn.duke.experiments.WallPrefab;
 import trn.duke.experiments.gridblock.OrdinalConnector;

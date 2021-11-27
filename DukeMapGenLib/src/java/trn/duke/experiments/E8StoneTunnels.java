@@ -8,7 +8,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import trn.Main;
 import trn.Map;
 import trn.PlayerStart;
-import trn.SpritePrefab;
 import trn.duke.TextureList;
 import trn.duke.experiments.gridblock.BlockCursor;
 import trn.duke.experiments.gridblock.Grid;

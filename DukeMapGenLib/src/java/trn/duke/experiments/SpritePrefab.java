@@ -1,5 +1,10 @@
-package trn;
+package trn.duke.experiments;
 
+import trn.Sprite;
+
+/**
+ * TODO get rid of this
+ */
 public class SpritePrefab {
 
 	Integer texture;

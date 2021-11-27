@@ -2,7 +2,7 @@ package trn.prefab
 
 import java.util
 
-import trn.{DukeConstants, ISpriteFilter, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
+import trn.{PointXY, PointXYZ, Sprite, Wall, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._

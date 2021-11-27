@@ -7,7 +7,6 @@ import trn.Map;
 import trn.PlayerStart;
 import trn.Sector;
 import trn.Wall;
-import trn.duke.Util;
 
 /**
  * Map generator that starts by creating a square room, and then
@@ -210,7 +209,7 @@ public class E4CreateLadderMaze {
 			
 		}
 		
-		Util.orderWalls(map, walls);
+		ExperimentUtil.orderWalls(map, walls);
 		return walls;
 		
 	}
@@ -256,7 +255,7 @@ public class E4CreateLadderMaze {
 			
 		}
 		
-		Util.orderWalls(map, walls);
+		ExperimentUtil.orderWalls(map, walls);
 		return walls;
 	}
 	
