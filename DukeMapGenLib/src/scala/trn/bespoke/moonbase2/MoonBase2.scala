@@ -284,34 +284,6 @@ object MoonBase2 {
       require(target == tileSpec.toTile2d(Tile2d.Blocked))
 
       val sg = MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
-      // val sg = nodeType match {
-      //   case "S" => {
-      //     // getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
-      //   }
-      //   case "E" => {
-      //     //getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
-      //   }
-      //   case s if s.startsWith("K") => {
-      //     // getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
-      //   }
-      //   case s if s.startsWith("G") => {
-      //     // getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
-      //   }
-      //   case s if s.endsWith("<") => {
-      //     val onewaySg = MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
-      //     //val targetOneway = tileSpec.toOneWayTile2d(Tile2d.Blocked)
-      //     //rotateOneWayToMatch(onewaySg, onewaySg.oneWayTile.get, targetOneway)
-      //     onewaySg
-      //   }
-      //   case _ => {
-      //     // getTile(random, node, tileSpec, wildcardTarget, node.tag, keycolors)
-      //     MoonBase3.getTile(gameCfg, random, allRooms, usedTiles, node, tileSpec, node.tag, keycolors)
-      //   }
-      // }
       gridPoint -> sg
     }.toMap
 

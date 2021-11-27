@@ -142,19 +142,7 @@ object MoonBase3 {
     val allRooms = (1 to moonPalette.numberedSectorGroupCount()).map(i => readTileSectorGroup(gameCfg, moonPalette, i))
     sanityCheck(allRooms)
 
-
-
     val usedTiles = mutable.Set[String]()
-    // tiles.foreach { tile =>
-    //   println("---------------------")
-    //   println(tile.id)
-    //   println(tile.tile.toPrettyStr())
-    //   println(tile.tags)
-    //   println()
-    // }
-
-
-
 
     val logicalMap = new RandomWalkGenerator(random).generate()
     val keycolors: Seq[Int] = random.shuffle(DukeConfig.KeyColors).toSeq
@@ -178,7 +166,6 @@ object MoonBase3 {
   }
 
 
-  // TODO DRY with MoonBase2.getTile()
   def getTile(
     gameCfg: GameConfig,
     r: RandomX,
