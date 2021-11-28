@@ -154,7 +154,7 @@ class MapWriter(
     existingConn: RedwallConnector,
     newSg: SectorGroup,
     newConn: RedwallConnector,
-    floatingGroups: Seq[SectorGroup]
+    floatingGroups: Seq[SectorGroup] // I think these are sectors that need to be pasted at the same time, like underwater sectors
   ): PastedSectorGroup = {
     require(Option(existingConn).isDefined)
     require(Option(newSg).isDefined)

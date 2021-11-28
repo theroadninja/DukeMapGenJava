@@ -2,12 +2,14 @@ package trn.prefab.experiments
 
 import trn.duke.PaletteList
 import trn.logic.Tile2d
+import trn.logic.Tile2d.{Blocked, Conn}
 import trn.math.SnapAngle
-import trn.prefab.{AxisLock, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, SectorGroup}
+import trn.prefab.{AxisLock, CompassWriter, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, SectorGroup}
 import trn.{HardcodedConfig, MapLoader, PointXYZ, RandomX}
 import trn.{Map => DMap}
 
 import scala.collection.mutable
+import scala.collection.JavaConverters._
 
 /**
   * Trying to rewrite Hypercube 1
@@ -43,6 +45,15 @@ object Hypercube1B {
     run(gameCfg)
   }
 
+  val allCoordinates: Seq[(Int, Int, Int, Int)] = {
+    val results = mutable.ArrayBuffer[(Int, Int, Int, Int)]()
+    for(x <- 0 until 3; y <- 0 until 3; z <- 0 until 3; w <- 0 until 3){
+    // for(x <- 0 until 3; y <- 0 until 3; z <- 0 until 3; w <- 0 until 2){
+      results.append((x, y, z, w))
+    }
+    results
+  }
+
   /**
     * change the sector group to look different for each w dimension
     */
@@ -56,6 +67,7 @@ object Hypercube1B {
       case 2 => MapWriter.painted2(sg, PaletteList.BLUE_TO_GREEN)
     }
   }
+
 
   def run(gameCfg: GameConfig): Unit = {
     val hyperPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("hyper1.map"))
@@ -71,7 +83,23 @@ object Hypercube1B {
 
     val sg104 = HyperSectorGroup(hyperPalette.getSG(104))
     val sg105 = HyperSectorGroup(hyperPalette.getSG(105))
-    val rooms = Seq(sg104, sg105, HyperSectorGroup(hyperPalette.getSG(106)), loadRoom(107))
+
+    // TODO need to ignore the elevator connections on the east side...maybe because they have nonzero ids?
+
+
+    // val sg108 = addElevator(gameCfg, hyperPalette.getSG(108), 100, hyperPalette.getSG(109))
+    val sg108 = hyperPalette.getSG(108)
+
+    // TODO fix scanning for elevator rooms
+    val room108 = HyperSectorGroup(sg108, Tile2d(Blocked, Conn, Conn, Conn)) // elevator top
+
+    val room110 = HyperSectorGroup(hyperPalette.getSG(110), Tile2d(Blocked, Conn, Conn, Conn)) // elevator middle
+
+    val room111 = HyperSectorGroup(hyperPalette.getSG(111), Tile2d(Blocked, Conn, Conn, Conn)) // elevator bottom
+
+    // val elevatorT = hyperPalette.getSG(109)
+
+    val rooms = Seq(sg104, sg105, HyperSectorGroup(hyperPalette.getSG(106)), loadRoom(107), room108, room110, room111)
 
     // TODO validate() step here to check you have the right rooms...
 
@@ -121,7 +149,6 @@ object Hypercube1B {
       // def lockFilter(r: HyperSectorGroup): Boolean = {
       //   r.sg.props.axisLocks.isEmpty || AxisLock.matchAll(r.sg.props.axisLocks, x, y, z, w)
       // }
-      // val matchesLocks = matchesTile.filter(lockFilter)
       val roomsWithLocks = matchesTile.filter(r => r.sg.props.axisLocks.size > 0 && AxisLock.matchAll(r.sg.props.axisLocks, x, y, z, w))
       val roomsWithoutLocks = matchesTile.filter(_.sg.props.axisLocks.isEmpty)
 
@@ -144,23 +171,93 @@ object Hypercube1B {
     // TODO the green level has an infested room?
 
 
-    val pastedGroups = mutable.ArrayBuffer[PastedSectorGroup]()
-    for(x <- 0 until 3; y <- 0 until 3; z <- 0 until 3; w <- 0 until 3){
-      val r = getRoom(x, y, z, w)
-      val psg = writer.pasteSectorGroupAt(r, gridManager.cellPosition(x, y, z, w), mustHaveAnchor = true)
-      pastedGroups.append(psg)
-    }
-    require(pastedGroups.size == 3*3*3*3)
+    val pastedGroups = allCoordinates.map {
+      case (x, y, z, w) => {
+        val r = getRoom(x, y, z, w)
+        val psg = writer.pasteSectorGroupAt(r, gridManager.cellPosition(x, y, z, w), mustHaveAnchor = true)
+        // pastedGroups.append(psg)
+        (x, y, z, w) -> psg
+      }
+    }.toMap
+
+    // val pastedGroups = mutable.ArrayBuffer[PastedSectorGroup]()
+    // for(x <- 0 until 3; y <- 0 until 3; z <- 0 until 3; w <- 0 until 3){
+    //   val r = getRoom(x, y, z, w)
+    //   val psg = writer.pasteSectorGroupAt(r, gridManager.cellPosition(x, y, z, w), mustHaveAnchor = true)
+    //   pastedGroups.append(psg)
+    // }
+
+    linkElevators(
+      writer,
+      pastedGroups((1, 0, 1, 0)),
+      pastedGroups((1, 0, 2, 0)),
+      171, // TODO at least put this in a constant near the top
+      hyperPalette.getSG(109)
+    )
+
+    linkElevators(
+      writer,
+      pastedGroups((1, 0, 0, 0)),
+      pastedGroups((1, 0, 1, 0)),
+      172,
+      hyperPalette.getSG(109)
+    )
+
+    linkElevators(
+      writer,
+      pastedGroups((1, 0, 0, 0)),
+      pastedGroups((1, 0, 2, 0)),
+      173,
+      hyperPalette.getSG(109)
+    )
 
     // val pastedGroups = Seq(psg1, psg2, psg3)
-    pastedGroups.foreach { r1 =>
-      pastedGroups.foreach { r2 =>
+    pastedGroups.values.foreach { r1 =>
+      pastedGroups.values.foreach { r2 =>
         writer.autoLink(r1, r2)
       }
     }
 
     ExpUtil.finishAndWrite(writer, forcePlayerStart = false)
   }
+
+
+  def linkElevators(writer: MapWriter, psgLower: PastedSectorGroup, psgHigher: PastedSectorGroup, connId: Int, elevatorSg: SectorGroup): Unit = {
+    val lowerElevator = addElevator(writer, psgLower, connId, elevatorSg)
+    val higherElevator = addElevator(writer, psgHigher, connId, elevatorSg)
+
+    val e0 = lowerElevator.getElevatorConn(1).get
+    val e1 = higherElevator.getElevatorConn(1).get
+    writer.linkElevators(e0, e1, true)
+
+  }
+
+  def addElevator(writer: MapWriter, psg: PastedSectorGroup, connId: Int, elevatorSg: SectorGroup): PastedSectorGroup = {
+    require(elevatorSg.allRedwallConnectors.size == 1)
+    require(psg.redwallConnectors.filter(_.getConnectorId == connId).size == 1)
+
+    val existingConn = psg.redwallConnectors.find(_.getConnectorId == connId).get
+
+    // TODO the problem is rotation!  need to auto rotate to fit!
+    val elevatorSg2 = elevatorSg.rotateCCW
+    val newConn = elevatorSg2.allRedwallConnectors.head
+    writer.pasteAndLink(existingConn, elevatorSg2, newConn, Seq.empty)
+  }
+
+
+  // def addElevator(gameCfg: GameConfig, sg1: SectorGroup, elevatorConnId: Int, elevatorSg: SectorGroup): SectorGroup = {
+  //   val result = sg1.copy
+  //   val writer = MapWriter(result.map, gameCfg)
+
+  //   val existingConn = sg1.getRedwallConnector(elevatorConnId)
+  //   require(elevatorSg.allRedwallConnectors.size == 1)
+  //   val newConn = elevatorSg.allRedwallConnectors.head
+
+  //   writer.pasteAndLink(existingConn, elevatorSg, newConn, Seq.empty)
+
+
+  //   result
+  // }
 }
 
 
