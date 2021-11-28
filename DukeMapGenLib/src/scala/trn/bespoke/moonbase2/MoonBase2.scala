@@ -8,6 +8,7 @@ import trn.prefab._
 import trn.render.{MiscPrinter, Texture, WallAnchor}
 import trn.{AngleUtil, HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, Sprite, SpriteFilter}
 import trn.PointImplicits._
+import trn.prefab.experiments.ExpUtil
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -293,12 +294,13 @@ object MoonBase2 {
   }
 
   def finishAndWrite(writer: MapWriter): Unit = {
+    ExpUtil.finishAndWrite(writer)
     // ////////////////////////
-    writer.disarmAllSkyTextures()
-    writer.setAnyPlayerStart(force = true)
-    writer.sgBuilder.clearMarkers()
-    writer.checkSectorCount()
-    Main.deployTest(writer.outMap, "output.map", HardcodedConfig.getEduke32Path("output.map"))
+    // writer.disarmAllSkyTextures()
+    // writer.setAnyPlayerStart(force = true)
+    // writer.sgBuilder.clearMarkers()
+    // writer.checkSectorCount()
+    // Main.deployTest(writer.outMap, "output.map", HardcodedConfig.getEduke32Path("output.map"))
   }
 
   def pasteRooms(gameCfg: GameConfig, writer: MapWriter, random: RandomX, logicalMap: LogicalMap[LogicalRoom, String], sgChoices: Map[Point3d, TileSectorGroup]): Unit = {

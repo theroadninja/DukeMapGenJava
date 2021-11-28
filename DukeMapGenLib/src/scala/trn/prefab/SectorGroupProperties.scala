@@ -31,10 +31,12 @@ object SectorGroupProperties {
     val zAdjust = findMarkers(map, PrefabUtils.MarkerSpriteLoTags.TRANSLATE_Z).map(_.getHiTag)
     SpriteLogicException.throwIf(zAdjust.size > 1, "only one 'translate z' marker tag allowed in a sector group")
 
-    new SectorGroupProperties(groupIds.headOption, hasMarker(map, PrefabUtils.MarkerSpriteLoTags.STAY), zAdjust.headOption)
+    val axisLocks = findMarkers(map, PrefabUtils.MarkerSpriteLoTags.ALGO_AXIS_LOCK).map(_.getHiTag).map(AxisLock(_))
+
+    new SectorGroupProperties(groupIds.headOption, hasMarker(map, PrefabUtils.MarkerSpriteLoTags.STAY), zAdjust.headOption, axisLocks)
   }
 }
-class SectorGroupProperties(val groupId: Option[Int], stay: Boolean, val zAdjust: Option[Int]) {
+class SectorGroupProperties(val groupId: Option[Int], stay: Boolean, val zAdjust: Option[Int], val axisLocks: Seq[AxisLock]) {
 
   def stayFlag: Boolean = stay
 

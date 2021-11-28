@@ -2,6 +2,7 @@ package trn.bespoke.moonbase2
 
 import trn.bespoke.moonbase2.MoonBase2.{getTileSpec, rotateToMatch}
 import trn.logic.{Point3d, Tile2d}
+import trn.prefab.experiments.ExpUtil
 import trn.{AngleUtil, HardcodedConfig, MapLoader, RandomX}
 import trn.prefab.{CompassWriter, DukeConfig, GameConfig, MapWriter, PrefabPalette, PrefabUtils, SectorGroup}
 
@@ -28,13 +29,14 @@ object AlgoHint {
 }
 object MoonBase3 {
 
+  def autoReadTile(sg: SectorGroup): Tile2d = ExpUtil.autoReadTile(sg)
 
-  def autoReadTile(sg: SectorGroup): Tile2d = Tile2d(
-    CompassWriter.east(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
-    CompassWriter.south(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
-    CompassWriter.west(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
-    CompassWriter.north(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
-  )
+  // def autoReadTile(sg: SectorGroup): Tile2d = Tile2d(
+  //   CompassWriter.east(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
+  //   CompassWriter.south(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
+  //   CompassWriter.west(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
+  //   CompassWriter.north(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
+  // )
 
   def readTileSectorGroup(gameCfg: GameConfig, palette: PrefabPalette, groupId: Int): TileSectorGroup = {
     val sg = palette.getSG(groupId)

@@ -152,6 +152,24 @@ public class PrefabUtils {
 		public static int ALGO_HINT = 13;
 
 		/**
+		 * For some grid-based algorithms, to lock a room to a certain value on an axis.
+		 *
+		 * Hitag:     Locks:
+		 * 0          x=0
+		 * 1          x=1
+		 * ...
+		 * 16         y=0
+		 * 17         y=1
+		 * ...
+		 * 32         z=0
+		 * 33         z=1
+		 * ...
+		 * 48         w=0
+		 * 49         w=1
+		 */
+		public static int ALGO_AXIS_LOCK = 14;
+
+		/**
 		 * Elevator Connector
 		 *
 		 * To make an elevator with this:
@@ -208,6 +226,7 @@ public class PrefabUtils {
 				TELEPORT_CHILD,
 				TRANSLATE_Z,
 				ALGO_HINT,
+				ALGO_AXIS_LOCK,
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
 				MULTI_SECTOR,

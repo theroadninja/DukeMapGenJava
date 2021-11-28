@@ -195,9 +195,9 @@ class MapWriter(
     * @param location
     * @return
     */
-  def pasteSectorGroupAt(sg: SectorGroup, location: PointXYZ, anchorOnly: Boolean = false): PastedSectorGroup = {
+  def pasteSectorGroupAt(sg: SectorGroup, location: PointXYZ, mustHaveAnchor: Boolean = false): PastedSectorGroup = {
     val anchor = sg.sprites.find(isAnchor).map(_.getLocation).getOrElse{
-      if(anchorOnly){ throw new SpriteLogicException(("no anchor sprite"))}
+      if(mustHaveAnchor){ throw new SpriteLogicException(("no anchor sprite"))}
       new PointXYZ(sg.boundingBox.xMin, sg.boundingBox.yMin, 0) // TODO - bounding box doesnt do z ...
     }
     //pasteSectorGroup(sg, anchor.getTransformTo(location))

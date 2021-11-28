@@ -2,7 +2,7 @@ package trn.prefab.experiments
 
 import trn.duke.PaletteList
 import trn.prefab._
-import trn.{PointXYZ, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, PointXYZ, Map => DMap}
 
 class GridManager(
   val origin: PointXYZ,
@@ -160,6 +160,14 @@ object Hypercube1 extends PrefabExperimentStdRun {
     }
   }
 
+  def main(args: Array[String]): Unit = {
+    // val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    // run(gameCfg)
+    // val loader = new MapLoader(HardcodedConfig.DOSPATH)
+    val loader = new MapLoader(HardcodedConfig.EDUKE32PATH)
+    val outMap = run(loader)
+    Main.deployTest(outMap, "output.map")
+  }
   def run(palette: PrefabPalette): DMap = {
     //val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val builder = new HyperMapBuilder(DMap.createNew(), palette, DukeConfig.loadHardCodedVersion())
