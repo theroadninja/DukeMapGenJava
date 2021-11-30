@@ -199,6 +199,7 @@ object Hypercube1B {
       loadRoom(114),
       loadRoom(118), // flooded teleporter
       loadRoom(119), // center room teleporter
+      loadRoom(120), // same as 119 but without the teleporter
     )
 
 
@@ -228,7 +229,8 @@ object Hypercube1B {
     // - one of the rooms, maybe on green, has a nuke button that is only accessible if you grab a key from somewhere
     // - one of the center rooms is blocked by force fields and you have to fall into it
     // - the starting, blue level, is mostly open
-    // finish the nuke-button-shaped falling teleporters
+    // - finish the nuke-button-shaped falling teleporters
+    // - need randomly placed enemies and power ups
 
 
     // val sideEast = Tile2d(Tile2d.Blocked, Tile2d.Conn, Tile2d.Conn, Tile2d.Conn)
