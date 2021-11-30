@@ -94,7 +94,7 @@ public class TeleportConnector extends Connector {
      */
     Sprite getSESprite(ISectorGroup sg){
         List<Sprite> list = getSESprites(sg);
-        if(list.size() != 1) throw new SpriteLogicException("too many teleporter sprites in sector");
+        if(list.size() != 1) throw new SpriteLogicException(String.format("wrong number(%s) of teleporter sprites in sector", list.size()));
         return list.get(0);
     }
 
@@ -106,7 +106,7 @@ public class TeleportConnector extends Connector {
                 (Sprite s) -> s.getTexture() == TextureList.SE
                 && s.getLotag() == Lotags.SE.TELEPORT
                 && s.getSectorId() == sectorId
-                && s.getLocation().z == sector.getFloorZ()
+                // && s.getLocation().z == sector.getFloorZ()
         );
     }
 

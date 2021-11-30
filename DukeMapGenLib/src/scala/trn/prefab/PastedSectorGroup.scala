@@ -81,6 +81,24 @@ class PastedSectorGroup private (
     }.toSeq
   }
 
+  final def allTeleportConnectors: Seq[TeleportConnector] = {
+    connectors.asScala.flatMap { c =>
+      c match {
+        case t: TeleportConnector => Some(t)
+        case _ => None
+      }
+    }
+  }
+
+  final def allElevatorConnectors: Seq[ElevatorConnector] = {
+    connectors.asScala.flatMap { c =>
+      c match {
+        case t: ElevatorConnector => Some(t)
+        case _ => None
+      }
+    }
+  }
+
 
   final def unlinkedRedwallConnectors: Seq[RedwallConnector] = {
     unlinkedConnectors.flatMap { c =>

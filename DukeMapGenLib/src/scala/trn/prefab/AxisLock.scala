@@ -29,6 +29,10 @@ object AxisLock {
 
   /**
     * Creates an AxisLock based on the Hitag value of "ALGO_AXIS_LOCK" marker sprites.
+    *
+    * If there is more than one sprite for a given axis, though, it should be an OR relationship
+    * (because "AND" is impossible)
+    *
     * @param hitag
     * @return
     */
@@ -36,7 +40,15 @@ object AxisLock {
 
   def matchAll(axisLocks: Iterable[AxisLock], coords: Int*): Boolean = {
     require(coords.size > 0)
-    !axisLocks.exists(ax => !ax.matches(coords: _*))
+
+    // simple version, if we dont care about the OR relationship:
+    // !axisLocks.exists(ax => !ax.matches(coords: _*))
+
+    val axes = axisLocks.map(_.axis).toSet
+    axes.map { axis =>
+      // this should be true if one of the locks for the given axis matches:
+      axisLocks.filter(_.axis == axis).exists(_.matches(coords: _*))
+    }.find(_ == false).isEmpty
   }
 
 }

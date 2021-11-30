@@ -157,12 +157,15 @@ public class PrefabUtils {
 		 * Hitag:     Locks:
 		 * 0          x=0
 		 * 1          x=1
+		 * 2          x=2
 		 * ...
 		 * 16         y=0
 		 * 17         y=1
+		 * 18         y=2
 		 * ...
 		 * 32         z=0
 		 * 33         z=1
+		 * 34         z=2
 		 * ...
 		 * 48         w=0
 		 * 49         w=1

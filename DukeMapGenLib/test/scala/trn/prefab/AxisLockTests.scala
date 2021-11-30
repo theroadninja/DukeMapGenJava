@@ -56,4 +56,25 @@ class AxisLockTests {
     Assert.assertFalse(AxisLock.matchAll(locks, 0, 0, 0, 0))
   }
 
+  @Test
+  def testMatchOr(): Unit = {
+    val locks = Seq(
+      AxisLock(X, 2),
+      AxisLock(Y, 2),
+      AxisLock(Z, 1),
+      AxisLock(Z, 2),
+    )
+
+    for(w <- 0 to 2){
+      Assert.assertFalse(AxisLock.matchAll(locks, 2, 2, 0, w))
+      Assert.assertTrue(AxisLock.matchAll(locks, 2, 2, 1, w))
+      Assert.assertTrue(AxisLock.matchAll(locks, 2, 2, 2, w))
+
+      Assert.assertFalse(AxisLock.matchAll(locks, 1, 2, 1, w))
+      Assert.assertFalse(AxisLock.matchAll(locks, 2, 1, 1, w))
+    }
+
+
+  }
+
 }
