@@ -5,11 +5,31 @@ import trn.logic.Tile2d
 import trn.logic.Tile2d.{Blocked, Conn}
 import trn.math.SnapAngle
 import trn.prefab.hypercube.GridCell
-import trn.prefab.{AxisLock, CompassWriter, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, SectorGroup}
-import trn.{HardcodedConfig, Main, MapLoader, PointXYZ, RandomX, Map => DMap}
+import trn.prefab.{AxisLock, CompassWriter, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup}
+import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, WallView, Map => DMap}
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
+
+class GridManager(
+  val origin: PointXYZ,
+  val cellDist: Int,  // the distance between the centers of two grid nodes
+  val maxGridY: Int = 4, // maximum grid spaces in the y direction; used to place z rows
+  val maxGridX: Int = 4
+){
+  /**
+    * transforms grid cell index (XYZW) to raw xyz coordinates
+    */
+  def cellPosition(x: Int, y: Int, z: Int, w: Int): PointXYZ = {
+    val xx = x * cellDist
+    val yy = y * cellDist + z * ((maxGridY + 1) * cellDist)
+    val zz = -1 * (z << 4) * cellDist + 1024 // raise it, so elevators work
+    //val zz = z * + 1024 // raise it, so elevators work
+
+    val xxx = xx + (w * ((maxGridX + 1) * cellDist)) // adjust for w coordinate
+    origin.add(new PointXYZ(xxx, yy, zz))
+  }
+}
 
 /**
   * Trying to rewrite Hypercube 1
@@ -17,7 +37,6 @@ import scala.collection.JavaConverters._
   *
   * This is an architecture demo:
   * - 3x3x3x3
-  * - not supposed to be fun
   * - all rooms must have an anchor sprite
   * - room-to-room connectors:
   *     - must all be the same size and be axis aligned to anchor
@@ -27,25 +46,31 @@ import scala.collection.JavaConverters._
   * - certain textures will auto palette-shift based on W coordinate
   *     (different W dimensions get different colors:  blue, red, green/yellow)
   *
-  *
-  * - sky textures auto swapped between orbit, moon and earth?
-  *
-  * - allow room shapes:
-  *     - +
-  *     - T
-  *     - corner
-  *
+
+// TODO ideas for later...
+    // - auto floor number next to elevators?
+    // - one of the elevator shafts is broken and you can fall all the way down
+    //    - it is on the green dimension, and can be used to access the bottom floor of green
+    // - one of the rooms, maybe on green, has a nuke button that is only accessible if you grab a key from somewhere
+    // - one of the center rooms is blocked by force fields and you have to fall into it
+    // - need randomly placed enemies and power ups
+    // - have a normal staircase to go up a Z level (probably needs to be more like ramps)
+    // - have some twisty hallway where you can walk to the next W
   */
 object Hypercube1B {
 
-  /** the "red" coordinate of the fourth spacial dimension */
-  val WR = 1
-
-
   def main(args: Array[String]): Unit = {
-
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
-    run(gameCfg)
+    val writer = MapWriter(gameCfg)
+    try {
+      run(gameCfg, writer)
+    } catch {
+      case e => {
+        writer.setAnyPlayerStart(true)
+        Main.deployTest(writer.outMap, "error.map", HardcodedConfig.getEduke32Path("error.map"))
+        throw e
+      }
+    }
   }
 
   val allCoordinates: Seq[(Int, Int, Int, Int)] = {
@@ -61,7 +86,7 @@ object Hypercube1B {
     * the first/left one in the tuple is always a lower z value
     * @return
     */
-  def allCoordinateZPairs: Seq[(GridCell, GridCell)] = {
+  lazy val allCoordinateZPairs: Seq[(GridCell, GridCell)] = {
     allCoordinates.flatMap { coordA =>
       allCoordinates.map { coordB =>
         (GridCell(coordA), GridCell(coordB))
@@ -72,7 +97,7 @@ object Hypercube1B {
   }
 
   /** the first/left one in the tuple is always the one with a lower w value */
-  def allCoordinateWPairs: Seq[(GridCell, GridCell)] = {
+  lazy val allCoordinateWPairs: Seq[(GridCell, GridCell)] = {
     allCoordinates.flatMap { coordA =>
       allCoordinates.map { coordB =>
         (GridCell(coordA), GridCell(coordB))
@@ -82,23 +107,14 @@ object Hypercube1B {
     }
   }
 
-  // def allCoordinatesCrossProduct: Seq[((Int, Int, Int, Int), (Int, Int, Int, Int))] = {
-  //   allCoordinates.flatMap { coordA =>
-  //     allCoordinates.map { coordB =>
-  //       (coordA, coordB)
-  //     }
-  //   }
-  // }
-
-
-
-
-  def add(coordA: (Int, Int, Int, Int), coordB: (Int, Int, Int, Int)): (Int, Int, Int, Int) = {
-    (coordA._1 + coordB._1, coordA._2 + coordB._2, coordA._3 + coordB._3, coordA._4 + coordB._4)
-  }
-
-
-  def replaceTex(sg: SectorGroup, replace: Map[Int, Int]): SectorGroup = {
+  /**
+    * Return a copy of a sector group with textures replaced.
+    *
+    * @param sg the sector group to modify
+    * @param replace a map of textures: keys are textures to replace, and values are their replacements
+    * @return a copy of sg with textures replaced
+    */
+  def replaceTextures(sg: SectorGroup, replace: Map[Int, Int]): SectorGroup = {
     val result = sg.copy()
     result.allWalls.foreach { w =>
       replace.get(w.getTex).foreach { newTex => w.setTexture(newTex)}
@@ -107,16 +123,13 @@ object Hypercube1B {
       replace.get(sector.getFloorTexture).foreach { newTex => sector.setFloorTexture(newTex)}
       replace.get(sector.getCeilingTexture).foreach { newTex => sector.setCeilingTexture(newTex)}
     }
-
     result
-
   }
 
   /**
     * change the sector group to look different for each w dimension
     */
   def changeForW(sg: SectorGroup, w: Int): SectorGroup = {
-
     val MoonSky1 = 80
     val BigOrbit1 = 84
     val La = 89
@@ -133,13 +146,13 @@ object Hypercube1B {
     }
 
     w match {
-      case 0 => replaceTex(sg2, Map(MoonSky1 -> Stars))
-      case 1 => replaceTex(sg2, Map(MoonSky1 -> BigOrbit1, Water -> Lava))
-      case 2 => replaceTex(sg2, Map(MoonSky1 -> Stars, Water -> Slime))
+      case 0 => replaceTextures(sg2, Map(MoonSky1 -> Stars))
+      case 1 => replaceTextures(sg2, Map(MoonSky1 -> BigOrbit1, Water -> Lava))
+      case 2 => replaceTextures(sg2, Map(MoonSky1 -> Stars, Water -> Slime))
     }
   }
 
-
+  /** @returns a Tile for a grid position */
   def getTile(x: Int, y: Int): Tile2d = {
     val (west, east) = x match {
       case 0 => (Tile2d.Blocked, Tile2d.Conn) // west edge of grid
@@ -156,144 +169,65 @@ object Hypercube1B {
     Tile2d(east, south, west, north)
   }
 
-  def run(gameCfg: GameConfig): Unit = {
-    val hyperPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("hyper1.map"))
-    val random = new RandomX()
-    val writer = MapWriter(gameCfg)
+  /**
+    * Make sure we have all the kinds of rooms that we need
+    * @return the "cell distance":  the distance from the center of one room to the center of another room
+    */
+  def validate(rooms: Seq[HyperSectorGroup]): Int = {
+    val tiles = rooms.map(_.tile).toSet
 
-    val gridManager = new GridManager(
-      new PointXYZ(DMap.MIN_X + 10*1024, DMap.MIN_Y + 10*1024, 0),
-      cellDist = 7 * 1024
-    )
+    // TODO this logic doesnt properly deal with axis locks...
+    require(tiles.exists(t => t.couldMatch(Tile2d(Blocked, Conn, Conn, Conn)))) // must have T
+    require(tiles.exists(t => t.couldMatch(Tile2d(Blocked, Blocked, Conn, Conn)))) // must have corner
+    require(tiles.exists(t => t.couldMatch(Tile2d(Conn, Conn, Conn, Conn)))) // must have +
+
+    val distances = rooms.flatMap(r => HyperSectorGroup.centerToHallway(r.sg)).toSet
+    if(distances.size == 1){
+      distances.head * 2
+    }else{
+      throw new Exception(s"Different rooms have different sizes: ${distances}")
+    }
+  }
+
+  def getRoom(rooms: Seq[HyperSectorGroup], x: Int, y: Int, z: Int, w: Int): SectorGroup = {
+    val tile = getTile(x, y)
+    val matchesTile = rooms.filter(r => r.tile.couldMatch(tile))
+    if(matchesTile.isEmpty){
+      throw new Exception(s"no room can fit ${tile}")
+    }
+    val roomsWithLocks = matchesTile.filter(r => r.sg.props.axisLocks.size > 0 && AxisLock.matchAll(r.sg.props.axisLocks, x, y, z, w))
+    val roomsWithoutLocks = matchesTile.filter(_.sg.props.axisLocks.isEmpty)
+
+    // must do it this way so that rooms with axis locks take precedence
+    val matches = if(roomsWithLocks.nonEmpty){
+      roomsWithLocks
+    }else{
+      roomsWithoutLocks
+    }
+    val room = matches.minBy(sg => sg.sg.groupIdOpt.get)
+    changeForW(room.rotatedSG(tile), w)
+  }
+
+  def run(gameCfg: GameConfig, writer: MapWriter): Unit = {
+    val hyperPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("hyper1.map"))
 
     def loadRoom(i: Int): HyperSectorGroup = HyperSectorGroup(hyperPalette.getSG(i))
+    val rooms: Seq[HyperSectorGroup] = hyperPalette.numberedSectorGroupIds.asScala.map(loadRoom(_)).toSeq
 
-    val sg104 = HyperSectorGroup(hyperPalette.getSG(104))
-    val sg105 = HyperSectorGroup(hyperPalette.getSG(105))
-
-    // TODO need to ignore the elevator connections on the east side...maybe because they have nonzero ids?
-
-
-    // val sg108 = addElevator(gameCfg, hyperPalette.getSG(108), 100, hyperPalette.getSG(109))
-    val sg108 = hyperPalette.getSG(108)
-
-    // TODO fix scanning for elevator rooms
-    val room108 = HyperSectorGroup(sg108, Tile2d(Blocked, Conn, Conn, Conn)) // elevator top
-
-    val room110 = HyperSectorGroup(hyperPalette.getSG(110), Tile2d(Blocked, Conn, Conn, Conn)) // elevator middle
-
-    val room111 = HyperSectorGroup(hyperPalette.getSG(111), Tile2d(Blocked, Conn, Conn, Conn)) // elevator bottom
-
-    val teleporterT = loadRoom(112)
-
-    // val elevatorT = hyperPalette.getSG(109)
-
-
-    val rooms = Seq(sg104, sg105, HyperSectorGroup(hyperPalette.getSG(106)), room108, room110, room111, teleporterT,
-      loadRoom(113),
-      loadRoom(115), // nuke-button-shaped center room with holes, top
-      loadRoom(107), // nuke-button-shaped center room with holes, bottom
-      loadRoom(116), // green infested center room
-      loadRoom(117), // center room on bottom
-
-      loadRoom(114),
-      loadRoom(118), // flooded teleporter
-      loadRoom(119), // center room teleporter
-      loadRoom(120), // same as 119 but without the teleporter
+    val cellDist = validate(rooms) // 7 * 1024
+    val gridManager = new GridManager(
+      new PointXYZ(DMap.MIN_X + 10*1024, DMap.MIN_Y + 10*1024, 0),
+      cellDist = cellDist
     )
 
-
-    val cornerElevator = loadRoom(114)
-
-    val RedTeleportLower = (2, 2, 1, WR)
-    val RedTeleportUpper = (2, 2, 2, WR)
-
-    val hardcodedRooms: Map[(Int, Int, Int, Int), HyperSectorGroup] = Map(
-      // red
-      // RedTeleportLower -> cornerElevator,
-      // RedTeleportUpper -> cornerElevator,
-
-      // teleporters
-      (0, 1, 1, 0) -> teleporterT,
-      (0, 1, 1, 1) -> teleporterT,
-      (2, 1, 1, 1) -> teleporterT,
-      (2, 1, 1, 2) -> teleporterT,
-    )
-
-    // TODO validate() step here to check you have the right rooms...
-
-    // TODO ideas...
-    // - auto floor number next to elevators?
-    // - one of the elevator shafts is broken and you can fall all the way down
-    //    - it is on the green dimension, and can be used to access the bottom floor of green
-    // - one of the rooms, maybe on green, has a nuke button that is only accessible if you grab a key from somewhere
-    // - one of the center rooms is blocked by force fields and you have to fall into it
-    // - the starting, blue level, is mostly open
-    // - finish the nuke-button-shaped falling teleporters
-    // - need randomly placed enemies and power ups
-
-
-    // val sideEast = Tile2d(Tile2d.Blocked, Tile2d.Conn, Tile2d.Conn, Tile2d.Conn)
-    // val sideSouth = sideEast.rotatedCW
-    // val sideWest = sideSouth.rotatedCW
-
-
-    def getRoom(x: Int, y: Int, z: Int, w: Int): SectorGroup = {
-      val tile = getTile(x, y)
-
-      val room = hardcodedRooms.get(x, y, z, w).getOrElse {
-        // TODO add a note somewhere that this doesnt randomly shuffle anything
-
-        val matchesTile = rooms.filter(r => r.tile.couldMatch(tile))
-        if(matchesTile.isEmpty){
-          throw new Exception(s"no room can fit ${tile}")
-        }
-        val roomsWithLocks = matchesTile.filter(r => r.sg.props.axisLocks.size > 0 && AxisLock.matchAll(r.sg.props.axisLocks, x, y, z, w))
-        val roomsWithoutLocks = matchesTile.filter(_.sg.props.axisLocks.isEmpty)
-
-        // must do it this way so that rooms with axis locks take precedence
-        val matches = if(roomsWithLocks.nonEmpty){
-          roomsWithLocks
-        }else{
-          roomsWithoutLocks
-        }
-
-        matches.minBy(sg => sg.sg.groupIdOpt.get)
-      }
-      changeForW(room.rotatedSG(tile), w)
-    }
-
+    // Select and Print the rooms
     val pastedGroups = allCoordinates.map {
       case (x, y, z, w) => {
-        val r = getRoom(x, y, z, w)
+        val r = getRoom(rooms, x, y, z, w)
         val psg = writer.pasteSectorGroupAt(r, gridManager.cellPosition(x, y, z, w), mustHaveAnchor = true)
         (x, y, z, w) -> psg
       }
     }.toMap
-
-    linkAndAddElevators(
-      writer,
-      pastedGroups((1, 0, 1, 0)),
-      pastedGroups((1, 0, 2, 0)),
-      171, // TODO at least put this in a constant near the top
-      hyperPalette.getSG(109)
-    )
-
-    linkAndAddElevators(
-      writer,
-      pastedGroups((1, 0, 0, 0)),
-      pastedGroups((1, 0, 1, 0)),
-      172,
-      hyperPalette.getSG(109)
-    )
-
-    linkAndAddElevators(
-      writer,
-      pastedGroups((1, 0, 0, 0)),
-      pastedGroups((1, 0, 2, 0)),
-      173,
-      hyperPalette.getSG(109)
-    )
 
     // Elevators
     allCoordinateZPairs.foreach {
@@ -329,31 +263,11 @@ object Hypercube1B {
     psgLower.allTeleportConnectors.foreach { connA =>
       psgHigher.allTeleportConnectors.foreach { connB =>
         if(connA.getConnectorId == connB.getConnectorId){
-          // println(psgA, connA.getSectorId)
-          // println(psgB, connB.getSectorId)
-          try {
-            writer.sgBuilder.linkTeleporters(connA, psgLower, connB, psgHigher)
-          } catch {
-            case e => {
-              writer.setAnyPlayerStart(true)
-              Main.deployTest(writer.outMap, "error.map", HardcodedConfig.getEduke32Path("error.map"))
-              throw e
-            }
-          }
+          writer.sgBuilder.linkTeleporters(connA, psgLower, connB, psgHigher)
         }
       }
     }
-
   }
-
-
-  // def linkElevators(writer: MapWriter, psgLower: PastedSectorGroup, psgHigher: PastedSectorGroup): Unit = {
-  //   // we could support move then 1 elevator; I'm just doing this to make it easier for now
-  //   require(psgLower.allElevatorConnectors.size == 1)
-  //   require(psgHigher.allElevatorConnectors.size == 1)
-
-  //   writer.linkElevators(psgLower.allElevatorConnectors.head, psgHigher.allElevatorConnectors.head, true)
-  // }
 
   def tryLinkAllElevators(writer: MapWriter, psgLower: PastedSectorGroup, psgHigher: PastedSectorGroup): Unit = {
     for(lower <- psgLower.allElevatorConnectors; higher <- psgHigher.allElevatorConnectors){
@@ -363,33 +277,7 @@ object Hypercube1B {
     }
   }
 
-
-  /** link elevator rooms that dont have an elevator yet */
-  def linkAndAddElevators(writer: MapWriter, psgLower: PastedSectorGroup, psgHigher: PastedSectorGroup, connId: Int, elevatorSg: SectorGroup): Unit = {
-    val lowerElevator = addElevator(writer, psgLower, connId, elevatorSg)
-    val higherElevator = addElevator(writer, psgHigher, connId, elevatorSg)
-
-    val e0 = lowerElevator.getElevatorConn(1).get
-    val e1 = higherElevator.getElevatorConn(1).get
-    writer.linkElevators(e0, e1, true)
-
-  }
-
-  def addElevator(writer: MapWriter, psg: PastedSectorGroup, connId: Int, elevatorSg: SectorGroup): PastedSectorGroup = {
-    require(elevatorSg.allRedwallConnectors.size == 1)
-    require(psg.redwallConnectors.filter(_.getConnectorId == connId).size == 1)
-
-    val existingConn = psg.redwallConnectors.find(_.getConnectorId == connId).get
-
-    // TODO the problem is rotation!  need to auto rotate to fit!
-    val elevatorSg2 = elevatorSg.rotateCCW
-    val newConn = elevatorSg2.allRedwallConnectors.head
-    writer.pasteAndLink(existingConn, elevatorSg2, newConn, Seq.empty)
-  }
-
-
 }
-
 
 
 case class HyperSectorGroup(sg: SectorGroup, tile: Tile2d) {
@@ -397,7 +285,6 @@ case class HyperSectorGroup(sg: SectorGroup, tile: Tile2d) {
     val snapAngle: SnapAngle = tile.rotationTo(rotation).getOrElse(throw new Exception(s"no rotate to ${rotation}"))
     snapAngle * sg
   }
-
 }
 
 object HyperSectorGroup {
@@ -405,4 +292,30 @@ object HyperSectorGroup {
     sg,
     ExpUtil.autoReadTile(sg),
   )
+
+  /**
+    * measures distance from the anchor point of the room to each axis-aligned redwall connector
+    * (throws an exception if they are not the same)
+    * returns non if there are no suitable redwall connector
+    */
+  def centerToHallway(sg: SectorGroup): Option[Int] = {
+    val anchor = sg.getAnchor.asXY
+
+    def walls(c: RedwallConnector, sg: SectorGroup): Seq[WallView] = {
+      val map = sg.getMap
+      c.getWallIds.asScala.map(map.getWallView(_))
+    }
+
+    val distances = sg.allRedwallConnectors
+      .filter(c => c.getWallIds.size == 1 && !c.isLinked(sg.getMap))
+      .map(c => walls(c, sg)(0))
+      .filter(w => w.getLineSegment.isAxisAligned)
+      .map(w => w.getLineSegment.midpoint.distanceTo(anchor).toInt).toSet
+
+    distances.size match {
+      case 0 => None
+      case 1 => distances.headOption
+      case _ => throw new Exception(s"sector group ${sg.sectorGroupId} has connectors with different distances to anchor")
+    }
+  }
 }

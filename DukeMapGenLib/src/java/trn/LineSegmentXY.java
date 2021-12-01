@@ -43,6 +43,10 @@ public class LineSegmentXY {
         return this.p2;
     }
 
+    public boolean isAxisAligned(){
+        return this.p1.x == this.p2.x || this.p1.y == this.p2.y;
+    }
+
     /** @returns integer approximation of midpoint */
     public PointXY midpoint(){
         int mx = this.p1.x + (this.p2.x - this.p1.x) / 2;
