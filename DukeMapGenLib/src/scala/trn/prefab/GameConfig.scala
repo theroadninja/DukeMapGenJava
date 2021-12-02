@@ -249,8 +249,16 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
 
   override def updateUniqueTagInPlace(sprite: Sprite, idMap: Map[Int, Int]): Unit = {
     if(sprite.getTex == TextureList.SE && DukeConfig.UniqueHiSE.contains(sprite.getLotag)){
-      sprite.setHiTag(idMap(sprite.getHiTag))
+      // There is a bug where where an SE sprite we expect to have a hitag doesnt have one
+      // and then there is no hitag entry in the idMap for it
+      // NOTE:  SE21 has an OPTIONAL hitag...both zero and nonzero are valid
+      if(sprite.getHiTag != 0){ // make sure the old hitag is nonzero
+        sprite.setHiTag(idMap(sprite.getHiTag))
+      }else{
+        println(s"GameConfig.updateUniqueTagInPlace() WARNING:  not setting unique hitag on sprite at ${sprite.getPoint}")
+      }
     }else if(hasUniqueLotag(sprite.getTex)){
+      // TODO do these need the same check at the hitag stuff above?
       sprite.setLotag(idMap(sprite.getLotag))
     }else if(hasUniqueHitag(sprite.getTex)){
       sprite.setHiTag(idMap(sprite.getHiTag))

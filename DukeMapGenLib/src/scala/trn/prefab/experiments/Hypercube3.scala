@@ -10,6 +10,10 @@ import trn.prefab.hypercube.GridManager.Cell
 import scala.collection.JavaConverters._
 import trn.MapImplicits._
 
+// TODO - pretty sure this is garbage and was just a first draft of Hypercube4
+// TODO delete this when sure nothing is using it
+
+
 // object Axis {
 //
 //   val X = 0

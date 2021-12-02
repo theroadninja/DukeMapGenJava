@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.{PaletteList, TextureList}
 import trn.prefab.hypercube.GridManager
@@ -29,7 +29,7 @@ object HyperUtils2 {
   def gridHintsForConn(conn: RedwallConnector, sg: SectorGroup): Option[PartialCell] = gridHintsForConn(conn, sg.getMap)
 }
 
-class Hyper4MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: trn.prefab.hypercube.GridManager)
+class Hyper4MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: trn.prefab.hypercube.GridManager, override val gameCfg: GameConfig)
   extends MapBuilder with HardcodedGameConfigProvider // with AnywhereBuilder
 {
   val writer = MapWriter(this)
@@ -123,21 +123,33 @@ class Hyper4MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
 object Hypercube4 extends PrefabExperiment {
   override val Filename = "hyper4.map"
 
+  def main(args: Array[String]): Unit = {
+
+    // val loader = new MapLoader(Main.DOSPATH)
+    val loader = new MapLoader(HardcodedConfig.EDUKE32PATH)
+    val map = run(loader)
+    val filename = "output.map"
+    Main.deployTest(map, filename, HardcodedConfig.getEduke32Path(filename))
+  }
   override def run(mapLoader: MapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
-    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true)
-    val result = run(palette)
+    // val sourceMap = mapLoader.load("error.map")
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val palette: PrefabPalette = PrefabPalette.fromMap(gameCfg, sourceMap, true)
+
+
+    val result = run(palette, gameCfg)
     println(s"Sector count: ${result.getSectorCount}")
     result
   }
 
-  def run(palette: PrefabPalette): DMap = {
+  def run(palette: PrefabPalette, gameCfg: GameConfig): DMap = {
     val gridCellDist = 1024 * 8 // distance between the center of each cell
     val gridCellDistZ = 1024 * 4 // distance between the center of each cell
     val sideGridLength = 3 // number of rooms on the side of the grid (e.g. 3 for a 3x3x3x3 grid)
 
     val gridManager = trn.prefab.hypercube.GridManager.apply(gridCellDist, sideGridLength, Some(gridCellDistZ))
-    val builder = new Hyper4MapBuilder(DMap.createNew(), palette, gridManager)
+    val builder = new Hyper4MapBuilder(DMap.createNew(), palette, gridManager, gameCfg)
     val writer = builder.writer
 
     val LowFloor = 0
