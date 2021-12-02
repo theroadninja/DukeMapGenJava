@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.{PaletteList, TextureList}
 import trn.prefab.experiments.Hyper2MapBuilder.Cell
@@ -337,7 +337,7 @@ case class Room(
   )
 }
 
-object Hypercube2 extends PrefabExperimentStdRun {
+object Hypercube2 {
   val BasicRoom = 100
   val PoolRoomTop = 101
   // 102 - pool room bottom
@@ -388,10 +388,26 @@ object Hypercube2 extends PrefabExperimentStdRun {
   // 303 - reactor underwater
 
 
+
+  def main(args: Array[String]): Unit = {
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    // val writer = MapWriter(gameCfg)
+    val palette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path(Filename))
+    try {
+      val outMap = run(gameCfg, palette)
+      val writer = MapWriter(outMap, gameCfg)
+      ExpUtil.finishAndWrite(writer, forcePlayerStart = false)
+    } catch {
+      case e => {
+        // writer.setAnyPlayerStart(true)
+        // Main.deployTest(writer.outMap, "error.map", HardcodedConfig.getEduke32Path("error.map"))
+        throw e
+      }
+    }
+  }
+
   //def run(sourceMap: DMap): DMap = {
-  def run(palette: PrefabPalette): DMap = {
-    //val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
-    val gameCfg = DukeConfig.loadHardCodedVersion()
+  def run(gameCfg: GameConfig, palette: PrefabPalette): DMap = {
     val builder = new Hyper2MapBuilder(DMap.createNew(), palette, gameCfg)
 
     def modularRoom2(sg: SectorGroup, x: Int, y: Int, elevator: Boolean, teleporter: Boolean, w: Int = 0): Room = {
@@ -486,8 +502,9 @@ object Hypercube2 extends PrefabExperimentStdRun {
     builder.setPlayerStart((0, 0, 0, 0)) //builder.setAnyPlayerStart()
     builder.writer.clearMarkers()
     builder.outMap
+
   }
 
-  override def Filename: String = "hyper2.map"
+  def Filename: String = "hyper2.map"
 
 }

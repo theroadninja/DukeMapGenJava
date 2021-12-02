@@ -190,7 +190,7 @@ public class MapUtil {
         java.util.Map tagMap = getTagMap(cfg, sourceMaps, destMap);
 
 		//java.util.Map<Integer, Integer> tagMap = UniqueTags$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, sourceSectorIds);
-		return copySectorGroup(cfg, sourceMap, destMap, sourceSectorId, transform, tagMap);
+		return copySectorGroup(cfg, sourceMap, destMap, sourceSectorId, transform, tagMap, true);
     }
 
 	/**
@@ -206,8 +206,8 @@ public class MapUtil {
 			Map destMap,
 			int sourceSectorId,
 			PointXYZ transform,
-			java.util.Map<Integer, Integer> tagMap
-
+			java.util.Map<Integer, Integer> tagMap,
+			boolean changeUniqueTags
 	){
 	    if(cfg == null){
 	    	throw new IllegalArgumentException("cfg cannot be null");
@@ -238,7 +238,7 @@ public class MapUtil {
 		// cpstate.idmap.tagMap = UniqueTags$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, cpstate);
 		cpstate.idmap.tagMap = tagMap;
 
-		updateIds(cfg, destMap, cpstate);
+		updateIds(cfg, destMap, cpstate, changeUniqueTags);
 
 		// I think i forgot to update the sprite count ...
 		if(destMap.sprites.size() != destMap.getSpriteCount()) throw new RuntimeException("logic error");
@@ -279,8 +279,13 @@ public class MapUtil {
 
 		return neighboors;
 	}
-	
-	static void updateIds(GameConfig cfg, Map destMap, CopyState cpstate){
+
+	/**
+	 * @param changeUniqueTags if true, activates the feature where we change all unique hi/lo tags used to link
+	 *                         things together, so that if you paste 2 groups containing a unique tag of 100, they
+	 *                         wont both have 100 in the destination map (which could link the wrong things together)
+	 */
+	static void updateIds(GameConfig cfg, Map destMap, CopyState cpstate, boolean changeUniqueTags){
 		for(int sid: cpstate.sectorsToUpdate){
 			destMap.getSector(sid).translateIds(cpstate.idmap);
 		}
@@ -290,11 +295,13 @@ public class MapUtil {
 			// update the lotag if the wall is a door
 			cfg.updateUniqueTagInPlace(destMap.getWall(wid), MapUtilScala$.MODULE$.toScalaMap(cpstate.idmap.tagMap));
 		}
-		for(int spriteId: cpstate.spritesToUpdate){
-			cfg.updateUniqueTagInPlace(
-					destMap.getSprite(spriteId),
-					MapUtilScala$.MODULE$.toScalaMap(cpstate.idmap.tagMap)
-			);
+		if(changeUniqueTags){
+			for(int spriteId: cpstate.spritesToUpdate){
+				cfg.updateUniqueTagInPlace(
+						destMap.getSprite(spriteId),
+						MapUtilScala$.MODULE$.toScalaMap(cpstate.idmap.tagMap)
+				);
+			}
 		}
 	}
 	

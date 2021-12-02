@@ -47,7 +47,7 @@ class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenera
     val sourceMaps: Seq[DMap] = Seq(sg.map) ++ floatingGroups.map(_.getMap)
     val tagMap = UniqueTags.toJavaMap(UniqueTags.getUniqueTagCopyMap(gameCfg, sourceMaps, map))
 
-    val copyState = MapUtil.copySectorGroup(gameCfg, sg.map, map, 0, translate, tagMap);
+    val copyState = MapUtil.copySectorGroup(gameCfg, sg.map, map, 0, translate, tagMap, true);
     val tp = (PastedSectorGroup(map, copyState, sg.groupIdOpt), copyState.idmap)
     pastedSectorGroupsMutable.append(tp._1)
 
@@ -60,7 +60,7 @@ class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenera
         // TODO - current reserveArea() not good enough; needs to do its own check for overlap
         val topLeft = packer.reserveArea(group)
         val tr = group.boundingBox.getTranslateTo(topLeft).withZ(0)
-        MapUtil.copySectorGroup(gameCfg, group.map, map, 0, tr, tagMap)
+        MapUtil.copySectorGroup(gameCfg, group.map, map, 0, tr, tagMap, true)
       }
     }
 
