@@ -2,7 +2,26 @@ package trn.prefab.experiments
 
 import trn.prefab.Heading
 
+import scala.collection.mutable
+
 object GridUtil {
+
+  /**
+    * Calculates all possible integer grid coordinates for the given dimensions
+    * @param xcount how many x coordinate values there are (e.g. xcount=3 gives x coordinates: 0, 1, 2)
+    * @param ycount
+    * @param zcount
+    * @param wcount
+    * @return Seq of coordinates (each coordinate is a 4-tuple of (x, y, z, w))
+    */
+  def all4dGridCoordinates(xcount: Int, ycount: Int, zcount: Int, wcount: Int): Seq[(Int, Int, Int, Int)] = {
+    require(xcount > 0 && ycount > 0 && zcount > 0 && wcount > 0)
+    val results = mutable.ArrayBuffer[(Int, Int, Int, Int)]()
+    for(x <- 0 until xcount; y <- 0 until ycount; z <- 0 until zcount; w <- 0 until wcount){
+      results.append((x, y, z, w))
+    }
+    results
+  }
 
   /**
     * Return all the direct neighboors (no diagonals). Works with any number of dimensions.

@@ -40,14 +40,15 @@ class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenera
     sg: SectorGroup,
     translate: PointXYZ,
     floatingGroups: Seq[SectorGroup],
-    sgPacker: Option[SectorGroupPacker]
+    sgPacker: Option[SectorGroupPacker],
+    changeUniqueTags: Boolean = true
   ): (PastedSectorGroup, IdMap)  = {
     require(!markersCleared)
 
     val sourceMaps: Seq[DMap] = Seq(sg.map) ++ floatingGroups.map(_.getMap)
     val tagMap = UniqueTags.toJavaMap(UniqueTags.getUniqueTagCopyMap(gameCfg, sourceMaps, map))
 
-    val copyState = MapUtil.copySectorGroup(gameCfg, sg.map, map, 0, translate, tagMap, true);
+    val copyState = MapUtil.copySectorGroup(gameCfg, sg.map, map, 0, translate, tagMap, changeUniqueTags);
     val tp = (PastedSectorGroup(map, copyState, sg.groupIdOpt), copyState.idmap)
     pastedSectorGroupsMutable.append(tp._1)
 

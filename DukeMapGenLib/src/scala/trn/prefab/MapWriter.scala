@@ -215,8 +215,8 @@ class MapWriter(
     psg
   }
 
-  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup]): (PastedSectorGroup, IdMap) = {
-    sgBuilder.pasteSectorGroup2(sg, translate, floatingGroups, sgPacker)
+  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup], changeUniqueTags: Boolean = true): (PastedSectorGroup, IdMap) = {
+    sgBuilder.pasteSectorGroup2(sg, translate, floatingGroups, sgPacker, changeUniqueTags)
   }
 
 

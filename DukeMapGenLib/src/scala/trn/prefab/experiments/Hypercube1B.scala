@@ -73,14 +73,7 @@ object Hypercube1B {
     }
   }
 
-  val allCoordinates: Seq[(Int, Int, Int, Int)] = {
-    val results = mutable.ArrayBuffer[(Int, Int, Int, Int)]()
-    for(x <- 0 until 3; y <- 0 until 3; z <- 0 until 3; w <- 0 until 3){
-    // for(x <- 0 until 3; y <- 0 until 3; z <- 0 until 3; w <- 0 until 2){
-      results.append((x, y, z, w))
-    }
-    results
-  }
+  lazy val allCoordinates = GridUtil.all4dGridCoordinates(3, 3, 3, 3)
 
   /**
     * the first/left one in the tuple is always a lower z value
@@ -234,19 +227,19 @@ object Hypercube1B {
       case (coordA, coordB) =>
         val psgA = pastedGroups(coordA.asTuple)
         val psgB = pastedGroups(coordB.asTuple)
-        tryLinkAllElevators(writer, psgA, psgB)
+        HyperUtil.tryLinkAllElevators(writer, psgA, psgB)
     }
 
     // Fourth Dimension Teleporters
     allCoordinateWPairs.foreach {
       case (coordA, coordB) =>
-        tryLinkTeleporters(writer, pastedGroups(coordA.asTuple), pastedGroups(coordB.asTuple))
+        HyperUtil.tryLinkTeleporters(writer, pastedGroups(coordA.asTuple), pastedGroups(coordB.asTuple))
     }
 
     // Falling Teleporters
     allCoordinateZPairs.foreach {
       case (coordA, coordB) =>
-        tryLinkTeleporters(writer, pastedGroups(coordA.asTuple), pastedGroups(coordB.asTuple))
+        HyperUtil.tryLinkTeleporters(writer, pastedGroups(coordA.asTuple), pastedGroups(coordB.asTuple))
     }
 
     // All Doorways
@@ -259,23 +252,6 @@ object Hypercube1B {
     ExpUtil.finishAndWrite(writer, forcePlayerStart = false)
   }
 
-  def tryLinkTeleporters(writer: MapWriter, psgLower: PastedSectorGroup, psgHigher: PastedSectorGroup): Unit = {
-    psgLower.allTeleportConnectors.foreach { connA =>
-      psgHigher.allTeleportConnectors.foreach { connB =>
-        if(connA.getConnectorId == connB.getConnectorId){
-          writer.sgBuilder.linkTeleporters(connA, psgLower, connB, psgHigher)
-        }
-      }
-    }
-  }
-
-  def tryLinkAllElevators(writer: MapWriter, psgLower: PastedSectorGroup, psgHigher: PastedSectorGroup): Unit = {
-    for(lower <- psgLower.allElevatorConnectors; higher <- psgHigher.allElevatorConnectors){
-      if(lower.getConnectorId == higher.getConnectorId){
-        writer.linkElevators(lower, higher, true)
-      }
-    }
-  }
 
 }
 

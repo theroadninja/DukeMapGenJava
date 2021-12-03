@@ -72,11 +72,11 @@ trait MapWriter2 {
     )
     val topLeft = packer.reserveArea(sg)
     val tr = sg.boundingBox.getTranslateTo(topLeft).withZ(0)
-    val (psg, _) = pasteSectorGroup2(sg, tr, Seq.empty) // TODO this IS the method for pasting floating groups; circular logic here
+    val (psg, _) = pasteSectorGroup2(sg, tr, Seq.empty, true) // TODO this IS the method for pasting floating groups; circular logic here
     psg
   }
 
-  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup]): (PastedSectorGroup, IdMap)
+  def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup], changeUniqueTags: Boolean): (PastedSectorGroup, IdMap)
 
   def canPlaceAndConnect(
     existingConn: RedwallConnector,

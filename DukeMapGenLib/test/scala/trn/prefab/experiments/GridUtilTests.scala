@@ -6,6 +6,29 @@ import trn.prefab.Heading
 class GridUtilTests {
 
   @Test
+  def testAll4dGridCoordinates(): Unit = {
+
+    Assert.assertEquals(Seq((0, 0, 0, 0)), GridUtil.all4dGridCoordinates(1, 1, 1, 1))
+
+    Assert.assertEquals(Seq((0, 0, 0, 0), (0, 0, 0, 1)), GridUtil.all4dGridCoordinates(1, 1, 1, 2))
+
+    val r = GridUtil.all4dGridCoordinates(1, 2, 3, 2)
+    Assert.assertEquals(12, r.size)
+    Assert.assertTrue(r.contains((0, 0, 0, 0)))
+    Assert.assertTrue(r.contains((0, 0, 0, 1)))
+    Assert.assertTrue(r.contains((0, 0, 1, 0)))
+    Assert.assertTrue(r.contains((0, 0, 1, 1)))
+    Assert.assertTrue(r.contains((0, 0, 2, 0)))
+    Assert.assertTrue(r.contains((0, 0, 2, 1)))
+    Assert.assertTrue(r.contains((0, 1, 0, 0)))
+    Assert.assertTrue(r.contains((0, 1, 0, 1)))
+    Assert.assertTrue(r.contains((0, 1, 1, 0)))
+    Assert.assertTrue(r.contains((0, 1, 1, 1)))
+    Assert.assertTrue(r.contains((0, 1, 2, 0)))
+    Assert.assertTrue(r.contains((0, 1, 2, 1)))
+  }
+
+  @Test
   def testAdj(): Unit = {
     // double check scala BS
     Assert.assertTrue(Seq(Seq(-1, 0)).toSet == Seq(Seq(-1, 0)).toSet)

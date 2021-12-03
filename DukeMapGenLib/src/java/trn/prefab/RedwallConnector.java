@@ -247,6 +247,20 @@ public class RedwallConnector extends Connector {
         return getConnectorType() == ConnectorType.VERTICAL_SOUTH;
     }
 
+    public final boolean isCompassConn(int heading){
+        if(heading == Heading.E){
+            return this.isEast();
+        }else if(heading == Heading.S){
+            return this.isSouth();
+        }else if(heading == Heading.W){
+            return this.isWest();
+        }else if(heading == Heading.N){
+            return this.isNorth();
+        }else{
+            throw new IllegalArgumentException("invalid heading: " + heading);
+        }
+    }
+
 
     /** temp, just to east the transition from having SimpleConnector vs MultiWallConnector */
     private boolean isSimpleConnector(){
