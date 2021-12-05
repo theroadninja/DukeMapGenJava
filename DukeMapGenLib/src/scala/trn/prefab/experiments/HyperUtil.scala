@@ -1,5 +1,6 @@
 package trn.prefab.experiments
 
+import trn.PointXYZ
 import trn.prefab.{MapWriter, PastedSectorGroup}
 
 import scala.collection.mutable
@@ -45,4 +46,18 @@ object HyperUtil {
     }
   }
 
+}
+
+/** translates between coordinate systems: between an abstract "grid" of rooms, an actual duke xy coordinates */
+trait GridManager4D {
+
+  /**
+    *
+    * @param gridCell the x,y,z,w position of the abstract cell in the logical grid
+    * @return the x, y, z coordinate of the cell in build coordinates (center vs topleft is up to the caller to decide)
+    */
+  def toXYZ(gridCell: (Int, Int, Int, Int)): PointXYZ
+
+  def maxGridY: Int
+  def maxGridX: Int
 }

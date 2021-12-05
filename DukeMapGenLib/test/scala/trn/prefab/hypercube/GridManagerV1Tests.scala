@@ -5,7 +5,7 @@ import org.junit.Test
 import trn.prefab.Heading
 import scala.collection.JavaConverters._
 
-class GridManagerTests {
+class GridManagerV1Tests {
 
   val CellDist = 1025
   val ZW = (0 until 4).flatMap { z => (0 until 4).map { w => (z, w)}}

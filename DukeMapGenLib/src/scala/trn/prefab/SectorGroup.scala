@@ -113,6 +113,23 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   /**
+    * Replaces textures that are specified in the map.
+    * @param textures map of (texture to replace -> replacement)
+    * @return a copy of this sector group with certain textures replaced
+    */
+  def withTexturesReplaced(textures: Map[Int, Int]): SectorGroup = {
+    val result = this.copy()
+    result.allWalls.foreach { w =>
+      textures.get(w.getTex).foreach { newTex => w.setTexture(newTex)}
+    }
+    result.allSectorIds.map(result.getMap.getSector(_)).foreach { sector =>
+      textures.get(sector.getFloorTexture).foreach { newTex => sector.setFloorTexture(newTex)}
+      textures.get(sector.getCeilingTexture).foreach { newTex => sector.setCeilingTexture(newTex)}
+    }
+    result
+  }
+
+  /**
     * @returns a copy of this sector group with ALL keycards and locks set to the given color.
     */
   def withKeyLockColor(gameConfig: GameConfig, color: Int): SectorGroup = {
@@ -264,7 +281,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   //  - can we remove the redwall connectors?
   // TODO - right now, the sector copy code ONLY copies sectors linked with red walls.  Two unconnected
   // sectors will not both be copied (the bug isnt here, but in the main copy code ...
-  def connectedTo(conn1: RedwallConnector, group2: SectorGroup, conn2: RedwallConnector, gameCfg: GameConfig): SectorGroup = {
+  def connectedTo(conn1: RedwallConnector, group2: SectorGroup, conn2: RedwallConnector, gameCfg: GameConfig, changeUniqueTags: Boolean): SectorGroup = {
     if(conn1 == conn2) throw new IllegalArgumentException("same connection object passed") // sanity check
 
     val result = this.copy()
@@ -274,7 +291,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
     val tmpBuilder = new CopyPasteMapBuilder(result.map, gameCfg)
     val cdelta = conn2.getTransformTo(conn1)
-    val (_, idmap) = tmpBuilder.writer.pasteSectorGroup2(group2, cdelta, Seq.empty)
+    val (_, idmap) = tmpBuilder.writer.pasteSectorGroup2(group2, cdelta, Seq.empty, changeUniqueTags)
     val pastedConn2 = conn2.translateIds(idmap, cdelta, tmpBuilder.mapView)
 
     // TODO - link redwalls  ( TODO - make this a member of the builder? )
@@ -324,7 +341,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
     if(c1.size > 1) throw new RuntimeException("not implemented yet")
 
-    val result = connectedTo(c1(0), child, c2(0), gameCfg)
+    val result = connectedTo(c1(0), child, c2(0), gameCfg, false)
 
     // TODO - but now all the connectors are fucked up...
 

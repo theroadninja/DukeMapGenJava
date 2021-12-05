@@ -85,7 +85,7 @@ public class PrefabPalette {
 
 			// copy the next entire sector group
 			Map clipboard = Map.createNew();
-			CopyState cpstate = MapUtil.copySectorGroup(cfg, map, clipboard, sector, new PointXYZ(0, 0, 0));
+			CopyState cpstate = MapUtil.copySectorGroup(cfg, map, clipboard, sector, new PointXYZ(0, 0, 0), false);
 			SectorGroupProperties props = SectorGroupProperties.scanMap(clipboard);
 			SectorGroupHints hints = SectorGroupHints.apply(clipboard); // NOTE: these need to get re-applied after children
 			for(int i = 0; i < clipboard.getSpriteCount(); ++i){

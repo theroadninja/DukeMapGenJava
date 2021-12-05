@@ -177,7 +177,8 @@ public class MapUtil {
 			final Map sourceMap,
 			Map destMap,
 			int sourceSectorId,
-			PointXYZ transform
+			PointXYZ transform,
+			boolean changeUniqueTags
 	){
 		List<Map> sourceMaps = new LinkedList<Map>();
 		sourceMaps.add(sourceMap);
@@ -190,7 +191,7 @@ public class MapUtil {
         java.util.Map tagMap = getTagMap(cfg, sourceMaps, destMap);
 
 		//java.util.Map<Integer, Integer> tagMap = UniqueTags$.MODULE$.getUniqueTagCopyMap(cfg, sourceMap, destMap, sourceSectorIds);
-		return copySectorGroup(cfg, sourceMap, destMap, sourceSectorId, transform, tagMap, true);
+		return copySectorGroup(cfg, sourceMap, destMap, sourceSectorId, transform, tagMap, changeUniqueTags);
     }
 
 	/**

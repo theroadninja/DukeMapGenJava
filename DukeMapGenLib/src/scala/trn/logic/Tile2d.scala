@@ -41,6 +41,10 @@ case class Tile2d(e: Int, s: Int, w: Int, n: Int) extends RotatesCW[Tile2d] {
 
   def rotatedCW: Tile2d = Tile2d(e=n, s=e, w=s, n=w)
 
+  def flippedY: Tile2d = Tile2d(e=e, s=n, w=w, n=s)
+
+  def flippedX: Tile2d = Tile2d(e=w, s=s, w=e, n=n)
+
   // Unnecessary?
   // def rotatedToMatch(other: Tile2d): Option[Tile2d] = { // TODO return number of rotations to make it match
   //   // TODO invent a stupid angle case class that measures an angle delta in number of rotations?

@@ -11,12 +11,12 @@ import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, WallVi
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 
-class GridManager(
+class GridManagerV1(
   val origin: PointXYZ,
   val cellDist: Int,  // the distance between the centers of two grid nodes
   val maxGridY: Int = 4, // maximum grid spaces in the y direction; used to place z rows
   val maxGridX: Int = 4
-){
+) extends GridManager4D {
   /**
     * transforms grid cell index (XYZW) to raw xyz coordinates
     */
@@ -29,6 +29,8 @@ class GridManager(
     val xxx = xx + (w * ((maxGridX + 1) * cellDist)) // adjust for w coordinate
     origin.add(new PointXYZ(xxx, yy, zz))
   }
+
+  override def toXYZ(gridCell: (Int, Int, Int, Int)): PointXYZ = cellPosition(gridCell._1, gridCell._2, gridCell._3, gridCell._4)
 }
 
 /**
@@ -101,25 +103,6 @@ object Hypercube1B {
   }
 
   /**
-    * Return a copy of a sector group with textures replaced.
-    *
-    * @param sg the sector group to modify
-    * @param replace a map of textures: keys are textures to replace, and values are their replacements
-    * @return a copy of sg with textures replaced
-    */
-  def replaceTextures(sg: SectorGroup, replace: Map[Int, Int]): SectorGroup = {
-    val result = sg.copy()
-    result.allWalls.foreach { w =>
-      replace.get(w.getTex).foreach { newTex => w.setTexture(newTex)}
-    }
-    result.allSectorIds.map(result.getMap.getSector(_)).foreach { sector =>
-      replace.get(sector.getFloorTexture).foreach { newTex => sector.setFloorTexture(newTex)}
-      replace.get(sector.getCeilingTexture).foreach { newTex => sector.setCeilingTexture(newTex)}
-    }
-    result
-  }
-
-  /**
     * change the sector group to look different for each w dimension
     */
   def changeForW(sg: SectorGroup, w: Int): SectorGroup = {
@@ -139,9 +122,9 @@ object Hypercube1B {
     }
 
     w match {
-      case 0 => replaceTextures(sg2, Map(MoonSky1 -> Stars))
-      case 1 => replaceTextures(sg2, Map(MoonSky1 -> BigOrbit1, Water -> Lava))
-      case 2 => replaceTextures(sg2, Map(MoonSky1 -> Stars, Water -> Slime))
+      case 0 => sg2.withTexturesReplaced(Map(MoonSky1 -> Stars))
+      case 1 => sg2.withTexturesReplaced(Map(MoonSky1 -> BigOrbit1, Water -> Lava))
+      case 2 => sg2.withTexturesReplaced(Map(MoonSky1 -> Stars, Water -> Slime))
     }
   }
 
@@ -208,7 +191,7 @@ object Hypercube1B {
     val rooms: Seq[HyperSectorGroup] = hyperPalette.numberedSectorGroupIds.asScala.map(loadRoom(_)).toSeq
 
     val cellDist = validate(rooms) // 7 * 1024
-    val gridManager = new GridManager(
+    val gridManager = new GridManagerV1(
       new PointXYZ(DMap.MIN_X + 10*1024, DMap.MIN_Y + 10*1024, 0),
       cellDist = cellDist
     )

@@ -126,7 +126,8 @@ object MapUtilScala {
     destMap: DMap,
     destSectorId: Int,
     destAnchor: PointXYZ,
-    gameConfig: GameConfig
+    gameConfig: GameConfig,
+    changeUniqueTags: Boolean = true // TODO should this default to true?
   ): Unit = {
 
     // 1. calculate the border
@@ -170,7 +171,7 @@ object MapUtilScala {
 
     // 5. paste and link
     // Note: similar code in RedwallConnector.linkConnectors()
-    val copyState = MapUtil.copySectorGroup(gameConfig, sourceGroup.map, destMap, 0, delta);
+    val copyState = MapUtil.copySectorGroup(gameConfig, sourceGroup.map, destMap, 0, delta, changeUniqueTags)
     val innerWallIds = sourceBorder.map(_.getWallId).map(wallId => copyState.idmap.wall(wallId)).map(_.toInt)
     require(outerWallIds.size == innerWallIds.size)
 

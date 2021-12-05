@@ -93,7 +93,7 @@ object MapWriter {
   def connected(sg1: SectorGroup, sg2: SectorGroup, connectorId: Int, gameCfg: GameConfig): SectorGroup = {
     val c1: RedwallConnector = sg1.getRedwallConnector(connectorId)
     val c2: RedwallConnector = sg2.getRedwallConnector(connectorId)
-    sg1.connectedTo(c1, sg2, c2, gameCfg)
+    sg1.connectedTo(c1, sg2, c2, gameCfg, false)
   }
 
   def apply(map: DMap, gameCfg: GameConfig): MapWriter = {
