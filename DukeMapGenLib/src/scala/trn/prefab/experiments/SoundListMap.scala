@@ -3,12 +3,12 @@ package trn.prefab.experiments
 import trn.MapImplicits._
 import trn.duke.{MusicSFXList, TextureList}
 import trn.prefab._
-import trn.{MapLoader, PointXY, Wall, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, PointXY, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._
 
-class SoundMapBuilder(val outMap: DMap, palette: PrefabPalette, val gameCfg: GameConfig) extends MapBuilder {
-  val writer = new MapWriter(this, sgBuilder)
+class SoundMapBuilder(val writer: MapWriter, palette: PrefabPalette) {
+  // val writer = new MapWriter(this, sgBuilder)
 
   val mainHall = 2
   val pastedMainHall = writer.pasteSectorGroupAt(palette.getSG(mainHall), new PointXY(0, DMap.MIN_Y).withZ(0))
@@ -112,8 +112,8 @@ object SoundListRoom {
   }
 }
 
-object SoundListMap extends PrefabExperiment {
-  override val Filename = "sound.map"
+object SoundListMap {
+  val Filename = "sound.map"
 
   def toSet(list: java.util.List[java.lang.Integer]): Set[Int] = list.asScala.map(_.toInt).toSet
 
@@ -140,15 +140,30 @@ object SoundListMap extends PrefabExperiment {
       fatCommander, bossEp1, bossEp2, bossEp3, secretLevel, weapons, inventory)
   }
 
-  override def run(mapLoader: MapLoader): DMap = {
-    val sourceMap = mapLoader.load(Filename)
-    val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
-    val builder = new SoundMapBuilder(DMap.createNew(), palette, DukeConfig.loadHardCodedVersion())
+
+  def main(args: Array[String]): Unit = {
+    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    try {
+      val map = run(mapLoader)
+      ExpUtil.deployMap(map)
+    } catch {
+      case e => {
+        throw e
+      }
+    }
+  }
+
+  def run(mapLoader: MapLoader): DMap = {
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val writer = MapWriter(gameCfg)
+
+    val palette: PrefabPalette = PrefabPalette.fromMap(mapLoader.load(Filename));
+    val builder = new SoundMapBuilder(writer, palette)
     run2(builder, palette, getLabels)
-    println(s"Sector count: ${builder.outMap.getSectorCount}")
-    builder.writer.setAnyPlayerStart()
-    builder.writer.clearMarkers()
-    builder.outMap
+    println(s"Sector count: ${writer.outMap.getSectorCount}")
+    writer.setAnyPlayerStart()
+    writer.clearMarkers()
+    writer.outMap
   }
 
   def run2(builder: SoundMapBuilder, palette: PrefabPalette, labels: Seq[WallDetails]): Unit = {

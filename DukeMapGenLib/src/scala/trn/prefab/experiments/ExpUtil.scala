@@ -4,6 +4,7 @@ import trn.logic.Tile2d
 import trn.{HardcodedConfig, Main}
 import trn.prefab.{CompassWriter, MapWriter, SectorGroup}
 
+import trn.{Map => DMap}
 /**
   * Utility Functions for Scala Experiments
   */
@@ -15,6 +16,11 @@ object ExpUtil {
     writer.sgBuilder.clearMarkers()
     writer.checkSectorCount()
     Main.deployTest(writer.outMap, filename, HardcodedConfig.getEduke32Path(filename))
+  }
+
+  /** for older code that is not ready to call finishAndWrite() b/c it doesnt use MapWriter yet */
+  def deployMap(outMap: DMap, filename: String = "output.map"): Unit = {
+    Main.deployTest(outMap, filename, HardcodedConfig.getEduke32Path(filename))
   }
 
   //
