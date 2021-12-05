@@ -1,14 +1,13 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{MapLoader, PointXY, PointXYZ, RandomX, Wall, Map => DMap}
+import trn.{HardcodedConfig, MapLoader, PointXY, PointXYZ, RandomX, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._ // this is the good one
 
-class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = new RandomX()) extends MapBuilder with HardcodedGameConfigProvider {
+class SushiBuilder(val writer: MapWriter, palette: PrefabPalette, random: RandomX = new RandomX()) {
 
-  val writer = new MapWriter(this, sgBuilder) // TODO
-  sgBuilder.pasteAllStaySectors(palette)
+  writer.sgBuilder.pasteAllStaySectors(palette)
 
   def pasteSouthOf(existing: PastedSectorGroup, newGroup: SectorGroup): PastedSectorGroup =
     writer.pasteSouthOf(existing, newGroup)
@@ -22,7 +21,7 @@ class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = n
   def pasteNorthOf(existing: PastedSectorGroup, newGroup: SectorGroup): PastedSectorGroup =
     writer.pasteNorthOf(existing, newGroup)
 
-  def autoLink: Unit = sgBuilder.autoLinkRedwalls()
+  def autoLink: Unit = writer.sgBuilder.autoLinkRedwalls()
 
 
 
@@ -74,8 +73,8 @@ class SushiBuilder(val outMap: DMap, palette: PrefabPalette, random: RandomX = n
 
 }
 
-object Sushi extends PrefabExperiment {
-  override val Filename = "sushi.map"
+object Sushi {
+  val Filename = "sushi.map"
 
 
   val PlainHall = 1
@@ -101,21 +100,29 @@ object Sushi extends PrefabExperiment {
 
   val Doorway1_alternate = 18 // this one is just for hacking
 
+  def main(args: Array[String]): Unit = {
+    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val map = run(mapLoader)
+    ExpUtil.deployMap(map)
+  }
 
-  override def run(mapLoader: MapLoader): DMap = {
+  def run(mapLoader: MapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
-    val builder = new SushiBuilder(DMap.createNew(), palette)
+
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val writer = MapWriter(gameCfg)
+    val builder = new SushiBuilder(writer, palette)
 
     // original(builder, palette)
     run2(builder, palette)
     // TODO - the test in pasteConnectedTo() should also do a bounding box check!
     builder.autoLink
 
-    println(s"Sector count: ${builder.outMap.getSectorCount}")
+    println(s"Sector count: ${builder.writer.outMap.getSectorCount}")
     builder.writer.setAnyPlayerStart()
     builder.writer.clearMarkers()
-    builder.outMap
+    builder.writer.outMap
   }
 
   def original(builder: SushiBuilder, palette: PrefabPalette): Unit = {

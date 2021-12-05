@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{MapLoader, PointXY, PointXYZ, Wall, Map => DMap}
+import trn.{HardcodedConfig, MapLoader, PointXY, PointXYZ, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -9,10 +9,9 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 
-class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder with HardcodedGameConfigProvider {
-  val writer = new MapWriter(this, sgBuilder) // TODO
+class PipeBuilder(val writer: MapWriter, palette: PrefabPalette) {
 
-  def sectorCount: Int = sgBuilder.sectorCount
+  def sectorCount: Int = writer.sgBuilder.sectorCount
 
   def spaceAvailable(b: BoundingBox): Boolean = writer.spaceAvailable(b)
 
@@ -59,7 +58,7 @@ class PipeBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder w
 }
 
 
-object PipeDream extends PrefabExperiment {
+object PipeDream {
   val Filename = "pipe.map"
 
   // TODO - next: support multiwall connectors
@@ -67,10 +66,18 @@ object PipeDream extends PrefabExperiment {
   // TODO - idea: priorities connectors on groups with more open connectors?
   // (i.e. check ratio)
 
-  override def run(mapLoader: MapLoader): DMap = {
+  def main(args: Array[String]): Unit = {
+    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val map = run(mapLoader)
+    ExpUtil.deployMap(map)
+  }
+
+  def run(mapLoader: MapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
-    val builder = new PipeBuilder(DMap.createNew(), palette)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val writer = MapWriter(gameCfg)
+    val builder = new PipeBuilder(writer, palette)
 
     val SIZE = 16
 
@@ -141,13 +148,13 @@ object PipeDream extends PrefabExperiment {
       }
 
     }
-    val linked = builder.sgBuilder.autoLinkRedwalls()
+    val linked = builder.writer.sgBuilder.autoLinkRedwalls()
     println(s"linked ${linked0} connectors by old method")
     println(s"linked ${linked} connectors by new method")
 
-    println(s"Sector count: ${builder.outMap.getSectorCount}")
+    println(s"Sector count: ${builder.writer.outMap.getSectorCount}")
     builder.writer.setAnyPlayerStart()
     builder.writer.clearMarkers()
-    builder.outMap
+    builder.writer.outMap
   }
 }

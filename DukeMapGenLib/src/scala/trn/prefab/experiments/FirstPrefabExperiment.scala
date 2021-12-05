@@ -1,11 +1,11 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{Main, MapLoader, MapUtil, PointXY, PointXYZ, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PointXY, PointXYZ, Map => DMap}
+
 import scala.collection.JavaConverters._
 
-class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder with HardcodedGameConfigProvider {
-  val writer = MapWriter(this)
+class PrefabBuilder(val writer: MapWriter, palette: PrefabPalette) {
 
   def pasteAndLink(
       sectorGroupId: Int,
@@ -13,7 +13,7 @@ class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder
       destConnector: Connector): PastedSectorGroup = {
 
     val sg: SectorGroup = palette.getSectorGroup(sectorGroupId);
-    if(destConnector.isLinked(outMap)){
+    if(destConnector.isLinked(writer.outMap)){
       throw new IllegalArgumentException("connector already connected");
     }
     val paletteConnector = CompassWriter.firstConnector(sg, paletteConnectorFilter)
@@ -39,15 +39,22 @@ class PrefabBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder
   *
   * The code was in trn.duke.experiments.prefab.PrefabExperiment.
   */
-object FirstPrefabExperiment extends PrefabExperiment {
+object FirstPrefabExperiment {
 
-  override val Filename: String = "cptest3.map"
+  val Filename: String = "cptest3.map"
 
-  override def run(mapLoader: MapLoader): DMap = {
+  def main(args: Array[String]): Unit = {
+    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val map = run(mapLoader)
+    ExpUtil.deployMap(map)
+  }
+  def run(mapLoader: MapLoader): DMap = {
     val fromMap = mapLoader.load(Filename)
 
     val palette: PrefabPalette = PrefabPalette.fromMap(fromMap);
-    val builder = new PrefabBuilder(DMap.createNew(), palette)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val writer = MapWriter(gameCfg)
+    val builder = new PrefabBuilder(writer, palette)
 
     val psg1: PastedSectorGroup = builder.writer.pasteSectorGroupAt(palette.getSG(10), new PointXYZ(-1024*30, -1024*50, 0))
 
@@ -93,6 +100,6 @@ object FirstPrefabExperiment extends PrefabExperiment {
 
     builder.writer.setAnyPlayerStart()
     //builder.clearMarkers()
-    builder.outMap
+    builder.writer.outMap
   }
 }

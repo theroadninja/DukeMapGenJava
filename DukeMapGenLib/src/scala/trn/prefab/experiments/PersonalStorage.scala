@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.{PaletteList, TextureList}
 import trn.prefab.hypercube.GridManager
@@ -12,14 +12,13 @@ import trn.MapImplicits._
 import trn.prefab.PrefabPalette
 import trn.prefab.experiments.Hypercube4.{Filename, run}
 
-class BasicBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder with HardcodedGameConfigProvider {
-  val writer = new MapWriter(this, sgBuilder) // TODO
+class BasicBuilder(val writer: MapWriter, palette: PrefabPalette) {
 
   def pasteAllStays(): Seq[PastedSectorGroup] = {
-    sgBuilder.pasteAllStaySectors(palette)
+    writer.sgBuilder.pasteAllStaySectors(palette)
   }
 
-  def sectorCount: Int = sgBuilder.sectorCount
+  def sectorCount: Int = writer.sgBuilder.sectorCount
 
   def spaceAvailable(b: BoundingBox): Boolean = writer.spaceAvailable(b)
 
@@ -57,13 +56,20 @@ class BasicBuilder(val outMap: DMap, palette: PrefabPalette) extends MapBuilder 
   def findFirstPsg(psgId: Int): PastedSectorGroup = writer.pastedSectorGroups.find(_.groupId == Some(psgId)).get
 }
 
-object PersonalStorage extends PrefabExperiment {
-  override val Filename = "storage.map"
+object PersonalStorage {
+  val Filename = "storage.map"
 
-  override def run(mapLoader: MapLoader): DMap = {
+  def main(args: Array[String]): Unit = {
+    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val map = run(mapLoader)
+    ExpUtil.deployMap(map)
+  }
+  def run(mapLoader: MapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true)
-    val builder = new BasicBuilder(DMap.createNew(), palette)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val writer = MapWriter(gameCfg)
+    val builder = new BasicBuilder(writer, palette)
     try{
       run(builder, palette)
       builder.writer.clearMarkers()
@@ -72,8 +78,8 @@ object PersonalStorage extends PrefabExperiment {
         ex.printStackTrace()
       }
     }
-    println(s"Sector count: ${builder.outMap.getSectorCount}")
-    builder.outMap
+    println(s"Sector count: ${builder.writer.outMap.getSectorCount}")
+    builder.writer.outMap
   }
 
   def run(builder: BasicBuilder, palette: PrefabPalette): Unit = {
