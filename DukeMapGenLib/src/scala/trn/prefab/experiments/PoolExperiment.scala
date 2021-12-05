@@ -1,21 +1,22 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{MapLoader, PointXYZ, Map => DMap}
+import trn.{HardcodedConfig, MapLoader, PointXYZ, Map => DMap}
 
 import scala.collection.JavaConverters._
 
-class PoolBuilder(val outMap: DMap) extends MapBuilder with HardcodedGameConfigProvider {
+class PoolBuilder(val writer: MapWriter) {
   // mostly a test to see if too many copies have been added
   def available(sg: SectorGroup): Boolean = {
     if(sg.sectorGroupId == -1 || sg.hints.maxCopies.filter(i => i > 0).isEmpty){
       true
     }else{
       val maxCopies = sg.hints.maxCopies.get
-      val copies = sgBuilder.pastedSectorGroups.filter(psg => psg.groupId == Some(sg.sectorGroupId)).size
+      val copies = writer.sgBuilder.pastedSectorGroups.filter(psg => psg.groupId == Some(sg.sectorGroupId)).size
       copies < maxCopies
     }
   }
+
 }
 
 // TODO - this is for testing the blueprint stuff -- make the prefab file also a unit test input!
@@ -26,13 +27,27 @@ object PoolExperiment extends PrefabExperiment {
     s.getTexture == MapWriter.MarkerTex && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
   }
 
+  def main(args: Array[String]): Unit = {
+    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    try {
+      val map = run(mapLoader)
+      ExpUtil.deployMap(map)
+    } catch {
+      case e => {
+        throw e
+      }
+    }
+  }
+
   override def run(mapLoader: MapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
 
     // TODO - a map with a SG that is a box with 4 sides, all with lotag 1, causes this to run out of memory:
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
-    val builder = new PoolBuilder(DMap.createNew())
-    val writer = MapWriter(builder)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val writer = MapWriter(gameCfg)
+    val builder = new PoolBuilder(writer)
+
     def randomAvailable(groups: Iterable[SectorGroup]): Option[SectorGroup] = {
       writer.randomElementOpt(groups.filter(builder.available))
     }
