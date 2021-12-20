@@ -3,10 +3,11 @@ package trn.prefab
 import java.util
 
 import trn.duke.{PaletteList, TextureList}
-import trn.{BuildConstants, ISpriteFilter, IdMap, PlayerStart, PointXY, PointXYZ, RandomX, Sprite, Map => DMap}
+import trn.{BuildConstants, ISpriteFilter, IdMap, PlayerStart, PointXY, PointXYZ, RandomX, Sprite, WallView, Map => DMap}
 import trn.MapImplicits._
 import trn.FuncImplicits._
 import trn.prefab.experiments._
+import trn.render.WallAnchor
 
 import scala.collection.JavaConverters._
 
@@ -369,6 +370,13 @@ class MapWriter(
   }
   def clearMarkers(): Unit = sgBuilder.clearMarkers()
 
+  def getWallAnchor(r: RedwallConnector): WallAnchor = {
+    require(r.getWallCount == 1)
+    val wall = outMap.getWallView(r.getWallIds.get(0))
+    WallAnchor.fromExistingWall2(wall, outMap.getSector(r.getSectorId))
+  }
+
+
   //
   //  ISectorGroup Methods
   //  TODO - sgBuilder should implement these, not MapWriter
@@ -378,4 +386,5 @@ class MapWriter(
   override def findSprites(picnum: Int, lotag: Int, sectorId: Int): util.List[Sprite] = builder.findSprites(picnum, lotag, sectorId)
 
   override def findSprites(filters: ISpriteFilter*): util.List[Sprite] = builder.findSprites(filters:_*)
+
 }
