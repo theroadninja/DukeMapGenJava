@@ -126,7 +126,8 @@ public class Map implements WallContainer {
 		Wall w = getWall(wallId);
 		Wall w2 = getWall(w.getPoint2Id());
 		LineSegmentXY line = new LineSegmentXY(w.getLocation(), w2.getLocation());
-		return new WallView(w, wallId, line);
+		Sector sector = getSector(getSectorIdForWall(wallId));
+		return new WallView(w, wallId, line, sector.getFloorZ(), sector.getCeilingZ());
 	}
 
 	public List<WallView> getWallViews(Collection<Integer> wallIds){
@@ -166,7 +167,26 @@ public class Map implements WallContainer {
 		return list;
 		
 	}
-	
+
+	/**
+	 * Find which sector the wall belongs to.
+	 *
+	 * @param wallId the id of the wall to look up
+	 * @return the id of the sector the wall is in
+	 */
+	public int getSectorIdForWall(int wallId){
+	    // TODO inefficient
+		if(wallId < 0){
+			throw new IllegalArgumentException(String.format("invalid wall id %s", wallId));
+		}
+		for(int i = 0; i < sectorCount; ++i){
+			Sector s = getSector(i);
+			if(wallId >= s.getFirstWall() && wallId < s.getFirstWall() + s.getWallCount()){
+				return i;
+			}
+		}
+		throw new IllegalArgumentException(String.format("no sector for wall id %s", wallId));
+	}
 	
 	/**
 	 * 
@@ -267,6 +287,8 @@ public class Map implements WallContainer {
 	}
 	
 	/**
+	 * TODO - this shouldnt be visible outside the package - consider createSectorFromLoop() instead
+	 *
 	 * Adds the walls and links them together by setting their 'nextwall' pointers to the 
 	 * indices they get when they are added to the wall array.
      *

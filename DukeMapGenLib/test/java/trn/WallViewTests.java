@@ -10,12 +10,12 @@ public class WallViewTests {
     }
 
     private WallView wall(PointXY p1, PointXY p2){
-        return new WallView(new Wall(p1, null), -1, new LineSegmentXY(p1, p2));
+        return new WallView(new Wall(p1, null), -1, new LineSegmentXY(p1, p2), -1, -1);
     }
 
     private WallView testWall(int wallId, PointXY p0, PointXY p1) {
         Wall w = new Wall(p0.x, p0.y);
-        return new WallView(w, wallId, new LineSegmentXY(p0, p1));
+        return new WallView(w, wallId, new LineSegmentXY(p0, p1), -1, -1);
     }
 
     @Test

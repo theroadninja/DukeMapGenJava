@@ -22,7 +22,7 @@ public class MultiSectorConnectorJavaTests {
         Wall w = new Wall(p0.x, p0.y);
         w.setOtherSide(otherWall, -1);
         w.setLotag(PrefabUtils.MarkerSpriteLoTags.MULTI_SECTOR);
-        return new WallView(w, wallId, new LineSegmentXY(p0, p1));
+        return new WallView(w, wallId, new LineSegmentXY(p0, p1), -1, -1);
     }
 
     private WallView testWall(int wallId, PointXY p0, PointXY p1){

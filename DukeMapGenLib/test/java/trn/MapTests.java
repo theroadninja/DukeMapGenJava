@@ -77,6 +77,10 @@ public class MapTests {
 		Assert.assertEquals(0, (int)list.get(0));
 		Assert.assertEquals(1, (int)list.get(1));
 		Assert.assertEquals(2, (int)list.get(2));
+
+		Assert.assertEquals(0, map.getSectorIdForWall(0));
+		Assert.assertEquals(0, map.getSectorIdForWall(1));
+		Assert.assertEquals(0, map.getSectorIdForWall(2));
 	}
 
 	private static int getSectorWithSprite(Map map, int spriteLotag){
@@ -142,6 +146,9 @@ public class MapTests {
 		Assert.assertEquals(1, map.getAllWallLoopsAsViews(sectorId).size());
 		Assert.assertTrue(0 < sumOfCrossProduct(map.getAllWallLoopsAsViews(sectorId).get(0)));
 		Assert.assertTrue(MapUtil.isOuterWallLoop(map.getAllWallLoopsAsViews(sectorId).get(0)));
+		for(Integer wallId : map.getAllWallLoops(sectorId).get(0)){
+			Assert.assertEquals(sectorId, map.getSectorIdForWall(wallId));
+		}
 
 		// sector 2:  the outer loop as 5 walls; the inner has 4
 		sectorId = testSectors.get(2);
@@ -157,16 +164,30 @@ public class MapTests {
 			}else{
 		    	Assert.fail();
 			}
+
+		    for(WallView wall : wallLoop){
+		    	Assert.assertEquals(sectorId, map.getSectorIdForWall(wall.getWallId()));
+			}
 		}
 
 		sectorId = testSectors.get(3);
 		Assert.assertEquals(4, map.getAllWallLoops(sectorId).size());
+		for(Collection<WallView> wallLoop : map.getAllWallLoopsAsViews(sectorId)) {
+			for (WallView wall : wallLoop) {
+				Assert.assertEquals(sectorId, map.getSectorIdForWall(wall.getWallId()));
+			}
+		}
 
 		// This only has 4, because the bottom wall of the peninsula belongs to the
 		// other sector entirely.
 		sectorId = testSectors.get(4);
 		Assert.assertEquals(4, map.getAllWallLoops(sectorId).size());
 		Assert.assertEquals(4, map.getAllWallLoopsAsViews(sectorId).size());
+		for(Collection<WallView> wallLoop : map.getAllWallLoopsAsViews(sectorId)) {
+			for (WallView wall : wallLoop) {
+				Assert.assertEquals(sectorId, map.getSectorIdForWall(wall.getWallId()));
+			}
+		}
 
 
 	}
@@ -312,7 +333,7 @@ public class MapTests {
 	private WallView wall(int wallId, PointXY p1, PointXY p2, int nextWall, int otherSector){
 		Wall w = new Wall(p1, TextureList.Other.NICE_GRAY_BRICK, 8, 8);
 		w.setOtherSide(nextWall, otherSector);
-		WallView wv = new WallView(w, wallId, p1, p2);
+		WallView wv = new WallView(w, wallId, p1, p2, -1, -1);
 		return wv;
 	}
 

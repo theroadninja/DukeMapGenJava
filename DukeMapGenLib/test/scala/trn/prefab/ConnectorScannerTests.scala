@@ -21,7 +21,7 @@ class ConnectorScannerTests {
     val w = new Wall(p0.x, p0.y)
     w.setOtherSide(otherWall, -1)
     w.setLotag(MultiSectorConnector.WALL_LOTAG)
-    new WallView(w, wallId, new LineSegmentXY(p0, p1))
+    new WallView(w, wallId, new LineSegmentXY(p0, p1), 1024, -1024)
   }
 
   @Test

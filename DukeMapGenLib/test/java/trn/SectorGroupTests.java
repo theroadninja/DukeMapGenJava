@@ -19,7 +19,7 @@ public class SectorGroupTests {
         Wall w7 = new Wall(0, 512, wallTex);
 
         Map map = Map.createNew();
-        map.addLoop(w4, w5, w6, w7);
+        map.createSectorFromLoop(w4, w5, w6, w7);
         SectorGroup sg = SectorGroupBuilder.createSectorGroup(map, null, SectorGroupHints.Empty());
         Assert.assertEquals(612, sg.bbHeight());
         Assert.assertEquals(1025, sg.bbWidth());
@@ -41,7 +41,7 @@ public class SectorGroupTests {
         Wall w5 = new Wall(1024, 3, wallTex);
         Wall w6 = new Wall(512, 210, wallTex);
         Map map = Map.createNew();
-        map.addLoop(w4, w5, w6);
+        map.createSectorFromLoop(w4, w5, w6);
         SectorGroup sg = SectorGroupBuilder.createSectorGroup(map, null, SectorGroupHints.Empty());
         Assert.assertEquals(210-3, sg.bbHeight());
         Assert.assertEquals(1024-2, sg.bbWidth());

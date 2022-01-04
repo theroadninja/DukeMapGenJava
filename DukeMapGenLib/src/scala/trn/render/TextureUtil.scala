@@ -1,6 +1,6 @@
 package trn.render
 
-import trn.{BuildConstants, Wall}
+import trn.{BuildConstants, Wall, WallView}
 
 // See also BuildConstants
 object TextureUtil {
@@ -31,6 +31,7 @@ object TextureUtil {
     *   - always starts with the first wall in the `wallLoop` seq, and always with offset 0
     *   - always modifies all walls; doesnt check what texture they have
     *   - assumes the seq represents a loop
+    *   - doesnt handle floor/ceiling differences
     */
   def lineUpTextures(wallLoop: Seq[Wall], scale: Double, texWidth: Int): Unit = {
     // as far as I can tell, xPanning works like you would expect, and in texture coordinates
@@ -44,6 +45,21 @@ object TextureUtil {
 
       offset = newOffset
     }
+  }
+
+  /**
+    * Lines up textures along a segment of walls
+    *
+    * TODO testing:
+    * - differnt floor and ceiling heights
+    * - walls aligned to floor and ceiling
+    * - walls with holes (same and different textures above and below)
+    * - slopes, especially when the wall doesnt line up to the slope start
+    */
+  def lineUpWallLengths(walls: Seq[WallView]): Unit = {
+    // TODO separate functions to line up X and Y??
+
+    ???
   }
 
   // prototype for setting xrepeat en masse

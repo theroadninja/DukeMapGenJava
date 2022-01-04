@@ -31,6 +31,20 @@ public class WallView {
 
     private final LineSegmentXY wallSegment;
 
+    /**
+     * This is NOT the top of the wall!
+     *
+     * This is the "ceiling" of the sector, which can be below the top of the wall if the ceiling is sloped.
+     */
+    private final int sectorCeilZ;
+
+    /**
+     * This is NOT the bottom of the wall!
+     *
+     * This is the "floor" of the sector, which can be above the bottom of the wall if the ceiling is sloped.
+     */
+    private final int sectorFloorZ;
+
     public final PointXY startPoint(){
         return wall.getLocation();
     }
@@ -51,17 +65,19 @@ public class WallView {
         return wallSegment.getLength();
     }
 
-    public WallView(Wall wall, int wallId, LineSegmentXY wallSegement){
+    public WallView(Wall wall, int wallId, LineSegmentXY wallSegement, int sectorFloorZ, int sectorCeilZ){
         this.wall = wall;
         this.wallId = wallId;
         this.wallSegment = wallSegement;
+        this.sectorFloorZ = sectorFloorZ;
+        this.sectorCeilZ = sectorCeilZ;
         if(!wall.getLocation().equals(wallSegement.getP1())){
             throw new IllegalArgumentException("point mismatch between wall and line segment");
         }
     }
 
-    public WallView(Wall wall, int wallId, PointXY p1, PointXY p2){
-        this(wall, wallId, new LineSegmentXY(p1, p2));
+    public WallView(Wall wall, int wallId, PointXY p1, PointXY p2, int sectorFloorZ, int sectorCeilZ){
+        this(wall, wallId, new LineSegmentXY(p1, p2), sectorFloorZ, sectorCeilZ);
     }
 
     public final int getWallId(){
@@ -209,7 +225,9 @@ public class WallView {
         WallView result = new WallView(
                 this.wall.copy().translate(delta),
                 this.getWallId(),
-                this.getLineSegment().translated(delta.asXY())
+                this.getLineSegment().translated(delta.asXY()),
+                this.sectorFloorZ,
+                this.sectorCeilZ
         );
         return result;
     }
@@ -231,7 +249,9 @@ public class WallView {
         return new WallView(
                 newWall,
                 -1,
-                new LineSegmentXY(p2(), p1())
+                new LineSegmentXY(p2(), p1()),
+                this.sectorFloorZ,
+                this.sectorCeilZ
         );
     }
 
