@@ -3,6 +3,9 @@ package trn;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.util.List;
+
 public class WallViewTests {
 
     private PointXY p(int x, int y){
@@ -84,5 +87,45 @@ public class WallViewTests {
         Assert.assertEquals(w.reversed(), r);
         Assert.assertEquals(w, r.reversed());
         Assert.assertEquals(w.reversed().reversed(), w);
+    }
+
+    @Test
+    public void testGetScaleX() throws IOException {
+        Map map = JavaTestUtils.readTestMap(JavaTestUtils.JUNIT2);
+
+        // should only be one sector
+        List<Integer> wallIds = map.getAllSectorWallIds(0);
+        Assert.assertEquals(10, wallIds.size());
+
+        double delta = 0.0000001;
+        int blanks = 0;
+        int normal = 0;
+        int half = 0;
+        int dble = 0;
+        for(int i = 0; i < wallIds.size(); ++i){
+            WallView wall = map.getWallView(i);
+            if(wall.wall.getTex() == 0){
+                blanks += 1;
+            }else if(wall.wall.getTex() == 158){
+                if(wall.wall.getPal() == 0){
+                    Assert.assertTrue(wall.getScaleX() - 1.0 < delta);
+                    normal += 1;
+                }else if(wall.wall.getPal() == 1){
+                    // blue
+                    Assert.assertTrue(wall.getScaleX() - 0.5 < delta);
+                    half += 1;
+                }else if(wall.wall.getPal() == 2){
+                    // red
+                    Assert.assertTrue(wall.getScaleX() - 2.0 < delta);
+                    dble += 1;
+                }
+            }else{
+                Assert.fail(String.format("wall %s wrong texture: %s", i, wall.wall.getTex()));
+            }
+        }
+        Assert.assertEquals(1, blanks);
+        Assert.assertEquals(3, normal);
+        Assert.assertEquals(3, half);
+        Assert.assertEquals(3, dble);
     }
 }

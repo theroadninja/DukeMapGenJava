@@ -138,6 +138,14 @@ public class Map implements WallContainer {
 		return results;
 	}
 
+	public List<WallView> getAllWallViews(){
+		List<WallView> results = new ArrayList<>(this.walls.size());
+		for(int i = 0; i < this.walls.size(); ++i){
+		    results.add(getWallView(i));
+		}
+		return Collections.unmodifiableList(results);
+	}
+
 	// public List<Wall> getWalls(List<Integer> wallIds){
 	// 	List<Wall> results = new ArrayList<>();
 	// 	for(int i : wallIds){

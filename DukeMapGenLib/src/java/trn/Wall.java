@@ -204,6 +204,24 @@ public class Wall {
 		this.cstat = stat.cstat();
 	}
 
+	private void setStat(int whichBit, boolean newValue){
+		if(newValue){
+			this.cstat = (short)(this.cstat | whichBit);
+		}else{
+			this.cstat = (short)WallStat.removeBits(this.cstat, whichBit);
+		}
+	}
+
+	public void setXFlip(boolean xflip){
+		setStat(WallStat.XFLIP, xflip);
+	}
+
+	public void setYFlip(boolean yflip){
+		setStat(WallStat.YFLIP, yflip);
+	}
+
+
+
 	public int getX(){
 		return x;
 	}
@@ -332,6 +350,9 @@ public class Wall {
 	public void setPal(int i){
 		// TODO - throw if i is out of range
 		this.pal = (short)i;
+	}
+	public int getPal(){
+		return this.pal;
 	}
 
 	/** X-repeat controls the scaling factor.  See XRepeat.md for an explanation */

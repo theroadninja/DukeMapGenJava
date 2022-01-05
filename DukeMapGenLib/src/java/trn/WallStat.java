@@ -57,6 +57,10 @@ public class WallStat {
         return get(XFLIP);
     }
 
+    public boolean yflip(){
+        return get(YFLIP);
+    }
+
     public WallStat withValueChanged(int whichBit, boolean value){
         if(value){
             return new WallStat(this.stat | whichBit);

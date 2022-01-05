@@ -61,11 +61,25 @@ public class WallView {
         return wallSegment;
     }
 
+    /**
+     * Gets the "scale" of the wall in the X direction.  This is an inexact layer I'm putting on top because "scale"
+     * is easier to deal with than Build's xrepeat.
+     *
+     * For the math, see `DukeMapGenLib/docs/XRepeat.md`
+     *
+     * @return the scaling factor on the walls X axis (left to right on the wall)
+     */
+    public final Double getScaleX(){
+        return length() / (128 * this.wall.xrepeat);
+    }
+
     public final double length(){
         return wallSegment.getLength();
     }
 
     public WallView(Wall wall, int wallId, LineSegmentXY wallSegement, int sectorFloorZ, int sectorCeilZ){
+
+        // TODO:  deep copy the wall!
         this.wall = wall;
         this.wallId = wallId;
         this.wallSegment = wallSegement;
@@ -289,6 +303,10 @@ public class WallView {
 
     public final Wall getWall(){
         return this.wall;
+    }
+
+    public final WallStat stat(){
+        return this.wall.getStat();
     }
 
     public static List<Wall> toWalls(List<WallView> views){

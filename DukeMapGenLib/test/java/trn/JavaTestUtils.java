@@ -10,6 +10,7 @@ public class JavaTestUtils {
 
     // making it easy to find all the tests that use a certain map.
     public static final String JUNIT1 = "JUNIT1.MAP";
+    public static final String JUNIT2 = "junit2.map";
 
     public static final String MULTI_WALL_CONN_MAP = "UNITMW.MAP";
     public static final String ADD_LOOP = "ADDLOOP.MAP";
