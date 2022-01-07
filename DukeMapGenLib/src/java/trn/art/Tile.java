@@ -6,14 +6,19 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
-public class Tile {
+public class Tile implements Comparable<Tile> {
+
+    /** index across multiple files; the 'picnum' in Build */
+    final int globalTileIndex;
+
     final int tileIndex; // TODO - i think this is just its index within the file
     final int width;
     final int height;
     final List<Integer> paletteIndexes;
     // TODO: add picanm
 
-    public Tile(int tileIndex, int width, int height, List<Integer> paletteIndexes){
+    public Tile(int globalTileIndex, int tileIndex, int width, int height, List<Integer> paletteIndexes){
+        this.globalTileIndex = globalTileIndex;
         this.tileIndex = tileIndex;
         this.width = width;
         this.height = height;
@@ -21,6 +26,22 @@ public class Tile {
         if(this.paletteIndexes.size() != this.width * this.height){
             throw new IllegalArgumentException("wrong number of pixels");
         }
+    }
+
+    public int getGlobalIndex(){
+        return this.globalTileIndex;
+    }
+
+    public int getIndex(){
+        return this.tileIndex;
+    }
+
+    public int getWidth(){
+        return this.width;
+    }
+
+    public int getHeight(){
+        return this.height;
     }
 
     public boolean isValid(){
@@ -43,5 +64,10 @@ public class Tile {
         }
 
         return image;
+    }
+
+    @Override
+    public int compareTo(Tile other){
+        return this.globalTileIndex - other.globalTileIndex;
     }
 }

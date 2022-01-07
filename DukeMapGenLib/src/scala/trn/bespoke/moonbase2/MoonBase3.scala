@@ -163,7 +163,7 @@ object MoonBase3 {
   }
 
   def main(args: Array[String]): Unit = {
-    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile, HardcodedConfig.getAtomicHeightsFile)
     run(gameCfg)
   }
 

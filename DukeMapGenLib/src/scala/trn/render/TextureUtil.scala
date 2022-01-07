@@ -5,7 +5,7 @@ import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, Wall, WallStat, Wa
 
 import scala.collection.JavaConverters._
 
-// See also BuildConstants
+// See also BuildConstants, ArtFileReader
 object TextureUtil {
 
   /**
@@ -44,10 +44,8 @@ object TextureUtil {
     val xflip = firstWall.stat.xflip
     val yflip = firstWall.stat.yflip
 
-    // TODO if xflip is true, need to change the whole algorithm!
-
+    // if xflip is true, need to change the whole algorithm!
     if(xflip){
-
       var offset = firstWall.xPan
       for(wallId <- wallIds.tail){
         val wall = map.getWall(wallId)
@@ -55,7 +53,6 @@ object TextureUtil {
 
         wall.setXFlip(xflip)
         wall.setYFlip(yflip)
-        // println(s"setting wall ${wallId} xpan to ${offset}")
 
         val view = map.getWallView(wallId)
         wall.setXScale(scale, view.length)
@@ -66,12 +63,8 @@ object TextureUtil {
           offset += texWorldWidthPx.toInt
         }
         offset = offset / BuildConstants.TexScalingFactorX
-        println(s"setting offset ${offset}")
         wall.setXPanning(offset)
       }
-
-
-
     }else{
       var offset = firstWall.xPan
       for(wallId <- wallIds){
@@ -80,7 +73,6 @@ object TextureUtil {
 
         wall.setXFlip(xflip)
         wall.setYFlip(yflip)
-        // println(s"setting wall ${wallId} xpan to ${offset}")
 
         val view = map.getWallView(wallId)
         wall.setXScale(scale, view.length)
@@ -88,7 +80,85 @@ object TextureUtil {
         offset = TextureUtil.calcOffset(offset, scale, gameCfg.textureWidth(tex), view.length())
       }
     }
+  }
 
+  /**
+    * Align vertically all wall textures to the texture of the first wall
+    * @param wallIds the ids of the walls to align (probably dont have to be contiguous)
+    * @param map the map containing the walls
+    */
+  def rightAlignY(wallIds: Seq[Int], map: DMap): Unit = if(wallIds.nonEmpty){
+
+    /**
+      * Return the vertial(Z) coordinate, in build space (as opposed to texture space) where the texture starts
+      */
+    def getZ(wall: WallView): Int = {  // the anchor point where the texture starts
+      val alignBottom = wall.stat.alignBottom
+      if(wall.isRedwall){
+        // now, "align bottom" actuall means align top
+        if(alignBottom){ wall.getSectorCeilZ} else {
+          val otherSector = map.getSector(wall.getWall.getOtherSector)
+          // WARNING: the top part of the wall will still be wrong!
+          otherSector.getFloorZ
+        }
+      }else{
+        if(alignBottom){ wall.getSectorFloorZ} else { wall.getSectorCeilZ }
+      }
+    }
+
+    def texToBuildCoords(ycoord: Int, yrepeat: Int): Int = {
+      // TODO my notes (docs/YRepeat) say 2048 here, but the correct value seems to be 1024
+      ycoord * 1024 / yrepeat // NOTE this z coord is not absolute; its relative to the place in buildspace where texture_y=0
+    }
+    def buildToTexCoords(zcoord: Int, yrepeat: Int): Int = {
+      zcoord * yrepeat / 1024
+    }
+
+    val firstWall = map.getWallView(wallIds.head)
+    val yrepeat = firstWall.getYRepeat
+
+    // The top of the texture (remember positive z goes into the earth)
+    // (if top aligned) TOP_OF_WALL = TEXTURE_TOP + z_OFFSET
+    // (bottom aligned) BOT_OF_WALL = TEXTURE_TOP + z_OFFSET
+    // NEW_OFFSET = z_NEW_WALL - TEXTURE_TOP
+    val texTop = getZ(firstWall) - texToBuildCoords(firstWall.getWall.getYPanning, yrepeat)
+
+    // first set alignBottom = True on all red walls.
+    for(wallId <- wallIds.tail){
+      val w = map.getWall(wallId)
+      if(w.isRedWall){
+        // when a wall has a "hole" in it, ALIGN_BOTTOM actually causes the top of the texture to be at
+        // the top of the upper wall (same as a non-redwall when align bottom is false).  This is necessary because
+        // a redwall with a hole in it, when align bottom is false, will align the top of the texture to the top of
+        // the lower wall, and the bottom of the texture to the higher wall, which is impossible to line up
+        w.setAlignBottom(true)
+      }
+    }
+
+    for(wallId <- wallIds.tail){
+      val wallView = map.getWallView(wallId)
+      val newOffset = getZ(wallView) - texTop
+      val ypan = positiveMod(buildToTexCoords(newOffset, yrepeat), BuildConstants.YPanMax)
+      // println(s"setting y offset build coords = ${newOffset}  tex coords = ${ypan}")
+      val wall = map.getWall(wallId)
+      wall.setYPanning(ypan)
+      wall.setYRepeat(yrepeat)
+    }
+  }
+
+  /**
+    * Computes i % j but if i is negative, still returns the distance from the "smaller" j to i
+    * (i.e. steps up the value of i until it is positive and then does the mod)
+    * @param i  the i in i%j
+    * @param j  the j in i%j
+    * @return  i%j but handling negative numbers a certain way
+    */
+  private[TextureUtil] def positiveMod(i: Int, j: Int): Int = {
+    var x = i
+    while(x < 0){
+      x += j
+    }
+    x % j
   }
 
   /**
@@ -138,11 +208,6 @@ object TextureUtil {
   }
 
 
-  def alignWallSectionY(wallIds: Seq[Int], map: DMap): Unit = {
-
-    ???
-  }
-
   // prototype for setting xrepeat en masse
   // wrote this while writing StarPrinter
   def setWallXScale(wallLoop: Seq[Wall], scale: Double = 1.0): Unit = {
@@ -169,7 +234,7 @@ object TextureUtil {
   }
 
   def main(args: Array[String]): Unit = {
-    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile, HardcodedConfig.getAtomicHeightsFile)
     val testMap = MapLoader.loadMap(HardcodedConfig.getEduke32Path("aligntest.map"))
 
     val walls = testMap.getAllWallViews.asScala.filter(w => w.tex == 858)
@@ -183,6 +248,7 @@ object TextureUtil {
     testMap.getWall(wallIds.last).setPal(2)
 
     TextureUtil.rightAlignX(walls2.map(_.getWallId), testMap, gameCfg)
+    TextureUtil.rightAlignY(walls2.map(_.getWallId), testMap)
 
     Main.deployTest(testMap, "output.map", HardcodedConfig.getEduke32Path("output.map"))
   }

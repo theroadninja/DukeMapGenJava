@@ -27,6 +27,17 @@ trait GameConfig {
     */
   def textureWidth(texture: Int): Int
 
+  /**
+    * Look up the height of a texture, which is useful when trying to align textures vertically.
+    *
+    * TODO: i added all this height shit when I wrote the code to align textures vertically (on the z axis) however
+    *     i later realized that the max ypan is always 256 and texture height doesnt matter!  can probably remove this
+    *
+    * @param texture the texture id (picnum) of a texture
+    * @return the height of the texture, in pixels
+    */
+  def textureHeight(texture: Int): Int
+
   def tex(picnum: Int): Texture = Texture(picnum, textureWidth(picnum))
 
   /**
@@ -108,19 +119,25 @@ case class SectorTags(
 
 
 object DukeConfig {
-  def load(texWidthsFilePath: String): GameConfig = {
+
+  // TODO get rid of hardcoding
+  def load(texWidthsFilePath: String, texHeightsFilePath: String = HardcodedConfig.getAtomicHeightsFile): GameConfig = {
     val texWidths = Source.fromFile(texWidthsFilePath).getLines.map(_.trim).filterNot(_.startsWith("#")).map{ line =>
       val fields = line.split("=")
       fields(0).toInt -> fields(1).toInt
     }.toMap
-    new DukeConfig(texWidths)
+    val texHeights = Source.fromFile(texHeightsFilePath).getLines.map(_.trim).filterNot(_.startsWith("#")).map{ line =>
+      val fields = line.split("=")
+      fields(0).toInt -> fields(1).toInt
+    }.toMap
+    new DukeConfig(texWidths, texHeights)
   }
 
   /** @deprecated - the GameConfig should be loaded propertly; only making this so I dont have to rewrite so much */
-  def loadHardCodedVersion(): GameConfig = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile())
+  def loadHardCodedVersion(): GameConfig = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile, HardcodedConfig.getAtomicHeightsFile)
 
   /** this is for unit tests only */
-  lazy val empty: GameConfig = new DukeConfig(Map.empty) // TODO - make package private?
+  lazy val empty: GameConfig = new DukeConfig(Map.empty, Map.empty) // TODO - make package private?
 
   /** Lotags of SE sprites with unique hitags */
   private[prefab] val UniqueHiSE = Set(0, 1, 3, 6, 7, 8, 9, 12, 13, 14, 15, 17, 19, 21, 22, 24, 30) // TODO consider using trn.duke.Lotags
@@ -165,9 +182,11 @@ object DukeConfig {
 }
 
 /** TODO - move this somewhere else? */
-class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
+class DukeConfig(textureWidths: Map[Int, Int], textureHeights: Map[Int, Int]) extends GameConfig {
 
   override def textureWidth(texture: Int): Int = textureWidths.get(texture).getOrElse(0)
+
+  override def textureHeight(texture: Int): Int = textureHeights.get(texture).getOrElse(0)
 
   /**
     * @return true if the texture (picnum) is a switch
@@ -292,6 +311,8 @@ class DukeConfig(textureWidths: Map[Int, Int]) extends GameConfig {
 object TestGameConfig extends GameConfig {
 
   override def textureWidth(texture: Int): Int = 128
+
+  override def textureHeight(texture: Int): Int = 128
 
   override def uniqueTags(sprite: Sprite): Seq[Int] = ???
 

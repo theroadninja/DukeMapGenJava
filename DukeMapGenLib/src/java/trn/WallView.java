@@ -73,6 +73,10 @@ public class WallView {
         return length() / (128 * this.wall.xrepeat);
     }
 
+    public int getYRepeat(){
+        return this.wall.yrepeat;
+    }
+
     public final double length(){
         return wallSegment.getLength();
     }
@@ -118,6 +122,14 @@ public class WallView {
     @Override
     public int hashCode(){
         return this.wall.hashCode() << 4 + this.wallId << 2 + this.wallSegment.hashCode();
+    }
+
+    public int getSectorFloorZ(){
+        return this.sectorFloorZ;
+    }
+
+    public int getSectorCeilZ(){
+        return this.sectorCeilZ;
     }
 
     /**

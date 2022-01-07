@@ -15,6 +15,9 @@ public final class HardcodedConfig {
     public static final String getAtomicWidthsFile(){
         return System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "data" + File.separator + "atomictexwidths.txt";
     }
+    public static final String getAtomicHeightsFile(){
+        return System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "data" + File.separator + "atomictexheights.txt";
+    }
 
     /**
      * @return the full path to a file in the MapData/ folder in this project.

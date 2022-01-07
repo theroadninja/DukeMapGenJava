@@ -1,4 +1,4 @@
-# textures widths from the atomic edition
+# textures widths from the atomic edition (See ArtFileReader)
 0=64
 1=12
 2=15

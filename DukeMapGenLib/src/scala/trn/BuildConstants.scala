@@ -38,6 +38,9 @@ object BuildConstants {
   /** Height in z units of a single PGUP / PGDOWN action in the build editor */
   val ZStepHeight = 1024
 
+  /** The maximum Y Panning value of a wall seems to always be 256 regardless of the height of the texture */
+  val YPanMax = 256
+
   /** from http://infosuite.duke4.net/index.php?page=references_dimensions */
   // public static final int MAX_DUKE_JUMP_HEIGHT = 20;
 

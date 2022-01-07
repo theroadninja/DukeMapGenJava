@@ -473,7 +473,7 @@ object LoungePrinter {
     // TODO: make sure we use something like this from StairPrinter
     // snapToNearest(floorZs(i), BuildConstants.ZStepHeight),
 
-    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile, HardcodedConfig.getAtomicHeightsFile)
     val writer = MapWriter(gameCfg)
 
     test2(gameCfg, writer.getMap)

@@ -125,7 +125,7 @@ object MoonBase2 {
   def getMoon2Map(): String = HardcodedConfig.getEduke32Path("moon2.map")
 
   def main(args: Array[String]): Unit = {
-    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile, HardcodedConfig.getAtomicHeightsFile)
     run(gameCfg)
   }
 

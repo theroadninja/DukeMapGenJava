@@ -386,7 +386,7 @@ object SpacePassagePrinter {
   private def toI(f: FVectorXY): PointXY = new PointXY(f.x.toInt, f.y.toInt)
 
   def main(args: Array[String]): Unit = {
-    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile, HardcodedConfig.getAtomicHeightsFile)
     val writer = MapWriter(gameCfg)
 
 

@@ -212,6 +212,10 @@ public class Wall {
 		}
 	}
 
+	public void setAlignBottom(boolean alignBottom){
+		setStat(WallStat.ALIGN_BOTTOM, alignBottom);
+	}
+
 	public void setXFlip(boolean xflip){
 		setStat(WallStat.XFLIP, xflip);
 	}

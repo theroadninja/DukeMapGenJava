@@ -49,6 +49,10 @@ public class WallStat {
         return get(BLOCKABLE);
     }
 
+    public boolean alignBottom(){
+        return get(ALIGN_BOTTOM);
+    }
+
     public boolean hitscan(){
         return get(HITSCAN);
     }

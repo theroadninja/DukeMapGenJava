@@ -52,7 +52,7 @@ object FirstPrefabExperiment {
     val fromMap = mapLoader.load(Filename)
 
     val palette: PrefabPalette = PrefabPalette.fromMap(fromMap);
-    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile, HardcodedConfig.getAtomicHeightsFile)
     val writer = MapWriter(gameCfg)
     val builder = new PrefabBuilder(writer, palette)
 

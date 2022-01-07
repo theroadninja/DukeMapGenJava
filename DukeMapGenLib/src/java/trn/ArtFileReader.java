@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 // see also MapLoader and Map.readMap()
@@ -18,6 +19,8 @@ import java.util.List;
  *
  * Note:  this code seems to have the answers I need:
  * https://git.sr.ht/~jakob/rebuild/tree/master/src/bitmap.rs
+ *
+ * See also TextureUtil
  */
 public class ArtFileReader {
 
@@ -98,7 +101,7 @@ public class ArtFileReader {
         File path = new File(filename);
         FileInputStream bs = new FileInputStream(path);
         try{
-            read(bs);
+            read(bs, 0);
         }finally{
             try{ bs.close(); }finally{}
         }
@@ -154,17 +157,25 @@ public class ArtFileReader {
     }
 
 
-    public static List<Tile> read(String artFile) throws IOException {
+    public static List<Tile> read(String artFile, int startIndex) throws IOException {
         File path = new File(artFile);
         FileInputStream bs = new FileInputStream(path);
         try{
-            return read(bs);
+            return read(bs, startIndex);
         }finally{
             try{ bs.close(); }finally{}
         }
     }
 
-    public static List<Tile> read(InputStream artFile) throws IOException {
+    public static List<Tile> readAll(Iterable<String> artFiles) throws IOException {
+        List<Tile> results = new LinkedList<>();
+        for(String artFile : artFiles){
+            results.addAll(read(artFile, results.size()));
+        }
+        return results;
+    }
+
+    public static List<Tile> read(InputStream artFile, int startIndex) throws IOException {
 
         // TODO - i don't know if these values are signed or not.  seems reasonable that most of them wouldnt be...
         // I belive a 'long' is a readInt32LE
@@ -213,7 +224,7 @@ public class ArtFileReader {
                 //paletteIndexes.add((int)ByteUtil.readInt16LE(artFile)); //not sure if this is 16 bit or not
             }
 
-            tiles.add(new Tile(i, width, height, paletteIndexes));
+            tiles.add(new Tile(startIndex + i, i, width, height, paletteIndexes));
         }
 
 
@@ -225,7 +236,8 @@ public class ArtFileReader {
         for(int i = 0; i < tilesizex.size(); ++i){
             int num = localtilestart + i;
             if(tilesizex.get(i) > 0){
-                println("num=" + num + " tile size x=" + tilesizex.get(i));
+                // TODO useful to print, but should be optional
+                // println("num=" + num + " tile size x=" + tilesizex.get(i));
             }
             // println("tile " + num + " size: " + tilesizex.get(i) + " x " + tilesizey.get(i));
 
@@ -251,13 +263,14 @@ public class ArtFileReader {
 
         // for(int fileIndex = 0; fileIndex < files.size(); ++fileIndex){
         for(int fileIndex = 0; fileIndex < 1; ++fileIndex){
-            List<Tile> tiles = ArtFileReader.read(files.get(fileIndex));
+            int startIndex = 0; // TODO
+            List<Tile> tiles = ArtFileReader.read(files.get(fileIndex), startIndex);
 
             for(int tileIndex = 0; tileIndex < tiles.size(); ++tileIndex){
 
                 Tile tile = tiles.get(tileIndex);
                 if(tile.isValid()){
-                    // TODO this is wrong: the picnum goes across all files, and does it start at 1 or 0?
+                    // TODO this is wrong: the picnum goes across all files, and does it start at 1 or 0? -- wait, not sure about that
                     String outfile = "file" + fileIndex + "tile" + tileIndex + ".png";
                     ImageIO.write(tile.toImage(palette, 2), "png", new File(destFolder + outfile));
 
@@ -271,7 +284,18 @@ public class ArtFileReader {
 
 
         String paletteFile = HardcodedConfig.PATH_WITH_ART + "PALETTE.DAT";
-        extractTiles(paletteFile, HardcodedConfig.PATH_WITH_ART, HardcodedConfig.TILES_OUTPUT_PATH);
+
+        // extract and write images
+        // extractTiles(paletteFile, HardcodedConfig.PATH_WITH_ART, HardcodedConfig.TILES_OUTPUT_PATH);
+
+        // -- PRINTING THE TEXTURE HEIGHTS ---
+        List<Tile> tiles = ArtFileReader.readAll(ArtFileReader.findArtFiles(HardcodedConfig.PATH_WITH_ART));
+        Collections.sort(tiles);
+        for(Tile tile: tiles){
+            println(String.format("%s=%s", tile.getGlobalIndex(), tile.getHeight()));
+        }
+        // -----------------------------------
+
 
 
         // Palette palette = readPalette(paletteFile);
