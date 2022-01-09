@@ -8,6 +8,8 @@ import scala.collection.JavaConverters._
 /**
   * Operations for scaling or lining up Textures on Walls.
   * See also BuildConstants, ArtFileReader
+  *
+  * TODO:  aligning textures in Y direction not implemented in the case there the first wall is a redwall
   */
 object TextureUtil {
 
@@ -63,7 +65,7 @@ object TextureUtil {
     * @param map map containing the walls to edit
     * @param gameCfg a TexturePack object to get the texture width from
     */
-  def rightAlignX(wallIds: Seq[Int], map: DMap, gameCfg: TexturePack): Unit = if(wallIds.nonEmpty){
+  def alignXL2R(wallIds: Seq[Int], map: DMap, gameCfg: TexturePack): Unit = if(wallIds.nonEmpty){
     // panning is never negative!  always a valid coord on the texture! (so max xpan determined by tex width)
     // the panning is where the texture starts, to increasing it moves the texture left...
     val firstWall = map.getWallView(wallIds.head)
@@ -106,7 +108,7 @@ object TextureUtil {
     * @param map
     * @param gameCfg
     */
-  def leftAlignX(wallIds: Seq[Int], map: DMap, gameCfg: TexturePack): Unit = if(wallIds.nonEmpty){
+  def alignXR2L(wallIds: Seq[Int], map: DMap, gameCfg: TexturePack): Unit = if(wallIds.nonEmpty){
 
     val reversed = wallIds.reverse
     val firstWall = map.getWallView(reversed.head)
@@ -149,7 +151,7 @@ object TextureUtil {
     * @param wallIds the ids of the walls to align (probably dont have to be contiguous)
     * @param map the map containing the walls
     */
-  def rightAlignY(wallIds: Seq[Int], map: DMap): Unit = if(wallIds.nonEmpty){
+  def alignYL2R(wallIds: Seq[Int], map: DMap): Unit = if(wallIds.nonEmpty){
 
     /**
       * Return the vertial(Z) coordinate, in build space (as opposed to texture space) where the texture starts
@@ -210,7 +212,7 @@ object TextureUtil {
     }
   }
 
-  def leftAlignY(wallIds: Seq[Int], map: DMap): Unit = rightAlignY(wallIds.reverse, map)
+  def alignYR2L(wallIds: Seq[Int], map: DMap): Unit = alignYL2R(wallIds.reverse, map)
 
   /**
     * Computes i % j but if i is negative, still returns the distance from the "smaller" j to i
@@ -292,10 +294,10 @@ object TextureUtil {
     testMap.getWall(wallIds(0)).setPal(1)
     testMap.getWall(wallIds.last).setPal(2)
 
-    TextureUtil.rightAlignX(walls2.map(_.getWallId), testMap, gameCfg)
+    TextureUtil.alignXL2R(walls2.map(_.getWallId), testMap, gameCfg)
     // TextureUtil.leftAlignX(walls2.map(_.getWallId), testMap, gameCfg)
     // TextureUtil.rightAlignY(walls2.map(_.getWallId), testMap)
-    TextureUtil.leftAlignY(walls2.map(_.getWallId), testMap)
+    TextureUtil.alignYR2L(walls2.map(_.getWallId), testMap)
 
     Main.deployTest(testMap, "output.map", HardcodedConfig.getEduke32Path("output.map"))
   }
