@@ -10,13 +10,25 @@ import scala.collection.JavaConverters._
 import scala.io.Source
 
 /**
+  * Contains information about all of the available textures.
+  *
+  * TODO Originally I thought a single `GameConfig` object could encapsulate all the differences between different Build
+  * games, however I didn't realize how different they were (Shadow Warrior only has a single SE with many, many tags
+  * on it...).  So instead I think Textures, at least, should be a separate concern.
+  */
+trait TexturePack {
+
+  def textureWidth(texture: Int): Int
+}
+
+/**
   * TODO there is some stuff about sprite angles in GameLogic
   *
   * This is intended to represent game-specific information, as an input, so avoid hard coding things.
   * For example, the fact that a sprite with texture 142 ends a level is specific to Duke3d and probably
   * not relevant to other build games.
   */
-trait GameConfig {
+trait GameConfig extends TexturePack { // TODO: GameConfig should contain a TexturePack, not BE a TexturePack
 
   /**
     * Looks up the width of a texture.  This is necessary because setting the scaling/alignment of textures requires
@@ -25,7 +37,7 @@ trait GameConfig {
     * @param texture the texture id (picnum) of a texture
     * @return the width of the texture, in pixels.
     */
-  def textureWidth(texture: Int): Int
+  override def textureWidth(texture: Int): Int
 
   /**
     * Look up the height of a texture, which is useful when trying to align textures vertically.

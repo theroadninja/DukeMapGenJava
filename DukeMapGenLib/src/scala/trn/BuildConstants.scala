@@ -41,6 +41,13 @@ object BuildConstants {
   /** The maximum Y Panning value of a wall seems to always be 256 regardless of the height of the texture */
   val YPanMax = 256
 
+  /**
+    * Based on experimentation this is the highest xpanning value.
+    * However, 256 != one tiling.  A 128px texture will tile twice before xpan reaches 256.
+    * A smaller texture will tile more times.
+    */
+  val XPanMax = 256
+
   /** from http://infosuite.duke4.net/index.php?page=references_dimensions */
   // public static final int MAX_DUKE_JUMP_HEIGHT = 20;
 
