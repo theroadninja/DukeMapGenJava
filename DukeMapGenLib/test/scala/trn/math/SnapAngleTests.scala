@@ -134,4 +134,27 @@ class SnapAngleTests {
     Assert.assertFalse(SnapAngle.rotateUntil(t)(tile => tile == t3).isDefined)
   }
 
+  @Test
+  def testAngleFromAtoB(): Unit = {
+    Assert.assertEquals(SnapAngle(0), SnapAngle.angleFromAtoB(Heading.E, Heading.E))
+    Assert.assertEquals(SnapAngle(1), SnapAngle.angleFromAtoB(Heading.E, Heading.S))
+    Assert.assertEquals(SnapAngle(2), SnapAngle.angleFromAtoB(Heading.E, Heading.W))
+    Assert.assertEquals(SnapAngle(3), SnapAngle.angleFromAtoB(Heading.E, Heading.N))
+
+    Assert.assertEquals(SnapAngle(0), SnapAngle.angleFromAtoB(Heading.S, Heading.S))
+    Assert.assertEquals(SnapAngle(1), SnapAngle.angleFromAtoB(Heading.S, Heading.W))
+    Assert.assertEquals(SnapAngle(2), SnapAngle.angleFromAtoB(Heading.S, Heading.N))
+    Assert.assertEquals(SnapAngle(3), SnapAngle.angleFromAtoB(Heading.S, Heading.E))
+
+    Assert.assertEquals(SnapAngle(0), SnapAngle.angleFromAtoB(Heading.W, Heading.W))
+    Assert.assertEquals(SnapAngle(1), SnapAngle.angleFromAtoB(Heading.W, Heading.N))
+    Assert.assertEquals(SnapAngle(2), SnapAngle.angleFromAtoB(Heading.W, Heading.E))
+    Assert.assertEquals(SnapAngle(3), SnapAngle.angleFromAtoB(Heading.W, Heading.S))
+
+    Assert.assertEquals(SnapAngle(0), SnapAngle.angleFromAtoB(Heading.N, Heading.N))
+    Assert.assertEquals(SnapAngle(1), SnapAngle.angleFromAtoB(Heading.N, Heading.E))
+    Assert.assertEquals(SnapAngle(2), SnapAngle.angleFromAtoB(Heading.N, Heading.S))
+    Assert.assertEquals(SnapAngle(3), SnapAngle.angleFromAtoB(Heading.N, Heading.W))
+  }
+
 }

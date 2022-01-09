@@ -2,14 +2,27 @@ package trn.render
 
 import trn.{BuildConstants, Wall, Map => DMap}
 import trn.PointImplicits._
+import trn.prefab.DukeConfig
 
 import scala.collection.mutable
+import scala.collection.JavaConverters._
 
 /** A wall anchor that also has the sector id */
 case class WallSectorAnchor(anchor: WallAnchor, sectorId: Int)
 
 
-case class PrintedStep(anchor: WallSectorAnchor, leftWall: Wall, rightWall: Wall)
+case class PrintedStep(anchor: WallSectorAnchor, leftWallId: Int, rightWallId: Int)
+
+/**
+  *
+  * @param stepCount how many steps are there - TODO does this include the last one or not?
+  * @param stepLength the horizontal length from one step to the next step (NOT the distance between the walls)
+  */
+case class StairParams(stepCount: Int, stepLength: Int = StairParams.NormalStairLength)
+
+object StairParams {
+  val NormalStairLength: Int = 256
+}
 
 
 /**
@@ -40,6 +53,7 @@ object TowerStairPrinter {
     val p2 = start.p1 + v1
     val p3 = start.p0 + v1
     val walls = Seq(start.p0, start.p1, p2, p3).map(sideWall.create)
+    TextureUtil.setWallXScale(walls, 1.0)
     val leftWall = walls(1)
     val rightWall = walls(3)
 
@@ -49,31 +63,48 @@ object TowerStairPrinter {
     MiscPrinter.autoLinkRedWalls(map, startAnchor.sectorId, newSectorId)
     val anchor = WallSectorAnchor(WallAnchor(p3, p2, floorZ, ceilZ), newSectorId)
 
-    PrintedStep(anchor, leftWall, rightWall)
+    val printedWalls = map.getWallLoop(map.getSector(newSectorId).getFirstWall).asScala
+    PrintedStep(anchor, printedWalls(1), printedWalls(3))
   }
 
 
-  def printSomeStairs(map: DMap, start: WallSectorAnchor, sideWall: WallPrefab, stairFloor: HorizontalBrush, stairCeil: HorizontalBrush): Unit = {
+  def printSomeStairs(map: DMap, start: WallSectorAnchor, stairParams: StairParams, sideWall: WallPrefab, stairFloor: HorizontalBrush, stairCeil: HorizontalBrush): Unit = {
     require(sideWall.tex.isDefined)
 
-    val stairLength = 256
+    // TODO - add an option to make the top and/or bottom stair shorter by one ZStepHeight
+    //        could this double as the feature to make the first/last step flush with the landing?
+
+    val stairLength = stairParams.stepLength
     val stepHeight = BuildConstants.ZStepHeight * 3
-    val stepCount = 8
+    val stepCount = stairParams.stepCount
 
     // TODO fix wall XRepeat
 
-    val leftWalls = mutable.ArrayBuffer[Wall]()
+    // val leftWalls = mutable.ArrayBuffer[Int]()
+
+    val printedSteps = mutable.ArrayBuffer[PrintedStep]()
     var anchor: WallSectorAnchor = start
     for(_ <- 0 until stepCount){
 
       val ps = printStair(map, anchor, sideWall, stairLength, stepHeight, stairFloor, stairCeil)
       anchor = ps.anchor
-      //ps.leftWall.setTexture(755)
-      leftWalls.append(ps.leftWall)
+      // leftWalls.append(ps.leftWallId)
+      printedSteps.append(ps)
     }
+    val leftWalls = printedSteps.map(_.leftWallId)
+    val rightWalls = printedSteps.map(_.rightWallId).reverse
+
 
     // TODO: not enough; only lines up the X repeats, and misses the last one
-    TextureUtil.lineUpTextures(leftWalls, 1.0, sideWall.tex.get.widthPx)
+    // TextureUtil.lineUpTextures(leftWalls, 1.0, sideWall.tex.get.widthPx)
+    val gameCfg = DukeConfig.loadHardCodedVersion() // TODO pass into this function
+    TextureUtil.alignXL2R(leftWalls, map, gameCfg)
+    TextureUtil.alignYL2R(leftWalls, map)
+
+    TextureUtil.alignXR2L(rightWalls, map, gameCfg)
+    TextureUtil.alignYR2L(rightWalls, map)
+    // rightWalls.map(map.getWall).foreach(_.setPal(2))
+
 
 
   }

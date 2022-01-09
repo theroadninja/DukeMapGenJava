@@ -1,5 +1,6 @@
 package trn.render
 
+import trn.prefab.{DukeConfig, TexturePack}
 import trn.{PointXY, Wall, WallStat}
 
 /**
@@ -21,7 +22,9 @@ case class WallPrefab(
   ypan: Option[Int],
 
   xTileRepeat: Option[Int],  // the number of times the texture is repeated
-  // TODO? xscale: Option[Double]  // TODO make sure this cannot be set along with x-repeat
+
+  // TODO  can't use this directly:  we need the texture pack AND the wall length!
+  xscale: Option[Double],
 
   blockable: Option[Boolean],
   alignBottom: Option[Boolean],
@@ -70,6 +73,7 @@ case class WallPrefab(
 
   /** set the raw xrepeat and yrepeat values */
   def withRepeats(xr: Int, yr: Int): WallPrefab = this.copy(xrepeat=Some(xr), yrepeat=Some(yr))
+  def withXScale(scale: Double): WallPrefab = this.copy(xscale=Some(scale))
 
   def withXPan(xp: Int): WallPrefab = this.copy(xpan=Some(xp))
   def withYPan(yp: Int): WallPrefab = this.copy(ypan=Some(yp))
@@ -98,7 +102,7 @@ object WallPrefab {
   def Empty = WallPrefab(Texture(0, 64))
 
   def apply(tex: Texture): WallPrefab = {
-    WallPrefab(Some(tex), None, None, None, Some(8), Some(8), None, None, None, None, None, None, None, None, None)
+    WallPrefab(Some(tex), None, None, None, Some(8), Some(8), None, None, None, None, None, None, None, None, None, None)
   }
 
   def apply(tex: Int, texWidth: Int): WallPrefab = WallPrefab(Texture(tex, texWidth))

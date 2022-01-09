@@ -36,6 +36,8 @@ case class SnapAngle(cwCount: Int) extends RotatesCW[SnapAngle] {
     result
   }
 
+  def rotate[T <: RotatesCW[T]](thingToRotate: T): T = this * thingToRotate
+
   def rotateHeading(heading: Int): Int = {
     var result = heading
     (0 until cwCount).foreach { _ =>
@@ -75,6 +77,28 @@ object SnapAngle {
   }
 
   def apply(cwCount: Int): SnapAngle = new SnapAngle(modulo(cwCount, 4))
+
+  /**
+    * @param headingA
+    * @param headingB
+    * @return snap angle to rotate from heading a to heading b
+    */
+  def angleFromAtoB(headingA: Int, headingB: Int): SnapAngle = {
+    (headingA, headingB) match {
+      case (a: Int, b: Int) if a == b => SnapAngle(0)
+      case (Heading.E, b: Int) => SnapAngle(b)
+      case (Heading.S, Heading.W) => SnapAngle(1)
+      case (Heading.S, Heading.N) => SnapAngle(2)
+      case (Heading.S, Heading.E) => SnapAngle(3)
+      case (Heading.W, Heading.N) => SnapAngle(1)
+      case (Heading.W, Heading.E) => SnapAngle(2)
+      case (Heading.W, Heading.S) => SnapAngle(3)
+      case (Heading.N, Heading.E) => SnapAngle(1)
+      case (Heading.N, Heading.S) => SnapAngle(2)
+      case (Heading.N, Heading.W) => SnapAngle(3)
+      case _ => throw new RuntimeException(s"invalid heading(s): ${headingA}, ${headingB}")
+    }
+  }
 
   /** Scala % seems to be a remainder operator, but I want:  -1 % 4 == 3 */
   private[math] def modulo(i: Int, j: Int): Int = if(i < 0){

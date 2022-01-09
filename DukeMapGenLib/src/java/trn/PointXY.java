@@ -1,6 +1,7 @@
 package trn;
 
 import org.apache.commons.lang3.tuple.Pair;
+import trn.prefab.Heading;
 
 /**
  * For xy coordinates.
@@ -77,6 +78,30 @@ public class PointXY {
 	public String toString(){
 		return "{ PointXY x=" + this.x + " y=" + y + " }";
 	}
+
+	/**
+	 * Treating this as a[n axis-aligned] vector, return the compass direction it is pointing to.
+	 * @return
+	 */
+	public int toHeading(){
+	    if(this.x == 0){
+	    	if(this.y < 0){
+	    		return Heading.N;
+			}else if(this.y > 0){
+	    		return Heading.S;
+			}else{
+				throw new RuntimeException(String.format("%s cannot be converted to a heading".format(toString())));
+			}
+		}else if(this.y == 0){
+	        if(this.x < 0){
+	        	return Heading.W;
+			}else{
+	        	return Heading.E;
+			}
+		}else{
+			throw new RuntimeException(String.format("%s cannot be converted to a heading".format(toString())));
+		}
+	}
 	
 	/* is this useful?
 	public Pair<Integer, Integer> toPair(){
@@ -139,6 +164,26 @@ public class PointXY {
 	 */
 	public double vectorMagnitude(){
 	    return Math.sqrt(x * x + y * y);
+	}
+
+	/**
+	 * Treating this as a int vector IN BUILD SPACE, rotate 90 degrees counterclockwise.
+	 *
+	 * so this is backwards because y+ goes "down"
+	 *
+	 * @return
+	 */
+	public PointXY vectorRotatedCCW(){
+		return new PointXY(y, -x);
+	}
+
+	/**
+	 *
+	 * so this is backwards because y+ goes "down"  (in normal math this would be a counter clockwise rotation)
+	 * @return
+	 */
+	public PointXY vectorRotatedCW(){
+		return new PointXY(-y, x);
 	}
 
 	/**

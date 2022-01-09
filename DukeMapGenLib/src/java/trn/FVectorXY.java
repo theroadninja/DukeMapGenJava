@@ -37,7 +37,7 @@ public final class FVectorXY {
     }
 
     public FVectorXY rotatedCW(){
-        return new FVectorXY(-y, x);
+        return new FVectorXY(-y, x); // remember the math is weird because y+ is south
     }
 
     public FVectorXY rotatedCCW(){

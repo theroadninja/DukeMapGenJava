@@ -3,6 +3,7 @@ package trn;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
+import trn.prefab.Heading;
 
 public class PointXYTests {
 
@@ -283,5 +284,44 @@ public class PointXYTests {
         Assert.assertNotNull(result);
         Assert.assertTrue(result.getLeft() - 1.0 < delta);
         Assert.assertTrue(result.getRight() - 0.5 < delta);
+    }
+
+    @Test
+    public void testVectorRotatedCW(){
+        // remember, y+ points "down"
+        Assert.assertEquals(p(0, 0), p(0, 0).vectorRotatedCW());
+        Assert.assertEquals(p(0, 1), p(1, 0).vectorRotatedCW());
+        Assert.assertEquals(p(-1, 0), p(0, 1).vectorRotatedCW());
+        Assert.assertEquals(p(0, -3), p(-3, 0).vectorRotatedCW());
+        Assert.assertEquals(p(1, 0), p(0, -1).vectorRotatedCW());
+    }
+
+    @Test
+    public void testVectorRotatedCCW(){
+        // remember, y+ points "down"
+        Assert.assertEquals(p(0, 0), p(0, 0).vectorRotatedCCW());
+        Assert.assertEquals(p(0, -1), p(1, 0).vectorRotatedCCW());
+        Assert.assertEquals(p(1, 0), p(0, 1).vectorRotatedCCW());
+        Assert.assertEquals(p(0, -2), p(2, 0).vectorRotatedCCW());
+        Assert.assertEquals(p(5, 0), p(0, 5).vectorRotatedCCW());
+    }
+
+    @Test
+    public void testToHeading(){
+        Assert.assertEquals(Heading.E, p(1, 0).toHeading());
+        Assert.assertEquals(Heading.E, p(50, 0).toHeading());
+        Assert.assertEquals(Heading.S, p(0, 2).toHeading());
+        Assert.assertEquals(Heading.W, p(-1, 0).toHeading());
+        Assert.assertEquals(Heading.N, p(0, -10).toHeading());
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testToHeadingThrows(){
+        p(0, 0).toHeading();
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testToHeadingThrows2(){
+        p(1, 2).toHeading();
     }
 }

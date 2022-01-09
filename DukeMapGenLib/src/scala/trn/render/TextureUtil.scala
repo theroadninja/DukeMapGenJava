@@ -262,10 +262,11 @@ object TextureUtil {
     *
     * You can just call WallView.setXScale though
     *
+    * This is useful if you are creating a new wall loop and want to set the xscale of the textures.
+    *
     * @param wallLoop
     * @param scale
     */
-  @deprecated
   def setWallXScale(wallLoop: Seq[Wall], scale: Double = 1.0): Unit = {
     for(i <- 0 until wallLoop.size){
       val j = (i + 1) % wallLoop.size
