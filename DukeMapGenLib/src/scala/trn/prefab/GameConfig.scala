@@ -18,6 +18,8 @@ import scala.io.Source
   */
 trait TexturePack {
 
+  def tex(picnum: Int): Texture
+
   def textureWidth(texture: Int): Int
 }
 
@@ -50,7 +52,7 @@ trait GameConfig extends TexturePack { // TODO: GameConfig should contain a Text
     */
   def textureHeight(texture: Int): Int
 
-  def tex(picnum: Int): Texture = Texture(picnum, textureWidth(picnum))
+  override def tex(picnum: Int): Texture = Texture(picnum, textureWidth(picnum))
 
   /**
     * Method for reading all of the unique hi or lo tag values from a sprite, which is any tag used to link sprites

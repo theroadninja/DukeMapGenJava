@@ -1,7 +1,7 @@
 package trn.prefab
 
 import trn.duke.{MapErrorException, TextureList}
-import trn.{CopyState, ISpriteFilter, MapUtil, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
+import trn.{CopyState, ISpriteFilter, MapUtil, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._ // this is the good one
@@ -23,6 +23,7 @@ class PastedSectorGroup private (
 )
   extends SectorGroupBase
   with ISectorGroup
+  with ReadOnlySectorGroup
 {
   val destSectorIds = copystate.destSectorIds
 
@@ -40,13 +41,15 @@ class PastedSectorGroup private (
 
   def allSprites: Seq[Sprite] = getMap().allSprites
 
+  override def getWallView(wallId: Int): WallView = map.getWallView(wallId)
+
+  override def getSector(sectorId: Int): Sector = map.getSector(sectorId)
+
   final def getConnector(connectorId: Int): Connector = connectorCollection.getConnector(connectorId)
-  //   if(connectorId < 0) throw new IllegalArgumentException
-  //   connectors.asScala.find(_.connectorId == connectorId) match {
-  //     case Some(conn) => conn
-  //     case None => throw new NoSuchElementException
-  //   }
-  // }
+
+  override def getRedwallConnector(connectorId: Int): RedwallConnector = {
+    getConnector(connectorId).asInstanceOf[RedwallConnector]
+  }
 
   final def hasConnector(connectorId: Int): Boolean = connectorCollection.hasConnector(connectorId)
 

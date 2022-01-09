@@ -2,7 +2,7 @@ package trn.render
 
 import trn.{BuildConstants, Wall, Map => DMap}
 import trn.PointImplicits._
-import trn.prefab.DukeConfig
+import trn.prefab.{DukeConfig, RedwallConnector}
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
@@ -10,8 +10,9 @@ import scala.collection.JavaConverters._
 /** A wall anchor that also has the sector id */
 case class WallSectorAnchor(anchor: WallAnchor, sectorId: Int)
 
+case class PrintedStep(anchor: WallSectorAnchor, leftWallId: Int, rightWallId: Int, sectorId: Int)
 
-case class PrintedStep(anchor: WallSectorAnchor, leftWallId: Int, rightWallId: Int)
+case class PrintStairResult(sectorIds: Set[Int])
 
 /**
   *
@@ -22,7 +23,11 @@ case class StairParams(stepCount: Int, stepLength: Int = StairParams.NormalStair
 
 object StairParams {
   val NormalStairLength: Int = 256
+
+  val NormalStepHeight: Int = BuildConstants.ZStepHeight * 3
 }
+
+case class SimpleStepBrush(sideWall: WallPrefab, floor: HorizontalBrush, ceil: HorizontalBrush)
 
 
 /**
@@ -64,18 +69,29 @@ object TowerStairPrinter {
     val anchor = WallSectorAnchor(WallAnchor(p3, p2, floorZ, ceilZ), newSectorId)
 
     val printedWalls = map.getWallLoop(map.getSector(newSectorId).getFirstWall).asScala
-    PrintedStep(anchor, printedWalls(1), printedWalls(3))
+    PrintedStep(anchor, printedWalls(1), printedWalls(3), newSectorId)
   }
 
 
-  def printSomeStairs(map: DMap, start: WallSectorAnchor, stairParams: StairParams, sideWall: WallPrefab, stairFloor: HorizontalBrush, stairCeil: HorizontalBrush): Unit = {
+  def printSomeStairs(
+    map: DMap,
+    start: WallSectorAnchor,
+    stairParams: StairParams,
+    stepBrush: SimpleStepBrush,
+    // sideWall: WallPrefab,
+    // stairFloor: HorizontalBrush,
+    // stairCeil: HorizontalBrush
+  ): PrintStairResult = {
+    val sideWall = stepBrush.sideWall
+    val stairFloor = stepBrush.floor
+    val stairCeil = stepBrush.ceil
     require(sideWall.tex.isDefined)
 
     // TODO - add an option to make the top and/or bottom stair shorter by one ZStepHeight
     //        could this double as the feature to make the first/last step flush with the landing?
 
     val stairLength = stairParams.stepLength
-    val stepHeight = BuildConstants.ZStepHeight * 3
+    val stepHeight = StairParams.NormalStepHeight
     val stepCount = stairParams.stepCount
 
     // TODO fix wall XRepeat
@@ -106,6 +122,6 @@ object TowerStairPrinter {
     // rightWalls.map(map.getWall).foreach(_.setPal(2))
 
 
-
+    PrintStairResult(printedSteps.map(_.sectorId).toSet)
   }
 }

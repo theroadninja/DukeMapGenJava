@@ -14,6 +14,10 @@ object PointImplicits {
     def / (other: Int): PointXY = new PointXY(p.x / other, p.y / other)
   }
 
+  implicit class PointXYZScala(p: PointXYZ) {
+    def + (other: PointXYZ): PointXYZ = p.add(other)
+  }
+
   implicit class FVectorXYScala(p: FVectorXY) {
     def * (other: Double): FVectorXY = p.multipliedBy(other)
 

@@ -1,7 +1,7 @@
 package trn.prefab
 
 import trn.duke.{MapErrorException, TextureList}
-import trn.{ISpriteFilter, MapUtil, MapUtilScala, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, Map => DMap}
+import trn.{ISpriteFilter, MapUtil, MapUtilScala, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
 import trn.MapImplicits._
 import trn.math.RotatesCW
 
@@ -54,6 +54,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     with ConnectorCollection
     with ISectorGroup
     with RotatesCW[SectorGroup]
+    with ReadOnlySectorGroup
 {
   // val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
   val autoTexts: java.util.List[AutoText] = new java.util.ArrayList[AutoText]
@@ -229,8 +230,11 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     ConnectorFactory.findConnectors(map).forEach(c => addConnector(c))
   }
 
+  override def getWallView(wallId: Int): WallView = map.getWallView(wallId)
 
-  def getRedwallConnector(connectorId: Int): RedwallConnector = {
+  override def getSector(sectorId: Int): Sector = map.getSector(sectorId)
+
+  override def getRedwallConnector(connectorId: Int): RedwallConnector = {
     getConnector(connectorId).asInstanceOf[RedwallConnector]
   }
 
