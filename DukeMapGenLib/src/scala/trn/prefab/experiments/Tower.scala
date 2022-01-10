@@ -59,17 +59,20 @@ object Landing {
     wv.p1.withZ(wv.getSectorFloorZ)
   }
 
+  private def wallNormal(sg: ReadOnlySectorGroup, conn: RedwallConnector): Int ={
+    val wall = sg.getWallView(conn.getWallIds.get(0))
+    wall.getVector.vectorRotatedCCW().toHeading
+  }
+
+  def directionToStairs(sg: ReadOnlySectorGroup): Int = {
+    wallNormal(sg, connectorUp(sg))
+  }
+
   def apply(sg: SectorGroup): Landing = {
-
-    def wallNormal(sg: SectorGroup, conn: RedwallConnector): Int ={
-      val wall = sg.map.getWallView(conn.getWallIds.get(0))
-      wall.getVector.vectorRotatedCCW().toHeading
-    }
-
     val up = sg.allRedwallConnectors.filter(_.getConnectorId == StairsUpConnectorId)
     require(up.size == 1 && up.head.getWallCount == 1)
-    val stairsUpConn = up.head
-    val directionOfStairs = wallNormal(sg, stairsUpConn)
+
+    val directionOfStairs = directionToStairs(sg)
     val stairsDown = sg.allRedwallConnectors.filter{conn =>
       conn.getWallCount == 1 && conn.getConnectorId == StairsDownConnectorId && directionOfStairs == wallNormal(sg, conn)
     }
@@ -101,44 +104,83 @@ object Tower {
     val palette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("tower1.map"))
     // TODO should have hardcoded stairs in case the level doesnt specify any
 
-    printTowerStairs(writer, 3, 48 * BuildConstants.ZStepHeight, 0, palette.getSG(3), palette.getSG(4), gameCfg)
+    // TODO should we add a "drift" feature where each floor is offset just a tiny bit so its obvious in the map editor?
+    val floorCount = 3
+    printTowerStairs(writer, PointXYZ.ZERO, floorCount, 48 * BuildConstants.ZStepHeight, palette.getSG(3), palette.getSG(4), gameCfg)
 
 
     ExpUtil.finishAndWrite(writer, forcePlayerStart = false)
   }
 
-  /**
-    *
-    * @param floorCount
-    * @param deltaZ z distance from one level's floor to the next level's floor
-    * @param bottomZ the z of the lowest level's floor
-    */
-  def printTowerStairs(writer: MapWriter, floorCount: Int, deltaZ: Int, bottomZ: Int, landingSg: SectorGroup, midLandingSg: SectorGroup, gameCfg: TexturePack): Unit ={
-    require(floorCount > 0 && deltaZ > 0)
+  def printTowerStairs(
+    writer: MapWriter,
+    locationBottom: PointXYZ, // location of the first landing -- TODO not sure about x and y coords
+    floorCount: Int,
+    deltaZ: Int,
+    landingSg: SectorGroup,
+    midLandingSg: SectorGroup,
+    gameCfg: TexturePack
+  ): Unit ={
+    require(floorCount > 1 && deltaZ > 0)
     require(deltaZ % (6 * BuildConstants.ZStepHeight) == 0, "DeltaZ must be a multiple of 6 * ZStepHeight")
 
     val landing = Landing(landingSg)
-    val betweenFloorsSg = Landing(midLandingSg)
+    val betweenFloorsSg = Landing(midLandingSg) // TODO would be better to render instead of using a prefab (and have a customizable step in between)
 
-    val psg = writer.pasteSectorGroupAt(landing.sg, PointXYZ.ZERO)
-    val sideWall = WallPrefab(gameCfg.tex(349)).withXScale(1.0) // TODO read from landing
+    val locations = (0 until floorCount).map(i => locationBottom + new PointXYZ(0, 0, -i * deltaZ))
+    println(locations)
+
+    val landings = locations.map { location =>
+      writer.pasteSectorGroupAt(landing.sg, location)
+    }
+
+
+    val pairs = landings.sliding(2, 1)
+
+    //val sideWall = WallPrefab(gameCfg.tex(349)).withXScale(1.0) // TODO read from landing
+    val sideWall = WallPrefab(gameCfg.tex(396)).withXScale(1.0) // TODO TMP
     val stairFloor = HorizontalBrush(755).withRelative(true).withSmaller(true)
     val stairCeil = HorizontalBrush(437)
-    addUpStairsToLanding(writer, landing, psg, betweenFloorsSg, SimpleStepBrush(sideWall, stairFloor, stairCeil))
+
+    pairs.foreach { pair =>
+      val lower = pair(0) // TODO there is a more elegant way to do this
+      val upper = pair(1)
+      addStairs(writer, landing, lower, upper, betweenFloorsSg, SimpleStepBrush(sideWall, stairFloor, stairCeil))
+    }
+    // addStairs(writer, landing, landings(0), landings(1), betweenFloorsSg, SimpleStepBrush(sideWall, stairFloor, stairCeil))
 
 
   }
 
+  def addStairs(writer: MapWriter,
+    landing: Landing, // TODO get rid of this
+    lowerLanding: PastedSectorGroup, upperLanding: PastedSectorGroup,
+    betweenFloorsSg: Landing,
+    stepBrush: SimpleStepBrush): Unit = {
+
+    require(Landing.connectorUpAnchor(lowerLanding).z > Landing.connectorUpAnchor(upperLanding).z) // z+ goes into earth
+    val height = Landing.connectorUpAnchor(lowerLanding).z - Landing.connectorUpAnchor(upperLanding).z
+
+    // TODO: render the landing so that we can use the optional step in between to deal with other heights!
+    require(height > 0 && height % (6 * BuildConstants.ZStepHeight) == 0)
+
+    val stepCount = height / 2 / StairParams.NormalStepHeight
+
+    addUpStairsToLanding(writer, lowerLanding, betweenFloorsSg, upperLanding, stepCount, stepBrush)
+  }
+
   def addUpStairsToLanding(
     writer: MapWriter,
-    landing: Landing,
     pastedLanding: PastedSectorGroup,
     betweenFloorsSg: Landing,
-    stepBrush: SimpleStepBrush, //sideWall: WallPrefab,
+    upperPastedLanding: PastedSectorGroup,
+    stepCount: Int,
+    stepBrush: SimpleStepBrush,
     // texPack: TexturePack,
   ): Unit = {
-    val angle = SnapAngle.angleFromAtoB(betweenFloorsSg.directionToStairs, Heading.opposite(landing.directionToStairs))
-    val stairCount = 8
+    val angle = SnapAngle.angleFromAtoB(betweenFloorsSg.directionToStairs, Heading.opposite(Landing.directionToStairs(pastedLanding)))
+    // val stairCount = 8
+    val stairCount = stepCount - 1 // the last one is the next floor
     val distance = StairParams.NormalStairLength * stairCount
 
     val anchorPsg = Landing.connectorUpAnchor(pastedLanding)
@@ -152,19 +194,25 @@ object Tower {
     // TODO also figure out how to line up the textures on the landing (if they are the same tex)
 
     // the actual stairs
-    val anchor1 = Landing.connectorUpWallAnchor(writer, pastedLanding)
-
-    val result = TowerStairPrinter.printSomeStairs(writer.outMap, anchor1, StairParams(stairCount), stepBrush)
+    // val anchor1 = Landing.connectorUpWallAnchor(writer, pastedLanding)
+    val result = TowerStairPrinter.printSomeStairs(
+      writer.outMap,
+      Landing.connectorUpWallAnchor(writer, pastedLanding),
+      StairParams(stairCount),
+      stepBrush,
+    )
     MiscPrinter.autoLinkRedWalls(writer.outMap, result.sectorIds.toSeq :+ Landing.connectorDown(otherLandingPsg).getSectorId.toInt)
 
     // second flight of stairs
-
     val result2 = TowerStairPrinter.printSomeStairs(
       writer.outMap,
       Landing.connectorUpWallAnchor(writer, otherLandingPsg),
       StairParams(stairCount),
-      stepBrush
+      stepBrush,
     )
+
+    // TODO autoLinkRedWalls should return the number of walls linked, so we can fail fast
+    MiscPrinter.autoLinkRedWalls(writer.outMap, result2.sectorIds.toSeq :+ Landing.connectorDown(upperPastedLanding).getSectorId.toInt)
   }
 
 

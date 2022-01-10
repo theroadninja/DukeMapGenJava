@@ -120,6 +120,10 @@ class PastedSectorGroup private (
     wallIds.map(map.getWall(_)).toSeq
   }
 
-  protected override def allSectorIds: Set[Int] = sectorIds
+  /**
+    * this should only the sectors "managed" by this object
+    * @return
+    */
+  override def allSectorIds: Set[Int] = sectorIds
 
 }

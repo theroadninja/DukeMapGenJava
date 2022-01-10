@@ -21,6 +21,8 @@ trait TexturePack {
   def tex(picnum: Int): Texture
 
   def textureWidth(texture: Int): Int
+
+  def textureHeight(texture: Int): Int
 }
 
 /**

@@ -115,10 +115,10 @@ object TowerStairPrinter {
     // TextureUtil.lineUpTextures(leftWalls, 1.0, sideWall.tex.get.widthPx)
     val gameCfg = DukeConfig.loadHardCodedVersion() // TODO pass into this function
     TextureUtil.alignXL2R(leftWalls, map, gameCfg)
-    TextureUtil.alignYL2R(leftWalls, map)
+    TextureUtil.alignYL2R(leftWalls, map, gameCfg)
 
     TextureUtil.alignXR2L(rightWalls, map, gameCfg)
-    TextureUtil.alignYR2L(rightWalls, map)
+    TextureUtil.alignYR2L(rightWalls, map, gameCfg)
     // rightWalls.map(map.getWall).foreach(_.setPal(2))
 
 

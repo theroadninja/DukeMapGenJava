@@ -1,6 +1,6 @@
 package trn.render
 
-import trn.prefab.{ConnectorScanner, DukeConfig, TexturePack}
+import trn.prefab.{ConnectorScanner, DukeConfig, GameConfig, TexturePack}
 import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, Wall, WallView, Map => DMap}
 
 import scala.collection.JavaConverters._
@@ -151,7 +151,7 @@ object TextureUtil {
     * @param wallIds the ids of the walls to align (probably dont have to be contiguous)
     * @param map the map containing the walls
     */
-  def alignYL2R(wallIds: Seq[Int], map: DMap): Unit = if(wallIds.nonEmpty){
+  def alignYL2R(wallIds: Seq[Int], map: DMap, gameCfg: TexturePack): Unit = if(wallIds.nonEmpty){
 
     /**
       * Return the vertial(Z) coordinate, in build space (as opposed to texture space) where the texture starts
@@ -170,15 +170,22 @@ object TextureUtil {
       }
     }
 
+    val firstWall = map.getWallView(wallIds.head)
+    val texHeight = gameCfg.textureHeight(firstWall.getWall.getTex)
+
+    // I dont understand this yet
+    val OTHER_FACTOR = BuildConstants.YPanMax / texHeight
+
     def texToBuildCoords(ycoord: Int, yrepeat: Int): Int = {
       // TODO my notes (docs/YRepeat) say 2048 here, but the correct value seems to be 1024
-      ycoord * 1024 / yrepeat // NOTE this z coord is not absolute; its relative to the place in buildspace where texture_y=0
+      // ycoord * 1024 / yrepeat // NOTE this z coord is not absolute; its relative to the place in buildspace where texture_y=0
+      ycoord * 2048 / yrepeat / OTHER_FACTOR // NOTE this z coord is not absolute; its relative to the place in buildspace where texture_y=0
     }
     def buildToTexCoords(zcoord: Int, yrepeat: Int): Int = {
-      zcoord * yrepeat / 1024
+      // zcoord * yrepeat / 1024
+      zcoord * yrepeat / 2048 * OTHER_FACTOR
     }
 
-    val firstWall = map.getWallView(wallIds.head)
     if(firstWall.isRedwall){
       // TODO It could work if the wall has alignBottom == True ...
       throw new RuntimeException("this method doesnt work if the first wall is a red wall")
@@ -204,6 +211,16 @@ object TextureUtil {
       val wallView = map.getWallView(wallId)
       val newOffset = getZ(wallView) - texTop
       val ypan = positiveMod(buildToTexCoords(newOffset, yrepeat), BuildConstants.YPanMax)
+      // //val ypan = positiveMod(buildToTexCoords(newOffset, yrepeat), 64)
+      // val ypan0 = buildToTexCoords(newOffset, yrepeat)
+      // var ypan = ypan0
+      // //while(ypan < 0){
+      // //  ypan += 64
+      // //}
+      // ypan = positiveMod(ypan0, 256)
+      // ypan = positiveMod(ypan0, 64)
+      // println(s"texTop=${texTop} wallz=${getZ(wallView)} deltaz=${newOffset} ypan0: ${ypan0} ypan: ${ypan}")
+
       // println(s"setting y offset build coords = ${newOffset}  tex coords = ${ypan}")
       val wall = map.getWall(wallId)
       wall.setYPanning(ypan)
@@ -212,7 +229,7 @@ object TextureUtil {
     }
   }
 
-  def alignYR2L(wallIds: Seq[Int], map: DMap): Unit = alignYL2R(wallIds.reverse, map)
+  def alignYR2L(wallIds: Seq[Int], map: DMap, gameCfg: TexturePack): Unit = alignYL2R(wallIds.reverse, map, gameCfg)
 
   /**
     * Computes i % j but if i is negative, still returns the distance from the "smaller" j to i
@@ -277,18 +294,51 @@ object TextureUtil {
     }
   }
 
+
+  private def test2(gameCfg: GameConfig): Unit = {
+    val testMap = MapLoader.loadMap(HardcodedConfig.getEduke32Path("aligntest2.map"))
+    val walls = testMap.getAllWallViews.asScala.filter(w => w.tex == 396)
+    val walls2 = ConnectorScanner.sortContinuousWalls(walls)
+    val wallIds = walls2.map(_.getWallId)
+    testMap.getWall(wallIds(0)).setPal(1)
+    testMap.getWall(wallIds.last).setPal(2)
+    TextureUtil.alignYL2R(walls2.map(_.getWallId), testMap, gameCfg)
+
+    Main.deployTest(testMap, "output.map", HardcodedConfig.getEduke32Path("output.map"))
+  }
+
   def main(args: Array[String]): Unit = {
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile, HardcodedConfig.getAtomicHeightsFile)
+    if(1==2){
+      test2(gameCfg)
+      return
+    }
 
     // Texture 858 is 128x128
     // wall lengths in align2 are 1024
 
-    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile, HardcodedConfig.getAtomicHeightsFile)
     val testMap = MapLoader.loadMap(HardcodedConfig.getEduke32Path("aligntest.map"))
     // val testMap = MapLoader.loadMap(HardcodedConfig.getEduke32Path("aligntest2.map"))
-    val walls = testMap.getAllWallViews.asScala.filter(w => w.tex == 858)
 
+
+
+    val texInMap = 858
+    //val texToUse = 396 // 64x64
+    //val texToUse = 858
+    val texToUse = 687  // 56x16
+
+    // TODO tmp change all walls
+    testMap.getAllWallViews.asScala.map(_.getWallId).foreach { w =>
+      val wall = testMap.getWall(w)
+      if(wall.getTex == texInMap){
+        wall.setTexture(texToUse)
+      }
+    }
+
+
+    val walls = testMap.getAllWallViews.asScala.filter(w => w.tex == texToUse)
+    // val walls = testMap.getAllWallViews.asScala.filter(w => w.tex == 858)
     val walls2 = ConnectorScanner.sortContinuousWalls(walls)
-
     val wallIds = walls2.map(_.getWallId)
 
     println(s"first wall is ${wallIds.head}")
@@ -298,7 +348,7 @@ object TextureUtil {
     TextureUtil.alignXL2R(walls2.map(_.getWallId), testMap, gameCfg)
     // TextureUtil.leftAlignX(walls2.map(_.getWallId), testMap, gameCfg)
     // TextureUtil.rightAlignY(walls2.map(_.getWallId), testMap)
-    TextureUtil.alignYR2L(walls2.map(_.getWallId), testMap)
+    TextureUtil.alignYL2R(walls2.map(_.getWallId), testMap, gameCfg)
 
     Main.deployTest(testMap, "output.map", HardcodedConfig.getEduke32Path("output.map"))
   }
