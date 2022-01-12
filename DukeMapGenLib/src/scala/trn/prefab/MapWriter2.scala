@@ -211,26 +211,30 @@ trait MapWriter2 {
     val conn1 = existingGroup.findFirstConnector(existingConn).asInstanceOf[RedwallConnector]
     pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(newConn).asInstanceOf[RedwallConnector], Seq.empty)
   }
+  val WestConn = RedConnUtil.WestConnector
+  val EastConn = RedConnUtil.EastConnector
+  val NorthConn = RedConnUtil.NorthConnector
+  val SouthConn = RedConnUtil.SouthConnector
 
   def pasteSouthOf(
     existing: PastedSectorGroup,
     newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, CompassWriter.SouthConn, newGroup, CompassWriter.NorthConn)
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, SouthConn, newGroup, NorthConn)
 
   def pasteEastOf(
     existing: PastedSectorGroup,
     newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, CompassWriter.EastConn, newGroup, CompassWriter.WestConn)
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, EastConn, newGroup, WestConn)
 
   def pasteWestOf(
     existing: PastedSectorGroup,
     newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, CompassWriter.WestConn, newGroup, CompassWriter.EastConn)
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, WestConn, newGroup, EastConn)
 
   def pasteNorthOf(
     existing: PastedSectorGroup,
     newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, CompassWriter.NorthConn, newGroup, CompassWriter.SouthConn)
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, NorthConn, newGroup, SouthConn)
 
   // -------------------------------------
   // CODE BELOW HERE -- trying to find a better API

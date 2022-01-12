@@ -5,11 +5,15 @@ import java.io.{ByteArrayInputStream, File, FileInputStream}
 import org.apache.commons.io.IOUtils
 import trn.{Map => DMap}
 
+/**
+  * The java version is JavaTestUtils.java
+  */
 object TestUtils {
   val MapWriterMap: String = "JUNIT2.MAP"
   val ChildTest: String = "CHILDTST.MAP"
   val MultiSect: String = "UNITMULT.MAP"
   val Inner: String = "INNER.MAP" // pasting sector group inside a sector
+  val Compass = "cmpstest.map"
 
   val TEST_DATA_PATH = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata"
 

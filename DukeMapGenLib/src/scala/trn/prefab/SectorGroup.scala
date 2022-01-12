@@ -76,7 +76,6 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
   def toBlueprint: BlueprintGroup = BlueprintGroup(boundingBox, fineBoundingBoxes, allRedwallConnectors.map(_.toBlueprint))
 
-  // TODO - get rid of this
   override def getMap: DMap = map
 
   override def findSprites(picnum: Int, lotag: Int, sectorId: Int): java.util.List[Sprite] = {
@@ -94,7 +93,6 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   def getGroupId: Int = sectorGroupId
 
   def allSprites: Seq[Sprite] = map.allSprites
-
 
   def allWalls: Seq[Wall] = wallSeq
 
@@ -209,7 +207,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
   def allRotations: Seq[SectorGroup] = Seq(this, rotateCW, rotate180, rotateCCW)
 
-  // TODO - mutable; get rid of this is we move all java stuff to scala
+  // TODO - mutable; get rid of this if we move all java stuff to scala
   def addAutoText(at: AutoText): Unit ={
     this.autoTexts.add(at)
   }
@@ -238,21 +236,25 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     getConnector(connectorId).asInstanceOf[RedwallConnector]
   }
 
-  // TODO - move to trait
-  def getRedwallConnector(connectorType: Int, allowMoreThanOne: Boolean = false): RedwallConnector = {
-    if(! ConnectorType.isRedwallType(connectorType)){
-      throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
-    }
-    val matching = connectors.asScala.filter(c => c.getConnectorType == connectorType)
-    matching.size match {
-      case i: Int if i < 1 => throw new NoSuchElementException(s"no connector with type ${connectorType} exists")
-      case i: Int if i == 1 || allowMoreThanOne => matching.head.asInstanceOf[RedwallConnector]
-      case _ => throw new SpriteLogicException(s"more than one connector with type ${connectorType} found")
-    }
+  override def getCompassConnectors(heading: Int): Seq[RedwallConnector] = {
+    getRedwallConnectors(ConnectorType.fromHeading(heading))
   }
 
-  // TODO - move to trait
-  def getRedwallConnectors(connectorType: Int): Seq[RedwallConnector] = {
+  // // TODO - move to trait
+  // def getRedwallConnector(connectorType: Int, allowMoreThanOne: Boolean = false): RedwallConnector = {
+  //   if(! ConnectorType.isRedwallType(connectorType)){
+  //     throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
+  //   }
+  //   val matching = connectors.asScala.filter(c => c.getConnectorType == connectorType)
+  //   matching.size match {
+  //     case i: Int if i < 1 => throw new NoSuchElementException(s"no connector with type ${connectorType} exists")
+  //     case i: Int if i == 1 || allowMoreThanOne => matching.head.asInstanceOf[RedwallConnector]
+  //     case _ => throw new SpriteLogicException(s"more than one connector with type ${connectorType} found")
+  //   }
+  // }
+
+  @deprecated
+  private def getRedwallConnectors(connectorType: Int): Seq[RedwallConnector] = {
     if(! ConnectorType.isRedwallType(connectorType)){
       throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
     }

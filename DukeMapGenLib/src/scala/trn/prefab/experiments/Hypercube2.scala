@@ -206,12 +206,7 @@ object Room {
   }
 
   def autoDoors(sectorGroup: SectorGroup): Seq[Int] = {
-    def hasHeading(h: Int): Boolean  = sectorGroup.getRedwallConnectors(RedConnUtil.connectorTypeForHeading(h)) match {
-      case x: Seq[RedwallConnector] => {
-        x.find(_.totalManhattanLength(sectorGroup) == StandardDoorLength).nonEmpty
-      }
-      case _ => false
-    }
+    def hasHeading(h: Int): Boolean = sectorGroup.getCompassConnectors(h).exists(_.totalManhattanLength(sectorGroup) == StandardDoorLength)
     val headings: Seq[Int] = Heading.all.asScala.flatMap(h => if(hasHeading(h)){ Some(h.toInt)}else{ None })
     headings
   }

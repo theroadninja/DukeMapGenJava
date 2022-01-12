@@ -15,7 +15,6 @@ public class Tile implements Comparable<Tile> {
     final int width;
     final int height;
     final List<Integer> paletteIndexes;
-    // TODO: add picanm
 
     public Tile(int globalTileIndex, int tileIndex, int width, int height, List<Integer> paletteIndexes){
         this.globalTileIndex = globalTileIndex;

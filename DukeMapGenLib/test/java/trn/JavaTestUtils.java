@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+// TODO NOTE there is a scala version of this in TestUtils.scala
 public class JavaTestUtils {
 
     // making it easy to find all the tests that use a certain map.

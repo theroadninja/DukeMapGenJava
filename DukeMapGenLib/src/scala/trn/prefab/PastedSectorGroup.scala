@@ -1,7 +1,6 @@
 package trn.prefab
 
-import trn.duke.{MapErrorException, TextureList}
-import trn.{CopyState, ISpriteFilter, MapUtil, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
+import trn.{CopyState, ISpriteFilter, Sector, Sprite, Wall, WallView, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._ // this is the good one
@@ -51,12 +50,17 @@ class PastedSectorGroup private (
     getConnector(connectorId).asInstanceOf[RedwallConnector]
   }
 
+  override def getCompassConnectors(heading: Int): Seq[RedwallConnector] = {
+    connectorCollection.findConnectorsByType(ConnectorType.fromHeading(heading)).asScala.map(_.asInstanceOf[RedwallConnector])
+  }
+
   final def hasConnector(connectorId: Int): Boolean = connectorCollection.hasConnector(connectorId)
 
   def getFirstElevatorConnector: ElevatorConnector = {
     connectorCollection.getFirstElevatorConnector.getOrElse(throw new NoSuchElementException)
   }
 
+  @Deprecated
   def findFirstConnector(cf: ConnectorFilter): Connector = connectorCollection.findFirstConnector(cf).orNull
 
   def findConnectorsByType(ctype: Int): java.util.List[Connector] = connectorCollection.findConnectorsByType(ctype)
@@ -121,7 +125,7 @@ class PastedSectorGroup private (
   }
 
   /**
-    * this should only the sectors "managed" by this object
+    * this should return only the sectors "managed" by this object
     * @return
     */
   override def allSectorIds: Set[Int] = sectorIds

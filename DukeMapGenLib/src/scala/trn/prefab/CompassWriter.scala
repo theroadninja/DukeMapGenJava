@@ -11,24 +11,16 @@ import scala.collection.JavaConverters._
   * TODO see also RedConnUtil.connectorTypeForWall
   */
 object CompassWriter {
-  val WestConn = RedConnUtil.WestConnector
-  val EastConn = RedConnUtil.EastConnector
-  val NorthConn = RedConnUtil.NorthConnector
-  val SouthConn = RedConnUtil.SouthConnector
 
-  /** @deprecated */
-  def firstConnector(sg: SectorGroup, cf: ConnectorFilter): RedwallConnector = sg.findFirstConnector(cf).asInstanceOf[RedwallConnector]
+  def westConnector(sg: ReadOnlySectorGroup): RedwallConnector = sg.getCompassConnectors(Heading.W).head
+  def eastConnector(sg: ReadOnlySectorGroup): RedwallConnector = sg.getCompassConnectors(Heading.E).head
+  def northConnector(sg: ReadOnlySectorGroup): RedwallConnector = sg.getCompassConnectors(Heading.N).head
+  def southConnector(sg: ReadOnlySectorGroup): RedwallConnector = sg.getCompassConnectors(Heading.S).head
 
-  def westConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(WestConn).asInstanceOf[RedwallConnector]
-  def eastConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
-  def northConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
-  def southConnector(sg: SectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
-
-
-  def east(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(EastConn).map(_.asInstanceOf[RedwallConnector])
-  def west(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(WestConn).map(_.asInstanceOf[RedwallConnector])
-  def north(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(NorthConn).map(_.asInstanceOf[RedwallConnector])
-  def south(sg: SectorGroup): Option[RedwallConnector] = sg.findFirstConnectorOpt(SouthConn).map(_.asInstanceOf[RedwallConnector])
+  def east(sg: ReadOnlySectorGroup): Option[RedwallConnector] = sg.getCompassConnectors(Heading.E).headOption
+  def south(sg: ReadOnlySectorGroup): Option[RedwallConnector] = sg.getCompassConnectors(Heading.S).headOption
+  def west(sg: ReadOnlySectorGroup): Option[RedwallConnector] = sg.getCompassConnectors(Heading.W).headOption
+  def north(sg: ReadOnlySectorGroup): Option[RedwallConnector] = sg.getCompassConnectors(Heading.N).headOption
 
   def firstConnWithHeading(sg: SectorGroup, heading: Int) = heading match {
     case Heading.E => east(sg)
@@ -38,16 +30,6 @@ object CompassWriter {
     case _ => throw new IllegalArgumentException(s"invalid heading: ${heading}")
   }
 
-  // TODO - should not need different methods for SectorGroup and PastedSectorGroup
-  def westConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(WestConn).asInstanceOf[RedwallConnector]
-  def eastConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(EastConn).asInstanceOf[RedwallConnector]
-  def northConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(NorthConn).asInstanceOf[RedwallConnector]
-  def southConnector(sg: PastedSectorGroup): RedwallConnector = sg.findFirstConnector(SouthConn).asInstanceOf[RedwallConnector]
-
-  def east(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(EastConn)
-  def west(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(WestConn)
-  def north(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(NorthConn)
-  def south(sg: PastedSectorGroup): Option[RedwallConnector] = sg.connectorCollection.findFirstRedwallConn(SouthConn)
   def firstConnWithHeading(sg: PastedSectorGroup, heading: Int): Option[RedwallConnector] = heading match {
     case Heading.E => east(sg)
     case Heading.W => west(sg)

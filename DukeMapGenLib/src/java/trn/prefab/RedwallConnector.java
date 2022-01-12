@@ -225,6 +225,7 @@ public class RedwallConnector extends Connector {
         return totalManhattanLength();
     }
 
+    // TODO this is leftover from when "east" and "west" connectors were different "types" of connectors.
     @Override
     public final int getConnectorType(){
         return this.connectorType;

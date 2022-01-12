@@ -27,6 +27,8 @@ public class RedConnUtil {
         return results;
     }
 
+    /** use ReadOnlySectorGroup.getCompassConnectors() instead of this */
+    @Deprecated
     public static int connectorTypeForHeading(int heading){
         if(Heading.E == heading){
             return ConnectorType.HORIZONTAL_EAST;
