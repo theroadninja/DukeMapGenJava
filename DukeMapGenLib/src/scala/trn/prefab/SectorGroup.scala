@@ -11,8 +11,6 @@ import scala.collection.JavaConverters._ // this is the good one
 class CopyPasteMapBuilder(val outMap: DMap, val gameCfg: GameConfig) extends MapBuilder {
   val mapView = new MapView(outMap)
   val writer = new MapWriter(this, this.sgBuilder)
-
-
 }
 
 /**
@@ -82,7 +80,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     getMap().findSprites(picnum, lotag, sectorId)
   }
 
-  override def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = getMap().findSprites4Scala(filters.asJava)
+  // override def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = getMap().findSprites4Scala(filters.asJava)
 
   protected def addConnector(c: Connector): Unit = {
     require(c.getSectorId >= 0)

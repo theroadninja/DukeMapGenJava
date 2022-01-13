@@ -34,22 +34,22 @@ public class SpriteFilter implements ISpriteFilter {
 		
 	}
 	
-	public static ISpriteFilter playerstart(){
-		return new ISpriteFilter(){
-			public boolean matches(Sprite sprite){
-				return sprite.picnum == PrefabUtils.MARKER_SPRITE_TEX
-						&& sprite.lotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START;
-			}
-		};
-	}
-	
-	public static ISpriteFilter loTag(int filterValue){
-		return new SpriteFilter(LOTAG, filterValue);
-	}
-	
-	public static ISpriteFilter hiTag(int filterValue){
-		return new SpriteFilter(HITAG, filterValue);
-	}
+	// public static ISpriteFilter playerstart(){
+	// 	return new ISpriteFilter(){
+	// 		public boolean matches(Sprite sprite){
+	// 			return sprite.picnum == PrefabUtils.MARKER_SPRITE_TEX
+	// 					&& sprite.lotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START;
+	// 		}
+	// 	};
+	// }
+	//
+	// public static ISpriteFilter loTag(int filterValue){
+	// 	return new SpriteFilter(LOTAG, filterValue);
+	// }
+	//
+	// public static ISpriteFilter hiTag(int filterValue){
+	// 	return new SpriteFilter(HITAG, filterValue);
+	// }
 	
 	public static ISpriteFilter texture(int texture){
 		return new SpriteFilter(TEXTURE, texture);

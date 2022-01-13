@@ -64,9 +64,12 @@ trait MapBuilder
     getMap().findSprites(picnum, lotag, sectorId)
   }
 
-  override def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = {
-    getMap().findSprites4Scala(filters.asJava)
-  }
+  // def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = {
+  //   getMap().findSprites4Scala(filters.asJava)
+  // }
+
+
+  /*
 
   // gets all of the water connections from the pasted sector group, in sorted order
   def getWaterConns(psg: PastedSectorGroup): Seq[TeleportConnector] = {
@@ -76,7 +79,6 @@ trait MapBuilder
   }
 
   def linkAllWater(psg1: PastedSectorGroup, psg2: PastedSectorGroup): Unit = {
-    //
     // TODO - for now this assumes that all water connectors in both sector groups are part of the same
     // connection (and dont go to some third sector group)
 
@@ -99,20 +101,18 @@ trait MapBuilder
   }
 
   def linkAllWater2(aboveWater: Seq[PastedSectorGroup], belowWater: Seq[PastedSectorGroup]): Unit = {
-
     val aboveWaterConns = getWaterConns2(aboveWater)
     val belowWaterConns = getWaterConns2(belowWater)
-
     aboveWaterConns.zip(belowWaterConns).foreach { case (aboveC: TeleportConnector, belowC: TeleportConnector) =>
         TeleportConnector.linkTeleporters(aboveC, this, belowC, this, nextUniqueHiTag())
     }
-
   }
 
   def linkAllWater(singleGroup: SectorGroup): Unit = {
     val conns = singleGroup.getTeleportConnectors().filter(c => c.isWater && !c.isLinked(singleGroup.map))
     MapWriter.linkAllWater(singleGroup, conns, this)
   }
+  */
 
 
 

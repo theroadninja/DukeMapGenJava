@@ -51,6 +51,8 @@ case class Placement2(
 /**
   * Yet another class for copy and pasting prefabs.  This one should finally have a decent interface.
   *
+  * TODO this turned out not to be as widely useful as I thight; might have some useful code for matching sgs to psgs
+  *
   * Compare to (and maybe replace a lot of):
   * - SgMapBuilder
   * - JigsawPlacer (provides stuff for adding a sector between TWO existing sectors)

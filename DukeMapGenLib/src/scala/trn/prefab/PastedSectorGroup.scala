@@ -36,7 +36,7 @@ class PastedSectorGroup private (
   override def findSprites(picnum: Int, lotag: Int, sectorId: Int): java.util.List[Sprite] = {
     getMap().findSprites(picnum, lotag, sectorId)
   }
-  override def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = getMap().findSprites4Scala(filters.asJava)
+  // override def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = getMap().findSprites4Scala(filters.asJava)
 
   def allSprites: Seq[Sprite] = getMap().allSprites
 

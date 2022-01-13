@@ -385,6 +385,6 @@ class MapWriter(
 
   override def findSprites(picnum: Int, lotag: Int, sectorId: Int): util.List[Sprite] = builder.findSprites(picnum, lotag, sectorId)
 
-  override def findSprites(filters: ISpriteFilter*): util.List[Sprite] = builder.findSprites(filters:_*)
+  // override def findSprites(filters: ISpriteFilter*): util.List[Sprite] = builder.findSprites(filters:_*)
 
 }

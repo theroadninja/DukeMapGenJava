@@ -554,16 +554,16 @@ public class Map implements WallContainer {
 	}
 	
 
-	public List<Integer> findSpriteIds(ISpriteFilter... filters){
-		List<Integer> results = new ArrayList<Integer>(sprites.size());
-		for(int i = 0; i < sprites.size(); ++i){
-			if(! SpriteFilter.matchAll(sprites.get(i), filters)){
-				continue;
-			}
-			results.add(i);
-		}
-		return results;
-	}
+	// public List<Integer> findSpriteIds(ISpriteFilter... filters){
+	// 	List<Integer> results = new ArrayList<Integer>(sprites.size());
+	// 	for(int i = 0; i < sprites.size(); ++i){
+	// 		if(! SpriteFilter.matchAll(sprites.get(i), filters)){
+	// 			continue;
+	// 		}
+	// 		results.add(i);
+	// 	}
+	// 	return results;
+	// }
 
 	/**
 	 * Removes a sector AND everything in it.

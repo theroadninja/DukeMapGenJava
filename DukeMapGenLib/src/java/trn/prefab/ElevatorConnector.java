@@ -104,11 +104,12 @@ public class ElevatorConnector extends Connector {
 
     private void replaceMarkerSprite(ISectorGroup sg){
         if(!this.mustReplaceMarkerSprite) throw new IllegalStateException();
-        List<Sprite> list = sg.getMap().findSprites(
-                (Sprite s) -> s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
-                        && s.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR
-                        && s.getSectorId() == sectorId
-        );
+        List<Sprite> list = sg.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR, sectorId);
+        // List<Sprite> list = sg.getMap().findSprites(
+        //         (Sprite s) -> s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
+        //                 && s.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR
+        //                 && s.getSectorId() == sectorId
+        // );
         if(list.size() != 1) throw new SpriteLogicException("wrong number of elevator marker sprites in sector");
         Sprite markerSprite = list.get(0);
         markerSprite.setTexture(TextureList.SE);

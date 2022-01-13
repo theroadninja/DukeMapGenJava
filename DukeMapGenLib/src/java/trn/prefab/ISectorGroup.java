@@ -1,6 +1,5 @@
 package trn.prefab;
 
-import trn.ISpriteFilter;
 import trn.Map;
 import trn.Sprite;
 
@@ -15,5 +14,5 @@ public interface ISectorGroup {
 
     List<Sprite> findSprites(int picnum, int lotag, int sectorId);
 
-    List<Sprite> findSprites(ISpriteFilter... filters);
+    // List<Sprite> findSprites(ISpriteFilter... filters);
 }

@@ -99,15 +99,7 @@ public class TeleportConnector extends Connector {
     }
 
     private List<Sprite> getSESprites(ISectorGroup sg) {
-        Map map = sg.getMap();
-        Sector sector = map.getSector(sectorId);
-
-        return sg.findSprites(
-                (Sprite s) -> s.getTexture() == TextureList.SE
-                && s.getLotag() == Lotags.SE.TELEPORT
-                && s.getSectorId() == sectorId
-                // && s.getLocation().z == sector.getFloorZ()
-        );
+        return sg.findSprites(TextureList.SE, Lotags.SE.TELEPORT, sectorId);
     }
 
 
@@ -120,11 +112,7 @@ public class TeleportConnector extends Connector {
     private Sprite getMarker27Sprite(ISectorGroup sg){
         if(!mustReplaceMarkerSprite) throw new IllegalStateException();
 
-        List<Sprite> list = sg.getMap().findSprites(
-                (Sprite s) -> s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
-                        && s.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR
-                        && s.getSectorId() == sectorId
-        );
+        List<Sprite> list = sg.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR, sectorId);
         if(list.size() > 1) throw new SpriteLogicException("wrong number of teleporter marker sprites in sector");
         return list.size() > 0 ? list.get(0) : null;
     }
@@ -151,7 +139,7 @@ public class TeleportConnector extends Connector {
 
     // TODO - the groups are only needed because they contain the map.  We actually only need
     // one ISectorGroup ...
-    public static void linkTeleporters(
+    public static void linkTeleporters( // Intellij might show no usages, but SgMapBuilder calls this
             TeleportConnector conn1,
             ISectorGroup group1,
             TeleportConnector conn2,
