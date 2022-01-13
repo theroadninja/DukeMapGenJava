@@ -27,15 +27,24 @@ class PrefabBuilder(val writer: MapWriter, palette: PrefabPalette) {
     writer.pasteAndLink(destConnector.asInstanceOf[RedwallConnector], sg, paletteConnector, Seq.empty)
   }
 
-  def findFirstUnlinkedConnector(cf: ConnectorFilter): Connector = {
+  // def findFirstUnlinkedConnector(cf: ConnectorFilter): Connector = {
+  //   writer.sgBuilder.pastedSectorGroups.foreach { psg =>
+  //     psg.connectors.asScala.foreach { c: Connector =>
+  //       if(cf.matches(c) && !psg.isConnectorLinked(c)) {
+  //         return c;
+  //       }
+  //     }
+  //   }
+  //   return null;
+  // }
+
+  def findFirstUnlinkedConnector(heading: Int): RedwallConnector = {
     writer.sgBuilder.pastedSectorGroups.foreach { psg =>
-      psg.connectors.asScala.foreach { c: Connector =>
-        if(cf.matches(c) && !psg.isConnectorLinked(c)) {
-          return c;
-        }
+      psg.redwallConnectors.find(conn => conn.getHeading == heading && !psg.isConnectorLinked(conn)).foreach { conn =>
+        return conn
       }
     }
-    return null;
+    None.orNull
   }
 }
 /**
@@ -69,11 +78,11 @@ object FirstPrefabExperiment {
     }
 
     // add a third group!
-    val psg3: PastedSectorGroup  = builder.pasteAndLink(10, Heading.E, psg2.findFirstConnector(RedConnUtil.WestConnector));
+    val psg3: PastedSectorGroup  = builder.pasteAndLink(10, Heading.E, psg2.getCompassConnectors(Heading.W).head)
 
     // add exit
     {
-      val c: Connector = builder.findFirstUnlinkedConnector(RedConnUtil.EastConnector);
+      val c: Connector = builder.findFirstUnlinkedConnector(Heading.E);
       if(c == null) throw new RuntimeException("some thing went wrong")
       builder.pasteAndLink(14, Heading.W, c);
     }
@@ -95,13 +104,13 @@ object FirstPrefabExperiment {
 
     //some random groups to the south of something
 
-    builder.pasteAndLink(10, Heading.N, builder.findFirstUnlinkedConnector(RedConnUtil.SouthConnector));
+    builder.pasteAndLink(10, Heading.N, builder.findFirstUnlinkedConnector(Heading.S));
 
     //try sector group 15
-    builder.pasteAndLink(15, Heading.N, builder.findFirstUnlinkedConnector(RedConnUtil.SouthConnector));
+    builder.pasteAndLink(15, Heading.N, builder.findFirstUnlinkedConnector(Heading.S));
 
     //try sector group 18 - teleporter
-    builder.pasteAndLink(18, Heading.N, builder.findFirstUnlinkedConnector(RedConnUtil.SouthConnector));
+    builder.pasteAndLink(18, Heading.N, builder.findFirstUnlinkedConnector(Heading.S));
 
     builder.writer.setAnyPlayerStart()
     //builder.clearMarkers()

@@ -51,7 +51,8 @@ class PastedSectorGroup private (
   }
 
   override def getCompassConnectors(heading: Int): Seq[RedwallConnector] = {
-    connectorCollection.findConnectorsByType(ConnectorType.fromHeading(heading)).asScala.map(_.asInstanceOf[RedwallConnector])
+    redwallConnectors.filter(_.heading == heading)
+    // connectorCollection.findConnectorsByType(ConnectorType.fromHeading(heading)).asScala.map(_.asInstanceOf[RedwallConnector])
   }
 
   final def hasConnector(connectorId: Int): Boolean = connectorCollection.hasConnector(connectorId)

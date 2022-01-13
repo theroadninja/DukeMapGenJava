@@ -7,19 +7,21 @@ import java.util.List;
 
 public class RedConnUtil {
 
-    public static ConnectorFilter SouthConnector = new ConnectorTypeFilter(ConnectorType.VERTICAL_SOUTH);
-    public static ConnectorFilter NorthConnector = new ConnectorTypeFilter(ConnectorType.VERTICAL_NORTH);
-    public static ConnectorFilter EastConnector = new ConnectorTypeFilter(ConnectorType.HORIZONTAL_EAST);
-    public static ConnectorFilter WestConnector = new ConnectorTypeFilter(ConnectorType.HORIZONTAL_WEST);
+    // public static ConnectorFilter SouthConnector = new ConnectorTypeFilter(ConnectorType.VERTICAL_SOUTH);
+    // public static ConnectorFilter NorthConnector = new ConnectorTypeFilter(ConnectorType.VERTICAL_NORTH);
+
+    // still used by Hypercube2
+    // public static ConnectorFilter EastConnector = new ConnectorTypeFilter(ConnectorType.HORIZONTAL_EAST);
+    // public static ConnectorFilter WestConnector = new ConnectorTypeFilter(ConnectorType.HORIZONTAL_WEST);
 
 
-    public static List<Integer> toList(int element){
+    static List<Integer> toList(int element){
         return new ArrayList<Integer>(){{
             add(element);
         }};
     }
 
-    public static List<Integer> toList(int element, int count){
+    static List<Integer> toList(int element, int count){
         List<Integer> results = new ArrayList<>(count);
         for(int i = 0; i < count; ++i){
             results.add(element);
@@ -58,6 +60,7 @@ public class RedConnUtil {
         }
     }
 
+    @Deprecated
     public static int connectorTypeForWall(WallView wall){
         PointXY vector = wall.getUnitVector();
         if(vector.x == 1) {
@@ -74,6 +77,7 @@ public class RedConnUtil {
         }
     }
 
+    @Deprecated
     public static int connectorTypeForWalls(List<WallView> walls){
         if(walls.size() < 0){
             throw new IllegalArgumentException();

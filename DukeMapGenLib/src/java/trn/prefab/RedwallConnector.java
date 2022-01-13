@@ -233,19 +233,19 @@ public class RedwallConnector extends Connector {
 
     // convenience method
     public final boolean isEast() {
-        return getConnectorType() == ConnectorType.HORIZONTAL_EAST;
+        return this.heading == Heading.E;
     }
 
     public final boolean isWest() {
-        return getConnectorType() == ConnectorType.HORIZONTAL_WEST;
+        return this.heading == Heading.W;
     }
 
     public final boolean isNorth(){
-        return getConnectorType() == ConnectorType.VERTICAL_NORTH;
+        return this.heading == Heading.N;
     }
 
     public final boolean isSouth(){
-        return getConnectorType() == ConnectorType.VERTICAL_SOUTH;
+        return this.heading == Heading.S;
     }
 
     public final boolean isCompassConn(int heading){
@@ -335,19 +335,19 @@ public class RedwallConnector extends Connector {
         return this.isMatch(c);
     }
 
-    /**
-     * @deprecated
-     * The connector is on the left side of the sector, will connect to another sector to the west.
-     * @return
-     */
-    public final boolean isWestConn(){
-        return RedConnUtil.WestConnector.matches(this);
-    }
+    // /**
+    //  * @deprecated
+    //  * The connector is on the left side of the sector, will connect to another sector to the west.
+    //  * @return
+    //  */
+    // public final boolean isWestConn(){
+    //     return RedConnUtil.WestConnector.matches(this);
+    // }
 
-    /** @deprecated */
-    public final boolean isEastConn(){
-        return RedConnUtil.EastConnector.matches(this);
-    }
+    // /** @deprecated */
+    // public final boolean isEastConn(){
+    //     return RedConnUtil.EastConnector.matches(this);
+    // }
 
 
     /**

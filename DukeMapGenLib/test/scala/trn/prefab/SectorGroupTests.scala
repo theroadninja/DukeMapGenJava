@@ -13,10 +13,12 @@ class SectorGroupTests {
 
   private def loadPalette: PrefabPalette = PrefabPalette.fromMap(load("UNIT.MAP"), true)
   private def eastConn(psg: PastedSectorGroup): RedwallConnector = {
-    psg.findFirstConnector(RedConnUtil.EastConnector).asInstanceOf[RedwallConnector]
+    CompassWriter.eastConnector(psg)
+    //psg.findFirstConnector(RedConnUtil.EastConnector).asInstanceOf[RedwallConnector]
   }
   private def westConn(psg: PastedSectorGroup): RedwallConnector = {
-    psg.findFirstConnector(RedConnUtil.WestConnector).asInstanceOf[RedwallConnector]
+    CompassWriter.westConnector(psg)
+    //psg.findFirstConnector(RedConnUtil.WestConnector).asInstanceOf[RedwallConnector]
   }
 
 

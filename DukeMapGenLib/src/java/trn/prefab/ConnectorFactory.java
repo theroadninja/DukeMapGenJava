@@ -21,7 +21,7 @@ public class ConnectorFactory {
 		}
 		return results;
 	}
-	public static List<Connector> findConnectors(Map map, ConnectorFilter ... cf) throws MapErrorException {
+	static List<Connector> findConnectors(Map map, ConnectorFilter ... cf) throws MapErrorException {
 		List<Connector> results = new ArrayList<Connector>();
 		for(Sprite s: map.findSprites(
 				PrefabUtils.MARKER_SPRITE)){

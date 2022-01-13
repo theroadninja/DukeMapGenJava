@@ -204,39 +204,54 @@ trait MapWriter2 {
   // Compass Directions
   // ------------------
 
+  // def pasteAndLinkNextTo(
+  //   existingGroup: PastedSectorGroup,
+  //   existingConn: ConnectorFilter,
+  //   newGroup: SectorGroup,
+  //   newConn: ConnectorFilter
+  // ): PastedSectorGroup = {
+  //   val conn1 = existingGroup.findFirstConnector(existingConn).asInstanceOf[RedwallConnector]
+  //   pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(newConn).asInstanceOf[RedwallConnector], Seq.empty)
+  // }
+
+
   def pasteAndLinkNextTo(
     existingGroup: PastedSectorGroup,
-    existingConn: ConnectorFilter,
+    existingConnHeading: Int,
     newGroup: SectorGroup,
-    newConn: ConnectorFilter
+    newConnHeading: Int
   ): PastedSectorGroup = {
-    val conn1 = existingGroup.findFirstConnector(existingConn).asInstanceOf[RedwallConnector]
-    pasteAndLink(conn1, newGroup, newGroup.findFirstConnector(newConn).asInstanceOf[RedwallConnector], Seq.empty)
+    val conn1 = existingGroup.getCompassConnectors(existingConnHeading).head
+    val conn2 = newGroup.getCompassConnectors(newConnHeading).head
+    pasteAndLink(conn1, newGroup, conn2, Seq.empty)
   }
-  val WestConn = RedConnUtil.WestConnector
-  val EastConn = RedConnUtil.EastConnector
-  val NorthConn = RedConnUtil.NorthConnector
-  val SouthConn = RedConnUtil.SouthConnector
+
+
+
+  // val WestConn = RedConnUtil.WestConnector
+  // val EastConn = RedConnUtil.EastConnector
+  // val NorthConn = RedConnUtil.NorthConnector
+  // val SouthConn = RedConnUtil.SouthConnector
 
   def pasteSouthOf(
     existing: PastedSectorGroup,
     newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, SouthConn, newGroup, NorthConn)
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, Heading.S, newGroup, Heading.N)
 
   def pasteEastOf(
     existing: PastedSectorGroup,
     newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, EastConn, newGroup, WestConn)
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, Heading.E, newGroup, Heading.W)
 
   def pasteWestOf(
     existing: PastedSectorGroup,
     newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, WestConn, newGroup, EastConn)
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, Heading.W, newGroup, Heading.E)
 
   def pasteNorthOf(
     existing: PastedSectorGroup,
     newGroup: SectorGroup
-  ): PastedSectorGroup = pasteAndLinkNextTo(existing, NorthConn, newGroup, SouthConn)
+  ): PastedSectorGroup = pasteAndLinkNextTo(existing, Heading.N, newGroup, Heading.S)
 
   // -------------------------------------
   // CODE BELOW HERE -- trying to find a better API

@@ -151,8 +151,8 @@ class Hyper2MapBuilder(val outMap: DMap, palette: PrefabPalette, val gameCfg: Ga
   }
 
   def placeHallwayEW(leftRoom: PastedSectorGroup, hallway: SectorGroup, rightRoom: PastedSectorGroup): PastedSectorGroup = {
-    val leftConn = leftRoom.findFirstConnector(RedConnUtil.EastConnector).asInstanceOf[RedwallConnector]
-    val rightConn = rightRoom.findFirstConnector(RedConnUtil.WestConnector).asInstanceOf[RedwallConnector]
+    val leftConn = leftRoom.getCompassConnectors(Heading.E).head
+    val rightConn = rightRoom.getCompassConnectors(Heading.W).head
     val cdelta: PointXYZ = if(leftConn.getAnchorPoint.z < rightConn.getAnchorPoint.z){
       CompassWriter.westConnector(hallway).getTransformTo(leftConn)
     }else{

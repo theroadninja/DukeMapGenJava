@@ -235,7 +235,8 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   override def getCompassConnectors(heading: Int): Seq[RedwallConnector] = {
-    getRedwallConnectors(ConnectorType.fromHeading(heading))
+    this.allRedwallConnectors.filter(_.getHeading == heading)
+    // getRedwallConnectors(ConnectorType.fromHeading(heading))
   }
 
   // // TODO - move to trait
@@ -251,13 +252,13 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   //   }
   // }
 
-  @deprecated
-  private def getRedwallConnectors(connectorType: Int): Seq[RedwallConnector] = {
-    if(! ConnectorType.isRedwallType(connectorType)){
-      throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
-    }
-    connectors.asScala.filter(c => c.getConnectorType == connectorType).map(_.asInstanceOf[RedwallConnector])
-  }
+  // @deprecated
+  // private def getRedwallConnectors(connectorType: Int): Seq[RedwallConnector] = {
+  //   if(! ConnectorType.isRedwallType(connectorType)){
+  //     throw new IllegalArgumentException(s"not a redwall connector type: ${connectorType}")
+  //   }
+  //   connectors.asScala.filter(c => c.getConnectorType == connectorType).map(_.asInstanceOf[RedwallConnector])
+  // }
 
   // TODO - move to base class or interface something
   /** @deprecated - this actually rescans the sector group! */
