@@ -83,6 +83,149 @@ public class MapTests {
 		Assert.assertEquals(0, map.getSectorIdForWall(2));
 	}
 
+	/**
+	 * Finds the sector containing the "camera light" sprite (685) and then counts the textures on the walls returned
+	 * by getSectorWallIndexes().  Only walls in the sector should have [real] textures.  All walls in other textures
+	 * have texture 0.
+	 */
+	@Test
+	public void testGetSectorWallIndexes2() throws IOException {
+
+		Map map = JavaTestUtils.readTestMap(JavaTestUtils.JUNIT3);
+		Assert.assertEquals(1, map.getSpriteCount());
+		int mainSectorId = map.findSprites(685, null, null).get(0).getSectorId();
+		Assert.assertNotEquals(-1, mainSectorId);
+
+		Sector sector = map.getSector(mainSectorId);
+		Assert.assertEquals(19 , sector.getWallCount());
+
+		List<Integer> wallIndexes = map.getSectorWallIndexes(mainSectorId);
+		Assert.assertEquals(19, wallIndexes.size());
+
+		int outerCount = 0; // pic 289
+		int innerCount = 0; // pic 461
+		int innerRedCount = 0; // pic 332
+		int doorwayCount =  0; // pic 292
+		int peninsulaCount = 0; // pic 466
+		for(Integer i: wallIndexes){
+			int t = map.getWall(i).getTex();
+			if(t == 289){
+				outerCount++;
+			}else if(t == 461){
+				innerCount++;
+			}else if(t == 332){
+				innerRedCount++;
+			}else if(t == 292){
+				doorwayCount++;
+			}else if(t == 466){
+				peninsulaCount++;
+			}else{
+				Assert.fail(String.format("wrong texture: %s at %s", t, map.getWall(i).getLocation()));
+			}
+		}
+		Assert.assertEquals(6, outerCount);
+		Assert.assertEquals(4, innerCount);
+		Assert.assertEquals(5, innerRedCount);
+		Assert.assertEquals(1, doorwayCount);
+		Assert.assertEquals(3, peninsulaCount);
+
+		for(int i = 0; i < map.getWallCount(); ++i){
+			if(! wallIndexes.contains(i)){
+				Assert.assertEquals(0, map.getWall(i).getTex());
+			}
+		}
+
+	}
+
+	@Test
+	public void testUpdateWallIndexes(){
+		Map map = Map.createNew();
+		Wall w0 = new Wall(0,0);
+		Wall w1 = new Wall(0,-10);
+		Wall w2 = new Wall(10,-10);
+		Wall w3 = new Wall(10,0);
+
+		map.createSectorFromLoop(w0, w1, w2, w3);
+		Assert.assertEquals(4, map.getWallCount());
+		Assert.assertEquals(2, map.getWall(1).getPoint2Id());
+		map.getSector(0).setFirstWall(3);
+
+		// WARNING: the map is invalid now
+        map.getWall(3).setOtherWall(100);
+
+		// deleting wall at index 2
+		map.getWall(1).setPoint2Id(3);
+		map.shiftWallIndexes(3, -1);
+		// WARNING: the map is even more invalid now
+		Assert.assertEquals(0, map.getWall(3).getPoint2Id());
+		Assert.assertEquals(2, map.getSector(0).getFirstWall());
+		Assert.assertEquals(99, map.getWall(3).getOtherWall());
+	}
+
+	@Test
+	public void testDeleteWall() {
+		Map map = Map.createNew();
+		Wall w0 = new Wall(0,0);
+		Wall w1 = new Wall(0,-10);
+		Wall w2 = new Wall(10,-10);
+		Wall w3 = new Wall(20,-10);
+		Wall w4 = new Wall(20,0);
+		map.createSectorFromLoop(w0, w1, w2, w3, w4);
+		map.getSector(0).setFirstWall(0); // Note: cant set higher (have to rearrange walls or use more than one loop)
+
+		Assert.assertEquals(5, map.getWallCount());
+		Assert.assertEquals(5, map.getSector(0).getWallCount());
+		for(int i = 0; i < map.getWallCount(); ++i){
+			map.getWall(i).setTexture(i);
+		}
+
+		Assert.assertEquals(1, map.getSectorCount());
+		Assert.assertEquals(0, map.getSectorIdForWall(2));
+		map.deleteWallSimple(2);
+		Assert.assertEquals(4, map.getWallCount());
+
+		Assert.assertEquals(0, map.getWall(0).getTex());
+		Assert.assertEquals(1, map.getWall(1).getTex());
+		Assert.assertEquals(3, map.getWall(2).getTex());
+		Assert.assertEquals(4, map.getWall(3).getTex());
+
+		Assert.assertEquals(1, map.getWall(0).getNextWallInLoop());
+		Assert.assertEquals(2, map.getWall(1).getNextWallInLoop());
+		Assert.assertEquals(3, map.getWall(2).getNextWallInLoop());
+		Assert.assertEquals(0, map.getWall(3).getNextWallInLoop());
+
+		// TODO
+		// redwalls
+		// sector first wall is below, equal to, greater than wall id
+		// multiple loops
+	}
+
+	/**
+	 * Reads in a file contains some sectors.  Deletes the walls with texture 157, and the writes the result out.
+	 * @throws Exception
+	 */
+	@Test
+	public void testDeleteWallLive() throws Exception {
+		Map map = JavaTestUtils.readTestMap(JavaTestUtils.JUNIT4);
+        List<Integer> targetWalls = new ArrayList<>(3);
+		for(int i = 0; i < map.getWallCount(); ++i){
+			if(map.getWall(i).getTex() == 157){
+				targetWalls.add(i);
+			}
+		}
+		Assert.assertEquals(5, targetWalls.size());
+		Collections.sort(targetWalls);
+		Collections.reverse(targetWalls);
+		for(int i : targetWalls){
+			map.deleteWallSimple(i);
+		}
+		map.assertIntegrity();
+
+		// a hack to make it write an actual file I can open
+		// uncomment to see the file
+		// JavaTestUtils.writeMap(map);
+	}
+
 	private static int getSectorWithSprite(Map map, int spriteLotag){
 		for(int i = 0; i < map.spriteCount; ++i){
 			if(map.getSprite(i).lotag == spriteLotag){
@@ -246,7 +389,7 @@ public class MapTests {
 	@Test
 	public void testAddLoopToSector() throws Exception {
 		Map map = JavaTestUtils.readTestMap(JavaTestUtils.ADD_LOOP);
-		//Map map = JavaTestUtils.readMap(HardcodedConfig.getDosboxPath("ADDLOOP.MAP"));
+		//Map map = JavaTestUtils.readMap(HardcodedConfig.getDosboxPath("addloop.map"));
 
 		int roomATex = 395;
 		int roomBTex = 461;

@@ -31,7 +31,6 @@ public class Map implements WallContainer {
 	// TODO - make not public
 	public List<Sector> sectors = new ArrayList<Sector>();
 	
-	//XXX: in theory we could get rid of this and rely on wall.size()
 	int wallCount;
 	
 	ArrayList<Wall> walls = new ArrayList<Wall>();
@@ -39,7 +38,6 @@ public class Map implements WallContainer {
 	int spriteCount;
 	
 	List<Sprite> sprites = new ArrayList<Sprite>();
-
 
 	private Map(long mapVersion){
 		this.mapVersion = mapVersion;
@@ -146,60 +144,20 @@ public class Map implements WallContainer {
 		return Collections.unmodifiableList(results);
 	}
 
-	// public List<Wall> getWalls(List<Integer> wallIds){
-	// 	List<Wall> results = new ArrayList<>();
-	// 	for(int i : wallIds){
-	// 		results.add(getWall(i));
-	// 	}
-	// 	return results;
-	// }
-	
 	/**
-	 * @return indexes of all walls in a sector ...actually no, just all walls in the loop that has the first wall
+	 * @return indexes of all walls in a sector including inner wall loops.
 	 */
 	public List<Integer> getSectorWallIndexes(int sectorIndex){
-		
 		Sector sector = getSector(sectorIndex);
-		
-
-		//this is invalid because sectors can have more than one wall loop:
-		//return getWallLoop(sector.getFirstWall());
-		
 		int firstWall = sector.getFirstWall();
-		
-		List<Integer> list = new ArrayList<Integer>(sector.getWallCount());
+		List<Integer> list = new ArrayList<>(sector.getWallCount());
 		for(int i = firstWall; i < firstWall + sector.getWallCount(); ++i){
 			list.add(i);
 		}
-		
 		return list;
-		
 	}
-
 	/**
-	 * Find which sector the wall belongs to.
-	 *
-	 * @param wallId the id of the wall to look up
-	 * @return the id of the sector the wall is in
-	 */
-	public int getSectorIdForWall(int wallId){
-	    // TODO inefficient
-		if(wallId < 0){
-			throw new IllegalArgumentException(String.format("invalid wall id %s", wallId));
-		}
-		for(int i = 0; i < sectorCount; ++i){
-			Sector s = getSector(i);
-			if(wallId >= s.getFirstWall() && wallId < s.getFirstWall() + s.getWallCount()){
-				return i;
-			}
-		}
-		throw new IllegalArgumentException(String.format("no sector for wall id %s", wallId));
-	}
-	
-	/**
-	 * 
-	 * @param sector
-	 * @returns all walls for the sector, which might be in two loops or more
+     * TODO WTF is this a duplicate?
 	 */
 	public List<Integer> getAllSectorWallIds(final Sector sector){
 		List<Integer> walls = new LinkedList<Integer>();
@@ -212,10 +170,9 @@ public class Map implements WallContainer {
 		return this.getAllSectorWallIds(this.getSector(sectorId));
 	}
 
-	public List<Integer> getFirstWallLoop(final Sector sector){
-		return this.getWallLoop(sector.getFirstWall());
-	}
-
+	// public List<Integer> getFirstWallLoop(final Sector sector){
+	// 	return this.getWallLoop(sector.getFirstWall());
+	// }
 	public Iterator<Collection<Integer>> wallLoopIterator(int sectorId){
 		return new WallLoopIterator(this, sectorId);
 	}
@@ -244,10 +201,27 @@ public class Map implements WallContainer {
 		return result;
 	}
 
-	
-	
 	/**
-	 * 
+	 * Find which sector the wall belongs to.
+	 *
+	 * @param wallId the id of the wall to look up
+	 * @return the id of the sector the wall is in
+	 */
+	public int getSectorIdForWall(int wallId){
+	    // TODO inefficient
+		if(wallId < 0){
+			throw new IllegalArgumentException(String.format("invalid wall id %s", wallId));
+		}
+		for(int i = 0; i < sectorCount; ++i){
+			Sector s = getSector(i);
+			if(wallId >= s.getFirstWall() && wallId < s.getFirstWall() + s.getWallCount()){
+				return i;
+			}
+		}
+		throw new IllegalArgumentException(String.format("no sector for wall id %s", wallId));
+	}
+
+	/**
 	 * @param wallIndex any wall index in the loop
 	 * @return
 	 */
@@ -269,18 +243,6 @@ public class Map implements WallContainer {
 		return list;
 	}
 
-	//public int getPreviousWall(int wallIndex) throws MapErrorException {
-	//	if(wallIndex < 0) throw new IllegalArgumentException();
-	//	List<Integer> loop = getWallLoop(wallIndex);
-	//	for(int i = 0; i < loop.size(); ++i){
-	//		Wall pw = getWall(i);
-	//		if(wallIndex == pw.point2){
-	//			return wallIndex;
-	//		}
-	//	}
-	//	throw new MapErrorException("unable to find previous wall for wall " + wallIndex);
-	//}
-	//
 	/**
 	 * WARNING: this does not automatically update any indexes (it does update wall count)
 	 * 
@@ -553,18 +515,6 @@ public class Map implements WallContainer {
 		return results;
 	}
 	
-
-	// public List<Integer> findSpriteIds(ISpriteFilter... filters){
-	// 	List<Integer> results = new ArrayList<Integer>(sprites.size());
-	// 	for(int i = 0; i < sprites.size(); ++i){
-	// 		if(! SpriteFilter.matchAll(sprites.get(i), filters)){
-	// 			continue;
-	// 		}
-	// 		results.add(i);
-	// 	}
-	// 	return results;
-	// }
-
 	/**
 	 * Removes a sector AND everything in it.
 	 *
@@ -762,6 +712,103 @@ public class Map implements WallContainer {
 			throw new RuntimeException(ex);
 		}
 
+	}
+
+	/**
+	 * This only changes things that "point to" walls using integer wall ids.  It does not actually change the array
+	 * of walls.
+	 * @param startIndex first wall id to change ([startIndex, wallCount] will be updated)
+	 * @param delta how much to change the wallIds (-1 makes wall indexes smaller, +1 makes them larger)
+	 */
+	void shiftWallIndexes(int startIndex, int delta){
+		if(delta == 0){
+			throw new IllegalArgumentException("delta cannot be 0");
+		}else if(delta < 0){
+			// deleting a wall
+
+			// TODO make sure that if delta is negative, there is nothing referencing the wall we are about to delete?
+			int deletionStart = startIndex + delta; // delta is negative
+			int deletionEnd = startIndex;
+			Range deletedWallIds = new Range(deletionStart, deletionEnd);
+			for(int i = 0; i < this.getWallCount(); ++i){
+				Wall w = this.getWall(i);
+				if(deletedWallIds.containsAny(w.getPoint2Id(), w.getOtherWall())){
+					throw new IllegalArgumentException(String.format("walls in range %s are still referenced", deletedWallIds));
+				}
+				w.shiftWallPointers(startIndex, delta);
+			}
+			for(int i = 0; i < this.getSectorCount(); ++i){
+				Sector sector = this.getSector(i);
+				if(deletedWallIds.contains(sector.getFirstWall())){
+					throw new IllegalArgumentException(String.format("walls in range %s are still referenced by sector %s", deletedWallIds, i));
+				}
+				sector.shiftWallPointers(startIndex, delta);
+			}
+
+		}else if(delta > 0){
+			throw new IllegalArgumentException("not implemented yet");
+		}
+	}
+
+	public void deleteWallSimple(int wallId){
+	    if(this.getWallLoop(wallId).size() < 4){
+	    	throw new RuntimeException("cannot delete wall from loop with less than 4 walls");
+		}
+
+	    if(this.getWall(wallId).isRedWall()){
+	    	throw new RuntimeException("deleting red walls not implemented yet");
+		}
+
+	    int nextWallInLoopId = this.getWall(wallId).getNextWallInLoop();
+	    int sectorId = this.getSectorIdForWall(wallId);
+	    Sector sector = this.getSector(sectorId);
+	    if(sector.getFirstWall() == wallId){
+	    	sector.setFirstWall(nextWallInLoopId);
+		}
+
+	    // 1. unlink the wall
+	    List<Integer> wallIds = this.getWallLoop(wallId);
+	    boolean safety = false;
+	    for(Integer i : wallIds){
+	    	Wall w = this.getWall(i);
+	    	if(w.getNextWallInLoop() == wallId){
+	    		if(safety){  // only 1 wall should point to this
+	    			throw new RuntimeException("something went wrong deleting wall");
+				}
+	    		safety = true;
+	    		w.setPoint2Id(nextWallInLoopId);
+			}
+		}
+
+	    // 2. shift pointers
+		this.shiftWallIndexes(wallId + 1, -1);
+
+	    // 3. delete from the array
+		if(this.wallCount != this.walls.size()){
+			throw new RuntimeException("map integrity failed");
+		}
+		sector.setWallCount(sector.getWallCount() - 1);
+		if(sector.getWallCount() < 3){
+			throw new RuntimeException("something went wrong"); // this should be impossible b/c we checked the loop
+		}
+		this.walls.remove(wallId);
+		this.wallCount = this.walls.size();
+
+	    // TODO the previous wall might now be crossing another wall.  should we try to detect this?
+		// TODO sprites could be in different sectors, or in nullspace now.
+		// TODO option to adjust the texture xrepeat to maintain the same scale?
+	}
+
+	/**
+	 * Splits a sector by adding a single wall between two points.
+     *
+	 * @return the id of the new sector created
+	 */
+	public int splitSectorSimple(){
+
+		// TODO make sure new wall doesnt intersect any other walls in the map
+
+        throw new RuntimeException("TODO");
 	}
 
 
@@ -1044,19 +1091,14 @@ public class Map implements WallContainer {
 				}
 				
 		map.wallCount = ByteUtil.readUint16LE(bs);
-				
-				
+
 		map.walls = new ArrayList<Wall>(map.wallCount);
 		for(int i = 0; i < map.wallCount; ++i){
 			map.walls.add(Wall.readWall(bs));
-			//map.walls.set(i, Wall.readWall(bs));
-			//map.walls[i] = Wall.readWall(bs);
 		}
 				
 		map.spriteCount = ByteUtil.readUint16LE(bs);
-		
-				
-		//map.sprites = new Sprite[map.spriteCount];
+
 		map.sprites = new ArrayList<Sprite>(map.spriteCount);
 		for(int i = 0; i < map.spriteCount; ++i){
 			map.sprites.add(Sprite.readSprite(bs));

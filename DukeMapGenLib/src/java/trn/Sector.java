@@ -143,7 +143,22 @@ public class Sector {
 		this.ceilingz += delta.z;
 		return this;
 	}
-	
+
+	/**
+	 * This is called when walls in the map are added/removed, to update the integer "pointers" to other walls.
+	 * @param startIndex the first wallId that is affected.  Any wall ids >= startIndex will be modified
+	 * @param delta how to shift the indexes.  Negative shifts them down, positive shifts them up.
+	 * @return
+	 */
+	void shiftWallPointers(int startIndex, int delta){
+		if(startIndex < 1 || startIndex + delta < 0){
+			throw new IllegalArgumentException(String.format("invalid args startIndex=%s delta=%s", startIndex, delta));
+		}
+		if(this.firstWall >= startIndex){
+			this.firstWall += delta;
+		}
+	}
+
 	@Override
 	public String toString(){
 		String ln = "\n";

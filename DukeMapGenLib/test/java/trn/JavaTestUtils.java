@@ -13,9 +13,21 @@ public class JavaTestUtils {
     public static final String JUNIT1 = "JUNIT1.MAP";
     public static final String JUNIT2 = "junit2.map";
 
+    /**
+     * Used to test Map.getSectorWallIndexes().
+     *
+     * Doesn't have sector groups.  Just some loose sectors.  The main one contains sprite 685 (CAMERALIGHT).
+     */
+    public static final String JUNIT3 = "junit3.map";
+
+    /**
+     * Test Map for Wall Deletion
+     */
+    public static final String JUNIT4 = "junit4.map";
+
     public static final String MULTI_WALL_CONN_MAP = "UNITMW.MAP";
-    public static final String ADD_LOOP = "ADDLOOP.MAP";
-    public static final String JOIN = "JOIN.MAP";
+    public static final String ADD_LOOP = "addloop.map";
+    public static final String JOIN = "join.map";
     public static final String PREFAB_TEST = "PRETEST.MAP";
 
     private static String testFilePath(String fname){
@@ -31,5 +43,10 @@ public class JavaTestUtils {
 
     public static Map readTestMap(String filename) throws IOException {
         return readMap(testFilePath(filename));
+    }
+
+    public static void writeMap(Map map) throws IOException {
+        Main.deployTest(map, "output_unit.map", HardcodedConfig.getDeployPath("output_unit.map"));
+
     }
 }
