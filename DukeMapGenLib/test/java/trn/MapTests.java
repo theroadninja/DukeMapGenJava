@@ -226,6 +226,157 @@ public class MapTests {
 		// JavaTestUtils.writeMap(map);
 	}
 
+	@Test
+	public void testSplitWallLive() throws Exception {
+		Map map = JavaTestUtils.readTestMap(JavaTestUtils.JUNIT5);
+
+		List<Integer> targetWalls = new ArrayList<>(1);
+		for(int i = 0; i < map.getWallCount(); ++i){
+			if(map.getWall(i).getTex() == 510){
+				targetWalls.add(i);
+			}
+		}
+
+		Assert.assertEquals(1, targetWalls.size());
+		map.splitWall(targetWalls.get(0), new PointXY(33280, 26624));
+		map.assertIntegrity();
+
+		// a hack to make it write an actual file I can open
+		// uncomment to see the file
+		// JavaTestUtils.writeMap(map);
+	}
+
+	@Test
+	public void testSplitRedwallLive() throws Exception {
+		Map map = JavaTestUtils.readTestMap(JavaTestUtils.JUNIT5);
+
+		List<Integer> targetWalls = new ArrayList<>(1);
+		for(int i = 0; i < map.getWallCount(); ++i){
+			if(map.getWall(i).getTex() == 511){
+				targetWalls.add(i);
+			}
+		}
+
+		Assert.assertEquals(1, targetWalls.size());
+		map.splitWall(targetWalls.get(0), new PointXY(48128, 26624));
+		map.assertIntegrity();
+
+		// a hack to make it write an actual file I can open
+		// uncomment to see the file
+		// JavaTestUtils.writeMap(map);
+	}
+
+	@Test
+	public void testFirstWallChangeMap() {
+		List<Integer> loop = new ArrayList<Integer>(){{
+			add(50);
+			add(51);
+			add(52);
+			add(53);
+			add(54);
+			add(55);
+			add(56);
+			add(57);
+		}};
+
+		java.util.Map<Integer, Integer> results = Map.firstWallChangeMap(loop, 52);
+		Assert.assertEquals(loop.size(), results.size());
+		Assert.assertEquals((int)results.get(50), 56);
+		Assert.assertEquals((int)results.get(51), 57);
+		Assert.assertEquals((int)results.get(52), 50);
+		Assert.assertEquals((int)results.get(53), 51);
+		Assert.assertEquals((int)results.get(54), 52);
+		Assert.assertEquals((int)results.get(55), 53);
+		Assert.assertEquals((int)results.get(56), 54);
+		Assert.assertEquals((int)results.get(57), 55);
+
+		results = Map.firstWallChangeMap(loop, 50);
+		Assert.assertEquals(loop.size(), results.size());
+		Assert.assertEquals((int)results.get(50), 50);
+		Assert.assertEquals((int)results.get(51), 51);
+		Assert.assertEquals((int)results.get(52), 52);
+		Assert.assertEquals((int)results.get(53), 53);
+		Assert.assertEquals((int)results.get(54), 54);
+		Assert.assertEquals((int)results.get(55), 55);
+		Assert.assertEquals((int)results.get(56), 56);
+		Assert.assertEquals((int)results.get(57), 57);
+
+		results = Map.firstWallChangeMap(loop, 57);
+		Assert.assertEquals(loop.size(), results.size());
+		Assert.assertEquals((int)results.get(50), 51);
+		Assert.assertEquals((int)results.get(51), 52);
+		Assert.assertEquals((int)results.get(52), 53);
+		Assert.assertEquals((int)results.get(53), 54);
+		Assert.assertEquals((int)results.get(54), 55);
+		Assert.assertEquals((int)results.get(55), 56);
+		Assert.assertEquals((int)results.get(56), 57);
+		Assert.assertEquals((int)results.get(57), 50);
+	}
+
+	@Test
+	public void testSetSectorFirstWall() throws Exception {
+		Map map = Map.createNew();
+		Wall w0 = new Wall(0,0);
+		Wall w1 = new Wall(0,-10);
+		Wall w2 = new Wall(10,-10);
+		Wall w3 = new Wall(20,-10);
+		Wall w4 = new Wall(20,0);
+		map.createSectorFromLoop(w0, w1, w2, w3, w4);
+		map.getSector(0).setFirstWall(0); // Note: cant set higher (have to rearrange walls or use more than one loop)
+
+		// make sure wall loop is still valid
+		for(int i = 0; i < 5; ++i){
+			Assert.assertEquals((i + 1) % 5, map.getWall(i).getNextWallInLoop());
+		}
+
+		Assert.assertEquals(5, map.getWallCount());
+		Assert.assertEquals(5, map.getSector(0).getWallCount());
+		for(int i = 0; i < map.getWallCount(); ++i){
+			map.getWall(i).setTexture(i);
+		}
+
+		map.setSectorFirstWall(0, 0);  // should result in no change
+		map.assertIntegrity();
+		for(int i = 0; i < map.getWallCount(); ++i){
+			Assert.assertEquals(i, map.getWall(i).getTexture());
+		}
+
+		map.setSectorFirstWall(0, 2);
+		map.assertIntegrity();
+		Assert.assertEquals(2, map.getWall(0).getTex());
+		Assert.assertEquals(3, map.getWall(1).getTex());
+		Assert.assertEquals(4, map.getWall(2).getTex());
+		Assert.assertEquals(0, map.getWall(3).getTex());
+		Assert.assertEquals(1, map.getWall(4).getTex());
+
+		// make sure wall loop is still valid
+		for(int i = 0; i < 5; ++i){
+			Assert.assertEquals((i + 1) % 5, map.getWall(i).getNextWallInLoop());
+		}
+	}
+
+	@Test
+	public void testSetSectorFirstWallLive() throws Exception {
+	    // map has a main sector in the middle, and the wall with tex 310 should become the new firstwall
+        // which will make the slop backwards
+		Map map = JavaTestUtils.readTestMap(JavaTestUtils.JUNIT6);
+
+		int wallId = -1;
+		for(int i = 0; i < map.getWallCount(); ++i){
+		    if(map.getWall(i).getTex() == 310){
+		    	wallId = i;
+			}
+		}
+
+		int sectorId = map.getSectorIdForWall(wallId);
+		map.setSectorFirstWall(sectorId, wallId);
+		map.assertIntegrity();
+
+		// a hack to make it write an actual file I can open
+		// uncomment to see the file
+		JavaTestUtils.writeMap(map);
+	}
+
 	private static int getSectorWithSprite(Map map, int spriteLotag){
 		for(int i = 0; i < map.spriteCount; ++i){
 			if(map.getSprite(i).lotag == spriteLotag){

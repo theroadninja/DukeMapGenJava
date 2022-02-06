@@ -721,7 +721,7 @@ public class Map implements WallContainer {
 	 * @param delta how much to change the wallIds (-1 makes wall indexes smaller, +1 makes them larger)
 	 */
 	void shiftWallIndexes(int startIndex, int delta){
-		if(delta == 0){
+		if(delta == 0) {
 			throw new IllegalArgumentException("delta cannot be 0");
 		}else if(delta < 0){
 			// deleting a wall
@@ -744,9 +744,14 @@ public class Map implements WallContainer {
 				}
 				sector.shiftWallPointers(startIndex, delta);
 			}
-
 		}else if(delta > 0){
-			throw new IllegalArgumentException("not implemented yet");
+			for(int i = 0; i < this.getWallCount(); ++i){
+				this.getWall(i).shiftWallPointers(startIndex, delta);
+			}
+			for(int i = 0; i < this.getSectorCount(); ++i){
+				this.getSector(i).shiftWallPointers(startIndex, delta);
+			}
+
 		}
 	}
 
@@ -800,15 +805,189 @@ public class Map implements WallContainer {
 	}
 
 	/**
+	 * The existing wall, `wallId`, will be split into 2 walls, and the second wall will be at `splitLocation`.  The
+	 * location does not need to be on the line segment of the existing wall  (a wall is just a start position and a
+	 * pointer to the next wall).
+	 *
+	 * @param wallId  the wall to split
+	 * @param splitLocation  the location of the new next_wall_in_loop
+     *
+	 * @return the ids of the new wall(s) that were created
+	 */
+	public List<Integer> splitWall(int wallId, PointXY splitLocation){
+		Sector sector = this.getSector(this.getSectorIdForWall(wallId));
+		Wall wall1 = this.getWall(wallId);
+		if(wall1.isRedWall()){
+			return splitRedwall(wallId, splitLocation);
+		}
+		Wall wall2 = wall1.copy();
+		wall2.setLocation(splitLocation);
+
+		// 1. shift wall pointers
+		this.shiftWallIndexes(wallId + 1, 1);
+
+		// 2. add the wall and relink
+		this.walls.add(wallId + 1, wall2);
+		wall2.setPoint2Id(wall1.getPoint2Id());
+		wall1.setPoint2Id(wallId + 1);
+
+		// 3. adjust wall counts
+		sector.setWallCount(sector.getWallCount() + 1);
+		this.wallCount += 1;
+
+		List<Integer> results = new ArrayList<>(2);
+		results.add(wallId + 1);
+		return results;
+	}
+
+	private List<Integer> splitRedwall(int wallIdA, PointXY splitLocation){
+		Wall wall1A = this.getWall(wallIdA);
+		if(! wall1A.isRedWall()){
+			throw new IllegalArgumentException("wall must be redwall");
+		}
+		int wallIdB = wall1A.getOtherWall();
+		if(wallIdA < wallIdB){
+			return splitRedwall(wallIdA, getSectorIdForWall(wallIdA), wallIdB, getSectorIdForWall(wallIdB), splitLocation);
+		}else{
+			return splitRedwall(wallIdB, getSectorIdForWall(wallIdB), wallIdA, getSectorIdForWall(wallIdA), splitLocation);
+		}
+	}
+
+	private List<Integer> splitRedwall(int wallIdA, int sectorIdA, int wallIdB, int sectorIdB, PointXY splitLocation){
+		if(wallIdA >= wallIdB){
+			throw new IllegalArgumentException();
+		}
+		Wall wallA1 = getWall(wallIdA);
+		Wall wallB1 = getWall(wallIdB);
+		if(wallA1.getOtherWall() != wallIdB || wallB1.getOtherWall() != wallIdA){
+			throw new IllegalArgumentException();
+		}
+		if(wallA1.getOtherSector() != sectorIdB || wallB1.getOtherSector() != sectorIdA){
+			throw new IllegalArgumentException();
+		}
+
+		// 1. shift wall pointers
+		this.shiftWallIndexes(wallIdB + 1, 1);
+		this.shiftWallIndexes(wallIdA + 1, 1);
+		int newWallIdB = wallIdB + 1;
+
+		// 2. add the walls and relink
+		Wall wallA2 = wallA1.copy();
+		wallA2.setLocation(splitLocation);
+		Wall wallB2 = wallB1.copy();
+		wallB2.setLocation(splitLocation);
+		if(wallA2.getOtherSector() < 0 || wallB2.getOtherSector() < 0){
+			throw new RuntimeException("math error");
+		}
+
+
+		this.walls.add(newWallIdB, wallB2);
+		wallB2.setPoint2Id(wallB1.getPoint2Id());
+		int wallIdB2 = newWallIdB + 1;
+		wallB1.setPoint2Id(wallIdB2);
+
+		this.walls.add(wallIdA + 1, wallA2);
+		wallA2.setPoint2Id(wallA1.getPoint2Id());
+		int wallIdA2 = wallIdA + 1;
+		wallA1.setPoint2Id(wallIdA2);
+
+		wallA1.setOtherWall(wallIdB2);
+		wallA2.setOtherWall(newWallIdB);
+		wallB1.setOtherWall(wallIdA2);
+		wallB2.setOtherWall(wallIdA);
+
+		// 3. adjust wall counts
+		Sector sectorA = getSector(sectorIdA);
+		Sector sectorB = getSector(sectorIdB);
+		sectorA.setWallCount(sectorA.getWallCount() + 1);
+		sectorB.setWallCount(sectorB.getWallCount() + 1);
+		this.wallCount += 2;
+
+		List<Integer> results = new ArrayList<>(2);
+		results.add(wallIdA2);
+		results.add(wallIdB2);
+		return results;
+	}
+
+	/**
 	 * Splits a sector by adding a single wall between two points.
      *
 	 * @return the id of the new sector created
 	 */
 	public int splitSectorSimple(){
-
 		// TODO make sure new wall doesnt intersect any other walls in the map
-
         throw new RuntimeException("TODO");
+	}
+
+	public void setSectorFirstWall(int sectorId, int newFirstWallId){
+		if(sectorId < 0 || sectorId >= this.getSectorCount()){
+			throw new IllegalArgumentException();
+		}
+		if(newFirstWallId < 0 || newFirstWallId >= this.getWallCount()){
+			throw new IllegalArgumentException();
+		}
+
+		if(this.getAllWallLoops(sectorId).size() != 1){
+		    throw new RuntimeException("setting 1st wall on sectors with inner loops not implemented yet");
+		}
+
+		// 1. calculate the map of oldWallId -> newWallId
+		Sector sector = getSector(sectorId);
+		List<Integer> wallLoopIds = this.getWallLoop(sector.getFirstWall());
+		java.util.Map<Integer, Integer> indexmap = firstWallChangeMap(wallLoopIds, newFirstWallId);
+
+		// 2. update the "incoming" redwall pointers
+		// (since the walls themselves aren't changing we don't need to update the "outgoing" pointers)
+		for(int i = 0; i < this.getWallCount(); ++i){
+			Wall w = this.getWall(i);
+			if(w.isRedWall() && indexmap.containsKey(w.getOtherWall())){
+				if(indexmap.containsKey(i)){
+					throw new RuntimeException();
+				}
+				w.setOtherWall(indexmap.get(w.getOtherWall()));
+			}
+		}
+
+
+		// 3. update the point2 (next wall in loop) pointers of the loop being changed
+		java.util.Map<Integer, Wall> wallsByOldIds = new TreeMap<>();
+		for(int oldWallId: wallLoopIds){
+			wallsByOldIds.put(oldWallId, getWall(oldWallId));
+		}
+		for(Wall wall: wallsByOldIds.values()){
+			wall.setPoint2Id(indexmap.get(wall.getPoint2Id()));
+		}
+
+		// 4. now swap them around
+		for(int oldWallIndex: wallsByOldIds.keySet()){
+		    int newIndex = indexmap.get(oldWallIndex);
+		    this.walls.set(newIndex, wallsByOldIds.get(oldWallIndex));
+		}
+	}
+
+	/**
+	 * Calculates how wall Ids change when changing the first wall of a sector.  Currently only handles sectors with
+	 * a single outer loop.
+     * @returns a map of old ids to new ids
+	 */
+	static java.util.Map<Integer, Integer> firstWallChangeMap(List<Integer> outerLoop, int newFirstWall){
+	    if(outerLoop.size() < 3 || !outerLoop.contains(newFirstWall)){
+	    	throw new IllegalArgumentException();
+		}
+	    for(int i = 0; i < outerLoop.size() -1; ++i){
+	    	if(outerLoop.get(i) + 1 != outerLoop.get(i + 1)){
+	    		throw new IllegalArgumentException(String.format("bad loop: %s", outerLoop));
+			}
+		}
+
+	    int newFirstWallIndex = outerLoop.indexOf(newFirstWall);
+	    java.util.Map<Integer, Integer> results = new TreeMap<>();
+	    for(int i = 0; i < outerLoop.size(); ++i){
+	    	int oldIdIndex = (newFirstWallIndex + i) % outerLoop.size();
+			int newIdIndex = (0 + i) % outerLoop.size();
+			results.put(outerLoop.get(oldIdIndex), outerLoop.get(newIdIndex));
+		}
+	    return results;
 	}
 
 

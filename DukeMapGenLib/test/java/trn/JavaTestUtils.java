@@ -25,6 +25,16 @@ public class JavaTestUtils {
      */
     public static final String JUNIT4 = "junit4.map";
 
+    /**
+     * Test Map for Splitting Walls
+     */
+    public static final String JUNIT5 = "junit5.map";
+
+    /**
+     * Test Map for Chanfing Sector Firstwall
+     */
+    public static final String JUNIT6 = "junit6.map";
+
     public static final String MULTI_WALL_CONN_MAP = "UNITMW.MAP";
     public static final String ADD_LOOP = "addloop.map";
     public static final String JOIN = "join.map";
