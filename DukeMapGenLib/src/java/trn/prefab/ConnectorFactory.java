@@ -40,6 +40,7 @@ public class ConnectorFactory {
 		return results;
 	}
 
+	// this is called from PastedSectorGroup in the scala code.
 	public static List<Connector> findConnectorsInPsg(Map map, CopyState copystate) throws MapErrorException {
 		ConnectorFilter cf = new ConnectorFilter(){
 			@Override
@@ -47,6 +48,9 @@ public class ConnectorFactory {
 				return copystate.destSectorIds().contains(c.getSectorId());
 			}
 		};
+
+		// TODO find or create a good unit test that covers this, and then refactor this to
+		// TODO be something like findConnectors(map, null).filter(cf)
 		return findConnectors(map, cf);
 	}
 
