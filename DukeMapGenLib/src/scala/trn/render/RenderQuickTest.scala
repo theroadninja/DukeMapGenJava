@@ -31,7 +31,7 @@ object RenderQuickTest {
   def otherTest(loader: MapLoader, gameCfg: GameConfig): Unit = {
 
     val sourceMap = loader.load("output.map")
-    sourceMap.sectors.asScala.foreach(s => println(s"floor=${s.getFloorZ} ceil=${s.getCeilingZ}"))
+    sourceMap.getSectors.asScala.foreach(s => println(s"floor=${s.getFloorZ} ceil=${s.getCeilingZ}"))
   }
 
   def quickTest(loader: MapLoader, gameCfg: GameConfig): Unit = {

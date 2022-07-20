@@ -1,6 +1,5 @@
 package trn;
 
-import trn.duke.MapErrorException;
 import trn.prefab.MathIsHardException;
 
 import java.io.ByteArrayInputStream;
@@ -13,12 +12,10 @@ public class Map implements WallContainer {
 
 	/** The DOS build editor will crash if a map has more than 1024 sectors */
 	public static final int MAX_SECTOR_GROUPS = 1024;
-
 	public static final int MAX_X = 65536;
 	public static final int MIN_X = -65536;
 	public static final int MAX_Y = 65536;
 	public static final int MIN_Y = -65536;
-	public static final PointXY TOP_LEFT = new PointXY(MIN_X, MIN_Y);
 
 	final long mapVersion;
 	
@@ -28,8 +25,7 @@ public class Map implements WallContainer {
 	
 	int sectorCount;
 
-	// TODO - make not public
-	public List<Sector> sectors = new ArrayList<Sector>();
+	List<Sector> sectors = new ArrayList<Sector>();
 	
 	int wallCount;
 	
@@ -41,9 +37,6 @@ public class Map implements WallContainer {
 
 	private Map(long mapVersion){
 		this.mapVersion = mapVersion;
-	}
-	private Map(){
-		this(7);
 	}
 
 	public Map copy(){
@@ -70,7 +63,7 @@ public class Map implements WallContainer {
 	}
 	
 	public static Map createNew(){
-		Map map = new Map(7); //7 is duke.  not sure if it includes atomic or not.
+		Map map = new Map(7);  // 7 is duke.  not sure if it includes atomic or not.
 		return map;
 	}
 
@@ -85,6 +78,7 @@ public class Map implements WallContainer {
 	public void setPlayerStart(PlayerStart ps){
 		this.playerStart = ps;
 	}
+
 	public boolean hasPlayerStart(){
 		return this.playerStart != null;
 	}
@@ -103,6 +97,11 @@ public class Map implements WallContainer {
 	public Sector getSector(int i){
 		return sectors.get(i);
 	}
+
+	public List<Sector> getSectors(){
+		return Collections.unmodifiableList(this.sectors);
+	}
+
 	public int addSector(Sector s){
 		this.sectors.add(s);
 		this.sectorCount++;
@@ -156,11 +155,9 @@ public class Map implements WallContainer {
 		}
 		return list;
 	}
-	/**
-     * TODO WTF is this a duplicate?
-	 */
+
 	public List<Integer> getAllSectorWallIds(final Sector sector){
-		List<Integer> walls = new LinkedList<Integer>();
+		List<Integer> walls = new LinkedList<>();
 		for(int i = sector.getFirstWall(); i < sector.getFirstWall() + sector.getWallCount(); ++i){
 			walls.add(i);
 		}
@@ -170,18 +167,10 @@ public class Map implements WallContainer {
 		return this.getAllSectorWallIds(this.getSector(sectorId));
 	}
 
-	// public List<Integer> getFirstWallLoop(final Sector sector){
-	// 	return this.getWallLoop(sector.getFirstWall());
-	// }
 	public Iterator<Collection<Integer>> wallLoopIterator(int sectorId){
 		return new WallLoopIterator(this, sectorId);
 	}
 
-	/**
-	 * Returns the wall Ids
-	 * @param sectorId
-	 * @return
-	 */
 	public List<Collection<Integer>> getAllWallLoops(int sectorId){
 		Iterator<Collection<Integer>> it = wallLoopIterator(sectorId);
 		List<Collection<Integer>> result = new ArrayList<>();
@@ -208,7 +197,7 @@ public class Map implements WallContainer {
 	 * @return the id of the sector the wall is in
 	 */
 	public int getSectorIdForWall(int wallId){
-	    // TODO inefficient
+	    // TODO inefficient -- use binary search instead
 		if(wallId < 0){
 			throw new IllegalArgumentException(String.format("invalid wall id %s", wallId));
 		}
@@ -226,7 +215,7 @@ public class Map implements WallContainer {
 	 * @return
 	 */
 	public List<Integer> getWallLoop(int wallIndex){
-		List<Integer> list = new ArrayList<Integer>();
+		List<Integer> list = new ArrayList<>();
 		
 		int safety = 10000;
 		int index = wallIndex;
@@ -257,9 +246,7 @@ public class Map implements WallContainer {
 	}
 	
 	/**
-	 * TODO - this shouldnt be visible outside the package - consider createSectorFromLoop() instead
-	 *
-	 * Adds the walls and links them together by setting their 'nextwall' pointers to the 
+	 * Adds the walls and links them together by setting their 'nextwall' pointers to the
 	 * indices they get when they are added to the wall array.
      *
 	 * I think this is only for adding walls for the purpose of creating a sector.
@@ -268,29 +255,25 @@ public class Map implements WallContainer {
 	 * walls for the entire map, so we don't really have an identifier for them until we add them to
 	 * that list.  This method makes it easy to add all the walls for a sector at once.
 	 * 
-	 * @return
+	 * @return index of first wall in loop
 	 */
-	public int addLoop(Wall ... wallsToAdd){
+	int addLoop(Wall ... wallsToAdd){
 		if(wallsToAdd == null || wallsToAdd.length < 3) throw new IllegalArgumentException();
 		
 		int firstWall = -1;
 		Wall lastWall = null;
-		
 		for(Wall w : wallsToAdd){
 			
 			//add the wall
 			int index = addWall(w);
-			
 			w.setPoint2Id(index + 1);
 			
 			//if its the first wall, update the index
 			if(firstWall == -1){
 				firstWall = index;
 			}
-			
-			lastWall = w;	
+			lastWall = w;
 		}
-		
 		lastWall.setPoint2Id(firstWall);
 		
 		return firstWall;
@@ -302,6 +285,8 @@ public class Map implements WallContainer {
 	}
 
 	/**
+	 * ONLY FOR ADDING INNER LOOPS
+	 *
 	 * Adds (inserts) wall loop to an existing sector.  If you are calling this, you are basically adding a hole to
 	 * the sector (e.g., a column)
 	 *
@@ -459,7 +444,6 @@ public class Map implements WallContainer {
 
 	public void linkRedWallsStrict(int sectorIndex, int wallIndex, int sectorIndex2, int wallIndex2){
 		Wall w1 = getWall(wallIndex);
-		// TODO - instead of throwing, just disable...
 		if(w1.getStat().blockPlayer()){
 			// Actually, this is legitimate for forcefields
 			// throw new RuntimeException("wall has blocking enabled near " + w1.getLocation());
@@ -909,16 +893,6 @@ public class Map implements WallContainer {
 		return results;
 	}
 
-	/**
-	 * Splits a sector by adding a single wall between two points.
-     *
-	 * @return the id of the new sector created
-	 */
-	public int splitSectorSimple(){
-		// TODO make sure new wall doesnt intersect any other walls in the map
-        throw new RuntimeException("TODO");
-	}
-
 	public void setSectorFirstWall(int sectorId, int newFirstWallId){
 		if(sectorId < 0 || sectorId >= this.getSectorCount()){
 			throw new IllegalArgumentException();
@@ -990,12 +964,10 @@ public class Map implements WallContainer {
 	    return results;
 	}
 
-
 	private void assertValidSector(int sectorId) throws Exception {
 		if(sectorId < 0 || sectorId > this.sectors.size()){
 			throw new Exception("invalid sector id=" + sectorId);
 		}
-
 	}
 	/**
 	 * @throws if there is something wrong with the map's structure
@@ -1094,17 +1066,17 @@ public class Map implements WallContainer {
 		return results;
 	}
 
-	// having trouble with scala vs java varargs -- will figure it out later
-	public List<Sprite> findSprites4Scala(List<ISpriteFilter> filters){
-		List<Sprite> results = new ArrayList<Sprite>(sprites.size());
-		for(Sprite s : sprites){
-			if(! SpriteFilter.matchAll(s, filters)){
-				continue;
-			}
-			results.add(s);
-		}
-		return results;
-	}
+	// // having trouble with scala vs java varargs -- will figure it out later
+	// public List<Sprite> findSprites4Scala(List<ISpriteFilter> filters){
+	// 	List<Sprite> results = new ArrayList<Sprite>(sprites.size());
+	// 	for(Sprite s : sprites){
+	// 		if(! SpriteFilter.matchAll(s, filters)){
+	// 			continue;
+	// 		}
+	// 		results.add(s);
+	// 	}
+	// 	return results;
+	// }
 	
 	public List<Sprite> findSprites(Integer picnum, Integer lotag, Integer sectorId){
 		// later:  use Wall.nextSector
@@ -1123,52 +1095,7 @@ public class Map implements WallContainer {
 		}
 		return results;
 	}
-	
-	// /**
-	//  * TODO:  this doesnt handle inner sectors yet!
-	//  *
-	//  * Gets all of the adjacent sectors (sectors that share a red wall)
-	//  * @param sectorId - sector id (a.k.a. secnum) of the starting sector
-	//  * @return set of sector Ids that share a red wall with this sector
-	//  */
-	// public Set<Integer> getAdjacentSectors(int sectorId){
-	// 	Set<Integer> results = new TreeSet<Integer>();
-	// 	if(sectorId < 0 || sectorId >= this.sectors.size()){
-	// 		throw new IllegalArgumentException();
-	// 	}
-	//
-	// 	Sector sector = this.sectors.get(sectorId);
-	// 	List<Integer> walls = this.getWallLoop(sector.getFirstWall());
-	// 	for(int i : walls){
-	// 		int otherSector = this.getWall(i).nextSector;
-	// 		if(otherSector != -1){
-	// 			results.add(otherSector);
-	// 		}
-	// 	}
-	// 	return results;
-	// }
-	
-	// /**
-	//  * Do a really dumb point average to guess the center of a sector.
-	//  * For convex sectors this could be totally wrong.
-	//  *
-	//  * @param sectorId
-	//  * @return
-	//  */
-	// public PointXYZ guessCenter(int sectorId){
-	// 	Sector sector = this.getSector(sectorId);
-	// 	List<Integer> walls = this.getFirstWallLoop(sector);
-	//
-	// 	List<Integer> xvalues = new ArrayList<Integer>(walls.size());
-	// 	List<Integer> yvalues = new ArrayList<Integer>(walls.size());
-	// 	for(int wi : walls){
-	// 		xvalues.add(this.getWall(wi).x);
-	// 		yvalues.add(this.getWall(wi).y);
-	// 	}
-	// 	return new PointXYZ(MapUtil.average(xvalues), MapUtil.average(yvalues), sector.getFloorZ());
-	// }
-	
-	
+
 	public void print(){
 		System.out.println("map version: " + mapVersion);
 		System.out.println("player start: " + playerStart.toString());
@@ -1395,6 +1322,7 @@ public class Map implements WallContainer {
 		return followWallsForJoin(sectorIdA, sectorIdB, startWall, path, p1map);
 	}
 
+	/** Used for joining sectors */
 	static List<List<WallView>> followAllWallsForJoin(
 			int sectorIdA,
 			int sectorIdB,

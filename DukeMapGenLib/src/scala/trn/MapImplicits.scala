@@ -78,7 +78,7 @@ object MapImplicits {
       val transform = Matrix2D.translate(translation.x, translation.y)
       val copy = applyTransform(transform)
 
-      copy.sectors.asScala.foreach { sector =>
+      copy.getSectors.asScala.foreach { sector =>
         sector.setFloorZ(sector.getFloorZ + translation.z)
         sector.setCeilingZ(sector.getCeilingZ + translation.z)
       }

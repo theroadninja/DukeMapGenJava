@@ -105,7 +105,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
   def withModifiedSectors(f: Sector => Unit): SectorGroup = {
     val cp = copy()
-    cp.getMap.sectors.asScala.foreach(f)
+    cp.getMap.getSectors.asScala.foreach(f)
     cp
   }
 

@@ -303,7 +303,7 @@ class MapWriter(
         w.setPal(palette)
       }
     }
-    this.outMap.sectors.asScala.foreach { s =>
+    this.outMap.getSectors.asScala.foreach { s =>
       if(s.getFloorTexture == textureId){
         s.setFloorPalette(palette)
       }

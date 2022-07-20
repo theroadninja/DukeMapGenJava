@@ -47,15 +47,12 @@ public class E4CreateLadderMaze {
 		ne.setTexture(mazeWallTex, 16, 8);
 		se.setTexture(mazeWallTex, 16, 8);
 		
-		
-		firstWall = map.addLoop(sw, nw, ne, se);
-		
-		Sector startSector = new Sector(firstWall, 4);
-		
+		int startSectorIndex = map.createSectorFromLoop(sw, nw, ne, se);
+		Sector startSector = map.getSector(startSectorIndex);
 		startSector.setCeilingZ(Sector.DEFAULT_CEILING_Z);
 		startSector.setFloorZ(Sector.DEFAULT_FLOOR_Z);
 		
-		return map.addSector(startSector);
+		return startSectorIndex;
 	}
 
 	int createRoomToEast(Map map, int lastSectorIndex){
@@ -77,13 +74,13 @@ public class E4CreateLadderMaze {
 		Wall ne = new Wall(xeast, ymin, mazeWallTex, 16, 8);
 		Wall se = new Wall(xeast, ymax, mazeWallTex, 16, 8);
 		
-		int firstWall = map.addLoop(sw, nw, ne, se);
-		
-		Sector s = new Sector(firstWall, 4);
-		int newSectorIndex = map.addSector(s);
+		// int firstWall = map.addLoop(sw, nw, ne, se);
+		// Sector s = new Sector(firstWall, 4);
+		// int newSectorIndex = map.addSector(s);
+		int newSectorIndex = map.createSectorFromLoop(sw, nw, ne, se);
 		
 		map.linkRedWalls(lastSectorIndex, eastWall[0],
-				newSectorIndex, firstWall);
+				newSectorIndex, map.getSector(newSectorIndex).getFirstWall());
 		
 		return newSectorIndex;
 	}
@@ -111,11 +108,12 @@ public class E4CreateLadderMaze {
 		
 		
 		
-		int firstWall = map.addLoop(sw, nw, ne, se);
-		
-		Sector s = new Sector(firstWall, 4);
-		int newSectorIndex = map.addSector(s);
-		
+		// int firstWall = map.addLoop(sw, nw, ne, se);
+		// Sector s = new Sector(firstWall, 4);
+		// int newSectorIndex = map.addSector(s);
+		int newSectorIndex = map.createSectorFromLoop(sw, nw, ne, se);
+		int firstWall = map.getSector(newSectorIndex).getFirstWall();
+
 		//
 		//link the new walls se wall
 		//
