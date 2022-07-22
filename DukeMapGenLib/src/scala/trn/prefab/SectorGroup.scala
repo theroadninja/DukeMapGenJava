@@ -274,11 +274,13 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   def getTeleportConnectors(): Seq[TeleportConnector] = {
-    connectors.asScala.filter(c => c.getConnectorType == ConnectorType.TELEPORTER).map(_.asInstanceOf[TeleportConnector])
+    // connectors.asScala.filter(c => c.getConnectorType == ConnectorType.TELEPORTER).map(_.asInstanceOf[TeleportConnector])
+    connectors.asScala.filter(c => c.isTeleporter).map(_.asInstanceOf[TeleportConnector])
   }
 
   def getElevatorConnectors(): Seq[ElevatorConnector] = {
-    connectors.asScala.filter(c => c.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector])
+    // connectors.asScala.filter(c => c.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector])
+    connectors.asScala.filter(c => c.isElevator).map(_.asInstanceOf[ElevatorConnector])
   }
 
   // Merging

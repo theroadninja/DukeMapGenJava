@@ -31,6 +31,16 @@ public class ElevatorConnector extends Connector {
     }
 
     @Override
+    public boolean isTeleporter() {
+        return false;
+    }
+
+    @Override
+    public boolean isElevator() {
+        return true;
+    }
+
+    @Override
     public short getSectorId() {
         return (short) this.sectorId;
     }

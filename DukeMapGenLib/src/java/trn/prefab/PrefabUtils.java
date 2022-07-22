@@ -253,7 +253,7 @@ public class PrefabUtils {
 		}
 	}
 
-	public static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
+	static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
 
 	public static final int hitagToId(Sprite s){
 		return (s != null && s.getHiTag() > 0) ? s.getHiTag() : -1;

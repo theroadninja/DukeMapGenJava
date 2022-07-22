@@ -29,21 +29,21 @@ public class RedConnUtil {
         return results;
     }
 
-    /** use ReadOnlySectorGroup.getCompassConnectors() instead of this */
-    @Deprecated
-    public static int connectorTypeForHeading(int heading){
-        if(Heading.E == heading){
-            return ConnectorType.HORIZONTAL_EAST;
-        }else if(Heading.W == heading){
-            return ConnectorType.HORIZONTAL_WEST;
-        }else if(Heading.N == heading){
-            return ConnectorType.VERTICAL_NORTH;
-        }else if(Heading.S == heading){
-            return ConnectorType.VERTICAL_SOUTH;
-        }else{
-            throw new IllegalArgumentException();
-        }
-    }
+    // /** use ReadOnlySectorGroup.getCompassConnectors() instead of this */
+    // @Deprecated
+    // public static int connectorTypeForHeading(int heading){
+    //     if(Heading.E == heading){
+    //         return ConnectorType.HORIZONTAL_EAST;
+    //     }else if(Heading.W == heading){
+    //         return ConnectorType.HORIZONTAL_WEST;
+    //     }else if(Heading.N == heading){
+    //         return ConnectorType.VERTICAL_NORTH;
+    //     }else if(Heading.S == heading){
+    //         return ConnectorType.VERTICAL_SOUTH;
+    //     }else{
+    //         throw new IllegalArgumentException();
+    //     }
+    // }
 
     public static int headingForConnectorType(int connectorType){
         if(connectorType == ConnectorType.VERTICAL_SOUTH){

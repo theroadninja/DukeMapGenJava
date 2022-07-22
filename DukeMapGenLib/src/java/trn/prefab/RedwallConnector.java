@@ -231,6 +231,16 @@ public class RedwallConnector extends Connector {
         return this.connectorType;
     }
 
+    @Override
+    public boolean isTeleporter() {
+        return false;
+    }
+
+    @Override
+    public boolean isElevator() {
+        return false;
+    }
+
     // convenience method
     public final boolean isEast() {
         return this.heading == Heading.E;

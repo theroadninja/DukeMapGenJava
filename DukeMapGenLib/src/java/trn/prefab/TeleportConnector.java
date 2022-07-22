@@ -44,6 +44,16 @@ public class TeleportConnector extends Connector {
         this.water = (sectorLotag == Lotags.ST.WATER_ABOVE || sectorLotag == Lotags.ST.WATER_BELOW);
     }
 
+    @Override
+    public boolean isTeleporter() {
+        return true;
+    }
+
+    @Override
+    public boolean isElevator() {
+        return false;
+    }
+
     public boolean isWater(){
         return this.water;
     }

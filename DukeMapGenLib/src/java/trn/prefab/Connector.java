@@ -18,6 +18,12 @@ public abstract class Connector {
 
     public abstract int getConnectorType();
 
+    // why this ugliness?  because elevators, teleporters, and redconns shouldnt have had a common base class.
+    public abstract boolean isTeleporter();
+
+    // why this ugliness?  because elevators, teleporters, and redconns shouldnt have had a common base class.
+    public abstract boolean isElevator();
+
     /** used to get new connector when pasting sector group onto a map */
     public abstract Connector translateIds(final IdMap idmap, PointXYZ delta, MapView map);
 
