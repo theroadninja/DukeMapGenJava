@@ -162,6 +162,27 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     dest
   }
 
+  def withGroupAttached(
+    gameConfig: GameConfig,
+    myConn: RedwallConnector,
+    otherSg: SectorGroup,
+    otherConn: RedwallConnector,
+  ): SectorGroup = {
+    val dest = this.copy()
+    val translate = otherConn.getTransformTo(myConn)
+    val copyState = MapUtil.copySectorGroup(gameConfig, otherSg.map, dest.map, 0, translate, true)
+    require(copyState.destSectorIds().size() > 0)
+    // need to link the walls, or the new group wont get copied
+    val psgOtherConn = otherConn.translateIds(copyState.idmap, translate, new MapView(dest.map))
+    myConn.linkConnectors(dest.map, psgOtherConn)
+
+    val conns = ConnectorFactory.findConnectors(dest.map)
+    val result = new SectorGroup(dest.map, dest.getGroupId, dest.props, dest.sghints, conns)
+    // TODO: do we need to worry about the properties or hints for the SG we added?
+    result
+  }
+
+
   /**
     * @return a copy of this sector group, flipped about the X axis
     */

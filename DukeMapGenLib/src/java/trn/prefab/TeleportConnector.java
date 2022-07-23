@@ -54,6 +54,11 @@ public class TeleportConnector extends Connector {
         return false;
     }
 
+    @Override
+    public boolean isRedwall() {
+        return false;
+    }
+
     public boolean isWater(){
         return this.water;
     }

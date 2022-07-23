@@ -16,7 +16,8 @@ trait ConnectorCollection {
   }
 
   final def allRedwallConnectors: Seq[RedwallConnector] = {
-    connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType)).map(_.asInstanceOf[RedwallConnector]).toSeq
+    // connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType)).map(_.asInstanceOf[RedwallConnector]).toSeq
+    connectors.asScala.filter(c => c.isRedwall).map(_.asInstanceOf[RedwallConnector]).toSeq
   }
 
   final def getConnector(connectorId: Int): Connector = {
@@ -42,13 +43,13 @@ trait ConnectorCollection {
 
   final def getRedwallConnectorsById(connectorId: Int): Seq[RedwallConnector] = {
     if(connectorId < 0) throw new IllegalArgumentException
-    val c = connectors.asScala.filter(c => ConnectorType.isRedwallType(c.getConnectorType) && c.connectorId == connectorId)
+    val c = connectors.asScala.filter(c => c.isRedwall && c.connectorId == connectorId)
     c.map(_.asInstanceOf[RedwallConnector]).toSeq
   }
 
   final def getElevatorConnectorsById(connectorId: Int): Seq[ElevatorConnector] = {
     if(connectorId < 0) throw new IllegalArgumentException
-    connectors.asScala.filter(_.getConnectorType == ConnectorType.ELEVATOR).map(_.asInstanceOf[ElevatorConnector]).toSeq
+    connectors.asScala.filter(_.isElevator).map(_.asInstanceOf[ElevatorConnector]).toSeq
   }
 
   final def getChildPointer(): ChildPointer = {
@@ -56,7 +57,7 @@ trait ConnectorCollection {
     if(sprites.size != 1) throw new SpriteLogicException(s"Wrong number of child marker sprites (${sprites.size})")
     val marker: Sprite = sprites(0)
 
-    val conns = connectors.asScala.filter(c => c.getSectorId == marker.getSectorId && ConnectorType.isRedwallType(c.getConnectorType))
+    val conns = connectors.asScala.filter(c => c.getSectorId == marker.getSectorId && c.isRedwall)
     if(conns.size != 1) throw new SpriteLogicException(s"There must be exactly 1 redwall connector in sector with child marker, but there are ${conns.size}")
     val mainConn = conns(0)
     if(mainConn.connectorId < 1) throw new SpriteLogicException(s"Connector for child pointer must have ID > 0")
@@ -64,14 +65,14 @@ trait ConnectorCollection {
     val allConns = connectors.asScala.filter(c => c.connectorId == mainConn.getConnectorId)
 
     val groupedConns = allConns.groupBy(c => {
-      if(ConnectorType.isRedwallType(c.getConnectorType)){
+      if(c.isRedwall){
         20
-      }else if(c.getConnectorType == ConnectorType.ELEVATOR){
+      }else if(c.isElevator){
         ConnectorType.ELEVATOR
-      }else if(c.getConnectorType == ConnectorType.TELEPORTER && (c.asInstanceOf[TeleportConnector]).isWater){
+      }else if(c.isTeleporter && (c.asInstanceOf[TeleportConnector]).isWater){
         ConnectorType.TELEPORTER
       }else{
-        throw new SpriteLogicException(s"invalid child connector (type ${c.getConnectorType}) in child sector group")
+        throw new SpriteLogicException(s"invalid child connector type in child sector group")
       }
     })
     ChildPointer(

@@ -39,6 +39,16 @@ public class IdMap {
 	}
 
 	/**
+	 *
+	 * @param sectorId
+	 * @return true if the sector id is one of the destinations
+	 */
+	public boolean hasDestSectorId(int sectorId){
+		short i = (short)sectorId;
+		return this.sectorIdMap.containsValue(i);
+	}
+
+	/**
 	 * Maps the given source sector ids to their destination sector ids
 	 * @param sourceSectorIds - ids of sectors in the source map
 	 * @returns the mapped sector ids (the ids of the sectors in the destination map)

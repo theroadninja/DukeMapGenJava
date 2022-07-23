@@ -241,6 +241,11 @@ public class RedwallConnector extends Connector {
         return false;
     }
 
+    @Override
+    public boolean isRedwall() {
+        return true;
+    }
+
     // convenience method
     public final boolean isEast() {
         return this.heading == Heading.E;
@@ -344,21 +349,6 @@ public class RedwallConnector extends Connector {
     public final boolean couldMatch(RedwallConnector c){
         return this.isMatch(c);
     }
-
-    // /**
-    //  * @deprecated
-    //  * The connector is on the left side of the sector, will connect to another sector to the west.
-    //  * @return
-    //  */
-    // public final boolean isWestConn(){
-    //     return RedConnUtil.WestConnector.matches(this);
-    // }
-
-    // /** @deprecated */
-    // public final boolean isEastConn(){
-    //     return RedConnUtil.EastConnector.matches(this);
-    // }
-
 
     /**
      * meant to be used for two connectors that have already been pasted, to see if they are in the same place

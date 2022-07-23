@@ -54,6 +54,20 @@ public class ConnectorFactory {
 		return findConnectors(map, cf);
 	}
 
+	public static List<Connector> findConnectorsInPsg(Map map, IdMap idmap) throws MapErrorException {
+		ConnectorFilter cf = new ConnectorFilter(){
+			@Override
+			public boolean matches(Connector c) {
+				return idmap.hasDestSectorId(c.getSectorId());
+			}
+		};
+
+		// TODO find or create a good unit test that covers this, and then refactor this to
+		// TODO be something like findConnectors(map, null).filter(cf)
+		return findConnectors(map, cf);
+
+	}
+
 	/* **************************************************************************** */
 
 

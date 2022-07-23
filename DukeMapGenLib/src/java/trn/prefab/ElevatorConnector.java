@@ -41,6 +41,11 @@ public class ElevatorConnector extends Connector {
     }
 
     @Override
+    public boolean isRedwall() {
+        return false;
+    }
+
+    @Override
     public short getSectorId() {
         return (short) this.sectorId;
     }
