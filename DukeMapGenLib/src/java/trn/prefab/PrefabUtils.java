@@ -114,9 +114,10 @@ public class PrefabUtils {
 		public static int ITEM = 9;
 
 		/**
-		 * Reserved for hardcoded experiments and algorithms that do not take input.
+		 * Used for a sector group that isnt a real sector group but it only used as input for a particular generator
+		 * algorithm.
 		 */
-		public static int INTERNAL_RESERVED = 10;
+		public static int GENERATOR_INPUT = 10;
 
 		/**
 		 * This is for a companion sector group that is connected only via water/teleporters/elevators,
@@ -225,7 +226,7 @@ public class PrefabUtils {
 				STAY,
 				ENEMY,
 				ITEM,
-				INTERNAL_RESERVED,
+				GENERATOR_INPUT,
 				TELEPORT_CHILD,
 				TRANSLATE_Z,
 				ALGO_HINT,

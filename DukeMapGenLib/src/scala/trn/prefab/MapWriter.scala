@@ -24,6 +24,19 @@ object MapWriter {
   //val MapBounds = BoundingBox(DMap.MIN_X, DMap.MIN_Y, DMap.MAX_X, DMap.MAX_Y)
   val MarkerTex = PrefabUtils.MARKER_SPRITE_TEX
 
+  def newMarkerSprite(
+    sectorId: Int,
+    xyz: PointXYZ,
+    hitag: Int = 0,
+    lotag: Int = 0,
+  ): Sprite = {
+    val s = new Sprite(xyz.x, xyz.y, xyz.z, sectorId.toShort)
+    s.setTexture(MarkerTex)
+    s.setHiTag(hitag)
+    s.setLotag(lotag)
+    s
+  }
+
   def isMarkerSprite(s: Sprite, lotag: Int): Boolean = {
     s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
   }
@@ -230,6 +243,19 @@ class MapWriter(
         if(sgBuilder.autoLink(c1, c2)){
           count += 1
         }
+      }
+    }
+    count
+  }
+
+  def autoLinkAll(psgs: Seq[PastedSectorGroup]): Int = {
+    /**
+      * Try to autolink every psg with every other psg in the list
+      */
+    var count = 0
+    psgs.foreach { a =>
+      psgs.foreach { b =>
+        count += autoLink(a, b)
       }
     }
     count

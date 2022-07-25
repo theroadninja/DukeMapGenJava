@@ -1,7 +1,9 @@
-package trn.prefab.experiments
+package trn.prefab.experiments.pythtile
 
 import org.junit.{Assert, Test}
 import trn.math.SnapAngle
+import trn.prefab.experiments.pythtile.BigTileEdge._
+import trn.prefab.experiments.pythtile.SmallTileEdge._
 
 class PythagoreanTiling1Tests {
 
@@ -75,6 +77,45 @@ class PythagoreanTiling1Tests {
     Assert.assertFalse(SmallTileEdge.opposite(SmallTileEdge.N, SmallTileEdge.N))
     Assert.assertFalse(SmallTileEdge.opposite(SmallTileEdge.N, SmallTileEdge.E))
     Assert.assertFalse(SmallTileEdge.opposite(SmallTileEdge.N, SmallTileEdge.W))
+  }
+
+  private def assertSeqEquals[T](seqA: Seq[T], seqB: Seq[T])(implicit arg0: math.Ordering[T]): Unit = {
+    val a = seqA.sorted
+    val b = seqB.sorted
+    Assert.assertEquals(a.size, b.size)
+    for(i <- 0 until a.size){
+      Assert.assertEquals(a(i), b(i))
+    }
+  }
+
+  @Test
+  def testCalcEdgesBigTile(): Unit = {
+    def f = PythagoreanTiling.calcEdges _
+    Assert.assertTrue(f((0, 0), Seq.empty).isEmpty)
+    assertSeqEquals(Seq(BigTileEdge.EB), f((0, 0), Seq((1, 0))))
+    assertSeqEquals(Seq(BigTileEdge.ES), f((0, 0), Seq((1, 1))))
+    assertSeqEquals(Seq.empty, f((0, 0), Seq((2, 1))))
+
+    assertSeqEquals(Seq(EB, ES), f((0, 0), Seq((1, 0), (1, 1))))
+
+    val allBig = Seq((1, 0), (0, 2), (-1, 0), (0, -2))
+    assertSeqEquals(Seq(EB, SB, WB, NB), f((0, 0), allBig))
+
+    val allSmall = Seq((1, 1), (0, 1), (0, -1), (1, -1))
+    assertSeqEquals(Seq(ES, SS, WS, NS), f((0, 0), allSmall))
+
+    assertSeqEquals(BigTileEdge.all, f((0, 0), allBig ++ allSmall))
+  }
+
+  @Test
+  def testCalcEdgesSmallTile(): Unit = {
+    def f = PythagoreanTiling.calcEdges _
+    Assert.assertTrue(f((5, 5), Seq.empty).isEmpty)
+    assertSeqEquals(Seq(E), f((5, 5), Seq((5, 6))))
+    assertSeqEquals(Seq(S, W), f((5, 5), Seq((4, 6), (4, 4))))
+
+    val allBig = Seq((5, 6), (4, 6), (4, 4), (5, 4))
+    assertSeqEquals(SmallTileEdge.all, f((5, 5), allBig))
   }
 
 }
