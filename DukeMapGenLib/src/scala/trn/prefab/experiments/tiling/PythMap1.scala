@@ -1,4 +1,4 @@
-package trn.prefab.experiments.pythtile
+package trn.prefab.experiments.tiling
 
 import trn.prefab.{GameConfig, PrefabPalette, SectorGroup}
 import trn.{HardcodedConfig, MapLoader, RandomX}

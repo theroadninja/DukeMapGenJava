@@ -1,9 +1,9 @@
-package trn.prefab.experiments.pythtile
+package trn.prefab.experiments.tiling
 
 import org.junit.{Assert, Test}
 import trn.math.SnapAngle
-import trn.prefab.experiments.pythtile.BigTileEdge._
-import trn.prefab.experiments.pythtile.SmallTileEdge._
+import trn.prefab.experiments.tiling.BigTileEdge._
+import trn.prefab.experiments.tiling.SmallTileEdge._
 
 class PythagoreanTiling1Tests {
 

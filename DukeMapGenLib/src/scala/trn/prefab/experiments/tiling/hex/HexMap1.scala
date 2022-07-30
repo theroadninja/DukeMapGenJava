@@ -1,9 +1,9 @@
-package trn.prefab.experiments.pythtile.hex
+package trn.prefab.experiments.tiling.hex
 
-import trn.prefab.experiments.pythtile.PythMap1.inputMap
+import trn.prefab.experiments.tiling.PythMap1.inputMap
 import trn.{HardcodedConfig, MapLoader, RandomX}
 import trn.prefab.{GameConfig, PrefabPalette, SectorGroup}
-import trn.prefab.experiments.pythtile.{HexOutlineTileMaker, HexTiling, TileFactory, TileMaker}
+import trn.prefab.experiments.tiling.{HexOutlineTileMaker, HexTiling, TileFactory, TileMaker}
 
 class HexMap1 extends TileFactory {
 

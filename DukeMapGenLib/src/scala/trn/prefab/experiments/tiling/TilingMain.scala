@@ -1,9 +1,9 @@
-package trn.prefab.experiments.pythtile
+package trn.prefab.experiments.tiling
 
 import trn.{BuildConstants, HardcodedConfig, PointXY, RandomX}
 import trn.prefab.{BoundingBox, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, SectorGroup}
 import trn.prefab.experiments.ExpUtil
-import trn.prefab.experiments.pythtile.hex.HexMap1
+import trn.prefab.experiments.tiling.hex.HexMap1
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -122,13 +122,15 @@ object TilingMain {
     //   (0, 0), (1, 0), (2, 0),
     //   (0, 2), (1, 2), (2, 2),
     // )
-    def calcEdges(tiling: Tiling, coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int] = {
-      neighboors.flatMap(n => tiling.edge(coord, n))
-    }
+    // def calcEdges(tiling: Tiling, coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int] = {
+    //   neighboors.flatMap(n => tiling.edge(coord, n))
+    // }
 
     // Step 2 assign sector groups by name
     // TODO info about key/gate/level status goes here
     val tileNodes0 = coords.map { tileCoord =>
+
+      // TODO this is basically just filling in all edges...
       val edges = coords.flatMap { neighboor =>
         val edgeIdOpt = tiling.edge(tileCoord, neighboor)
         edgeIdOpt.map(edgeId => TileEdge(edgeId, neighboor, None))

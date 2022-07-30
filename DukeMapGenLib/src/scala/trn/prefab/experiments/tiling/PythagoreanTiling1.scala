@@ -1,4 +1,4 @@
-package trn.prefab.experiments.pythtile
+package trn.prefab.experiments.tiling
 
 import trn.math.SnapAngle
 import trn.prefab.PrefabUtils.MarkerHiTags

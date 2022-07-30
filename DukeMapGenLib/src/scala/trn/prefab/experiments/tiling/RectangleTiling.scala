@@ -1,4 +1,4 @@
-package trn.prefab.experiments.pythtile
+package trn.prefab.experiments.tiling
 
 import trn.RandomX
 import trn.prefab.{BoundingBox, GameConfig, MapWriter, PrefabUtils, SectorGroup, SectorGroupBuilder, SectorGroupHints, SectorGroupProperties}

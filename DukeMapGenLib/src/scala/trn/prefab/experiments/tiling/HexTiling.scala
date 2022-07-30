@@ -1,4 +1,4 @@
-package trn.prefab.experiments.pythtile
+package trn.prefab.experiments.tiling
 
 import trn.{Map => DMap}
 import trn.{PointXY, RandomX, Wall}
