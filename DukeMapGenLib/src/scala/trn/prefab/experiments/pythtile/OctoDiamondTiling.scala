@@ -69,9 +69,13 @@ class OctoDiamondTiling(octSide: Int, diamondRadius: Int) extends Tiling {
     BoundingBox(Seq(topLeft, bottomLeft))
   }
 
-  override def calcEdges(coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int] = OctoDiamondTiling.tileType(coord) match {
-    case OctoDiamondTiling.OctTile => Seq.empty // TODO
-    case OctoDiamondTiling.DiTile => Seq.empty // TODO
+  // override def calcEdges(coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int] = OctoDiamondTiling.tileType(coord) match {
+  //   case OctoDiamondTiling.OctTile => Seq.empty // TODO
+  //   case OctoDiamondTiling.DiTile => Seq.empty // TODO
+  // }
+  override def edge(from: (Int, Int), to: (Int, Int)): Option[Int] = OctoDiamondTiling.tileType(from) match {
+    case OctoDiamondTiling.OctTile => None // TODO
+    case OctoDiamondTiling.DiTile => None // TODO
   }
 
   def octoControlPoints(topLeft: PointXY): Seq[PointXY] = {

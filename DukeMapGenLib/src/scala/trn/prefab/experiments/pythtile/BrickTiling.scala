@@ -55,9 +55,7 @@ class BrickTiling(val width: Int, val height: Int, val offset: Int) extends Tili
     BoundingBox(x, y, x + width, y + height)
   }
 
-  override def calcEdges(coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int] = {
-    neighboors.flatMap(n => BrickTileEdge.edge(coord, n))
-  }
+  override def edge(from: (Int, Int), to: (Int, Int)): Option[Int] = BrickTileEdge.edge(from, to)
 }
 
 class BrickOutline(tiling: BrickTiling) extends TileFactory {

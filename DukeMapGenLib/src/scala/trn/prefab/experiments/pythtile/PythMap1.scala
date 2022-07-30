@@ -23,9 +23,14 @@ object PythMap1 extends TileFactory {
 
 
   val Big1 = "BIG1"
-  val Big2 = "BIG2"
+  val Big2 = "BIG2" // replaced by Street
   val Small1 = "SMALL1"
   val Small2 = "SMALL2"
+
+  val Street = "STREET"
+
+  val BigTiles = Seq(Big1, Street)
+  // val BigTiles = Seq(Street)
 
   /**
     * Decides which sector group will be placed in a tile, and returns its `name` which is a string.
@@ -43,7 +48,7 @@ object PythMap1 extends TileFactory {
     // NOTE: passing in tileType her in case I want a Group Name to be able to refer to either size of a tile,
     // for example, there is a small or large version of the "movie theatre" ...
     tileType match {
-      case PythTileType.BigTile => random.randomElement(Seq(Big1, Big2))
+      case PythTileType.BigTile => random.randomElement(BigTiles)
       case PythTileType.SmallTile => random.randomElement(Seq(Small1, Small2))
     }
   }
@@ -53,6 +58,7 @@ object PythMap1 extends TileFactory {
     name match {
       case Big1 => new BigTile1(gameCfg, palette)
       case Big2 => new BigTile2(gameCfg, palette)
+      case Street => StreetTile
       case Small1 => new SmallTile1(gameCfg, palette)
       case Small2 => new SmallTile2(gameCfg, palette)
     }
@@ -83,6 +89,53 @@ object PythMap1 extends TileFactory {
   class BigTile2(gameConfig: GameConfig, palette: PrefabPalette) extends TileMaker {
     override def makeTile(gameConfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = palette.getSG(15)
   }
+
+  object StreetTile extends TileMaker {
+
+    override def makeTile(gameCfg: GameConfig, tile: TileNode): SectorGroup = {
+
+      // tile.edges.get(BigTileEdge.SB).foreach { edge =>
+      //   // edge.info
+      //
+      // }
+
+      val center = palette.getSG(21)
+      // TileMaker.attachHallway(gameConfig, center, )
+
+      val southeast = tile.edges.get(BigTileEdge.SB).filter(_.info.getOrElse("") == Street).map(_ => palette.getSG(24)).getOrElse(palette.getSG(22))
+      // val southeast = palette.getSG(22)
+      // center.withGroupAttached(gameCfg, center.getRedwallConnectorsById(BigTileEdge.SB).head, southeast, southeast.getRedwallConnectorsById(BigTileEdge.SB).head)
+      val center2 = TileMaker.attachByConnId(gameCfg, center, southeast, BigTileEdge.SB)
+
+
+      // TODO dont attach any SG if there is no edge!
+      val northEdge = tile.edges.get(BigTileEdge.NB)
+      println(s"street tile at ${tile.coord} north edge: ${northEdge}")
+
+      val northId = northEdge.map(_.info.getOrElse("DEFAULT")).map { s =>
+        s match {
+          case Street => 25
+          case _ => 23
+        }
+      }
+      println(s"street tile at ${tile.coord} NB edge=${tile.edges.get(BigTileEdge.NB)} selected edge SG id: ${northId}")
+      val northSg = northId.map(palette.getSG)
+
+      //val northeast = tile.edges.get(BigTileEdge.NB).filter(_.info.getOrElse("") == Street).map(_ => palette.getSG(25)).getOrElse(palette.getSG(23))
+      // val northeast = tile.edges.get(BigTileEdge.NB).map { edge =>
+      //   edge.info.filter(_ == Street).map(_ => palette.getSG(25)).getOrElse(palette.getSG(23))
+      // }
+
+
+      val center3 = if(northSg.isDefined){
+        TileMaker.attachByConnId(gameCfg, center2, northSg.get, BigTileEdge.NB)
+      }else {
+        center2
+      }
+      center3
+    }
+  }
+
   class SmallTile1(gameConfig: GameConfig, palette: PrefabPalette) extends TileMaker {
     override def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
       val attachments = Map(
@@ -144,5 +197,17 @@ object PythMap1 extends TileFactory {
 
   }
 
+  // TODO implement
+  override def edgeInfo(tile: TileNode, edge: TileEdge, neighboor: TileNode): Option[String] = {
+    if(tile.name == Street && neighboor.name == Street){
+      edge.edgeId match {
+        case BigTileEdge.SB => Some(Street)
+        case BigTileEdge.NB => Some(Street)
+        case _ => None
+      }
+    }else{
+      None
+    }
+  }
 
 }

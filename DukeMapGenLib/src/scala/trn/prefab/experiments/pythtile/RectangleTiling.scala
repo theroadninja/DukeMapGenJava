@@ -38,9 +38,7 @@ class RectangleTiling(val width: Int, val height: Int) extends Tiling {
     BoundingBox(x, y, x + width, y + height)
   }
 
-  def calcEdges(coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int] = {
-    neighboors.flatMap(n => RectTileEdge.edge(coord, n))
-  }
+  override def edge(from: (Int, Int), to: (Int, Int)): Option[Int] = RectTileEdge.edge(from, to)
 
 }
 

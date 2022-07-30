@@ -92,9 +92,7 @@ class HexTiling(val width: Int) extends Tiling {
     BoundingBox(x, y, x + width, y + height)
   }
 
-  override def calcEdges(coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int] = {
-    neighboors.flatMap(n => HexEdge.edge(coord, n))
-  }
+  override def edge(from: (Int, Int), to: (Int, Int)): Option[Int] = HexEdge.edge(from, to)
 }
 
 class HexOutline(tiling: HexTiling) extends TileFactory {

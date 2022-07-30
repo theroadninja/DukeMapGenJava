@@ -23,6 +23,8 @@ object PythTileType {
 class PythagoreanTiling(origin: PointXY, val bigW: Int, val smallW: Int) extends Tiling {
   require(bigW > smallW)
 
+  override def shapeType(coords:  (Int, Int)): Int = PythTileType.tileType(coords)
+
   override def tileCoordinates(col: Int, row: Int): BoundingBox = {
     // TODO:  this is locked to big tiles being 2x the little ones
     if(row % 2 == 0){
@@ -38,7 +40,13 @@ class PythagoreanTiling(origin: PointXY, val bigW: Int, val smallW: Int) extends
     }
   }
 
-  override def calcEdges(coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int] = PythagoreanTiling.calcEdges(coord, neighboors)
+  override def edge(from: (Int, Int), to: (Int, Int)): Option[Int] = {
+    if(PythTileType.tileType(from) == PythTileType.BigTile){
+      BigTileEdge.edge(from, to)
+    } else {
+      SmallTileEdge.edge(from, to)
+    }
+  }
 }
 
 object PythagoreanTiling {
@@ -176,23 +184,57 @@ object BigTileEdge {
 }
 
 trait TileMaker {
+  // TODO make `edges` an Iterable instead of Seq
+  def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = ??? // = makeTile(name, tileType, edges)
 
-  // TODO get rid of this one
-  // def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = ???
-
-  // TODO this becomes the new one
-  def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup // = makeTile(name, tileType, edges)
+  def makeTile(gameCfg: GameConfig, tile: TileNode): SectorGroup = makeTile(gameCfg, tile.name, tile.shape, tile.edges.keys.toSeq)
 }
 
 trait TileFactory {
   // def smallWidth: Int
   // def bigWidth: Int
   def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String
+
+
+  // TODO probaly dont need a separate TileMaker?   Just make the factory create the tile, and it can delegate to other
+  //  classes if it wants
   def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker
   // def palette: PrefabPalette
+
+  def getTileMaker(gameCfg: GameConfig, tile: TileNode): TileMaker = getTileMaker(gameCfg, tile.name, tile.shape)
+
+  def makeTile(gameCfg: GameConfig, tile: TileNode): SectorGroup = getTileMaker(gameCfg, tile).makeTile(gameCfg, tile)
+
+  /**
+    * For assigning "special edges", where sector groups get special modifications to fit together
+    *
+    * These edges are directed, edgeInfo(n1, edge, n2) needs to return the same thing as edgeInfo(n2, edge, n1) if
+    * you want the special edges to match (of course, they don't actually have to return the same thing).
+    *
+    * @param tile the tile to create a special edge for
+    * @param edge the edge to make special
+    * @param neighboor  the tile on the other side of the edge
+    * @return a string, to be used as special edge info, or None to indicate the edge isn't special.
+    */
+  def edgeInfo(tile: TileNode, edge: TileEdge, neighboor: TileNode): Option[String] = None
+
 }
 
 object TileMaker {
+
+  /**
+    * Attaches sg2 onto sg by using the connectors with id `connId`
+    *
+    * Both connectors must have the same id.
+    * @param sg
+    * @param sg2
+    * @param connId
+    * @return
+    */
+  def attachByConnId(gameCfg: GameConfig, sg: SectorGroup, sg2: SectorGroup, connId: Int): SectorGroup = {
+    sg.withGroupAttached(gameCfg, sg.getRedwallConnectorsById(connId).head, sg2, sg2.getRedwallConnectorsById(connId).head)
+  }
+
   def attachHallway(gameConfig: GameConfig, sg: SectorGroup, attachments: Map[Int, SectorGroup], attachId: Int): SectorGroup = {
     val hallwaySg = attachments(attachId)
     val connId = attachId
@@ -207,10 +249,10 @@ class Outline(tiling: PythagoreanTiling) extends TileFactory {
 
   override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String = ""
 
-  override def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker = new PythOutlineTileMaker(gameCfg, tiling)
+  override def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker = new PythOutlineTileMaker(tiling)
 }
 
-class PythOutlineTileMaker(gameCfg: GameConfig, tiling: PythagoreanTiling) extends TileMaker {
+class PythOutlineTileMaker(tiling: PythagoreanTiling) extends TileMaker {
   override def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
     val bb = tileType match {
       case PythTileType.BigTile => BoundingBox(0, 0, tiling.bigW, tiling.bigW)

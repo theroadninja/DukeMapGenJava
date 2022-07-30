@@ -3,6 +3,7 @@ package trn.prefab.experiments.pythtile
 import trn.{BuildConstants, HardcodedConfig, PointXY, RandomX}
 import trn.prefab.{BoundingBox, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, SectorGroup}
 import trn.prefab.experiments.ExpUtil
+import trn.prefab.experiments.pythtile.hex.HexMap1
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -13,10 +14,34 @@ import scala.collection.mutable.ArrayBuffer
 trait Tiling {
   def tileCoordinates(col: Int, row: Int): BoundingBox
 
-  def calcEdges(coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int]
+  def edge(from: (Int, Int), to: (Int, Int)): Option[Int]
 
-  // TODO calcEdges should have a default implementation, and this one should be required:
-  // def edge(from: (Int, Int), to: (Int, Int)): Option[Int] = {
+  /** for tilings that use multiple shapes, identifies which shape */
+  def shapeType(coords: (Int, Int)): Int = 0
+}
+
+/**
+  *
+  * @param name string that identifies the type of tile, e.g. "MedBay" or "Theatre"
+  * @param edges  map of EdgeId ->  coordinate of neighboor
+  */
+case class TileNode(coord: (Int, Int), shape: Int, name: String, edges: Map[Int, TileEdge]) {
+  // its col/row coordinate is its ID?
+
+  // DONT store tiletype ... the "tiling" can tell ou that
+
+  /** adds or replaces an edge */
+  def withEdge(edge: TileEdge): TileNode = this.copy(edges = edges + (edge.edgeId -> edge))
+}
+
+/**
+  *
+  * @param edgeId which edge of the tile -- the possible values are different for each tile shape
+  * @param info  tells you something about the edge, e.g. whether is it special
+  * @param neighboorCoord the 2d coordinate in tilespace of the neighboor on the other side of the edge
+  */
+case class TileEdge(edgeId: Int, neighboorCoord: (Int, Int), info: Option[String]) {
+  def withInfo(newinfo: Option[String]): TileEdge = this.copy(info=newinfo)
 }
 
 /**
@@ -30,10 +55,9 @@ object TilingMain {
   def run(gameCfg: GameConfig): Unit = {
     val random = new RandomX()
 
-    // val which = "pyth"
     val which = "pyth"
 
-    if(which == "pyth"){
+    if(which == "pyth") {
       //
       // Pythagorean Tiling
       //
@@ -45,6 +69,15 @@ object TilingMain {
       )
       val input2 = new Outline(tiling)
       run2(gameCfg, random, inputmap, tiling)
+
+    }else if(which == "pythoutline"){
+      val tiling = PythagoreanTiling(
+        new PointXY(BuildConstants.MIN_X, 0),
+        PythMap1.bigWidth, //3 * width, // 3 * 4096 == 12288
+        PythMap1.smallWidth, //width
+      )
+      run2(gameCfg, random, new Outline(tiling), tiling)
+
 
     }else if (which == "rect"){
       //
@@ -64,13 +97,10 @@ object TilingMain {
       val tiling = new TriangleTiling(4096)
       run2(gameCfg, random, new TriangleOutline(tiling), tiling)
     }else if(which == "hex"){
-      val tiling = new HexTiling(6144)
-      run2(gameCfg, random, new HexOutline(tiling), tiling)
+      // val tiling = new HexTiling(12288)
+      val hex1 = HexMap1()
+      run2(gameCfg, random, hex1, hex1.tiling)
     }
-
-
-
-
   }
 
   def run2(gameCfg: GameConfig, random: RandomX, inputmap: TileFactory, tiling: Tiling): Unit = {
@@ -87,35 +117,45 @@ object TilingMain {
       (0, 4), (1, 4), (2, 4),
       (1, 5), (0, 6) // extra big one to make a T with the little one
     )
+
     // val coords = Seq(
     //   (0, 0), (1, 0), (2, 0),
+    //   (0, 2), (1, 2), (2, 2),
     // )
+    def calcEdges(tiling: Tiling, coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int] = {
+      neighboors.flatMap(n => tiling.edge(coord, n))
+    }
 
     // Step 2 assign sector groups by name
     // TODO info about key/gate/level status goes here
-    val tileEdges = coords.map { tileCoord =>
-      tileCoord -> tiling.calcEdges(tileCoord, coords)
-    }.toMap
-    val groupNames  = coords.map { tileCoord =>
-      tileCoord -> inputmap.chooseTile(random, tileCoord, PythTileType.tileType(tileCoord), tileEdges(tileCoord))
-    }.toMap
+    val tileNodes0 = coords.map { tileCoord =>
+      val edges = coords.flatMap { neighboor =>
+        val edgeIdOpt = tiling.edge(tileCoord, neighboor)
+        edgeIdOpt.map(edgeId => TileEdge(edgeId, neighboor, None))
+      }.map(edge => edge.edgeId -> edge).toMap
 
+      val name = inputmap.chooseTile(random, tileCoord, tiling.shapeType(tileCoord), edges.keys.toSeq)
 
-    // TODO Step 3 - figure out connections (based on which groups are next to each other...have special connections, etc)
+      TileNode(tileCoord, tiling.shapeType(tileCoord), name, edges)
+    }.map(t => t.coord -> t).toMap
+
+    // Step 3 figure out special connections
+    def addSpecialEdges(tile: TileNode, allTiles: Map[(Int, Int), TileNode]): TileNode ={
+      tile.edges.foldLeft(tile) { case (t, (edgeId, edge)) =>
+        val edgeInfo = inputmap.edgeInfo(t, edge, allTiles(edge.neighboorCoord))
+        t.withEdge(edge.withInfo(edgeInfo))
+      }
+    }
+    val tileNodes = tileNodes0.map {
+      case(coord, tile) => coord -> addSpecialEdges(tile, tileNodes0)
+    }
 
 
     // Step 4 ...
-    def makeSectorGroup(coord: (Int, Int)): SectorGroup = {
-      val tileType = PythTileType.tileType(coord)
-      val edges = tileEdges(coord)
-      val name = groupNames(coord)
-      val maker = inputmap.getTileMaker(gameCfg, name, tileType)
-      maker.makeTile(gameCfg, name, tileType, edges)
-    }
-
     val psgs: ArrayBuffer[PastedSectorGroup] = ArrayBuffer()
     coords.foreach { case (col, row) =>
-      val t = makeSectorGroup((col, row))
+      val tile = tileNodes((col, row))
+      val t = inputmap.makeTile(gameCfg, tile)
       psgs += writer.pasteSectorGroupAt(t, tiling.tileCoordinates(col, row).center.withZ(0), true)
     }
 
