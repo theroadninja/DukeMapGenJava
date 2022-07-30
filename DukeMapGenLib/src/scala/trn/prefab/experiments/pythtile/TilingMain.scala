@@ -28,7 +28,7 @@ object TilingMain {
     val random = new RandomX()
 
     // val which = "pyth"
-    val which = "rect"
+    val which = "triangle"
 
     if(which == "pyth"){
       //
@@ -43,13 +43,23 @@ object TilingMain {
       val input2 = new Outline(tiling)
       run2(gameCfg, random, inputmap, tiling)
 
-    }else{
+    }else if (which == "rect"){
       //
       // RectangleTiling
       //
       val tiling = new RectangleTiling(4096, 2 * 4096)
       run2(gameCfg, random, new RectOutline(tiling), tiling)
 
+    }else if(which == "octo"){
+      val tiling = new OctoDiamondTiling(2048, 1024)
+      run2(gameCfg, random, new OctoDiOutline(tiling), tiling)
+
+    }else if(which == "brick"){
+      val tiling = new BrickTiling(2048, 1024, 1024)
+      run2(gameCfg, random, new BrickOutline(tiling), tiling)
+    }else if(which == "triangle"){
+      val tiling = new TriangleTiling(4096)
+      run2(gameCfg, random, new TriangleOutline(tiling), tiling)
     }
 
 
@@ -71,6 +81,9 @@ object TilingMain {
       (0, 4), (1, 4), (2, 4),
       (1, 5), (0, 6) // extra big one to make a T with the little one
     )
+    // val coords = Seq(
+    //   (0, 0), (1, 0), (2, 0),
+    // )
 
     // Step 2 assign sector groups by name
     // TODO info about key/gate/level status goes here

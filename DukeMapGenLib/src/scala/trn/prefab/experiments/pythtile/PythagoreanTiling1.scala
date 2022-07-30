@@ -176,6 +176,8 @@ object BigTileEdge {
 }
 
 trait TileMaker {
+
+  // TODO makeTile should pass a GameConfig object...
   def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup
 }
 

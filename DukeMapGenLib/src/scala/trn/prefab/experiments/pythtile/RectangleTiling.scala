@@ -28,6 +28,7 @@ object RectTileEdge {
 }
 
 // TODO rename to RectTiling
+// TODO also do Offset Rectangle Tiling
 class RectangleTiling(val width: Int, val height: Int) extends Tiling {
   require(width > 0 && height > 0)
 
@@ -44,7 +45,7 @@ class RectangleTiling(val width: Int, val height: Int) extends Tiling {
 }
 
 class RectOutline(tiling: RectangleTiling) extends TileFactory {
-  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String = ""
+  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String = "TODO"
 
   override def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker = new RectOutlineTileMaker(gameCfg, tiling)
 }
