@@ -140,7 +140,7 @@ class OctoDiOutline(tiling: OctoDiamondTiling) extends TileFactory {
 
 class OctoDiTileMaker(gameCfg: GameConfig, tiling: OctoDiamondTiling) extends TileMaker {
 
-  override def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
+  override def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
     tileType match {
       case OctoDiamondTiling.OctTile => {
         val bb = tiling.octoBoundingBox(PointXY.ZERO)
@@ -167,10 +167,8 @@ class OctoDiTileMaker(gameCfg: GameConfig, tiling: OctoDiamondTiling) extends Ti
         val w = WallPrefab(gameCfg.tex(461))
         val walls = tiling.diControlPoints(bb.topLeft).map(w.create)
         val sectorId = map.createSectorFromLoop(walls: _*)
-        val marker = MapWriter.newMarkerSprite(sectorId, bb.center.withZ(map.getSector(sectorId).getFloorZ), lotag=PrefabUtils.MarkerSpriteLoTags.ANCHOR)
-        map.addSprite(marker)
-        val props = new SectorGroupProperties(None, false, None, Seq.empty)
-        SectorGroupBuilder.createSectorGroup(map, props, SectorGroupHints.Empty)
+        ShapePrinter.addAnchor(map, sectorId, bb.center)
+        SectorGroupBuilder.createSectorGroup(map, SectorGroupProperties.Default, SectorGroupHints.Empty)
       }
 
     }

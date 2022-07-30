@@ -177,8 +177,11 @@ object BigTileEdge {
 
 trait TileMaker {
 
-  // TODO makeTile should pass a GameConfig object...
-  def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup
+  // TODO get rid of this one
+  // def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = ???
+
+  // TODO this becomes the new one
+  def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup // = makeTile(name, tileType, edges)
 }
 
 trait TileFactory {
@@ -208,7 +211,7 @@ class Outline(tiling: PythagoreanTiling) extends TileFactory {
 }
 
 class PythOutlineTileMaker(gameCfg: GameConfig, tiling: PythagoreanTiling) extends TileMaker {
-  override def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
+  override def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
     val bb = tileType match {
       case PythTileType.BigTile => BoundingBox(0, 0, tiling.bigW, tiling.bigW)
       case PythTileType.SmallTile => BoundingBox(0, 0, tiling.smallW, tiling.smallW)
@@ -218,10 +221,8 @@ class PythOutlineTileMaker(gameCfg: GameConfig, tiling: PythagoreanTiling) exten
     // creating a new map, to create a new sector group
     val map = DMap.createNew()
     val sectorId = ShapePrinter.renderBox(gameCfg, map, bb)
-    val marker = MapWriter.newMarkerSprite(sectorId, bb.center.withZ(map.getSector(sectorId).getFloorZ), lotag=PrefabUtils.MarkerSpriteLoTags.ANCHOR)
-    map.addSprite(marker)
-    val props = new SectorGroupProperties(None, false, None, Seq.empty)
-    SectorGroupBuilder.createSectorGroup(map, props, SectorGroupHints.Empty)
+    ShapePrinter.addAnchor(map, sectorId, bb.center)
+    SectorGroupBuilder.createSectorGroup(map, SectorGroupProperties.Default, SectorGroupHints.Empty)
   }
 
 }

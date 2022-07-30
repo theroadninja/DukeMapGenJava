@@ -69,16 +69,13 @@ class BrickOutline(tiling: BrickTiling) extends TileFactory {
 }
 
 class BrickOutlineTileMaker(gameCfg: GameConfig, tiling: BrickTiling) extends TileMaker {
-  override def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
+  override def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
     val bb = BoundingBox(0, 0, tiling.width, tiling.height)
 
     // creating a new map, to create a new sector group
-    // TODO this code is duplicated in a few places
     val map = DMap.createNew()
     val sectorId = ShapePrinter.renderBox(gameCfg, map, bb)
-    val marker = MapWriter.newMarkerSprite(sectorId, bb.center.withZ(map.getSector(sectorId).getFloorZ), lotag=PrefabUtils.MarkerSpriteLoTags.ANCHOR)
-    map.addSprite(marker)
-    val props = new SectorGroupProperties(None, false, None, Seq.empty)
-    SectorGroupBuilder.createSectorGroup(map, props, SectorGroupHints.Empty)
+    ShapePrinter.addAnchor(map, sectorId, bb.center)
+    SectorGroupBuilder.createSectorGroup(map, SectorGroupProperties.Default, SectorGroupHints.Empty)
   }
 }

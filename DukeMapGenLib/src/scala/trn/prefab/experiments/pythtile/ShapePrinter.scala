@@ -1,8 +1,8 @@
 package trn.prefab.experiments.pythtile
 
-import trn.prefab.{BoundingBox, GameConfig}
+import trn.prefab.{BoundingBox, GameConfig, MapWriter, PrefabUtils}
 import trn.render.WallPrefab
-import trn.{Map => DMap}
+import trn.{PointXY, Sprite, Map => DMap}
 
 object ShapePrinter {
   def renderBox(gameCfg: GameConfig, map: DMap, box: BoundingBox): Int = {
@@ -13,6 +13,12 @@ object ShapePrinter {
 
     val sectorId = map.createSectorFromLoop(walls: _*)
     sectorId
+  }
+
+  def addAnchor(map: DMap, sectorId: Int, loc: PointXY): Sprite = {
+    val marker = MapWriter.newMarkerSprite(sectorId, loc.withZ(map.getSector(sectorId).getFloorZ), lotag=PrefabUtils.MarkerSpriteLoTags.ANCHOR)
+    map.addSprite(marker)
+    marker
   }
 
 }

@@ -59,7 +59,7 @@ object PythMap1 extends TileFactory {
   }
 
   class BigTile1(gameConfig: GameConfig, palette: PrefabPalette) extends TileMaker {
-    def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
+    override def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
       // TODO should attachments() be a standard part of the trait?
       val attachments = Map(
         BigTileEdge.ES -> palette.getSG(2),
@@ -81,10 +81,10 @@ object PythMap1 extends TileFactory {
   }
 
   class BigTile2(gameConfig: GameConfig, palette: PrefabPalette) extends TileMaker {
-    def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = palette.getSG(15)
+    override def makeTile(gameConfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = palette.getSG(15)
   }
   class SmallTile1(gameConfig: GameConfig, palette: PrefabPalette) extends TileMaker {
-    def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
+    override def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
       val attachments = Map(
         SmallTileEdge.E -> palette.getSG(11),
         SmallTileEdge.S -> palette.getSG(12),
@@ -107,7 +107,7 @@ object PythMap1 extends TileFactory {
     val T = palette.getSG(18)
     val Fourway = palette.getSG(19)
 
-    def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
+    override def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
       edges.size match {
         case 1 => {
           // the prefab starts facing east

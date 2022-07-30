@@ -14,6 +14,9 @@ trait Tiling {
   def tileCoordinates(col: Int, row: Int): BoundingBox
 
   def calcEdges(coord: (Int, Int), neighboors: Seq[(Int, Int)]): Seq[Int]
+
+  // TODO calcEdges should have a default implementation, and this one should be required:
+  // def edge(from: (Int, Int), to: (Int, Int)): Option[Int] = {
 }
 
 /**
@@ -28,7 +31,7 @@ object TilingMain {
     val random = new RandomX()
 
     // val which = "pyth"
-    val which = "triangle"
+    val which = "pyth"
 
     if(which == "pyth"){
       //
@@ -60,6 +63,9 @@ object TilingMain {
     }else if(which == "triangle"){
       val tiling = new TriangleTiling(4096)
       run2(gameCfg, random, new TriangleOutline(tiling), tiling)
+    }else if(which == "hex"){
+      val tiling = new HexTiling(6144)
+      run2(gameCfg, random, new HexOutline(tiling), tiling)
     }
 
 
@@ -104,7 +110,7 @@ object TilingMain {
       val edges = tileEdges(coord)
       val name = groupNames(coord)
       val maker = inputmap.getTileMaker(gameCfg, name, tileType)
-      maker.makeTile(name, tileType, edges)
+      maker.makeTile(gameCfg, name, tileType, edges)
     }
 
     val psgs: ArrayBuffer[PastedSectorGroup] = ArrayBuffer()

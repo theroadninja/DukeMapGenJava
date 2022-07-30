@@ -124,12 +124,11 @@ class TriangleOutline(tiling: TriangleTiling) extends TileFactory {
 }
 
 class TriangleOutlineTileMaker(gameCfg: GameConfig, tiling: TriangleTiling) extends TileMaker {
-  override def makeTile(name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
+  override def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = {
 
     val bb = BoundingBox(0, 0, tiling.width, tiling.height)
 
     // creating a new map, to create a new sector group
-    // TODO this code is duplicated in PythOutlineTileMaker
     val map = DMap.createNew()
 
     val w = WallPrefab(gameCfg.tex(461))
@@ -145,9 +144,7 @@ class TriangleOutlineTileMaker(gameCfg: GameConfig, tiling: TriangleTiling) exte
     }
     val sectorId = map.createSectorFromLoop(walls: _*)
 
-    val marker = MapWriter.newMarkerSprite(sectorId, bb.center.withZ(map.getSector(sectorId).getFloorZ), lotag=PrefabUtils.MarkerSpriteLoTags.ANCHOR)
-    map.addSprite(marker)
-    val props = new SectorGroupProperties(None, false, None, Seq.empty)
-    SectorGroupBuilder.createSectorGroup(map, props, SectorGroupHints.Empty)
+    ShapePrinter.addAnchor(map, sectorId, bb.center)
+    SectorGroupBuilder.createSectorGroup(map, SectorGroupProperties.Default, SectorGroupHints.Empty)
   }
 }

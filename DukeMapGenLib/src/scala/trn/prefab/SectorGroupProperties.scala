@@ -7,6 +7,9 @@ import trn.MapImplicits._
 
 object SectorGroupProperties {
 
+  /** defaults for generating sector groups in code */
+  val Default = new SectorGroupProperties(None, false, None, Seq.empty)
+
   def findMarkers(map: DMap, lotag: Int, max: Option[Int] = None): Seq[Sprite] = {
     val list = map.allSprites.filter(s => s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag)
     //val list = map.findSprites(PrefabUtils.MARKER_SPRITE_TEX, lotag, null).asScala
