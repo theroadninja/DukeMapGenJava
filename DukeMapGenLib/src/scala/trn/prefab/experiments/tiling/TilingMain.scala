@@ -165,7 +165,10 @@ object TilingMain {
 
     val tileNodes0 = coords.map { tileCoord =>
       val edges = tilePlan.getTileEdges(tileCoord)
-      val name = inputmap.chooseTile(random, tileCoord, tiling.shapeType(tileCoord), edges.keys.toSeq)
+
+      val planNode = tilePlan.get(tileCoord).get
+
+      val name = inputmap.chooseTile(random, tileCoord, tiling.shapeType(tileCoord), planNode, edges.keys.toSeq)
       TileNode(tileCoord, tiling.shapeType(tileCoord), name, edges)
     }.map(t => t.coord -> t).toMap
 

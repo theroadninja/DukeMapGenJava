@@ -44,7 +44,7 @@ class RectangleTiling(val width: Int, val height: Int) extends Tiling {
 }
 
 class RectOutline(tiling: RectangleTiling) extends TileFactory {
-  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String = "TODO"
+  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, plan: PlanNode, edges: Seq[Int]): String = "TODO"
 
   override def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker = new RectOutlineTileMaker(gameCfg, tiling)
 }

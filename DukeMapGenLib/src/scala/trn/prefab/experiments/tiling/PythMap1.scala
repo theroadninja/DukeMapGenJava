@@ -27,6 +27,9 @@ object PythMap1 extends TileFactory {
   val Small1 = "SMALL1"
   val Small2 = "SMALL2"
 
+  val SmallEnd = "SMALL_END" // SG 26
+  val BigEnd = "BIG_END" // SG 27
+
   val Street = "STREET"
 
   val BigTiles = Seq(Big1, Street)
@@ -44,11 +47,15 @@ object PythMap1 extends TileFactory {
     * @param edges - which edges have (or may have?) connections to other tiles
     * @return
     */
-  def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String  = {
+  def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, planNode: PlanNode, edges: Seq[Int]): String  = {
     // NOTE: passing in tileType her in case I want a Group Name to be able to refer to either size of a tile,
     // for example, there is a small or large version of the "movie theatre" ...
+
+
     tileType match {
+      case PythTileType.BigTile if(planNode.end) => BigEnd
       case PythTileType.BigTile => random.randomElement(BigTiles)
+      case PythTileType.SmallTile if(planNode.end) => SmallEnd
       case PythTileType.SmallTile => random.randomElement(Seq(Small1, Small2))
     }
   }
@@ -61,6 +68,30 @@ object PythMap1 extends TileFactory {
       case Street => StreetTile
       case Small1 => new SmallTile1(gameCfg, palette)
       case Small2 => new SmallTile2(gameCfg, palette)
+      case SmallEnd => new SmallEndMaker(palette)
+      case BigEnd => new BigEndMaker(palette)
+    }
+  }
+
+  class BigEndMaker(palette: PrefabPalette) extends TileMaker {
+
+    override def makeTile(gameCfg: GameConfig, tile: TileNode): SectorGroup = {
+      require(tile.edges.size == 1)
+      val sg = palette.getSG(27)
+      // TODO need to rotate it!
+      // TODO make a generate rotation function:  rotateUntil(sg, Seq[Edges], Seq[Edges] and it rotates until/if the edges line up
+      sg
+    }
+
+  }
+  class SmallEndMaker(palette: PrefabPalette) extends TileMaker {
+
+    override def makeTile(gameCfg: GameConfig, tile: TileNode): SectorGroup = {
+      require(tile.edges.size == 1)
+      val sg = palette.getSG(26)
+      // TODO need to rotate it!
+      // TODO make a generate rotation function:  rotateUntil(sg, Seq[Edges], Seq[Edges] and it rotates until/if the edges line up
+      sg
     }
   }
 

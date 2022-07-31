@@ -63,7 +63,7 @@ class BrickTiling(val width: Int, val height: Int, val offset: Int) extends Tili
 }
 
 class BrickOutline(tiling: BrickTiling) extends TileFactory {
-  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String = ""
+  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, planNode: PlanNode, edges: Seq[Int]): String = ""
 
   override def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker = {
     new BrickOutlineTileMaker(gameCfg, tiling)

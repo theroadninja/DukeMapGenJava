@@ -100,7 +100,7 @@ class HexTiling(val width: Int) extends Tiling {
 }
 
 class HexOutline(tiling: HexTiling) extends TileFactory {
-  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String = ""
+  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, planNode: PlanNode, edges: Seq[Int]): String = ""
 
   override def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker = new HexOutlineTileMaker(tiling)
 }

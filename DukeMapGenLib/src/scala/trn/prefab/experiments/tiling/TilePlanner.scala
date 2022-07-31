@@ -6,7 +6,9 @@ import scala.collection.mutable
 
 
 case class PlanNode(
-    start: Boolean = false
+  start: Boolean = false,
+  end: Boolean = false,
+  gate: Boolean = false,
 )
 
 
@@ -25,6 +27,8 @@ class TilePlan(val tiling: Tiling) {
   val nodes = mutable.Map[(Int, Int), PlanNode]()
   val edges = mutable.Set[PlanEdge]()
 
+
+  def get(coord: (Int, Int)): Option[PlanNode] = nodes.get(coord)
   def put(coord: (Int, Int), node: PlanNode): Unit = {
     nodes.put(coord, node)
   }
@@ -32,6 +36,7 @@ class TilePlan(val tiling: Tiling) {
   def putEdge(edge: PlanEdge): Unit = {
     edges.add(edge)
   }
+  def putEdge(coordA: (Int, Int), coordB: (Int, Int)): Unit = edges.add(PlanEdge.sorted(coordA, coordB))
 
   def contains(coord: (Int, Int)): Boolean = nodes.contains(coord)
 
@@ -86,6 +91,10 @@ object TilePlanner {
 
     current = randomWalk(random, plan, current, 5)
     plan.checkIntegrity
+
+    val end = randomStep(random, plan, current).get
+    plan.put(end, PlanNode(end=true))
+    plan.putEdge(current, end)
 
     plan
   }

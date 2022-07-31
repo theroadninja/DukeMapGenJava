@@ -139,7 +139,7 @@ object DiamondEdge {
 
 class OctoDiOutline(tiling: OctoDiamondTiling) extends TileFactory {
 
-  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String = "TODO"
+  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, planNode: PlanNode, edges: Seq[Int]): String = "TODO"
 
   override def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker = new OctoDiTileMaker(gameCfg, tiling)
 }

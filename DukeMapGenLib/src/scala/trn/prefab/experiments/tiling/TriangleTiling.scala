@@ -114,7 +114,7 @@ object TriangleTiling {
 }
 
 class TriangleOutline(tiling: TriangleTiling) extends TileFactory {
-  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String = {
+  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, plan: PlanNode, edges: Seq[Int]): String = {
     if(TriangleTiling.pointingDown(coord)){
       "DOWN"
     }else{

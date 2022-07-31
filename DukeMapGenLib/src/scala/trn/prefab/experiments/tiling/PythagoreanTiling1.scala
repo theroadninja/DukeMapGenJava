@@ -198,7 +198,7 @@ trait TileMaker {
 trait TileFactory {
   // def smallWidth: Int
   // def bigWidth: Int
-  def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String
+  def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, planNode: PlanNode, edges: Seq[Int]): String
 
 
   // TODO probaly dont need a separate TileMaker?   Just make the factory create the tile, and it can delegate to other
@@ -252,7 +252,7 @@ class Outline(tiling: PythagoreanTiling) extends TileFactory {
   def smallWidth: Int = tiling.smallW
   def bigWidth: Int = tiling.bigW
 
-  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, edges: Seq[Int]): String = ""
+  override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, planNode: PlanNode, edges: Seq[Int]): String = ""
 
   override def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker = new PythOutlineTileMaker(tiling)
 }
