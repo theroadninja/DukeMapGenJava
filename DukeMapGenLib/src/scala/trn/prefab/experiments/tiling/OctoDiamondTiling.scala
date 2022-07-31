@@ -78,6 +78,8 @@ class OctoDiamondTiling(octSide: Int, diamondRadius: Int) extends Tiling {
     case OctoDiamondTiling.DiTile => None // TODO
   }
 
+  override def neighboors(coord: (Int, Int)): Seq[(Int, Int)] = ???  // TODO .map(Tiling.add(coord))
+
   def octoControlPoints(topLeft: PointXY): Seq[PointXY] = {
     val right = topLeft.x + octSide + 2 * diamondRadius
     val bottom = topLeft.y + octSide + 2 * diamondRadius

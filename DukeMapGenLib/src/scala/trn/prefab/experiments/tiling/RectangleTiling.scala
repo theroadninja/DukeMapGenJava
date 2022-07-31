@@ -40,6 +40,7 @@ class RectangleTiling(val width: Int, val height: Int) extends Tiling {
 
   override def edge(from: (Int, Int), to: (Int, Int)): Option[Int] = RectTileEdge.edge(from, to)
 
+  override def neighboors(coord: (Int, Int)): Seq[(Int, Int)] = Seq((1, 0), (0, 1), (-1, 0), (0, -1)).map(Tiling.add(coord))
 }
 
 class RectOutline(tiling: RectangleTiling) extends TileFactory {

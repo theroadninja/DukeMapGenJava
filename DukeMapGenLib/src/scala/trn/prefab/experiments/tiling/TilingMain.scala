@@ -12,12 +12,29 @@ import scala.collection.mutable.ArrayBuffer
   * Any tiling where the tiles can be mapped onto 2d row & column coordinates
   */
 trait Tiling {
+
+  /** translate from the column & row in "tilespace" to the x,y coordinates in 2d Build space */
   def tileCoordinates(col: Int, row: Int): BoundingBox
 
   def edge(from: (Int, Int), to: (Int, Int)): Option[Int]
 
+
+  // TODO unit test all of these (pass the results of neightboors() through edge and make sure each is a valid and different edge
+  def neighboors(coord: (Int, Int)): Seq[(Int, Int)]
+
   /** for tilings that use multiple shapes, identifies which shape */
   def shapeType(coords: (Int, Int)): Int = 0
+
+}
+
+object Tiling {
+  /**
+    * convenience method to add two coordinates together
+    */
+  final def add(coordA: (Int, Int))(coordB: (Int, Int)): (Int, Int) = {
+    (coordA._1 + coordB._1, coordA._2 + coordB._2)
+  }
+
 }
 
 /**
@@ -42,6 +59,10 @@ case class TileNode(coord: (Int, Int), shape: Int, name: String, edges: Map[Int,
   */
 case class TileEdge(edgeId: Int, neighboorCoord: (Int, Int), info: Option[String]) {
   def withInfo(newinfo: Option[String]): TileEdge = this.copy(info=newinfo)
+}
+
+object TileEdge {
+  def apply(edgeId: Int, neighboorCoord: (Int, Int)): TileEdge = TileEdge(edgeId, neighboorCoord, None)
 }
 
 /**
@@ -107,16 +128,20 @@ object TilingMain {
     // val pyth1 = MapLoader.loadPalette(PythMap1.inputMap)
     val writer = MapWriter(gameCfg)
 
+    val tilePlan = TilePlanner.generate(random, tiling)
+
     // Step 1 these are the places where we will put sector groups
-    val coords = Seq(
-      (0, -1), (1, -1), // some extra little ones for testing
-      (0, 0), (1, 0), (2, 0),
-      (0, 1), (1, 1), (2, 1),
-      (0, 2), (1, 2), (2, 2),
-      (0, 3), (1, 3), (2, 3),
-      (0, 4), (1, 4), (2, 4),
-      (1, 5), (0, 6) // extra big one to make a T with the little one
-    )
+    // val coords = Seq(
+    //   (0, -1), (1, -1), // some extra little ones for testing
+    //   (0, 0), (1, 0), (2, 0),
+    //   (0, 1), (1, 1), (2, 1),
+    //   (0, 2), (1, 2), (2, 2),
+    //   (0, 3), (1, 3), (2, 3),
+    //   (0, 4), (1, 4), (2, 4),
+    //   (1, 5), (0, 6) // extra big one to make a T with the little one
+    // )
+
+    val coords = tilePlan.nodes.keys.toSeq
 
     // val coords = Seq(
     //   (0, 0), (1, 0), (2, 0),
@@ -128,16 +153,19 @@ object TilingMain {
 
     // Step 2 assign sector groups by name
     // TODO info about key/gate/level status goes here
-    val tileNodes0 = coords.map { tileCoord =>
 
-      // TODO this is basically just filling in all edges...
-      val edges = coords.flatMap { neighboor =>
+    // THIS IS USEFUL FOR DEBUGGING!
+    def allEdges(tileCoord: (Int, Int), coords: Seq[(Int, Int)]) = {
+      coords.flatMap { neighboor =>
         val edgeIdOpt = tiling.edge(tileCoord, neighboor)
         edgeIdOpt.map(edgeId => TileEdge(edgeId, neighboor, None))
       }.map(edge => edge.edgeId -> edge).toMap
+    }
 
+
+    val tileNodes0 = coords.map { tileCoord =>
+      val edges = tilePlan.getTileEdges(tileCoord)
       val name = inputmap.chooseTile(random, tileCoord, tiling.shapeType(tileCoord), edges.keys.toSeq)
-
       TileNode(tileCoord, tiling.shapeType(tileCoord), name, edges)
     }.map(t => t.coord -> t).toMap
 

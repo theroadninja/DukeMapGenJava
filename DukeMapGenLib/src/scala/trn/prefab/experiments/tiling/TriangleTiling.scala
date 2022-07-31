@@ -92,6 +92,12 @@ class TriangleTiling(val width: Int) extends Tiling {
   }
 
   override def edge(from: (Int, Int), to: (Int, Int)): Option[Int] = TriangleEdge.edge(from, to)
+
+  override def neighboors(coord: (Int, Int)): Seq[(Int, Int)] = if(TriangleTiling.pointingDown(coord)){
+    Seq((0, -1), (1, 0), (-1, 0))
+  }else{
+    Seq((1, 0), (-1, 0), (0, 1))
+  }.map(Tiling.add(coord))
 }
 
 object TriangleTiling {

@@ -47,6 +47,11 @@ class PythagoreanTiling(origin: PointXY, val bigW: Int, val smallW: Int) extends
       SmallTileEdge.edge(from, to)
     }
   }
+
+  override def neighboors(coord: (Int, Int)): Seq[(Int, Int)] = PythTileType.tileType(coord) match {
+    case PythTileType.BigTile => Seq((1, 0), (1, 1), (0, 2), (0, 1), (-1, 0), (0, -1), (0, -2), (1, -1)).map(Tiling.add(coord))
+    case _ => Seq((0, 1), (-1, 1), (-1, -1), (0, -1)).map(Tiling.add(coord))
+  }
 }
 
 object PythagoreanTiling {
