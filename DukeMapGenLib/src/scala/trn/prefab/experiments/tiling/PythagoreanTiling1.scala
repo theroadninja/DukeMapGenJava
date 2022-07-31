@@ -52,6 +52,7 @@ class PythagoreanTiling(origin: PointXY, val bigW: Int, val smallW: Int) extends
     case PythTileType.BigTile => Seq((1, 0), (1, 1), (0, 2), (0, 1), (-1, 0), (0, -1), (0, -2), (1, -1)).map(Tiling.add(coord))
     case _ => Seq((0, 1), (-1, 1), (-1, -1), (0, -1)).map(Tiling.add(coord))
   }
+
 }
 
 object PythagoreanTiling {
@@ -69,6 +70,31 @@ object PythagoreanTiling {
       neighboors.flatMap(n => BigTileEdge.edge(coord, n))
     } else {
       neighboors.flatMap(n => SmallTileEdge.edge(coord, n))
+    }
+  }
+
+  /**
+    * For small tiles:  return the number of 90-degree rotations required to match the given edges.
+    * @param tileEdges
+    * @param matchEdges
+    * @param edgeRotateFunc a function that can rotate an edge 90 degrees, like SmallTileEdge.rotateCW()
+    * @return
+    */
+  def rotationsToMatch(tileEdges: Seq[Int], matchEdges: Seq[Int], edgeRotateFunc: Int => Int): Option[SnapAngle] = {
+    val matchEdges2 = matchEdges.sorted
+    lazy val rotate90 = tileEdges.map(edgeRotateFunc).sorted
+    lazy val rotate180 = rotate90.map(edgeRotateFunc).sorted
+    lazy val rotate270 = rotate180.map(edgeRotateFunc).sorted
+    if(tileEdges.sorted == matchEdges2){
+      Some(SnapAngle(0))
+    }else if(rotate90 == matchEdges2){
+      Some(SnapAngle(1))
+    }else if(rotate180 == matchEdges2){
+      Some(SnapAngle(2))
+    }else if(rotate270 == matchEdges2){
+      Some(SnapAngle(3))
+    }else{
+      None
     }
   }
 }
@@ -186,67 +212,25 @@ object BigTileEdge {
       case _ => None
     }
   }
+
+  def rotateCW(edgeId: Int): Int = edgeId match{
+    case EB => SB
+    case ES => SS
+    case SB => WB
+    case SS => WS
+    case WB => NB
+    case WS => NS
+    case NB => EB
+    case NS => ES
+  }
+
 }
 
 trait TileMaker {
-  // TODO make `edges` an Iterable instead of Seq
   def makeTile(gameCfg: GameConfig, name: String, tileType: Int, edges: Seq[Int]): SectorGroup = ??? // = makeTile(name, tileType, edges)
 
   def makeTile(gameCfg: GameConfig, tile: TileNode): SectorGroup = makeTile(gameCfg, tile.name, tile.shape, tile.edges.keys.toSeq)
 }
-
-trait TileFactory {
-  // def smallWidth: Int
-  // def bigWidth: Int
-  def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, planNode: PlanNode, edges: Seq[Int]): String
-
-
-  // TODO probaly dont need a separate TileMaker?   Just make the factory create the tile, and it can delegate to other
-  //  classes if it wants
-  def getTileMaker(gameCfg: GameConfig, name: String, tileType: Int): TileMaker
-  // def palette: PrefabPalette
-
-  def getTileMaker(gameCfg: GameConfig, tile: TileNode): TileMaker = getTileMaker(gameCfg, tile.name, tile.shape)
-
-  def makeTile(gameCfg: GameConfig, tile: TileNode): SectorGroup = getTileMaker(gameCfg, tile).makeTile(gameCfg, tile)
-
-  /**
-    * For assigning "special edges", where sector groups get special modifications to fit together
-    *
-    * These edges are directed, edgeInfo(n1, edge, n2) needs to return the same thing as edgeInfo(n2, edge, n1) if
-    * you want the special edges to match (of course, they don't actually have to return the same thing).
-    *
-    * @param tile the tile to create a special edge for
-    * @param edge the edge to make special
-    * @param neighboor  the tile on the other side of the edge
-    * @return a string, to be used as special edge info, or None to indicate the edge isn't special.
-    */
-  def edgeInfo(tile: TileNode, edge: TileEdge, neighboor: TileNode): Option[String] = None
-
-}
-
-object TileMaker {
-
-  /**
-    * Attaches sg2 onto sg by using the connectors with id `connId`
-    *
-    * Both connectors must have the same id.
-    * @param sg
-    * @param sg2
-    * @param connId
-    * @return
-    */
-  def attachByConnId(gameCfg: GameConfig, sg: SectorGroup, sg2: SectorGroup, connId: Int): SectorGroup = {
-    sg.withGroupAttached(gameCfg, sg.getRedwallConnectorsById(connId).head, sg2, sg2.getRedwallConnectorsById(connId).head)
-  }
-
-  def attachHallway(gameConfig: GameConfig, sg: SectorGroup, attachments: Map[Int, SectorGroup], attachId: Int): SectorGroup = {
-    val hallwaySg = attachments(attachId)
-    val connId = attachId
-    sg.withGroupAttached(gameConfig, sg.getRedwallConnectorsById(connId).head, hallwaySg, hallwaySg.getRedwallConnectorsById(connId).head)
-  }
-}
-
 
 class Outline(tiling: PythagoreanTiling) extends TileFactory {
   def smallWidth: Int = tiling.smallW

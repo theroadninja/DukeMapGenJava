@@ -78,6 +78,34 @@ class TilePlan(val tiling: Tiling) {
   */
 object TilePlanner {
 
+  def fromHardcoded(tiling: Tiling, coords: Seq[(Int, Int)]): TilePlan = {
+
+    val plan = new TilePlan(tiling)
+    coords.foreach{ n => plan.put(n, PlanNode())}
+
+
+    /*
+    def allEdges(tileCoord: (Int, Int), coords: Seq[(Int, Int)]) = {
+      coords.flatMap { neighboor =>
+        val edgeIdOpt = tiling.edge(tileCoord, neighboor)
+        edgeIdOpt.map(edgeId => TileEdge(edgeId, neighboor, None))
+      }.map(edge => edge.edgeId -> edge).toMap
+    }
+
+     */
+    coords.foreach { c1 =>
+      coords.foreach{ c2 =>
+        tiling.edge(c1, c2).foreach { _ =>
+          plan.putEdge(c1, c2)
+
+        }
+
+      }
+    }
+
+    plan
+  }
+
   def generate(random: RandomX, tiling: Tiling): TilePlan = {
 
     val plan = new TilePlan(tiling)

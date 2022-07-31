@@ -145,6 +145,8 @@ class MapWriter(
     with EntropyProvider
     with MapWriter2 {
 
+  def getGameConfig: GameConfig = builder.gameCfg
+
   /** throws if the map has too many sectors */
   def checkSectorCount(): Unit = {
     println(s"checkSectorCount(): Total Sector Count: ${builder.outMap.getSectorCount}")
@@ -248,7 +250,7 @@ class MapWriter(
     count
   }
 
-  def autoLinkAll(psgs: Seq[PastedSectorGroup]): Int = {
+  def autoLinkAll(psgs: Iterable[PastedSectorGroup]): Int = {
     /**
       * Try to autolink every psg with every other psg in the list
       */

@@ -5,6 +5,7 @@ import trn.prefab.{BoundingBox, DukeConfig, GameConfig, MapWriter, PastedSectorG
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.tiling.hex.HexMap1
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -49,6 +50,9 @@ case class TileNode(coord: (Int, Int), shape: Int, name: String, edges: Map[Int,
 
   /** adds or replaces an edge */
   def withEdge(edge: TileEdge): TileNode = this.copy(edges = edges + (edge.edgeId -> edge))
+
+  def findEdgeTo(neighboor: (Int, Int)): Option[Int] = edges.find(_._2.neighboorCoord == neighboor).map(_._1)
+
 }
 
 /**
@@ -64,6 +68,16 @@ case class TileEdge(edgeId: Int, neighboorCoord: (Int, Int), info: Option[String
 object TileEdge {
   def apply(edgeId: Int, neighboorCoord: (Int, Int)): TileEdge = TileEdge(edgeId, neighboorCoord, None)
 }
+
+
+
+
+
+
+case class RenderedTile (
+  tile: TileNode,
+  psg: PastedSectorGroup
+)
 
 /**
   * Main algorithm for (hopefully) all types of tiling.
@@ -128,7 +142,17 @@ object TilingMain {
     // val pyth1 = MapLoader.loadPalette(PythMap1.inputMap)
     val writer = MapWriter(gameCfg)
 
-    val tilePlan = TilePlanner.generate(random, tiling)
+    // val tilePlan = TilePlanner.generate(random, tiling)
+    val tilePlan = TilePlanner.fromHardcoded(
+      tiling,
+      Seq(
+        (0, 0), (1, 0), (2, 0),
+        // (0, 1), (1, 1), (2, 1),
+        (0, 2), (1, 2), (2, 2),
+        // (0, 3), (1, 3), (2, 3),
+        (0, 4), (1, 4), (2, 4),
+      )
+    )
 
     // Step 1 these are the places where we will put sector groups
     // val coords = Seq(
@@ -184,16 +208,37 @@ object TilingMain {
     }
 
 
-    // Step 4 ...
-    val psgs: ArrayBuffer[PastedSectorGroup] = ArrayBuffer()
+    // Step 4A:  render tiles
+    val psgs = mutable.Map[(Int, Int), PastedSectorGroup]()
     coords.foreach { case (col, row) =>
       val tile = tileNodes((col, row))
       val t = inputmap.makeTile(gameCfg, tile)
-      psgs += writer.pasteSectorGroupAt(t, tiling.tileCoordinates(col, row).center.withZ(0), true)
+      val psg = writer.pasteSectorGroupAt(t, tiling.tileCoordinates(col, row).center.withZ(0), true)
+      psgs.put((col, row), psg)
+    }
+    // Step 4B: render special connections between tiles
+    // cross product of all coords that could be connected (this thing's only job is to prevent processing the same edge twice)
+    val distinctPairs = tileNodes.keys.flatMap { coord1 =>
+      tileNodes.keys.filter(coord2 => tiling.edge(coord1, coord2).isDefined).map(coord2 => Seq(coord1, coord2).sorted).map(seq => (seq(0), seq(1)))
+    }.toSet
+
+    // TODO handle not just nodes with explicit connections, but also nodes that are next to each other with no connection,
+    //  because we can put a "window connection" there later
+    val edgePsgs = distinctPairs.flatMap {
+      case (coordA, coordB) =>{
+        val tileA = RenderedTile(tileNodes(coordA), psgs(coordA))
+        val tileB = RenderedTile(tileNodes(coordB), psgs(coordB))
+        (tileA.tile.findEdgeTo(coordB), tileB.tile.findEdgeTo(coordA)) match {
+          case (Some(edgeA), Some(edgeB)) => {
+            inputmap.makeEdge(writer, tileA, edgeA, tileB, edgeB)
+          }
+          case (None, None) => None
+          case _ => throw new RuntimeException("edge mismatch!")
+        }
+      }
     }
 
-    writer.autoLinkAll(psgs)
-
+    writer.autoLinkAll(psgs.values ++ edgePsgs)
     ExpUtil.finishAndWrite(writer)
   }
 

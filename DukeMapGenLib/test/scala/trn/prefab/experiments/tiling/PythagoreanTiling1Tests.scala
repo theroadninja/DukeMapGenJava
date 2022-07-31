@@ -118,4 +118,26 @@ class PythagoreanTiling1Tests {
     assertSeqEquals(SmallTileEdge.all, f((5, 5), allBig))
   }
 
+  @Test
+  def testRotationsToMatch(): Unit = {
+    val E = SmallTileEdge.E
+    val S = SmallTileEdge.S
+    val W = SmallTileEdge.W
+    val N = SmallTileEdge.N
+
+    Assert.assertEquals(SnapAngle(0), PythagoreanTiling.rotationsToMatch(Seq(E), Seq(E), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(1), PythagoreanTiling.rotationsToMatch(Seq(E), Seq(S), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(2), PythagoreanTiling.rotationsToMatch(Seq(E), Seq(W), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(3), PythagoreanTiling.rotationsToMatch(Seq(E), Seq(N), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(1), PythagoreanTiling.rotationsToMatch(Seq(N), Seq(E), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(2), PythagoreanTiling.rotationsToMatch(Seq(N), Seq(S), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(3), PythagoreanTiling.rotationsToMatch(Seq(N), Seq(W), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(0), PythagoreanTiling.rotationsToMatch(Seq(N), Seq(N), SmallTileEdge.rotateCW).get)
+
+    Assert.assertEquals(SnapAngle(0), PythagoreanTiling.rotationsToMatch(Seq(E, W), Seq(E, W), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(1), PythagoreanTiling.rotationsToMatch(Seq(E, W), Seq(N, S), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(1), PythagoreanTiling.rotationsToMatch(Seq(N, S), Seq(W, E), SmallTileEdge.rotateCW).get)
+    Assert.assertEquals(SnapAngle(0), PythagoreanTiling.rotationsToMatch(Seq(E, N, W, S), Seq(E, S, W, N), SmallTileEdge.rotateCW).get)
+  }
+
 }
