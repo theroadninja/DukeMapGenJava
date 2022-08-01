@@ -9,6 +9,7 @@ case class PlanNode(
   start: Boolean = false,
   end: Boolean = false,
   gate: Boolean = false,
+  backdrop: Boolean = false, // area you can't traverse, is only there for decoration
 )
 
 

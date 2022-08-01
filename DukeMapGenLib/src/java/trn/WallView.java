@@ -185,6 +185,10 @@ public class WallView {
         return p1.x == p2.x && p1.y != p2.y;
     }
 
+    public final boolean isAxisAligned(){
+        return getLineSegment().isAxisAligned();
+    }
+
     /**
      * Determines if this is  "compass wall", i.e. an axis-aligned wall on the "east", "west", "north" or "south" side
      * of a sector.  Note that compassWallSide()==East does not necessarily mean that the wall is the _farthest_ wall

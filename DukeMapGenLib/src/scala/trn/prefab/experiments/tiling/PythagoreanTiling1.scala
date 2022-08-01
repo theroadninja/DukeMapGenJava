@@ -25,6 +25,11 @@ class PythagoreanTiling(origin: PointXY, val bigW: Int, val smallW: Int) extends
 
   override def shapeType(coords:  (Int, Int)): Int = PythTileType.tileType(coords)
 
+  override def allEdges(shape: Int): Iterable[Int] = shape match {
+    case PythTileType.SmallTile => SmallTileEdge.all
+    case PythTileType.BigTile => BigTileEdge.all
+  }
+
   override def tileCoordinates(col: Int, row: Int): BoundingBox = {
     // TODO:  this is locked to big tiles being 2x the little ones
     if(row % 2 == 0){
@@ -74,7 +79,7 @@ object PythagoreanTiling {
   }
 
   /**
-    * For small tiles:  return the number of 90-degree rotations required to match the given edges.
+    * return the number of 90-degree rotations required to match the given edges.
     * @param tileEdges
     * @param matchEdges
     * @param edgeRotateFunc a function that can rotate an edge 90 degrees, like SmallTileEdge.rotateCW()

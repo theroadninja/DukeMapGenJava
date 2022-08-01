@@ -4,6 +4,7 @@ import trn.{BuildConstants, HardcodedConfig, PointXY, RandomX}
 import trn.prefab.{BoundingBox, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, SectorGroup}
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.tiling.hex.HexMap1
+import trn.prefab.experiments.tiling.pyth.PythMap2
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -19,6 +20,7 @@ trait Tiling {
 
   def edge(from: (Int, Int), to: (Int, Int)): Option[Int]
 
+  def allEdges(shape: Int): Iterable[Int] = ??? // TODO make this required
 
   // TODO unit test all of these (pass the results of neightboors() through edge and make sure each is a valid and different edge
   def neighboors(coord: (Int, Int)): Seq[(Int, Int)]
@@ -43,7 +45,7 @@ object Tiling {
   * @param name string that identifies the type of tile, e.g. "MedBay" or "Theatre"
   * @param edges  map of EdgeId ->  coordinate of neighboor
   */
-case class TileNode(coord: (Int, Int), shape: Int, name: String, edges: Map[Int, TileEdge]) {
+case class TileNode(coord: (Int, Int), shape: Int, name: String, edges: Map[Int, TileEdge], plan: PlanNode) {
   // its col/row coordinate is its ID?
 
   // DONT store tiletype ... the "tiling" can tell ou that
@@ -90,7 +92,7 @@ object TilingMain {
   def run(gameCfg: GameConfig): Unit = {
     val random = new RandomX()
 
-    val which = "pyth"
+    val which = "pyth2"
 
     if(which == "pyth") {
       //
@@ -104,6 +106,15 @@ object TilingMain {
       )
       val input2 = new Outline(tiling)
       run2(gameCfg, random, inputmap, tiling)
+
+    }else if(which == "pyth2"){
+      val tileFactory = PythMap2()
+      val tiling = tileFactory.tiling
+      // val tilePlan = TilePlanner.fromHardcoded(
+      //   tiling, PythMap2.TestMap
+      // )
+      val tilePlan = PythMap2.testMap(tiling)
+      run2(gameCfg, random, tileFactory, tiling, Some(tilePlan))
 
     }else if(which == "pythoutline"){
       val tiling = PythagoreanTiling(
@@ -138,21 +149,21 @@ object TilingMain {
     }
   }
 
-  def run2(gameCfg: GameConfig, random: RandomX, inputmap: TileFactory, tiling: Tiling): Unit = {
+  def run2(gameCfg: GameConfig, random: RandomX, inputmap: TileFactory, tiling: Tiling, tilePlanOpt: Option[TilePlan] = None): Unit = {
     // val pyth1 = MapLoader.loadPalette(PythMap1.inputMap)
     val writer = MapWriter(gameCfg)
 
-    // val tilePlan = TilePlanner.generate(random, tiling)
-    val tilePlan = TilePlanner.fromHardcoded(
-      tiling,
-      Seq(
-        (0, 0), (1, 0), (2, 0),
-        // (0, 1), (1, 1), (2, 1),
-        (0, 2), (1, 2), (2, 2),
-        // (0, 3), (1, 3), (2, 3),
-        (0, 4), (1, 4), (2, 4),
-      )
-    )
+    val tilePlan = tilePlanOpt.getOrElse(TilePlanner.generate(random, tiling))
+    // val tilePlan = TilePlanner.fromHardcoded(
+    //   tiling,
+    //   Seq(
+    //     (0, 0), (1, 0), (2, 0),
+    //     // (0, 1), (1, 1), (2, 1),
+    //     (0, 2), (1, 2), (2, 2),
+    //     // (0, 3), (1, 3), (2, 3),
+    //     (0, 4), (1, 4), (2, 4),
+    //   )
+    // )
 
     // Step 1 these are the places where we will put sector groups
     // val coords = Seq(
@@ -193,7 +204,7 @@ object TilingMain {
       val planNode = tilePlan.get(tileCoord).get
 
       val name = inputmap.chooseTile(random, tileCoord, tiling.shapeType(tileCoord), planNode, edges.keys.toSeq)
-      TileNode(tileCoord, tiling.shapeType(tileCoord), name, edges)
+      TileNode(tileCoord, tiling.shapeType(tileCoord), name, edges, planNode)
     }.map(t => t.coord -> t).toMap
 
     // Step 3 figure out special connections

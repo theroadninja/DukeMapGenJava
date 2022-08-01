@@ -17,7 +17,7 @@ trait TileFactory {
   def makeTile(gameCfg: GameConfig, tile: TileNode): SectorGroup = getTileMaker(gameCfg, tile).makeTile(gameCfg, tile)
 
   // dont need GameConfig because the writer has it
-  def makeEdge(writer: MapWriter, tileA: RenderedTile, edgeA: Int, tileB: RenderedTile, edgeB: Int): Option[PastedSectorGroup] = ???
+  def makeEdge(writer: MapWriter, tileA: RenderedTile, edgeA: Int, tileB: RenderedTile, edgeB: Int): Option[PastedSectorGroup] = None
 
   /**
     * For assigning "special edges", where sector groups get special modifications to fit together
@@ -45,12 +45,15 @@ object TileFactory {
     * @param sg
     * @param sg2
     * @param connId
+    * @param secondConnId optional connId for `sg2` -- if not specified, will use `connId` for both groups
     * @return
     */
-  def attachByConnId(gameCfg: GameConfig, sg: SectorGroup, sg2: SectorGroup, connId: Int): SectorGroup = {
-    sg.withGroupAttached(gameCfg, sg.getRedwallConnectorsById(connId).head, sg2, sg2.getRedwallConnectorsById(connId).head)
+  def attachByConnId(gameCfg: GameConfig, sg: SectorGroup, sg2: SectorGroup, connId: Int, secondConnId: Option[Int] = None): SectorGroup = {
+    val connId2 = secondConnId.getOrElse(connId)
+    sg.withGroupAttached(gameCfg, sg.getRedwallConnectorsById(connId).head, sg2, sg2.getRedwallConnectorsById(connId2).head)
   }
 
+  // TODO get rid of this
   def attachHallway(gameConfig: GameConfig, sg: SectorGroup, attachments: Map[Int, SectorGroup], attachId: Int): SectorGroup = {
     val hallwaySg = attachments(attachId)
     val connId = attachId

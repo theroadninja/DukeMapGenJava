@@ -8,7 +8,7 @@ class TilingMainTests {
 
   @Test
   def testTileNode(): Unit = {
-    val t = TileNode((5, 5), 0, "tile1", Map(Edge1 -> TileEdge(Edge1, (5, 6), None)))
+    val t = TileNode((5, 5), 0, "tile1", Map(Edge1 -> TileEdge(Edge1, (5, 6), None)), PlanNode())
     val t2 = t.withEdge(TileEdge(Edge1, (5, 6), Some("MONKEY")))
     Assert.assertEquals("MONKEY", t2.edges(Edge1).info.get)
   }
