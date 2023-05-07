@@ -374,7 +374,7 @@ public class MapTests {
 
 		// a hack to make it write an actual file I can open
 		// uncomment to see the file
-		JavaTestUtils.writeMap(map);
+		// JavaTestUtils.writeMap(map);
 	}
 
 	private static int getSectorWithSprite(Map map, int spriteLotag){

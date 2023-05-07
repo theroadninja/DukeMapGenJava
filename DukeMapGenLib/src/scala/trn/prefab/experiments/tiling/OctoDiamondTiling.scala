@@ -1,5 +1,4 @@
 package trn.prefab.experiments.tiling
-import org.graalvm.compiler.lir.alloc.trace.DefaultTraceRegisterAllocationPolicy.BottomUpDelegatingLoopStrategy
 import trn.{PointXY, RandomX}
 import trn.{Map => DMap}
 import trn.prefab.{BoundingBox, GameConfig, MapWriter, PrefabUtils, SectorGroup, SectorGroupBuilder, SectorGroupHints, SectorGroupProperties}
