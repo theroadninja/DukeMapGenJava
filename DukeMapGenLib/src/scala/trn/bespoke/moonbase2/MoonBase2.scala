@@ -6,7 +6,7 @@ import trn.logic.Tile2d._
 import trn.math.RotatesCW
 import trn.prefab._
 import trn.render.{MiscPrinter, Texture, WallAnchor}
-import trn.{AngleUtil, HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, Sprite, SpriteFilter}
+import trn.{AngleUtil, HardcodedConfig, Main, PointXY, PointXYZ, RandomX, ScalaMapLoader, Sprite, SpriteFilter}
 import trn.PointImplicits._
 import trn.prefab.experiments.ExpUtil
 
@@ -223,8 +223,8 @@ object MoonBase2 {
     println("starting run()")
     val random = new RandomX()
     val writer = MapWriter(gameCfg)
-    val spacePalette = MapLoader.loadPalette(HardcodedConfig.getMapDataPath("SPACE.MAP"))
-    val moonPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon2.map"))
+    val spacePalette = ScalaMapLoader.loadPalette(HardcodedConfig.getMapDataPath("SPACE.MAP"))
+    val moonPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon2.map"))
     println("loaded moon2.map")
 
     // val logicalMap = new RandomWalkGenerator(random).hardcodedTest() // TODO doesnt pull in all the rooms

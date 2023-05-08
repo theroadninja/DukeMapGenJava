@@ -104,13 +104,8 @@ public class DfsMazeGen {
 	 */
 	public static Graph<Pair<Integer, Integer>> createGridMaze(int width, int height){
 		if(width < 1 || height < 1) throw new IllegalArgumentException();
-		
 		Graph<Pair<Integer, Integer>> maze = new Graph<Pair<Integer, Integer>>();
-		
 		createGridMaze(maze, width, height, new HashSet<Pair<Integer, Integer>>(), new ImmutablePair<Integer, Integer>(0, 0));
-		
-		
-		
 		return maze;
 	}
 

@@ -6,8 +6,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-// TODO - DRY with HardcodedConfig
-// See also ArtFileReader
+
+/**
+ * See also ScalaMapLoader.scala
+ *
+ // TODO - DRY with HardcodedConfig
+ // See also ArtFileReader
+ */
 public class MapLoader {
 
     private final String path;
@@ -26,6 +31,7 @@ public class MapLoader {
         return loadMap(Main.DOSPATH + filename);
     }
 
+    // TODO use ScalaMapLoader.loadPalette() instead, because I want to move PrefabPalette to scala
     public static PrefabPalette loadPalette(String filename) throws IOException {
         return PrefabPalette.fromMap(loadMap(filename), true);
     }

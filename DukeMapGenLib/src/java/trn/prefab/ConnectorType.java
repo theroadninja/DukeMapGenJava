@@ -11,20 +11,6 @@ public class ConnectorType {
                 || connectorType == MULTI_SECTOR;
     }
 
-    // public static int fromHeading(int heading){
-    //     if(heading == Heading.E){
-    //         return HORIZONTAL_EAST;
-    //     }else if(heading == Heading.S){
-    //         return VERTICAL_SOUTH;
-    //     }else if(heading == Heading.W){
-    //         return HORIZONTAL_WEST;
-    //     }else if(heading == Heading.N){
-    //         return VERTICAL_NORTH;
-    //     }else{
-    //         throw new IllegalArgumentException(String.format("invalid heading: %s", heading));
-    //     }
-    // }
-
     public static int TELEPORTER = 7; // TODO - maybe this should be 27 to match the prefab... (or that one should be 7)
 
     public static int ELEVATOR = 8; // TODO - actually this one should be 17

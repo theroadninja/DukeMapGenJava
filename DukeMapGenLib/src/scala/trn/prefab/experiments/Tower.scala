@@ -1,6 +1,6 @@
 package trn.prefab.experiments
 
-import trn.{BuildConstants, HardcodedConfig, MapLoader, PointXY, PointXYZ, Map => DMap}
+import trn.{BuildConstants, HardcodedConfig, MapLoader, PointXY, PointXYZ, ScalaMapLoader, Map => DMap}
 import trn.prefab.{DukeConfig, GameConfig, Heading, MapWriter, PastedSectorGroup, PrefabPalette, ReadOnlySectorGroup, RedwallConnector, SectorGroup, TexturePack}
 import trn.render.{HorizontalBrush, Landing, MiscPrinter, SimpleStepBrush, StairParams, Texture, TextureUtil, TowerStairPrinter, WallAnchor, WallPrefab, WallSectorAnchor}
 import trn.PointImplicits._
@@ -28,7 +28,7 @@ object Tower {
   }
 
   def run(gameCfg: GameConfig, writer: MapWriter): Unit = {
-    val palette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("tower1.map"))
+    val palette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path("tower1.map"))
     // TODO should have hardcoded stairs in case the level doesnt specify any
 
     // TODO should we add a "drift" feature where each floor is offset just a tiny bit so its obvious in the map editor?

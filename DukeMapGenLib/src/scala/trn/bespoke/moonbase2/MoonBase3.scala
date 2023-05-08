@@ -3,7 +3,7 @@ package trn.bespoke.moonbase2
 import trn.bespoke.moonbase2.MoonBase2.{getTileSpec, rotateToMatch}
 import trn.logic.{Point3d, Tile2d}
 import trn.prefab.experiments.ExpUtil
-import trn.{AngleUtil, HardcodedConfig, MapLoader, RandomX}
+import trn.{AngleUtil, HardcodedConfig, MapLoader, RandomX, ScalaMapLoader}
 import trn.prefab.{CompassWriter, DukeConfig, GameConfig, MapWriter, PrefabPalette, PrefabUtils, SectorGroup}
 
 import scala.collection.mutable
@@ -27,6 +27,10 @@ object AlgoHint {
 
   // TODO a "dont-auto-scan" marker for things that have multiple components (or need to be manually built for some other reason)
 }
+
+/**
+  * This is the one that is clearly created just for testing.
+  */
 object MoonBase3 {
 
   def autoReadTile(sg: SectorGroup): Tile2d = ExpUtil.autoReadTile(sg)
@@ -138,7 +142,7 @@ object MoonBase3 {
 
     val random = new RandomX()
     val writer = MapWriter(gameCfg)
-    val moonPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon3.map"))
+    val moonPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon3.map"))
     println("loaded moon3.map successfully")
 
     val allRooms = (1 to moonPalette.numberedSectorGroupCount()).map(i => readTileSectorGroup(gameCfg, moonPalette, i))

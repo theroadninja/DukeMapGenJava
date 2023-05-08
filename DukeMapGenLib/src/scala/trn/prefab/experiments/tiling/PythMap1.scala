@@ -1,7 +1,7 @@
 package trn.prefab.experiments.tiling
 
 import trn.prefab.{GameConfig, MapWriter, PastedSectorGroup, PrefabPalette, SectorGroup}
-import trn.{HardcodedConfig, MapLoader, RandomX}
+import trn.{HardcodedConfig, MapLoader, RandomX, ScalaMapLoader}
 
 /**
   * Trying to put all of the info specific to each prefab/source map into a file like this.
@@ -16,7 +16,7 @@ object PythMap1 extends TileFactory {
 
   def inputMap = HardcodedConfig.getEduke32Path("PYTH1.MAP")
 
-  lazy val palette: PrefabPalette = MapLoader.loadPalette(inputMap)
+  lazy val palette: PrefabPalette = ScalaMapLoader.loadPalette(inputMap)
 
   val smallWidth = 4096
   val bigWidth = 4096 * 3

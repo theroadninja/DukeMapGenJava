@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, ScalaMapLoader, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.{PaletteList, TextureList}
 import trn.prefab.hypercube.GridManager
@@ -126,21 +126,15 @@ object Hypercube4 extends PrefabExperiment {
   def main(args: Array[String]): Unit = {
 
     // val loader = new MapLoader(Main.DOSPATH)
-    val loader = new MapLoader(HardcodedConfig.EDUKE32PATH)
-    val map = run(loader)
+    // val loader = new MapLoader(HardcodedConfig.EDUKE32PATH)
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val palette = ScalaMapLoader.loadPalette(HardcodedConfig.EDUKE32PATH + Filename, Some(gameCfg))
+    val map = run(palette, gameCfg)
     val filename = "output.map"
     Main.deployTest(map, filename, HardcodedConfig.getEduke32Path(filename))
   }
   override def run(mapLoader: MapLoader): DMap = {
-    val sourceMap = mapLoader.load(Filename)
-    // val sourceMap = mapLoader.load("error.map")
-    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
-    val palette: PrefabPalette = PrefabPalette.fromMap(gameCfg, sourceMap, true)
-
-
-    val result = run(palette, gameCfg)
-    println(s"Sector count: ${result.getSectorCount}")
-    result
+    ??? // call main() in this file directly
   }
 
   def run(palette: PrefabPalette, gameCfg: GameConfig): DMap = {

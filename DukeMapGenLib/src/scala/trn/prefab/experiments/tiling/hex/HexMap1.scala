@@ -1,7 +1,7 @@
 package trn.prefab.experiments.tiling.hex
 
 import trn.prefab.experiments.tiling.PythMap1.inputMap
-import trn.{HardcodedConfig, MapLoader, RandomX}
+import trn.{HardcodedConfig, MapLoader, RandomX, ScalaMapLoader}
 import trn.prefab.{GameConfig, PrefabPalette, SectorGroup}
 import trn.prefab.experiments.tiling.{HexOutlineTileMaker, HexTiling, PlanNode, TileFactory, TileMaker}
 
@@ -10,7 +10,7 @@ class HexMap1 extends TileFactory {
   val tiling: HexTiling = new HexTiling(12288)
 
   private def inputMap = HardcodedConfig.getEduke32Path("HEX1.MAP")
-  lazy val palette: PrefabPalette = MapLoader.loadPalette(inputMap)
+  lazy val palette: PrefabPalette = ScalaMapLoader.loadPalette(inputMap)
 
   override def chooseTile(random: RandomX, coord: (Int, Int), tileType: Int, planNode: PlanNode, edges: Seq[Int]): String = random.randomElement(
     HexMap1.all

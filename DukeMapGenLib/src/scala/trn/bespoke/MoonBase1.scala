@@ -1,7 +1,7 @@
 package trn.bespoke
 
 import trn.duke.TextureList
-import trn.{BuildConstants, HardcodedConfig, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sector, WallView, Map => DMap}
+import trn.{BuildConstants, HardcodedConfig, LineSegmentXY, Main, PlayerStart, PointXY, PointXYZ, ScalaMapLoader, Sector, WallView, Map => DMap}
 import trn.prefab.{CompoundGroup, DukeConfig, GameConfig, MapWriter, PasteOptions, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SectorGroupPacker, SimpleSectorGroupPacker, SpriteLogicException}
 
 import scala.collection.JavaConverters._
@@ -22,6 +22,12 @@ object MoonBase1 {
 
   def getMoonMap: String = HardcodedConfig.getDosboxPath("MOON1.MAP")
 
+
+  def main(args: Array[String]): Unit = {
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    run(gameCfg)
+  }
+
   def run(gameCfg: GameConfig): Unit = {
     val packer = SimpleSectorGroupPacker(
       new PointXY(BuildConstants.MIN_X, 0),
@@ -29,8 +35,11 @@ object MoonBase1 {
     )
     val writer = MapWriter(gameCfg, Some(packer))
     try{
-      // run(gameCfg, writer)
-      runTest(gameCfg, writer)
+      // 1. this has more:
+      run(gameCfg, writer)
+
+      // 2. this also worked (dont remember what I was doing):
+      // runTest(gameCfg, writer)
 
       Main.deployTest(writer.outMap)
     }catch{
@@ -57,8 +66,8 @@ object MoonBase1 {
   }
 
   def runTest(gameCfg: GameConfig, writer: MapWriter): Unit = {
-    val spacePalette = MapLoader.loadPalette(getSpaceMap)
-    val moonPalette = MapLoader.loadPalette(getMoonMap)
+    val spacePalette = ScalaMapLoader.loadPalette(getSpaceMap)
+    val moonPalette = ScalaMapLoader.loadPalette(getMoonMap)
 
     // TODO: maybe these belong in some kind of custom, scenario-specific palette
     val doors = Seq(1, 4).map(spacePalette.getSG)
@@ -97,8 +106,8 @@ object MoonBase1 {
     // TODO - compare space.map in proj folder and in workspace and fail fast if they are different (proj version
     // out of date)
 
-    val spacePalette = MapLoader.loadPalette(getSpaceMap)
-    val moonPalette = MapLoader.loadPalette(getMoonMap)
+    val spacePalette = ScalaMapLoader.loadPalette(getSpaceMap)
+    val moonPalette = ScalaMapLoader.loadPalette(getMoonMap)
 
     val center = writer.pasteSectorGroupAt(moonPalette.getSectorGroup(1), PointXYZ.ZERO)
 

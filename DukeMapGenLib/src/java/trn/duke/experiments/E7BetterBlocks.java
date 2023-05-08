@@ -15,8 +15,9 @@ import trn.maze.DfsMazeGen;
 import trn.maze.Heading;
 
 public class E7BetterBlocks {
-	
-	static LegacyGrid.SimpleTileset Block0 = new LegacyGrid.SimpleTileset(E5CreateMaze.MAZE_WALL_TEX, 0, 0);
+
+	public static final int MAZE_WALL_TEX = 772;
+	static LegacyGrid.SimpleTileset Block0 = new LegacyGrid.SimpleTileset(MAZE_WALL_TEX, 0, 0);
 	
 	static LegacyGrid.SimpleTileset Block1 = new LegacyGrid.SimpleTileset(781, 782, 781);
 	
@@ -47,8 +48,7 @@ public class E7BetterBlocks {
 			bi.tileset = BLOCKS[ExperimentUtil.getRandom().nextInt(BLOCKS.length)];
 			bi.floorZ = Integer.valueOf(floorz[ExperimentUtil.getRandom().nextInt(floorz.length)]);
 		}
-		
-		
+
 		//3. block construction is here
 		//node types selected here; think they are the 'connector' blocks
 		Grid grid = new Grid(graph);
@@ -77,33 +77,20 @@ public class E7BetterBlocks {
 		
 		//link the sectors
 		for(Pair<Integer, Integer> p : grid.getNodes()){
-			
 			Pair<Integer, Integer> east = Heading.EAST.move(p);
 			Pair<Integer, Integer> south = Heading.SOUTH.move(p);
-			
 			if(grid.contains(east)){
-				
 				grid.getBlock(p).getConnector(Heading.EAST).draw(map,  grid.getBlock(east));
-				
 			}
-			
 			if(grid.contains(south)){
-				
 				grid.getBlock(p).getConnector(Heading.SOUTH).draw(map, grid.getBlock(south));
-				
 			}
-			
 		}
 		
 		return map;
 	}
-	
-	
+
 	public static int createSector(Map map, Pair<Integer, Integer> gc, Block block){
-		int sectorIndex = block.draw(map);
-		return sectorIndex;
+		return block.draw(map);
 	}
-	
-	
-	
 }

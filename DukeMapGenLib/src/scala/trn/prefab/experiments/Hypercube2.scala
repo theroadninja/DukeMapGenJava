@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, ScalaMapLoader, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.{PaletteList, TextureList}
 import trn.logic.Tile2d
@@ -344,7 +344,7 @@ object Hypercube2 {
   def main(args: Array[String]): Unit = {
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
     // val writer = MapWriter(gameCfg)
-    val palette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path(Filename))
+    val palette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path(Filename))
 
     // rooms are six big grid cells wide and anchor is in the middle
     // hallways are one grid cell wide

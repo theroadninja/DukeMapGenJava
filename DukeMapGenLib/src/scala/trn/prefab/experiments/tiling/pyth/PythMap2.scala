@@ -1,9 +1,8 @@
 package trn.prefab.experiments.tiling.pyth
 
 import java.security.KeyStore.TrustedCertificateEntry
-
 import trn.math.SnapAngle
-import trn.{BuildConstants, HardcodedConfig, MapLoader, PointXY, RandomX}
+import trn.{BuildConstants, HardcodedConfig, MapLoader, PointXY, RandomX, ScalaMapLoader}
 import trn.prefab.{CompassWriter, GameConfig, Heading, MapWriter, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup}
 import trn.prefab.experiments.tiling.{BigTileEdge, PlanNode, PythTileType, PythagoreanTiling, RenderedTile, SmallTileEdge, TileEdge, TileFactory, TileMaker, TileNode, TilePlan, TilePlanner, Tiling}
 
@@ -266,9 +265,11 @@ class PythMap2(val bigWidth: Int, val smallWidth: Int, palette: PrefabPalette) e
 
 }
 
+/**
+  * For the main() see TilingMain.scala.
+  */
 object PythMap2 {
   val InputMap: String = "tiles/pyth2.map"
-
 
   // trying to automatically encode many different combos of connections
   def testMap(tiling: Tiling): TilePlan = {
@@ -331,7 +332,7 @@ object PythMap2 {
   }
 
   def apply(): PythMap2 = {
-    val palette: PrefabPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path(InputMap))
+    val palette: PrefabPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path(InputMap))
 
     val (big, small) = readWidths(palette)
     new PythMap2(big, small, palette)

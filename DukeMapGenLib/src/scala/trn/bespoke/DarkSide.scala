@@ -1,11 +1,16 @@
 package trn.bespoke
 
-import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, PointXY, PointXYZ}
-import trn.prefab.{GameConfig, MapWriter, PasteOptions, SimpleSectorGroupPacker}
+import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, ScalaMapLoader}
+import trn.prefab.{DukeConfig, GameConfig, MapWriter, PasteOptions, SimpleSectorGroupPacker}
 
 object DarkSide {
   // def getSpaceMap: String = HardcodedConfig.getMapDataPath("SPACE.MAP")
   def getDarkSideMap: String = HardcodedConfig.getDosboxPath("DARK1.MAP")
+
+  def main(args: Array[String]): Unit = {
+    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    run(gameCfg)
+  }
 
   def run(gameCfg: GameConfig): Unit = {
     val packer = SimpleSectorGroupPacker(
@@ -31,7 +36,7 @@ object DarkSide {
     }
   }
   def run(gameCfg: GameConfig, writer: MapWriter): Unit = {
-    val palette = MapLoader.loadPalette(getDarkSideMap)
+    val palette = ScalaMapLoader.loadPalette(getDarkSideMap)
 
     val Start = 1
     //val start = palette.getSG(1)

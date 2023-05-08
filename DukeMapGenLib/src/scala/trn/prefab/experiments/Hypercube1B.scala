@@ -6,7 +6,7 @@ import trn.logic.Tile2d.{Blocked, Conn}
 import trn.math.SnapAngle
 import trn.prefab.hypercube.GridCell
 import trn.prefab.{AxisLock, CompassWriter, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup}
-import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, WallView, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, ScalaMapLoader, WallView, Map => DMap}
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
@@ -185,7 +185,7 @@ object Hypercube1B {
   }
 
   def run(gameCfg: GameConfig, writer: MapWriter): Unit = {
-    val hyperPalette = MapLoader.loadPalette(HardcodedConfig.getEduke32Path("hyper1.map"))
+    val hyperPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path("hyper1.map"))
 
     def loadRoom(i: Int): HyperSectorGroup = HyperSectorGroup(hyperPalette.getSG(i))
     val rooms: Seq[HyperSectorGroup] = hyperPalette.numberedSectorGroupIds.asScala.map(loadRoom(_)).toSeq
