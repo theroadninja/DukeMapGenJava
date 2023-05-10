@@ -1,5 +1,7 @@
 package trn.prefab;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import trn.AngleUtil;
 
 import java.util.Arrays;
@@ -36,6 +38,28 @@ public class Heading {
         put(N, S);
         put(S, N);
     }};
+
+    /**
+     * Convert the heading to a unit vector of Pair<dx, dy>.
+     * Note that this matches the Build coordinate system, so N = <0, -1> and E = <1, 0>
+     *
+     * @return a unit vector pointing in the direction of this heading.
+     *
+     * Compare to maze/Heading.java
+     */
+    public static Pair<Integer, Integer> toUnitVector(int heading){
+        if(heading == N){
+            return new ImmutablePair<>(0, -1);
+        }else if(heading == E){
+            return new ImmutablePair<>(1, 0);
+        }else if(heading == S){
+            return new ImmutablePair<>(0, 1);
+        }else if(heading == W){
+            return new ImmutablePair<>(-1, 0);
+        }else{
+            throw new IllegalArgumentException();
+        }
+    }
 
     public static Integer fromDukeAngle(int dukeAng){
         return dukeAngleToHeading.get(dukeAng);

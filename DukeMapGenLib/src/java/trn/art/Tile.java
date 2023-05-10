@@ -11,7 +11,7 @@ public class Tile implements Comparable<Tile> {
     /** index across multiple files; the 'picnum' in Build */
     final int globalTileIndex;
 
-    final int tileIndex; // TODO - i think this is just its index within the file
+    final int tileIndex; // this is just its index within the file
     final int width;
     final int height;
     final List<Integer> paletteIndexes;

@@ -14,18 +14,14 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import trn.duke.experiments.LegacyGrid;
 
+/**
+ * TODO finish converting to duchy.experiments.render.maze.MutableMazeGraph
+ */
 public class DfsMazeGen {
-	
 	private static final Random random = new Random();
-	
-	
-	/*public static class NodeInfo {
-		public Grid.SimpleTileset tileset;
-	}*/
-	
+
 	/** adjacency list */
 	public static class Graph<T> {
-		
 		Map<T, Set<T>> adjacencyList = new HashMap<T, Set<T>>();
 		
 		/**
@@ -36,13 +32,9 @@ public class DfsMazeGen {
 		 *
 		 */
 		Map<T, LegacyGrid.BlockInfo> nodeInfo = new HashMap<T, LegacyGrid.BlockInfo>();
-		
-		
-		public Graph(){
-			
-		}
-		
-		
+
+		public Graph(){}
+
 		public LegacyGrid.BlockInfo getBlockInfo(T t){
 			LegacyGrid.BlockInfo ni = nodeInfo.get(t);
 			if(ni == null){
@@ -50,6 +42,10 @@ public class DfsMazeGen {
 			}
 			nodeInfo.put(t, ni);
 			return ni;
+		}
+
+		public Set<T> getNodes() {
+			return adjacencyList.keySet();
 		}
 		
 		public Map<T, Set<T>> getAdjacencyList(){
@@ -141,7 +137,7 @@ public class DfsMazeGen {
 			return; //dead end
 		}
 		
-		final int BRANCH = 3; //not gauranted to actually branch 3 times
+		final int BRANCH = 3; //not guaranted to actually branch 3 times
 		for(int i = 0; i < BRANCH; ++i){
 			Pair<Integer, Integer> nextNode = list.get( random.nextInt(list.size()) );
 			
@@ -150,13 +146,6 @@ public class DfsMazeGen {
 				maze.addEdge(currentNode, nextNode);
 				createGridMaze(maze, width, height, visitedList, nextNode);
 			}
-			
-			
-				
 		}
-		
-		
-		
 	}
-	
 }
