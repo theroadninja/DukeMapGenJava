@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, ScalaMapLoader, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.duke.{PaletteList, TextureList}
 import trn.prefab.hypercube.GridManager
@@ -60,11 +60,11 @@ object PersonalStorage {
   val Filename = "storage.map"
 
   def main(args: Array[String]): Unit = {
-    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
     val map = run(mapLoader)
     ExpUtil.deployMap(map)
   }
-  def run(mapLoader: MapLoader): DMap = {
+  def run(mapLoader: ScalaMapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true)
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)

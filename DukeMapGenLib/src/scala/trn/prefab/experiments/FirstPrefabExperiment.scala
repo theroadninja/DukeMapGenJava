@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PointXY, PointXYZ, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PointXY, PointXYZ, ScalaMapLoader, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -58,11 +58,11 @@ object FirstPrefabExperiment {
   val Filename: String = "cptest3.map"
 
   def main(args: Array[String]): Unit = {
-    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
     val map = run(mapLoader)
     ExpUtil.deployMap(map)
   }
-  def run(mapLoader: MapLoader): DMap = {
+  def run(mapLoader: ScalaMapLoader): DMap = {
     val fromMap = mapLoader.load(Filename)
 
     val palette: PrefabPalette = PrefabPalette.fromMap(fromMap);

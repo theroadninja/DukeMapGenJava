@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab.{DukeConfig, GameConfig, HardcodedGameConfigProvider, MapBuilder, MapWriter, PrefabPalette}
-import trn.{MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sprite, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, ScalaMapLoader, Sprite, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -13,11 +13,17 @@ class TestBuilder(
 }
 
 @deprecated // see SectorGroupTests
-object ChildSectorTest extends PrefabExperiment{
+object ChildSectorTest {
 
-  override def Filename: String = "childtst.map"
+  def Filename: String = "childtst.map"
 
-  override def run(mapLoader: MapLoader): DMap = {
+  def main(args: Array[String]): Unit = {
+    val mapLoader = ScalaMapLoader(HardcodedConfig.DOSPATH)
+    val map = run(mapLoader)
+    Main.deployTest(map)
+  }
+
+  def run(mapLoader: ScalaMapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
 

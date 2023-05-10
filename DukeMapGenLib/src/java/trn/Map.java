@@ -2,10 +2,7 @@ package trn;
 
 import trn.prefab.MathIsHardException;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 
 public class Map implements WallContainer {
@@ -1177,6 +1174,21 @@ public class Map implements WallContainer {
 
 	public static Map readMap(byte[] bytes) throws IOException {
 	    return readMap(new ByteArrayInputStream(bytes));
+	}
+
+	public static Map readMapFile(String filename) throws IOException {
+		FileInputStream is = null;
+		try {
+			is = new FileInputStream(filename);
+			return readMap(is);
+		} catch (IOException ex){
+			try {
+				is.close();
+			} finally {
+				throw ex;
+			}
+
+		}
 	}
 
 	public static Map readMap(InputStream bs) throws IOException {

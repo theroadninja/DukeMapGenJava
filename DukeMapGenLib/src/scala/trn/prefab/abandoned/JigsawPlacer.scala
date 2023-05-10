@@ -1,8 +1,7 @@
 package trn.prefab.abandoned
 
 import trn.prefab._
-import trn.prefab.experiments.PrefabExperiment
-import trn.{MapLoader, MapView, MathUtil, PointXY, PointXYZ, Sector, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, MapView, MathUtil, PointXY, PointXYZ, ScalaMapLoader, Sector, Map => DMap}
 import trn.MapImplicits._
 
 
@@ -18,6 +17,9 @@ private[prefab] case class PartialFit(
 case class Placement(newSg: SectorGroup, conns: Seq[ConnMatch])
 
 /**
+  * TODO WARNING - this is used in hypercube 4!  It is not abandoned!
+  *
+  *
   * Figures out how to place SectorGroups such that they match existing connections.
   *
   * TODO: should I have a thing called ConnectorHints ?
@@ -138,20 +140,27 @@ object JigsawPlacer {
   ): Seq[Placement] = findPlacements(sg, psg1.redwallConnectors, psg2.redwallConnectors, map, allowRotation, zMatch)
 }
 
-class TestBuilder(val outMap: DMap) extends MapBuilder with HardcodedGameConfigProvider {
+class TestBuilder(val outMap: DMap, override val gameCfg: GameConfig) extends MapBuilder with HardcodedGameConfigProvider {
+
 }
 
-object JigsawPlacerMain extends PrefabExperiment {
-  override def Filename: String = "JIGSAW.MAP"
+object JigsawPlacerMain {
+  def Filename: String = "JIGSAW.MAP"
 
-  override def run(mapLoader: MapLoader): DMap = {
+  def main(args: Array[String]): Unit = {
+    val mapLoader = ScalaMapLoader(HardcodedConfig.DOSPATH)
+    val map = run(mapLoader)
+    Main.deployTest(map)
+  }
+
+  def run(mapLoader: ScalaMapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
     run(palette)
   }
 
   def run(palette: PrefabPalette): DMap = {
-    val builder = new TestBuilder(DMap.createNew())
+    val builder = new TestBuilder(DMap.createNew(), DukeConfig.loadHardCodedVersion())
     val writer = new MapWriter(builder, builder.sgBuilder)
 
     val stays = writer.pasteStays2(palette)

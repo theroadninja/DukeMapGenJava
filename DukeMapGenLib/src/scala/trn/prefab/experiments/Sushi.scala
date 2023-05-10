@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, MapLoader, PointXY, PointXYZ, RandomX, Wall, Map => DMap}
+import trn.{HardcodedConfig, MapLoader, PointXY, PointXYZ, RandomX, ScalaMapLoader, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._ // this is the good one
 
@@ -101,12 +101,12 @@ object Sushi {
   val Doorway1_alternate = 18 // this one is just for hacking
 
   def main(args: Array[String]): Unit = {
-    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
     val map = run(mapLoader)
     ExpUtil.deployMap(map)
   }
 
-  def run(mapLoader: MapLoader): DMap = {
+  def run(mapLoader: ScalaMapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
 

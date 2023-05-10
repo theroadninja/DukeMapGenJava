@@ -25,18 +25,18 @@ public class MapLoader {
         return loadMap(this.path + filename);
     }
 
-    // TODO - better name for this
-    public static Map loadLocalMap(String filename) throws IOException {
-        // TODO - try to load from project first
-        return loadMap(Main.DOSPATH + filename);
-    }
+    // // TODO - better name for this
+    // public static Map loadLocalMap(String filename) throws IOException {
+    //     // TODO - try to load from project first
+    //     return loadMap(Main.DOSPATH + filename);
+    // }
 
-    // TODO use ScalaMapLoader.loadPalette() instead, because I want to move PrefabPalette to scala
-    public static PrefabPalette loadPalette(String filename) throws IOException {
-        return PrefabPalette.fromMap(loadMap(filename), true);
-    }
+    // // TODO use ScalaMapLoader.loadPalette() instead, because I want to move PrefabPalette to scala
 
-    public static Map loadMap(String filename) throws IOException {
+    //     return PrefabPalette.fromMap(loadMap(filename), true);
+    // }
+
+    static Map loadMap(String filename) throws IOException {
         File path = new File(filename);
         if(path.isAbsolute()){
             // C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/
@@ -46,7 +46,7 @@ public class MapLoader {
         }
     }
 
-    public static Map loadMap(File mapfile) throws IOException {
+    static Map loadMap(File mapfile) throws IOException {
         FileInputStream bs = new FileInputStream(mapfile);
         Map map = Map.readMap(bs);
         return map; // TODO - am I seriously not closing the stream??

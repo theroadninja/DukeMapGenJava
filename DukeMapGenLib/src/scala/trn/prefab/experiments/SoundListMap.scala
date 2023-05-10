@@ -3,7 +3,7 @@ package trn.prefab.experiments
 import trn.MapImplicits._
 import trn.duke.{MusicSFXList, TextureList}
 import trn.prefab._
-import trn.{HardcodedConfig, Main, MapLoader, PointXY, Wall, Map => DMap}
+import trn.{HardcodedConfig, Main, MapLoader, PointXY, ScalaMapLoader, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -142,7 +142,7 @@ object SoundListMap {
 
 
   def main(args: Array[String]): Unit = {
-    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
     try {
       val map = run(mapLoader)
       ExpUtil.deployMap(map)
@@ -153,7 +153,7 @@ object SoundListMap {
     }
   }
 
-  def run(mapLoader: MapLoader): DMap = {
+  def run(mapLoader: ScalaMapLoader): DMap = {
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
     val writer = MapWriter(gameCfg)
 

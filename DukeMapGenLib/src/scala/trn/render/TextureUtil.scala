@@ -1,7 +1,7 @@
 package trn.render
 
 import trn.prefab.{ConnectorScanner, DukeConfig, GameConfig, TexturePack}
-import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, Wall, WallView, Map => DMap}
+import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, ScalaMapLoader, Wall, WallView, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -296,7 +296,7 @@ object TextureUtil {
 
 
   private def test2(gameCfg: GameConfig): Unit = {
-    val testMap = MapLoader.loadMap(HardcodedConfig.getEduke32Path("aligntest2.map"))
+    val testMap = ScalaMapLoader.loadMap(HardcodedConfig.getEduke32Path("aligntest2.map"))
     val walls = testMap.getAllWallViews.asScala.filter(w => w.tex == 396)
     val walls2 = ConnectorScanner.sortContinuousWalls(walls)
     val wallIds = walls2.map(_.getWallId)
@@ -317,7 +317,7 @@ object TextureUtil {
     // Texture 858 is 128x128
     // wall lengths in align2 are 1024
 
-    val testMap = MapLoader.loadMap(HardcodedConfig.getEduke32Path("aligntest.map"))
+    val testMap = ScalaMapLoader.loadMap(HardcodedConfig.getEduke32Path("aligntest.map"))
     // val testMap = MapLoader.loadMap(HardcodedConfig.getEduke32Path("aligntest2.map"))
 
 

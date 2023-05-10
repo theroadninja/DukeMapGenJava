@@ -1,6 +1,6 @@
 package trn.bespoke.moonbase2
 
-import trn.{BuildConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, RandomX, Sector, Wall, WallView, Map => DMap}
+import trn.{BuildConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, RandomX, ScalaMapLoader, Sector, Wall, WallView, Map => DMap}
 import trn.prefab.{BoundingBox, DukeConfig, GameConfig, Heading, MapWriter}
 import trn.render.{HorizontalBrush, MiscPrinter, ResultAnchor, Texture, TextureUtil, WallAnchor, WallPrefab}
 import trn.render.MiscPrinter.wall
@@ -486,7 +486,7 @@ object LoungePrinter {
   }
 
   def testReadForceField(): Unit = {
-    val map = new MapLoader(HardcodedConfig.EDUKE32PATH).load("test.map")
+    val map = new ScalaMapLoader(HardcodedConfig.EDUKE32PATH).load("test.map")
     (0 until map.getWallCount).map(map.getWall).filter(_.isRedWall).foreach { w =>
       println(w)
     }
@@ -494,7 +494,7 @@ object LoungePrinter {
   }
 
   def testGetSectorZ(): Unit = {
-    val map = new MapLoader(HardcodedConfig.EDUKE32PATH).load("test.map")
+    val map = new ScalaMapLoader(HardcodedConfig.EDUKE32PATH).load("test.map")
 
     (0 until map.getSectorCount).map { sectorId =>
 

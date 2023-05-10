@@ -1,5 +1,5 @@
 package trn.prefab.experiments
-import trn.{BuildConstants, FuncUtils, HardcodedConfig, MapLoader, MapUtil, PointXY, Map => DMap}
+import trn.{BuildConstants, FuncUtils, HardcodedConfig, MapLoader, MapUtil, PointXY, ScalaMapLoader, Map => DMap}
 import trn.prefab.{BoundingBox, CompassWriter, DukeConfig, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
 import trn.duke.TextureList
@@ -222,7 +222,7 @@ class MaxCopyTracker2 {
 
 object SquareTileMain {
   def main(args: Array[String]): Unit = {
-    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
     val map = new SquareTileMain(TestFile1).run(mapLoader)
     ExpUtil.deployMap(map)
   }
@@ -620,7 +620,7 @@ class SquareTileMain(
 
   // TODO - things like which tile number is end sprite, or which SE lotags cant be rotated, should be part of
   // some kind of "game options" to make it easier to support other games in the future.
-  def run(mapLoader: MapLoader): trn.Map = {
+  def run(mapLoader: ScalaMapLoader): trn.Map = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true)
     val maxCopyHint = MaxCopyHint.fromPalette(palette)

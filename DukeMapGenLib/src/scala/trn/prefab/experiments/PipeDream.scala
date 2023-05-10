@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, MapLoader, PointXY, PointXYZ, Wall, Map => DMap}
+import trn.{HardcodedConfig, MapLoader, PointXY, PointXYZ, ScalaMapLoader, Wall, Map => DMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -67,12 +67,12 @@ object PipeDream {
   // (i.e. check ratio)
 
   def main(args: Array[String]): Unit = {
-    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
     val map = run(mapLoader)
     ExpUtil.deployMap(map)
   }
 
-  def run(mapLoader: MapLoader): DMap = {
+  def run(mapLoader: ScalaMapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap);
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)

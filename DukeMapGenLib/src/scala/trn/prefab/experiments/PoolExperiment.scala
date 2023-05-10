@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, MapLoader, PointXYZ, Map => DMap}
+import trn.{HardcodedConfig, MapLoader, PointXYZ, ScalaMapLoader, Map => DMap}
 
 import scala.collection.JavaConverters._
 
@@ -28,7 +28,7 @@ object PoolExperiment {
   }
 
   def main(args: Array[String]): Unit = {
-    val mapLoader = new MapLoader(HardcodedConfig.DOSPATH)
+    val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
     try {
       val map = run(mapLoader)
       ExpUtil.deployMap(map)
@@ -39,7 +39,7 @@ object PoolExperiment {
     }
   }
 
-  def run(mapLoader: MapLoader): DMap = {
+  def run(mapLoader: ScalaMapLoader): DMap = {
     val sourceMap = mapLoader.load(Filename)
 
     // TODO - a map with a SG that is a box with 4 sides, all with lotag 1, causes this to run out of memory:

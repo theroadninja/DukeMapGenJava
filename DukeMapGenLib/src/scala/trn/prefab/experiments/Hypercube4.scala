@@ -120,8 +120,8 @@ class Hyper4MapBuilder(val outMap: DMap, palette: PrefabPalette, gridManager: tr
 /**
   * This is really another attempt at hyper 3.
   */
-object Hypercube4 extends PrefabExperiment {
-  override val Filename = "hyper4.map"
+object Hypercube4 {
+  val Filename = "hyper4.map"
 
   def main(args: Array[String]): Unit = {
 
@@ -132,9 +132,6 @@ object Hypercube4 extends PrefabExperiment {
     val map = run(palette, gameCfg)
     val filename = "output.map"
     Main.deployTest(map, filename, HardcodedConfig.getEduke32Path(filename))
-  }
-  override def run(mapLoader: MapLoader): DMap = {
-    ??? // call main() in this file directly
   }
 
   def run(palette: PrefabPalette, gameCfg: GameConfig): DMap = {
