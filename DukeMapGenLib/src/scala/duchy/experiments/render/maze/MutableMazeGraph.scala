@@ -11,6 +11,8 @@ import scala.collection.JavaConverters._
   *
   * This is a strange way to represent a grid, though at least it uses sets to prevent more than one edge between nodes.
   *
+  * TODO the java stuff I'm copying actually used `B` but I probably wont here ...
+  *
   * A = node id, type, e.g. a pair of (X, Y)
   * B = the node type itself, e.g. BlockInfo
   */
@@ -22,6 +24,7 @@ class MutableMazeGraph[A, B] {
 
   def getAdjacencyList(): Map[A, scala.collection.mutable.Set[A]] = adjacencyList.toMap
 
+  // really "getNeighboors()"
   def getListFor(nodeId: A): scala.collection.mutable.Set[A] = {
     adjacencyList.getOrElseUpdate(nodeId, scala.collection.mutable.Set[A]())
   }
@@ -72,7 +75,6 @@ object MutableMazeGraph {
     currentNode: NodeId,
   ): Unit = if(!visitedList.contains(currentNode)){
     visitedList.add(currentNode)
-    println(s"currentNode = ${currentNode}")
 
     val possibleMoves = Heading.all.asScala.map(h => move(currentNode, Heading.toUnitVector(h))).filter { node =>
       inBounds(0, 0, width, height, node) && !visitedList.contains(node)
@@ -89,4 +91,5 @@ object MutableMazeGraph {
 
     }
   }
+
 }
