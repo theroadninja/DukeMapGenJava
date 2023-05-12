@@ -43,8 +43,6 @@ public final class HardcodedConfig {
         return copyDest;
     }
 
-    // TODO - there is also a path in MapLoader
-
     // TODO - also in Testutils.scala (and probably the java one) - util class for loading unit test files
 
 }

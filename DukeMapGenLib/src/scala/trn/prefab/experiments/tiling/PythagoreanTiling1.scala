@@ -1,13 +1,8 @@
 package trn.prefab.experiments.tiling
 
 import trn.math.SnapAngle
-import trn.prefab.PrefabUtils.MarkerHiTags
 import trn.prefab._
-import trn.prefab.experiments.ExpUtil
-import trn.render.WallPrefab
-import trn.{BuildConstants, HardcodedConfig, MapLoader, PointXY, RandomX, Sprite, Map => DMap}
-
-import scala.collection.mutable.ArrayBuffer
+import trn.{PointXY, RandomX, Map => DMap}
 
 object PythTileType {
   val BigTile = 0

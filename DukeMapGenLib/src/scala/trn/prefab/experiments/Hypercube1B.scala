@@ -2,13 +2,12 @@ package trn.prefab.experiments
 
 import trn.duke.PaletteList
 import trn.logic.Tile2d
-import trn.logic.Tile2d.{Blocked, Conn}
+import trn.logic.Tile2d.{Conn, Blocked}
 import trn.math.SnapAngle
 import trn.prefab.hypercube.GridCell
-import trn.prefab.{AxisLock, CompassWriter, DukeConfig, GameConfig, MapWriter, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup}
-import trn.{HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, RandomX, ScalaMapLoader, WallView, Map => DMap}
+import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, RedwallConnector, AxisLock}
+import trn.{PointXYZ, ScalaMapLoader, Main, WallView, HardcodedConfig, Map => DMap}
 
-import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 class GridManagerV1(

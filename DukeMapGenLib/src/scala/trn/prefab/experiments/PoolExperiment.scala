@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, MapLoader, PointXYZ, ScalaMapLoader, Map => DMap}
+import trn.{HardcodedConfig, ScalaMapLoader, PointXYZ, Map => DMap}
 
 import scala.collection.JavaConverters._
 

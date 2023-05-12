@@ -44,9 +44,7 @@ trait HardcodedGameConfigProvider {
   * TODO - put a comment here saying where I can find a basic, vanilla builder
   * TODO - this should go away in favor of SgMapBuilder + MapWriter
   */
-trait MapBuilder
-  extends ISectorGroup
-  with TagGenerator
+trait MapBuilder extends TagGenerator
 {
   val outMap: DMap
 
@@ -58,9 +56,9 @@ trait MapBuilder
 
   override def nextUniqueHiTag(): Int = sgBuilder.nextUniqueHiTag()
 
-  override def getMap(): DMap = outMap
+  def getMap(): DMap = outMap
 
-  override def findSprites(picnum: Int, lotag: Int, sectorId: Int): util.List[Sprite] = {
+  def findSprites(picnum: Int, lotag: Int, sectorId: Int): util.List[Sprite] = {
     getMap().findSprites(picnum, lotag, sectorId)
   }
 

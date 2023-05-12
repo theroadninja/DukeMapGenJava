@@ -1,7 +1,7 @@
 package trn.prefab.experiments.tiling
 
-import trn.prefab.{GameConfig, MapWriter, PastedSectorGroup, PrefabPalette, SectorGroup}
-import trn.{HardcodedConfig, MapLoader, RandomX, ScalaMapLoader}
+import trn.prefab.{MapWriter, GameConfig, SectorGroup, PrefabPalette, PastedSectorGroup}
+import trn.{HardcodedConfig, RandomX, ScalaMapLoader}
 
 /**
   * Trying to put all of the info specific to each prefab/source map into a file like this.

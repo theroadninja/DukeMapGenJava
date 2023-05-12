@@ -1,11 +1,8 @@
 package trn.bespoke.moonbase2
 
-import trn.duke.Lotags
-import trn.{BuildConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, render, Map => DMap}
-import trn.prefab.{CompassWriter, DukeConfig, GameConfig, Heading, MapWriter, PastedSectorGroup, RedwallConnector}
-import trn.render.{HorizontalBrush, MiscPrinter, ResultAnchor, StairEntrance, StairPrinter, StairTex, Texture, WallAnchor, WallPrefab}
-
-import collection.JavaConverters._
+import trn.{BuildConstants, PointXY, Wall, FVectorXY, Main, render, Sprite, HardcodedConfig, LineSegmentXY, Map => DMap}
+import trn.prefab.{CompassWriter, MapWriter, DukeConfig, GameConfig, RedwallConnector, PastedSectorGroup}
+import trn.render.{MiscPrinter, StairTex, WallPrefab, WallAnchor, StairPrinter, HorizontalBrush, ResultAnchor, Texture}
 
 /**
   * All of the textures needed to paint the elevator.  Maybe also shading rules?

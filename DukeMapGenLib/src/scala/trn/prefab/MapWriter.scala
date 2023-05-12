@@ -409,7 +409,7 @@ class MapWriter(
   //  ISectorGroup Methods
   //  TODO - sgBuilder should implement these, not MapWriter
   //
-  override def getMap: DMap = builder.outMap
+  def getMap: DMap = builder.outMap
 
   override def findSprites(picnum: Int, lotag: Int, sectorId: Int): util.List[Sprite] = builder.findSprites(picnum, lotag, sectorId)
 

@@ -1,10 +1,9 @@
 package trn.prefab.experiments.tiling.pyth
 
-import java.security.KeyStore.TrustedCertificateEntry
 import trn.math.SnapAngle
-import trn.{BuildConstants, HardcodedConfig, MapLoader, PointXY, RandomX, ScalaMapLoader}
-import trn.prefab.{CompassWriter, GameConfig, Heading, MapWriter, PastedSectorGroup, PrefabPalette, RedwallConnector, SectorGroup}
-import trn.prefab.experiments.tiling.{BigTileEdge, PlanNode, PythTileType, PythagoreanTiling, RenderedTile, SmallTileEdge, TileEdge, TileFactory, TileMaker, TileNode, TilePlan, TilePlanner, Tiling}
+import trn.{BuildConstants, PointXY, RandomX, HardcodedConfig, ScalaMapLoader}
+import trn.prefab.{MapWriter, GameConfig, SectorGroup, RedwallConnector, PrefabPalette, PastedSectorGroup}
+import trn.prefab.experiments.tiling.{RenderedTile, PythTileType, BigTileEdge, TileEdge, PlanNode, TileFactory, TilePlan, TileMaker, PythagoreanTiling, SmallTileEdge, Tiling, TileNode, TilePlanner}
 
 
 trait SpecialHallway {

@@ -1,12 +1,10 @@
 package trn.prefab.experiments
 
-import trn.{BuildConstants, HardcodedConfig, MapLoader, PointXY, PointXYZ, ScalaMapLoader, Map => DMap}
-import trn.prefab.{DukeConfig, GameConfig, Heading, MapWriter, PastedSectorGroup, PrefabPalette, ReadOnlySectorGroup, RedwallConnector, SectorGroup, TexturePack}
-import trn.render.{HorizontalBrush, Landing, MiscPrinter, SimpleStepBrush, StairParams, Texture, TextureUtil, TowerStairPrinter, WallAnchor, WallPrefab, WallSectorAnchor}
+import trn.{HardcodedConfig, ScalaMapLoader, PointXYZ, BuildConstants}
+import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, Heading, PrefabPalette, TexturePack, PastedSectorGroup}
+import trn.render.{Landing, WallPrefab, SimpleStepBrush, TowerStairPrinter, HorizontalBrush}
 import trn.PointImplicits._
-import trn.math.{RotatesCW, SnapAngle}
-
-import scala.collection.JavaConverters._
+import trn.math.SnapAngle
 
 
 

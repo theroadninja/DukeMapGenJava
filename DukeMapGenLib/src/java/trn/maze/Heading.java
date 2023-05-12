@@ -4,6 +4,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
+ * TODO this is deprecated
+ *
  * using same coordinate system as Build map format.
  * y+ is south, x+ is east
  * @author Dave

@@ -5,14 +5,15 @@ import trn.Sprite;
 
 import java.util.List;
 
-// TODO !!! This should be implemented ONLY by SectorGroup, and SgMapBuilder  (NOT PastedSectorGroups)
 public interface ISectorGroup {
     /**
      * @returns the underlying map that stores the data in this sector group.
+     *
+     * this one is also used by the elevator connectors
      */
     Map getMap();
 
+    // this is used by connectors, which I guess don't want to care about SectorGroup vs PastedSectorGroup
     List<Sprite> findSprites(int picnum, int lotag, int sectorId);
 
-    // List<Sprite> findSprites(ISpriteFilter... filters);
 }

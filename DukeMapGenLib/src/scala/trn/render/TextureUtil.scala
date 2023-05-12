@@ -1,7 +1,7 @@
 package trn.render
 
-import trn.prefab.{ConnectorScanner, DukeConfig, GameConfig, TexturePack}
-import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, ScalaMapLoader, Wall, WallView, Map => DMap}
+import trn.prefab.{GameConfig, TexturePack, ConnectorScanner, DukeConfig}
+import trn.{BuildConstants, Wall, ScalaMapLoader, Main, WallView, HardcodedConfig, Map => DMap}
 
 import scala.collection.JavaConverters._
 

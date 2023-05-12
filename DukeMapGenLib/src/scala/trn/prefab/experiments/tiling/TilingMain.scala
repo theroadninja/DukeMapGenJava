@@ -92,7 +92,7 @@ object TilingMain {
   def run(gameCfg: GameConfig): Unit = {
     val random = new RandomX()
 
-    val which = "hex"
+    val which = "pyth2"
 
     if(which == "pyth") {
       //

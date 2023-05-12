@@ -1,13 +1,12 @@
 package trn.bespoke.moonbase2
 
-import trn.{BuildConstants, FVectorXY, HardcodedConfig, LineSegmentXY, LineXY, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, RandomX, ScalaMapLoader, Sector, Wall, WallView, Map => DMap}
-import trn.prefab.{BoundingBox, DukeConfig, GameConfig, Heading, MapWriter}
-import trn.render.{HorizontalBrush, MiscPrinter, ResultAnchor, Texture, TextureUtil, WallAnchor, WallPrefab}
+import trn.{BuildConstants, PointXY, MapUtil, RandomX, Wall, HardcodedConfig, ScalaMapLoader, FVectorXY, Main, PlayerStart, Map => DMap}
+import trn.prefab.{BoundingBox, MapWriter, DukeConfig, GameConfig, Heading}
+import trn.render.{MiscPrinter, WallPrefab, WallAnchor, HorizontalBrush, ResultAnchor}
 import trn.render.MiscPrinter.wall
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import trn.PointImplicits._
 
 
 /**

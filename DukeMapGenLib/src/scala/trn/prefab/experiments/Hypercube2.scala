@@ -1,8 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, ScalaMapLoader, Sprite, Map => DMap}
-import trn.MapImplicits._
+import trn.{HardcodedConfig, ScalaMapLoader, Main, BuildConstants, PointXYZ, Map => DMap}
 import trn.duke.{PaletteList, TextureList}
 import trn.logic.Tile2d
 import trn.prefab.experiments.Hyper2MapBuilder.Cell

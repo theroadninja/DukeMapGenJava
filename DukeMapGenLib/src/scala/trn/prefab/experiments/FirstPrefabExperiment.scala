@@ -1,9 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PointXY, PointXYZ, ScalaMapLoader, Map => DMap}
-
-import scala.collection.JavaConverters._
+import trn.{HardcodedConfig, ScalaMapLoader, PointXYZ, Map => DMap}
 
 @Deprecated
 class PrefabBuilder(val writer: MapWriter, palette: PrefabPalette) {

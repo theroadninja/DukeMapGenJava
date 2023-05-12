@@ -116,7 +116,7 @@ public class Main {
 		return outputfile;
 	}
 
-	public static void writeResult(Map map, String resultsFile) throws IOException{
+	static void writeResult(Map map, String resultsFile) throws IOException{
 		FileOutputStream output = new FileOutputStream(new File(resultsFile));
 		map.toBytes(output);
 		output.close();

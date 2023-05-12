@@ -2,7 +2,7 @@ package trn.render
 
 import trn.prefab.{GameConfig, PrefabPalette}
 import trn.render.StairPrinter.writeCurvedStairs
-import trn.{BuildConstants, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, Sector, WallView, Map => DMap}
+import trn.{BuildConstants, LineSegmentXY, Main, PlayerStart, PointXY, ScalaMapLoader, Sector, WallView, Map => DMap}
 import trn.BuildConstants._
 
 import scala.collection.JavaConverters._
@@ -14,7 +14,7 @@ object RenderQuickTest {
   val ZStepHeight = BuildConstants.ZStepHeight
 
   // reads a test map and prints stuff, for reverse engineering xrepeat and xpan
-  def xrepeatTest(loader: MapLoader, gameCfg: GameConfig): Unit = {
+  def xrepeatTest(loader: ScalaMapLoader, gameCfg: GameConfig): Unit = {
     val sourceMap = loader.load("xrepeat.map")
     val palette: PrefabPalette = PrefabPalette.fromMap(sourceMap, true);
 
@@ -28,13 +28,13 @@ object RenderQuickTest {
     }
   }
 
-  def otherTest(loader: MapLoader, gameCfg: GameConfig): Unit = {
+  def otherTest(loader: ScalaMapLoader, gameCfg: GameConfig): Unit = {
 
     val sourceMap = loader.load("output.map")
     sourceMap.getSectors.asScala.foreach(s => println(s"floor=${s.getFloorZ} ceil=${s.getCeilingZ}"))
   }
 
-  def quickTest(loader: MapLoader, gameCfg: GameConfig): Unit = {
+  def quickTest(loader: ScalaMapLoader, gameCfg: GameConfig): Unit = {
 
     // otherTest(loader, gameCfg)
 

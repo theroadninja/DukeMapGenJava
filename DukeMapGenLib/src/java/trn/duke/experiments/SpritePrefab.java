@@ -3,7 +3,7 @@ package trn.duke.experiments;
 import trn.Sprite;
 
 /**
- * TODO get rid of this
+ * TODO get rid of this, or turn it into a "SpriteBrush" that has a `makeSprite(): Sprite` method...
  */
 public class SpritePrefab {
 

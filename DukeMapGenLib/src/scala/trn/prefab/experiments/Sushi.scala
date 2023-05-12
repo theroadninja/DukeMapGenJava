@@ -1,9 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, MapLoader, PointXY, PointXYZ, RandomX, ScalaMapLoader, Wall, Map => DMap}
-
-import scala.collection.JavaConverters._ // this is the good one
+import trn.{HardcodedConfig, RandomX, ScalaMapLoader, Map => DMap} // this is the good one
 
 class SushiBuilder(val writer: MapWriter, palette: PrefabPalette, random: RandomX = new RandomX()) {
 

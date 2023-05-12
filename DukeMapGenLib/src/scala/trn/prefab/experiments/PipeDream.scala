@@ -1,11 +1,9 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, MapLoader, PointXY, PointXYZ, ScalaMapLoader, Wall, Map => DMap}
+import trn.{HardcodedConfig, ScalaMapLoader, PointXYZ, Map => DMap}
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 

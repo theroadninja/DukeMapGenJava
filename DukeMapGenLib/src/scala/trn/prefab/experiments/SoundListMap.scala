@@ -1,9 +1,8 @@
 package trn.prefab.experiments
 
-import trn.MapImplicits._
 import trn.duke.{MusicSFXList, TextureList}
 import trn.prefab._
-import trn.{HardcodedConfig, Main, MapLoader, PointXY, ScalaMapLoader, Wall, Map => DMap}
+import trn.{Wall, HardcodedConfig, PointXY, ScalaMapLoader, Map => DMap}
 
 import scala.collection.JavaConverters._
 

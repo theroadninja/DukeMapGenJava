@@ -1,10 +1,10 @@
 package trn.bespoke.moonbase2
 
-import trn.bespoke.moonbase2.MoonBase2.{getTileSpec, rotateToMatch}
-import trn.logic.{Point3d, Tile2d}
+import trn.bespoke.moonbase2.MoonBase2.{rotateToMatch, getTileSpec}
+import trn.logic.{Tile2d, Point3d}
 import trn.prefab.experiments.ExpUtil
-import trn.{AngleUtil, HardcodedConfig, MapLoader, RandomX, ScalaMapLoader}
-import trn.prefab.{CompassWriter, DukeConfig, GameConfig, MapWriter, PrefabPalette, PrefabUtils, SectorGroup}
+import trn.{HardcodedConfig, RandomX, ScalaMapLoader}
+import trn.prefab.{MapWriter, PrefabUtils, DukeConfig, GameConfig, SectorGroup, PrefabPalette}
 
 import scala.collection.mutable
 

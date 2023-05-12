@@ -1,7 +1,7 @@
 package trn.render
 
 import trn.prefab.GameConfig
-import trn.{AngleUtil, BuildConstants, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sprite, Wall, Map => DMap}
+import trn.{PointXYZ, PointXY, Wall, Sprite, AngleUtil, Map => DMap}
 
 import scala.collection.JavaConverters._
 

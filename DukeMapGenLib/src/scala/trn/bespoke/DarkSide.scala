@@ -1,6 +1,6 @@
 package trn.bespoke
 
-import trn.{BuildConstants, HardcodedConfig, Main, MapLoader, PointXY, PointXYZ, ScalaMapLoader}
+import trn.{BuildConstants, HardcodedConfig, Main, PointXY, PointXYZ, ScalaMapLoader}
 import trn.prefab.{DukeConfig, GameConfig, MapWriter, PasteOptions, SimpleSectorGroupPacker}
 
 object DarkSide {

@@ -1,14 +1,12 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, ScalaMapLoader, Sprite, Map => DMap}
+import trn.{HardcodedConfig, ScalaMapLoader, PointXYZ, Main, Map => DMap}
 import trn.MapImplicits._
-import trn.duke.{PaletteList, TextureList}
-import trn.prefab.hypercube.GridManager
+import trn.duke.PaletteList
 import trn.prefab.hypercube.GridManager.Cell
 
 import scala.collection.JavaConverters._
-import trn.MapImplicits._
 import trn.prefab.abandoned.JigsawPlacer
 
 

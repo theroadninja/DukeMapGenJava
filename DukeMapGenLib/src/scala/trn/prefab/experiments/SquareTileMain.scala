@@ -1,12 +1,11 @@
 package trn.prefab.experiments
-import trn.{BuildConstants, FuncUtils, HardcodedConfig, MapLoader, MapUtil, PointXY, ScalaMapLoader, Map => DMap}
-import trn.prefab.{BoundingBox, CompassWriter, DukeConfig, EntropyProvider, Heading, MapWriter, Matrix2D, MaxCopyHint, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.{BuildConstants, PointXY, FuncUtils, HardcodedConfig, ScalaMapLoader, Map => DMap}
+import trn.prefab.{CompassWriter, BoundingBox, MapWriter, PrefabUtils, MaxCopyHint, DukeConfig, SectorGroup, RedwallConnector, Heading, PrefabPalette, Matrix2D, EntropyProvider, PastedSectorGroup, SpriteLogicException}
 import trn.FuncImplicits._
 import trn.duke.TextureList
-import trn.prefab.grid2d.{GridPiece, SectorGroupPiece, Side, SimpleGridPiece}
+import trn.prefab.grid2d.{Side, GridPiece, SimpleGridPiece, SectorGroupPiece}
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable
 
 object GridBuilderInput {
   // seems the most playable

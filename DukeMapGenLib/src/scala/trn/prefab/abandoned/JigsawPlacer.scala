@@ -1,7 +1,7 @@
 package trn.prefab.abandoned
 
 import trn.prefab._
-import trn.{HardcodedConfig, Main, MapLoader, MapView, MathUtil, PointXY, PointXYZ, ScalaMapLoader, Sector, Map => DMap}
+import trn.{PointXYZ, PointXY, Sector, ScalaMapLoader, Main, MapView, MathUtil, HardcodedConfig, Map => DMap}
 import trn.MapImplicits._
 
 

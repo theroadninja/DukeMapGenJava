@@ -1,8 +1,7 @@
 package trn.render
 
 import trn.math.Interpolate
-import trn.{BuildConstants, FVectorXY, LineSegmentXY, Main, MapLoader, PlayerStart, PointXY, PointXYZ, Sector, Wall, WallView, render, Map => DMap}
-import trn.prefab.{GameConfig, PrefabPalette}
+import trn.{BuildConstants, PointXY, Sector, Wall, WallView, FVectorXY, render, Map => DMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable

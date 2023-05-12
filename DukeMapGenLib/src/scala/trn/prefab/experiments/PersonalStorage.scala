@@ -1,16 +1,7 @@
 package trn.prefab.experiments
 
+import trn.{HardcodedConfig, ScalaMapLoader, Map => DMap}
 import trn.prefab._
-import trn.{HardcodedConfig, Main, MapLoader, MapUtil, PlayerStart, PointXY, PointXYZ, ScalaMapLoader, Sprite, Map => DMap}
-import trn.MapImplicits._
-import trn.duke.{PaletteList, TextureList}
-import trn.prefab.hypercube.GridManager
-import trn.prefab.hypercube.GridManager.Cell
-
-import scala.collection.JavaConverters._
-import trn.MapImplicits._
-import trn.prefab.PrefabPalette
-import trn.prefab.experiments.Hypercube4.{Filename, run}
 
 class BasicBuilder(val writer: MapWriter, palette: PrefabPalette) {
 
