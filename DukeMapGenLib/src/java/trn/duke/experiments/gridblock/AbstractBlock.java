@@ -3,6 +3,7 @@ package trn.duke.experiments.gridblock;
 import org.apache.commons.lang3.tuple.Pair;
 
 import trn.PointXY;
+import trn.maze.Heading;
 
 public abstract class AbstractBlock implements Block {
 
@@ -42,5 +43,11 @@ public abstract class AbstractBlock implements Block {
 				(getNorthEdge() + getSouthEdge()) / 2);
 	}
 
+	public final Connector getEastConnector(){
+		return getConnector(Heading.EAST);
+	}
+	public final Connector getSouthConnector(){
+		return getConnector(Heading.SOUTH);
+	}
 
 }

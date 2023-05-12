@@ -5,6 +5,7 @@ import java.util.HashMap;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import scala.Tuple2;
 import trn.duke.experiments.LegacyGrid.BlockInfo;
 import trn.maze.DfsMazeGen;
 import trn.maze.Heading;
@@ -13,9 +14,7 @@ public class Grid {
 
 	private final java.util.Map<Pair<Integer, Integer>, Block> gridData = new HashMap<Pair<Integer, Integer>, Block>();
 	
-	public Grid(){
-		
-	}
+	public Grid(){ }
 	
 	public Grid(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
 		copyFromGraphAndExpand(maze);
@@ -23,8 +22,6 @@ public class Grid {
 	
 	public void add(Block block){
 		gridData.put(block.getGridCoordinate(), block);
-		
-		//TODO:  check neighboors for connectors
 	}
 	
 	public Block getBlock(Pair<Integer, Integer> node){
@@ -34,9 +31,7 @@ public class Grid {
 	public Block get(Pair<Integer, Integer> node){
 		return gridData.get(node);
 	}
-	
-	
-	
+
 	public java.util.Set<Pair<Integer, Integer>> getNodes(){
 		return gridData.keySet();
 	}
@@ -44,7 +39,7 @@ public class Grid {
 	public boolean contains(Pair<Integer, Integer> node){
 		return gridData.containsKey(node);
 	}
-	
+
 	/**
 	 * turns the maze, specified by an adjacency list, into a grid implementation, where each edge
 	 * between nodes gets its own square in the grid.
@@ -78,34 +73,14 @@ public class Grid {
 				sb.setFloorTex(ni.getTileset().floorTexture);
 				sb.setCeilTex(ni.getTileset().ceilingTexture);
 				sb.setFloorZ(ni.floorZ);
-
-				
 				add(sb);
-				
-
-				//put(toGridNode(node), maze.getBlockInfo(node));
 			}
-			
-			
 
-			
-			
-			
 			//TODO:  we are adding these edges multiple times ...
-			
 			for(Pair<Integer, Integer> n2 : maze.getAdjacencyList().get(node)){
 				
 				Pair<Integer, Integer> edgeBlockCoordinate = toGridEdge(node, n2); 
-				//SimpleBlock edgeBlock = new SimpleBlock(edgeBlockCoordinate);
-				
-				
 
-				
-				
-				//see if we should make it a vertical stair
-				//if(contains(//Heading.NORTH.))
-				
-				
 				if(isVerticalPassage(edgeBlockCoordinate)){
 					
 					Block north = get(Heading.NORTH.move(edgeBlockCoordinate));
@@ -114,30 +89,13 @@ public class Grid {
 					int northZ = ((OrdinalConnector)north.getConnector(Heading.SOUTH)).getFloorZ();
 					
 					if(validForVerticalStairs(edgeBlockCoordinate)){
-
-						
-						
 						add(new VertStairsBlock(edgeBlockCoordinate, southZ, northZ));
-						
 					}else{
-						
 						//at least make sure the floor matches
-						
-						
-						//SimpleBlock sb = new SimpleBlock(edgeBlockCoordinate);
 						VertDoorBlock sb = new VertDoorBlock(edgeBlockCoordinate);
-						
-						
 						sb.setFloorZ(southZ);
 						add(sb);
-						
-						
-						
-						
-						
-						
 					}
-					
 				}else if(isHorizontalPassage(edgeBlockCoordinate)){
 					
 					Block east = get(Heading.EAST.move(edgeBlockCoordinate));
@@ -155,34 +113,15 @@ public class Grid {
 						SimpleBlock sb = new SimpleBlock(edgeBlockCoordinate);
 						sb.setFloorZ(westZ);
 						add(sb);
-						
 					}
-					
-					
-					
-					
 				}else{
-					
 					//TODO:  might still need to adjust the z coordinate, if we can
-					
-					
 					add(new SimpleBlock(edgeBlockCoordinate));
 				}
-				
-				
-				//add(toGridEdge(node, n2));
-				//add(edgeBlock);
 			}
-			
 		}
-		
-		
-		
-		
 	}
-	
-	
-	
+
 	public boolean isHorizontalPassage(Pair<Integer, Integer> gc){
 		
 		Block north = get(Heading.NORTH.move(gc));
@@ -224,9 +163,6 @@ public class Grid {
 		}else{
 			return false;
 		}
-		
-		
-		
 	}
 	
 	static Pair<Integer, Integer> toGridNode(Pair<Integer, Integer> node){
@@ -240,9 +176,5 @@ public class Grid {
 				(node.getLeft() + node2.getLeft()),
 				(node.getRight() + node2.getRight()));
 	}
-	
-	
-	
-	
-	
+
 }

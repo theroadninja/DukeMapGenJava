@@ -23,7 +23,9 @@ public interface Block {
 	public Pair<Integer, Integer> getGridCoordinate();
 	
 	public Connector getConnector(Heading heading);
-	
+	public Connector getEastConnector();
+	public Connector getSouthConnector();
+
 	//public int getWallIndex(Heading heading);
 	
 	/**
