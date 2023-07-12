@@ -1,6 +1,7 @@
 package trn;
 
 /**
+ * TODO stuff like this should probably be in some kind of `.b7.` java package (where 7 is the version of build...)
  * Low level representation of ceiling/floor flags.
  *
  * https://wiki.eduke32.com/wiki/Floorstat

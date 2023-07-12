@@ -6,6 +6,9 @@ import trn.duke.MapErrorException;
 
 import java.util.*;
 
+/**
+ * Note:  the MAIN code for scanning a map is currently PrefabPallete.fromMap()
+ */
 public class ConnectorFactory {
 
 	public static List<Connector> findConnectors(Map map) throws MapErrorException {

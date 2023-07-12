@@ -2,6 +2,8 @@ package trn.prefab;
 
 import java.util.*;
 
+import duchy.sg.SectorGroupFragment;
+import duchy.sg.SectorGroupScanner$;
 import trn.*;
 import trn.Map;
 import trn.duke.MapErrorException;
@@ -23,6 +25,8 @@ public class PrefabPalette {
 	 * Sector groups that are each a "child" group of a sector group, but which are not connected by a redwall.
 	 * Because they can be pasted anywhere (and probably not next to their parent) they need to remain separate
 	 * objects.
+	 *
+	 * The KEY of the map is the parent id
 	 */
 	private final java.util.Map<Integer, List<SectorGroup>> teleportChildGroups;
 
@@ -72,94 +76,49 @@ public class PrefabPalette {
 
 		final List<SectorGroup> anonymousSectorGroups = new ArrayList<>();
 
-		Set<Short> processedSectorIds = new TreeSet<Short>();
-		
-		short sector = 0;
-		while(sector < map.getSectorCount()){
-			//short sector = nextSectorId(-1, processedSectorIds, map.getSectorCount());
-			
-			if(processedSectorIds.contains(sector)){
-				sector++;
-				continue;
-			}
+		List<SectorGroupFragment> fragments = SectorGroupScanner$.MODULE$.scanFragmentsAsJava(map, cfg);
 
-			// copy the next entire sector group
-			Map clipboard = Map.createNew();
-			CopyState cpstate = MapUtil.copySectorGroup(cfg, map, clipboard, sector, new PointXYZ(0, 0, 0), false);
-			SectorGroupProperties props = SectorGroupProperties.scanMap(clipboard);
-			SectorGroupHints hints = SectorGroupHints.apply(clipboard); // NOTE: these need to get re-applied after children
-			for(int i = 0; i < clipboard.getSpriteCount(); ++i){
-				Sprite s = clipboard.getSprite(i);
-				PrefabUtils.checkValid(s);
-			}
-			processedSectorIds.addAll(cpstate.sourceSectorIds());
-			// process z adjust
-			if(props.zAdjust().isDefined()){
-				System.out.println("doing z transform");
-			    // TODO - unit test this feature!
-				clipboard = new MapImplicits.MapExtended(clipboard).translated(props.zAdjustTrx());
-			}
+		// Set<Short> processedSectorIds = new TreeSet<Short>();
+		// List<SectorGroupFragment> fragments = new LinkedList<>();
+		// short sector = 0;
+		// while(sector < map.getSectorCount()){
+		// 	if(processedSectorIds.contains(sector)){
+		// 		sector++;
+		// 		continue;
+		// 	}
 
-			List<Sprite> idSprite = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
-			List<Sprite> teleChildPointer = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.TELEPORT_CHILD, null);
-			List<Sprite> childPointer = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.REDWALL_CHILD, null);
-			if(idSprite.size() + childPointer.size() + teleChildPointer.size() > 1){
-				throw new SpriteLogicException("too many group id, redwall child, or teleport child sprites in sector group");
-			}else if(idSprite.size() == 1) {
-				int groupId = idSprite.get(0).getHiTag();
+		// 	SectorGroupFragment fragment = SectorGroupScanner$.MODULE$.scanFragment(map, cfg, sector);
+		// 	processedSectorIds.addAll(fragment.copyState().sourceSectorIds());
+		// 	fragments.add(fragment);
+
+		// 	sector++;
+		// } // while
+
+		for(SectorGroupFragment fragment: fragments) {
+			if(fragment.groupIdSprite().isDefined()){
+				int groupId = fragment.getGroupId();
 				if (numberedSectorGroups.containsKey(groupId)) {
 					throw new SpriteLogicException("more than one sector group with id " + groupId);
 				}
-				SectorGroup sg = SectorGroupBuilder.createSectorGroup(clipboard, groupId, props, hints);
-				numberedSectorGroups.put(groupId, sg);
+				numberedSectorGroups.put(groupId, fragment.sectorGroup());
 
-			}else if(childPointer.size() == 1) {
-
-				SectorGroup childGroup = SectorGroupBuilder.createSectorGroup(clipboard, props, hints); // new SectorGroup(clipboard);
-				int groupId = childPointer.get(0).getHiTag();
-				// make sure the sector with the child Id sprite also has a redwall connector marker
-				// Connector conn = childGroup.findFirstConnector(c -> c.getSectorId() == childPointer.get(0).getSectorId()
-				// 		&& ConnectorType.isRedwallType(c.getConnectorType()));
-				ChildPointer childPtr = childGroup.getChildPointer();
-				if (childPtr.connectorId() == 0) {
-					throw new SpriteLogicException("child pointer connector must have a connector ID");
-				}
+			}else if(fragment.childPointerSprite().isDefined()){
+				int groupId = fragment.childPointerSprite().get().getHiTag();
+				fragment.checkChildPointer();
 				redwallChildren.putIfAbsent(groupId, new LinkedList<>());
-				redwallChildren.get(groupId).add(childGroup);
-			}else if(teleChildPointer.size() == 1){
-			    SectorGroup teleChildGroup = SectorGroupBuilder.createSectorGroup(clipboard, props, hints);
-			    int groupId = teleChildPointer.get(0).getHiTag();
-
-			    // TODO - need equialent of stuff in getChildPoint(), checking connectors, etc
-				// TODO - somewhere, need to verify that the parent exists
-
+				redwallChildren.get(groupId).add(fragment.sectorGroup());
+			}else if(fragment.teleChildSprite().isDefined()){
+				int groupId = fragment.teleChildSprite().get().getHiTag();
 				teleportChildren.putIfAbsent(groupId, new LinkedList<>());
-				teleportChildren.get(groupId).add(teleChildGroup);
-
+				teleportChildren.get(groupId).add(fragment.sectorGroup());
 			}else{
-				List<Sprite> mistakes = clipboard.findSprites(0, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
-				if(mistakes.size() > 0){
-					throw new SpriteLogicException("Sector group has no ID marker sprite but it DOES have a sprite with texture 0");
-				}
-				anonymousSectorGroups.add(SectorGroupBuilder.createSectorGroup(clipboard, props, hints)); //new SectorGroup(clipboard));
+				anonymousSectorGroups.add(fragment.sectorGroup()); //new SectorGroup(clipboard));
 			}
 
 			if(strict){ // TODO - get rid of this strict thing
-				List<Sprite> anchorSprites = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.ANCHOR, null);
-				if(anchorSprites.size() > 1){
-					throw new SpriteLogicException("more than one anchor sprite in group");
-				}
+				fragment.requireAtMostOneAnchor();
 			}
-			// // make sure all children have parents
-			// for(Integer parentId: redwallChildren.keySet()){
-			// 	if(! numberedSectorGroups.containsKey(parentId)){
-			// 		int count = redwallChildren.get(parentId).size();
-			// 		throw new SpriteLogicException("There is no sector group with ID " + parentId + ", referenced by " + count + " child sectors");
-			// 	}
-			// }
-			
-			sector++;
-		} // while
+		}
 
 		// make sure all children have parents
 		for(Integer parentId: redwallChildren.keySet()){
@@ -174,17 +133,23 @@ public class PrefabPalette {
 			}
 		}
 
-		TagGenerator tagGenerator = new SimpleTagGenerator(500); // TODO - should be passed in
 		// now process the children
-		final java.util.Map<Integer, SectorGroup> numberedGroups2 = new java.util.TreeMap<>();
-		for(Integer groupId : numberedSectorGroups.keySet()){
-			SectorGroup sg = numberedSectorGroups.get(groupId);
-			if(redwallChildren.containsKey(groupId)){
-			    numberedGroups2.put(groupId, sg.connectedToChildren2(redwallChildren.get(groupId), tagGenerator, cfg));
-			}else{
-				numberedGroups2.put(groupId, sg);
-			}
-		}
+		TagGenerator tagGenerator = new SimpleTagGenerator(500); // TODO - should be passed in
+		final java.util.Map<Integer, SectorGroup> numberedGroups2 = SectorGroupScanner$.MODULE$.connectRedwallChildrenJava(
+				tagGenerator,
+				cfg,
+				numberedSectorGroups,
+				redwallChildren
+		);
+		// final java.util.Map<Integer, SectorGroup> numberedGroups2 = new java.util.TreeMap<>();
+		// for(Integer groupId : numberedSectorGroups.keySet()){
+		// 	SectorGroup sg = numberedSectorGroups.get(groupId);
+		// 	if(redwallChildren.containsKey(groupId)){
+		// 	    numberedGroups2.put(groupId, sg.connectedToChildren2(redwallChildren.get(groupId), tagGenerator, cfg));
+		// 	}else{
+		// 		numberedGroups2.put(groupId, sg);
+		// 	}
+		// }
 		return new PrefabPalette(numberedGroups2, teleportChildren, anonymousSectorGroups);
 
 	}
