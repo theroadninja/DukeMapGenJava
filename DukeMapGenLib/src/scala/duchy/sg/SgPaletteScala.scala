@@ -1,6 +1,7 @@
 package duchy.sg
 
 import trn.prefab.SectorGroup
+import scala.collection.JavaConverters._
 
 /**
   * TODO Scala case class meant to replace PrefabPalette.java
@@ -27,5 +28,22 @@ case class SgPaletteScala(
   anonymousSectorGroups: Seq[SectorGroup],
 
 ) {
+
+  def getNumberedGroupsAsJava: java.util.Map[Integer, SectorGroup] = numberedGroups.map {
+    case (groupId, group) => {
+      val groupIdInteger: java.lang.Integer = groupId
+      groupIdInteger -> group
+    }
+  }.asJava
+
+  def getTeleportChildrenAsJava: java.util.Map[Integer, java.util.List[SectorGroup]] = teleportChildGroups.map {
+    case (groupId, children) => {
+      val groupIdInteger: java.lang.Integer = groupId
+      val childrenJava = children.asJava
+      (groupIdInteger -> childrenJava)
+    }
+  }.asJava
+
+  def getAnonymousAsJava: java.util.List[SectorGroup] = anonymousSectorGroups.asJava
 
 }

@@ -50,6 +50,8 @@ case class SectorGroupFragment (
     }
   }
 
+  def isChild: Boolean = teleChildSprite.isDefined || childPointerSprite.isDefined
+
 }
 
 object SectorGroupScanner {
@@ -147,7 +149,7 @@ object SectorGroupScanner {
 
   def scanFragmentsAsJava(sourceMap: DMap, cfg: GameConfig): java.util.List[SectorGroupFragment] = scanFragments(sourceMap, cfg).asJava
 
-  // TODO make pure scala
+  // TODO DELETE
   def connectRedwallChildrenJava(
     tagGenerator: TagGenerator,
     cfg: GameConfig,
@@ -164,4 +166,84 @@ object SectorGroupScanner {
     }.toMap.asJava
   }
 
+  private[sg] def sortFragments(
+    fragments: TraversableOnce[SectorGroupFragment]
+  ): (Map[Int, SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment]) = {
+    val numberedGroups = mutable.Map[Int, SectorGroupFragment]()
+    val redwallChildren = mutable.ArrayBuffer[SectorGroupFragment]()
+    val teleportChildren = mutable.ArrayBuffer[SectorGroupFragment]()
+    val anonymous = mutable.ArrayBuffer[SectorGroupFragment]()
+    fragments.foreach { fragment =>
+      if(fragment.groupIdSprite.isDefined) {
+        val groupId = fragment.getGroupId
+        if (numberedGroups.contains(groupId)) {
+          val loc1 = numberedGroups(groupId).groupIdSprite.get.getLocation.asPointXY
+          val loc2 = fragment.groupIdSprite.get.getLocation.asPointXY
+          throw new SpriteLogicException(s"More than one sector group contains id=${groupId}", Seq(loc1, loc2).asJava)
+        }
+        numberedGroups.put(groupId, fragment)
+      }else if(fragment.childPointerSprite.isDefined){
+        redwallChildren.append(fragment)
+      }else if(fragment.teleChildSprite.isDefined){
+        teleportChildren.append(fragment)
+      }else{
+        anonymous.append(fragment)
+      }
+    }
+
+    (numberedGroups.toMap, redwallChildren, teleportChildren, anonymous)
+  }
+
+  def assembleFragments(
+    cfg: GameConfig,
+    tagGenerator: TagGenerator,
+    fragments: Seq[SectorGroupFragment],
+  ): SgPaletteScala = {
+
+    val (numberedFrags, redwallChildFrags, teleChildFrags, anonFrags) = sortFragments(fragments)
+
+    // val numberedSectorGroups = numberedFrags.map {
+    //   case (groupId, fragment) => (groupId -> fragment.sectorGroup)
+    // }
+    // val anonymousSectorGroups = anonFrags.map(_.sectorGroup)
+
+    val redwallChildren = mutable.Map[Int, mutable.ArrayBuffer[SectorGroup]]()
+    val teleportChildren = mutable.Map[Int, mutable.ArrayBuffer[SectorGroup]]()
+    redwallChildFrags.foreach { fragment =>
+      val parentId = fragment.childPointerSprite.get.getHiTag
+      if(! numberedFrags.contains(parentId)){
+        throw new SpriteLogicException(s"Sprite refers to parent sector group id ${parentId} but no group exists", fragment.childPointerSprite.get)
+      }
+      fragment.checkChildPointer()
+      val children = redwallChildren.getOrElseUpdate(parentId, mutable.ArrayBuffer[SectorGroup]())
+      children.append(fragment.sectorGroup)
+    }
+    teleChildFrags.foreach { fragment =>
+      val parentId = fragment.teleChildSprite.get.getHiTag
+      if (!numberedFrags.contains(parentId)) {
+        throw new SpriteLogicException(s"Sprite refers to parent sector group id ${parentId} but no group exists", fragment.childPointerSprite.get)
+      }
+      val children = teleportChildren.getOrElseUpdate(parentId, mutable.ArrayBuffer[SectorGroup]())
+      children.append(fragment.sectorGroup)
+    }
+
+    // merge the redwall children with their parents
+    val numberedSectorGroups = numberedFrags.map {
+      case (parentGroupId: Int, parentFragment: SectorGroupFragment) => if (redwallChildren.contains(parentGroupId)) {
+        parentGroupId -> parentFragment.sectorGroup.connectedToChildren2(redwallChildren(parentGroupId).asJava, tagGenerator, cfg)
+      } else {
+        parentGroupId -> parentFragment.sectorGroup
+      }
+    }
+
+    SgPaletteScala(numberedSectorGroups, teleportChildren.toMap, anonFrags.map(_.sectorGroup))
+  }
+
+  def scanMap(cfg: GameConfig, tagGenerator: TagGenerator, sourceMap: DMap): SgPaletteScala = {
+    assembleFragments(
+      cfg,
+      tagGenerator,
+      scanFragments(sourceMap, cfg)
+    )
+  }
 }

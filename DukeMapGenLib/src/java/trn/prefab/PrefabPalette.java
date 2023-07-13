@@ -2,9 +2,8 @@ package trn.prefab;
 
 import java.util.*;
 
-import duchy.sg.SectorGroupFragment;
 import duchy.sg.SectorGroupScanner$;
-import trn.*;
+import duchy.sg.SgPaletteScala;
 import trn.Map;
 import trn.duke.MapErrorException;
 import trn.javax.MultiIterable;
@@ -69,88 +68,69 @@ public class PrefabPalette {
 
 	}
 	public static PrefabPalette fromMap(GameConfig cfg, Map map, boolean strict) throws MapErrorException {
-	    final List<SectorGroup> sectorGroupsThatStay = new ArrayList<>();
 		final java.util.Map<Integer, SectorGroup> numberedSectorGroups = new java.util.TreeMap<>();
 		final java.util.Map<Integer, List<SectorGroup>> redwallChildren = new java.util.TreeMap<>();
 		final java.util.Map<Integer, List<SectorGroup>> teleportChildren = new java.util.TreeMap<>();
 
 		final List<SectorGroup> anonymousSectorGroups = new ArrayList<>();
 
-		List<SectorGroupFragment> fragments = SectorGroupScanner$.MODULE$.scanFragmentsAsJava(map, cfg);
+		TagGenerator tagGenerator = new SimpleTagGenerator(500); // TODO - should be passed in
+		//List<SectorGroupFragment> fragments = SectorGroupScanner$.MODULE$.scanFragmentsAsJava(map, cfg);
+		//SgPaletteScala scala = SectorGroupScanner$.MODULE$.assembleFragments(cfg, tagGenerator, fragments);
+		SgPaletteScala scala = SectorGroupScanner$.MODULE$.scanMap(cfg, tagGenerator, map);
+		return new PrefabPalette(
+				scala.getNumberedGroupsAsJava(),
+				scala.getTeleportChildrenAsJava(),
+				scala.getAnonymousAsJava()
+		);
 
-		// Set<Short> processedSectorIds = new TreeSet<Short>();
-		// List<SectorGroupFragment> fragments = new LinkedList<>();
-		// short sector = 0;
-		// while(sector < map.getSectorCount()){
-		// 	if(processedSectorIds.contains(sector)){
-		// 		sector++;
-		// 		continue;
+		// for(SectorGroupFragment fragment: fragments) {
+		// 	if(fragment.groupIdSprite().isDefined()){
+		// 		int groupId = fragment.getGroupId();
+		// 		if (numberedSectorGroups.containsKey(groupId)) {
+		// 			throw new SpriteLogicException("more than one sector group with id " + groupId);
+		// 		}
+		// 		numberedSectorGroups.put(groupId, fragment.sectorGroup());
+
+		// 	}else if(fragment.childPointerSprite().isDefined()){
+		// 		int groupId = fragment.childPointerSprite().get().getHiTag();
+		// 		fragment.checkChildPointer();
+		// 		redwallChildren.putIfAbsent(groupId, new LinkedList<>());
+		// 		redwallChildren.get(groupId).add(fragment.sectorGroup());
+		// 	}else if(fragment.teleChildSprite().isDefined()){
+		// 		int groupId = fragment.teleChildSprite().get().getHiTag();
+		// 		teleportChildren.putIfAbsent(groupId, new LinkedList<>());
+		// 		teleportChildren.get(groupId).add(fragment.sectorGroup());
+		// 	}else{
+		// 		anonymousSectorGroups.add(fragment.sectorGroup()); //new SectorGroup(clipboard));
 		// 	}
 
-		// 	SectorGroupFragment fragment = SectorGroupScanner$.MODULE$.scanFragment(map, cfg, sector);
-		// 	processedSectorIds.addAll(fragment.copyState().sourceSectorIds());
-		// 	fragments.add(fragment);
-
-		// 	sector++;
-		// } // while
-
-		for(SectorGroupFragment fragment: fragments) {
-			if(fragment.groupIdSprite().isDefined()){
-				int groupId = fragment.getGroupId();
-				if (numberedSectorGroups.containsKey(groupId)) {
-					throw new SpriteLogicException("more than one sector group with id " + groupId);
-				}
-				numberedSectorGroups.put(groupId, fragment.sectorGroup());
-
-			}else if(fragment.childPointerSprite().isDefined()){
-				int groupId = fragment.childPointerSprite().get().getHiTag();
-				fragment.checkChildPointer();
-				redwallChildren.putIfAbsent(groupId, new LinkedList<>());
-				redwallChildren.get(groupId).add(fragment.sectorGroup());
-			}else if(fragment.teleChildSprite().isDefined()){
-				int groupId = fragment.teleChildSprite().get().getHiTag();
-				teleportChildren.putIfAbsent(groupId, new LinkedList<>());
-				teleportChildren.get(groupId).add(fragment.sectorGroup());
-			}else{
-				anonymousSectorGroups.add(fragment.sectorGroup()); //new SectorGroup(clipboard));
-			}
-
-			if(strict){ // TODO - get rid of this strict thing
-				fragment.requireAtMostOneAnchor();
-			}
-		}
-
-		// make sure all children have parents
-		for(Integer parentId: redwallChildren.keySet()){
-			if(! numberedSectorGroups.containsKey(parentId)){
-				int count = redwallChildren.get(parentId).size();
-				throw new SpriteLogicException("There is no sector group with ID " + parentId + ", referenced by " + count + " child sectors");
-			}
-		}
-		for(Integer parentId: teleportChildren.keySet()){
-			if(! numberedSectorGroups.containsKey(parentId)){
-				throw new SpriteLogicException("No sector group with ID " + parentId + " referenced by teleport child group");
-			}
-		}
-
-		// now process the children
-		TagGenerator tagGenerator = new SimpleTagGenerator(500); // TODO - should be passed in
-		final java.util.Map<Integer, SectorGroup> numberedGroups2 = SectorGroupScanner$.MODULE$.connectRedwallChildrenJava(
-				tagGenerator,
-				cfg,
-				numberedSectorGroups,
-				redwallChildren
-		);
-		// final java.util.Map<Integer, SectorGroup> numberedGroups2 = new java.util.TreeMap<>();
-		// for(Integer groupId : numberedSectorGroups.keySet()){
-		// 	SectorGroup sg = numberedSectorGroups.get(groupId);
-		// 	if(redwallChildren.containsKey(groupId)){
-		// 	    numberedGroups2.put(groupId, sg.connectedToChildren2(redwallChildren.get(groupId), tagGenerator, cfg));
-		// 	}else{
-		// 		numberedGroups2.put(groupId, sg);
+		// 	if(strict){ // TODO - get rid of this strict thing
+		// 		fragment.requireAtMostOneAnchor();
 		// 	}
 		// }
-		return new PrefabPalette(numberedGroups2, teleportChildren, anonymousSectorGroups);
+
+		// // make sure all children have parents
+		// for(Integer parentId: redwallChildren.keySet()){
+		// 	if(! numberedSectorGroups.containsKey(parentId)){
+		// 		int count = redwallChildren.get(parentId).size();
+		// 		throw new SpriteLogicException("There is no sector group with ID " + parentId + ", referenced by " + count + " child sectors");
+		// 	}
+		// }
+		// for(Integer parentId: teleportChildren.keySet()){
+		// 	if(! numberedSectorGroups.containsKey(parentId)){
+		// 		throw new SpriteLogicException("No sector group with ID " + parentId + " referenced by teleport child group");
+		// 	}
+		// }
+
+		// // now process the children
+		// final java.util.Map<Integer, SectorGroup> numberedGroups2 = SectorGroupScanner$.MODULE$.connectRedwallChildrenJava(
+		// 		tagGenerator,
+		// 		cfg,
+		// 		numberedSectorGroups,
+		// 		redwallChildren
+		// );
+		// return new PrefabPalette(numberedGroups2, teleportChildren, anonymousSectorGroups);
 
 	}
 
@@ -180,8 +160,11 @@ public class PrefabPalette {
 
 	// will return an empty list if the sector group does not have teleport children
 	public List<SectorGroup> getTeleChildren(int parentSectorGroupId){
-	    this.teleportChildGroups.putIfAbsent(parentSectorGroupId, Collections.emptyList());
-		return this.teleportChildGroups.get(parentSectorGroupId);
+		if(this.teleportChildGroups.containsKey(parentSectorGroupId)){
+			return this.teleportChildGroups.get(parentSectorGroupId);
+		}else{
+			return Collections.emptyList();
+		}
 	}
 
 	public int numberedSectorGroupCount(){
