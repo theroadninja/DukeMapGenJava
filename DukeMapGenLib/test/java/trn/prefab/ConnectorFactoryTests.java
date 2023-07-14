@@ -44,7 +44,7 @@ public class ConnectorFactoryTests {
     @Test
     public void testParitionWallsSimple(){
         SimpleWallContainer map = new SimpleWallContainer();
-        List<List<Integer>> results = ConnectorFactory.partitionWalls(Arrays.asList(2, 5), map);
+        List<List<Integer>> results = ConnectorFactory2.partitionWalls(Arrays.asList(2, 5), map);
         Assert.assertEquals(2, results.size());
         Assert.assertEquals(1, results.get(0).size());
         Assert.assertEquals(1, results.get(1).size());
@@ -55,7 +55,7 @@ public class ConnectorFactoryTests {
     @Test
     public void testPartitionWalls(){
         SimpleWallContainer map = new SimpleWallContainer();
-        List<List<Integer>> results = ConnectorFactory.partitionWalls(Arrays.asList(2, 3, 5), map);
+        List<List<Integer>> results = ConnectorFactory2.partitionWalls(Arrays.asList(2, 3, 5), map);
         Assert.assertEquals(2, results.size());
         Assert.assertTrue(flatten(results).contains(2));
         Assert.assertTrue(flatten(results).contains(3));

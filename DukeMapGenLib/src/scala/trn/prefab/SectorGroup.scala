@@ -1,7 +1,8 @@
 package trn.prefab
 
+import duchy.sg.SimpleConnectorScanner
 import trn.duke.{MapErrorException, TextureList}
-import trn.{ISpriteFilter, MapUtil, MapUtilScala, MapView, PointXY, PointXYZ, Sector, Sprite, Wall, WallView, Map => DMap}
+import trn.{PointXYZ, PointXY, MapUtil, Sector, MapUtilScala, Wall, ISpriteFilter, WallView, MapView, Sprite, Map => DMap}
 import trn.MapImplicits._
 import trn.math.RotatesCW
 
@@ -36,7 +37,9 @@ object SectorGroup {
     */
   def newSG(map: DMap, sectorGroupId: Int, props: SectorGroupProperties, hints: SectorGroupHints): SectorGroup = {
     val connectors = try {
-      ConnectorFactory.findConnectors(map)
+      // ConnectorFactory.findConnectors(map)
+      SimpleConnectorScanner.scanAsJava(map.asView)
+
     }catch{
       case ex: Exception => throw new SpriteLogicException(
         "exception while scanning connectors in sector group.  id=" + sectorGroupId,
@@ -176,7 +179,9 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     val psgOtherConn = otherConn.translateIds(copyState.idmap, translate, new MapView(dest.map))
     myConn.linkConnectors(dest.map, psgOtherConn)
 
-    val conns = ConnectorFactory.findConnectors(dest.map)
+    // val conns = ConnectorFactory.findConnectors(dest.map)
+    val conns = SimpleConnectorScanner.scanAsJava(dest.map.asView)
+
     val result = new SectorGroup(dest.map, dest.getGroupId, dest.props, dest.sghints, conns)
     // TODO: do we need to worry about the properties or hints for the SG we added?
     result
@@ -244,7 +249,8 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   // protected def updateConnectors(): Unit = ???
   protected def updateConnectors(): Unit = {
     connectors.clear()
-    ConnectorFactory.findConnectors(map).forEach(c => addConnector(c))
+    // ConnectorFactory.findConnectors(map).forEach(c => addConnector(c))
+    SimpleConnectorScanner.scan(map.asView).foreach(c => addConnector(c))
   }
 
   override def getWallView(wallId: Int): WallView = map.getWallView(wallId)
@@ -282,17 +288,15 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   // }
 
   // TODO - move to base class or interface something
-  /** @deprecated - this actually rescans the sector group! */
-  def findFirstConnector(cf: ConnectorFilter): Connector = {
-    val it: java.util.Iterator[Connector] = ConnectorFactory.findConnectors(connectors, cf).iterator();
-    //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
-    //return it.hasNext() ? it.next() : null;
-    if(it.hasNext) {
-      it.next
-    }else{
-      None.orNull // TODO!
-    }
-  }
+  // /** @deprecated - this actually rescans the sector group! */
+  // def findFirstConnector(cf: ConnectorFilter): Connector = {
+  //   val it: java.util.Iterator[Connector] = ConnectorFactory.findConnectors(connectors, cf).iterator();
+  //   if(it.hasNext) {
+  //     it.next
+  //   }else{
+  //     None.orNull // TODO!
+  //   }
+  // }
 
   def getTeleportConnectors(): Seq[TeleportConnector] = {
     // connectors.asScala.filter(c => c.getConnectorType == ConnectorType.TELEPORTER).map(_.asInstanceOf[TeleportConnector])

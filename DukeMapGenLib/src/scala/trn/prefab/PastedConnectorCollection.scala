@@ -20,17 +20,17 @@ class PastedConnectorCollection(
     }
   }
 
-  def findFirstConnector(cf: ConnectorFilter): Option[Connector] = {
-    val it: java.util.Iterator[Connector] = ConnectorFactory.findConnectors(connectors, cf).iterator
-    //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
-    //return it.hasNext() ? it.next() : null;
-    if(it.hasNext){
-      Some(it.next)
-    }else{
-      None
-    }
-  }
-  def findFirstRedwallConn(cf: ConnectorFilter): Option[RedwallConnector] = findFirstConnector(cf).map(_.asInstanceOf[RedwallConnector])
+  // def findFirstConnector(cf: ConnectorFilter): Option[Connector] = {
+  //   val it: java.util.Iterator[Connector] = ConnectorFactory.findConnectors(connectors, cf).iterator
+  //   //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
+  //   //return it.hasNext() ? it.next() : null;
+  //   if(it.hasNext){
+  //     Some(it.next)
+  //   }else{
+  //     None
+  //   }
+  // }
+  // // def findFirstRedwallConn(cf: ConnectorFilter): Option[RedwallConnector] = findFirstConnector(cf).map(_.asInstanceOf[RedwallConnector])
 
   def findConnectorsByType(connectorType: Int): java.util.List[Connector] = {
     connectors.asScala.filter(_.getConnectorType == connectorType).asJava

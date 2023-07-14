@@ -51,7 +51,6 @@ case class SectorGroupFragment (
   }
 
   def isChild: Boolean = teleChildSprite.isDefined || childPointerSprite.isDefined
-
 }
 
 object SectorGroupScanner {
@@ -147,25 +146,6 @@ object SectorGroupScanner {
     fragments
   }
 
-  def scanFragmentsAsJava(sourceMap: DMap, cfg: GameConfig): java.util.List[SectorGroupFragment] = scanFragments(sourceMap, cfg).asJava
-
-  // TODO DELETE
-  def connectRedwallChildrenJava(
-    tagGenerator: TagGenerator,
-    cfg: GameConfig,
-    parentGroups: java.util.Map[Integer, SectorGroup],
-    redwallChildren: java.util.Map[Integer, java.util.List[SectorGroup]],
-  ): java.util.Map[Integer, SectorGroup] = {
-
-    parentGroups.asScala.map {
-      case (parentGroupId: Integer, parentGroup) => if(redwallChildren.containsKey(parentGroupId)){
-        parentGroupId -> parentGroup.connectedToChildren2(redwallChildren.get(parentGroupId), tagGenerator, cfg)
-      } else {
-        parentGroupId -> parentGroup
-      }
-    }.toMap.asJava
-  }
-
   private[sg] def sortFragments(
     fragments: TraversableOnce[SectorGroupFragment]
   ): (Map[Int, SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment]) = {
@@ -239,6 +219,7 @@ object SectorGroupScanner {
     SgPaletteScala(numberedSectorGroups, teleportChildren.toMap, anonFrags.map(_.sectorGroup))
   }
 
+  // TODO:  `sourceMap` does not need to be a mutable map --- something like an immutable "MapView" would be fine
   def scanMap(cfg: GameConfig, tagGenerator: TagGenerator, sourceMap: DMap): SgPaletteScala = {
     assembleFragments(
       cfg,

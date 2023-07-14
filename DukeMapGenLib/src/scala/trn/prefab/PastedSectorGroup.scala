@@ -1,6 +1,7 @@
 package trn.prefab
 
-import trn.{CopyState, ISpriteFilter, Sector, Sprite, Wall, WallView, Map => DMap}
+import duchy.sg.SimpleConnectorScanner
+import trn.{Sector, Wall, ISpriteFilter, CopyState, WallView, Sprite, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._ // this is the good one
@@ -9,7 +10,8 @@ import scala.collection.JavaConverters._ // this is the good one
 object PastedSectorGroup {
 
   def apply(map: DMap, copystate: CopyState, groupId: Option[Int]): PastedSectorGroup = {
-    new PastedSectorGroup(map, copystate, ConnectorFactory.findConnectorsInPsg(map, copystate), groupId)
+    // new PastedSectorGroup(map, copystate, ConnectorFactory.findConnectorsInPsg(map, copystate), groupId)
+    new PastedSectorGroup(map, copystate, SimpleConnectorScanner.scanPsgAsJava(map, copystate), groupId)
   }
 
 }
@@ -61,8 +63,8 @@ class PastedSectorGroup private (
     connectorCollection.getFirstElevatorConnector.getOrElse(throw new NoSuchElementException)
   }
 
-  @Deprecated
-  def findFirstConnector(cf: ConnectorFilter): Connector = connectorCollection.findFirstConnector(cf).orNull
+  // @Deprecated
+  // def findFirstConnector(cf: ConnectorFilter): Connector = connectorCollection.findFirstConnector(cf).orNull
 
   def findConnectorsByType(ctype: Int): java.util.List[Connector] = connectorCollection.findConnectorsByType(ctype)
 

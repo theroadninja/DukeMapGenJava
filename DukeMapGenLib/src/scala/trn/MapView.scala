@@ -46,7 +46,9 @@ class MapView(map: DMap) extends WallContainer {
 
   def getAllSectorWallIds(sector: Sector): java.util.List[Integer] = map.getAllSectorWallIds(sector)
 
-  // need to be java integers because they can be null
-  def findSprites(picnum: Integer, lotag: Integer, sectorId: Integer): java.util.List[Sprite] = map.findSprites(picnum, lotag, sectorId)
+  def getAllSectorWallIdsBySectorId(sectorId: Int): Seq[Int] = map.getAllSectorWallIds(sectorId).asScala.map(_.intValue)
+
+    // need to be java integers because they can be null
+  def findSprites(picnum: Integer, lotag: Integer, sectorId: Integer) = map.findSprites(picnum, lotag, sectorId)
 
 }

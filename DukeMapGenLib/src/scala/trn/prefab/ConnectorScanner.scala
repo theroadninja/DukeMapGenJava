@@ -14,6 +14,8 @@ class WallSection(val wallIds: Set[Int]) {
 
 /**
   * Scala counterpart to ConnectorFactory
+  *
+  * TODO accidentally started duplicating in SimpleConnectorScanner.scala.  This one seems to handle multi-sector connectors only
   */
 object ConnectorScanner {
   val MultiSectWallLotag = 2
