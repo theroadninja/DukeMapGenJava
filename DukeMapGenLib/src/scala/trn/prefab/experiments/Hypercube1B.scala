@@ -183,8 +183,10 @@ object Hypercube1B {
     changeForW(room.rotatedSG(tile), w)
   }
 
+  val Filename: String = "hyper1.map"
+
   def run(gameCfg: GameConfig, writer: MapWriter): Unit = {
-    val hyperPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path("hyper1.map"))
+    val hyperPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path(Filename))
 
     def loadRoom(i: Int): HyperSectorGroup = HyperSectorGroup(hyperPalette.getSG(i))
     val rooms: Seq[HyperSectorGroup] = hyperPalette.numberedSectorGroupIds.asScala.map(loadRoom(_)).toSeq

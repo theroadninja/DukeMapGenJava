@@ -25,8 +25,10 @@ object Tower {
     }
   }
 
+  val Filename: String = "tower1.map"
+
   def run(gameCfg: GameConfig, writer: MapWriter): Unit = {
-    val palette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path("tower1.map"))
+    val palette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path(Filename))
     // TODO should have hardcoded stairs in case the level doesnt specify any
 
     // TODO should we add a "drift" feature where each floor is offset just a tiny bit so its obvious in the map editor?

@@ -489,5 +489,5 @@ object Hypercube2 {
     builder.outMap
   }
 
-  def Filename: String = "hyper2.map"
+  val Filename: String = "hyper2.map"
 }

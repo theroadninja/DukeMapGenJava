@@ -222,11 +222,11 @@ class MaxCopyTracker2 {
 object SquareTileMain {
   def main(args: Array[String]): Unit = {
     val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
-    val map = new SquareTileMain(TestFile1).run(mapLoader)
+    val map = new SquareTileMain(Filename).run(mapLoader)
     ExpUtil.deployMap(map)
   }
 
-  val TestFile1 = "cptest3.map"
+  val Filename = "cptest3.map"
 
   val MapWidth = DMap.MAX_X - DMap.MIN_X
   val MapHeight = DMap.MAX_Y - DMap.MIN_Y
