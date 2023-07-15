@@ -99,7 +99,12 @@ public class ConnectorFactory2 {
                 throw new RuntimeException("programming error");
             } else if (partitions.size() == 1) {
                 // only one wall segment, assume the connector matches
+
                 // TODO get rid of this ability (valid connector without pointing the sprite at the wall) ?
+                if(! matches(s, partitions.get(0), map)){
+                    throw new SpriteLogicException("redwall connector sprite is not pointed at a connector wall", s);
+                }
+
                 return redWallConn(s, sector, partitions.get(0), map);
             } else {
                 // figure out which group the  marker sprite is pointing to

@@ -141,7 +141,7 @@ object SoundListMap {
 
 
   def main(args: Array[String]): Unit = {
-    val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
+    val mapLoader = new ScalaMapLoader(HardcodedConfig.EDUKE32PATH)
     try {
       val map = run(mapLoader)
       ExpUtil.deployMap(map)

@@ -234,7 +234,6 @@ object ConnectorScanner {
   }
 
   /**
-    * TODO - there is duplicate logic in the MultiWallConnector constructor.
     *
     * Calculates the "anchor" point by finding the minimum x coord of all points, and the
     * minimum y coord of all points (they can come from differnt points, so the anchor might

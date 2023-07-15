@@ -37,8 +37,6 @@ public class MultiSectorConnector {
         return results;
     }
 
-    //private final List<PointXY> relativeConnPoints;
-
     public static RedwallConnector create(
             Sprite marker,
             List<Integer> sectorIds, // sorted and match wallIds and walls
@@ -51,15 +49,6 @@ public class MultiSectorConnector {
 
     ){
         PointXYZ anchor = anchorXY.withZ(getAnchorZ(sectorIds, map));
-        //return new MultiSectorConnector(
-        //        marker,
-        //        sectorIds,
-        //        wallIds,
-        //        walls,
-        //        anchor,
-        //        wallAnchor1,
-        //        wallAnchor2
-        //);
         return new RedwallConnector(
                 marker.getHiTag() > 0 ? marker.getHiTag() : -1,
                 marker.getSectorId(),
@@ -76,25 +65,5 @@ public class MultiSectorConnector {
                 Collections.unmodifiableList(getRelativeConnPoints(walls, anchor))
         );
     }
-
-    ///**
-    // * @param wallIds  must be in order (e.g. wall(p0 -> p1) -> wall(p1 -> p2) -> ...)
-    // */
-    //public MultiSectorConnector(
-    //        Sprite marker,
-    //        List<Integer> sectorIds, // sorted
-    //        List<Integer> wallIds, // sorted
-    //        List<WallView> walls, // sorted
-    //        PointXYZ anchor,
-    //        PointXY wallAnchor1,
-    //        PointXY wallAnchor2
-    //) {
-    //    super(marker.getHiTag() > 0 ? marker.getHiTag() : -1,
-    //            marker.getSectorId(), sectorIds, WallView.totalLength(walls),
-    //            anchor, wallAnchor1, wallAnchor2, marker.getLotag(), ConnectorType.MULTI_SECTOR, wallIds, walls, 2,
-    //            Collections.unmodifiableList(getRelativeConnPoints(walls, anchor))
-    //            );
-    //    //this.relativeConnPoints = Collections.unmodifiableList(getRelativeConnPoints(walls, this.anchor));
-    //}
 
 }

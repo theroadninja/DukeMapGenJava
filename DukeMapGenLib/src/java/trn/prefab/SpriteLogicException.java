@@ -57,6 +57,7 @@ public class SpriteLogicException extends RuntimeException {
 		this(message + " near " + locationsToString(locations));
 	}
 
+	// TODO document somewhere that in mapster32 you can hold single quote and press J to jump to coordinates!
 	public SpriteLogicException(String message, Sprite location){
 		this(message, location.getLocation().asXY());
 	}

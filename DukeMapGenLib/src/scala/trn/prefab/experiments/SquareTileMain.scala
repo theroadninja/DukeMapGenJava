@@ -221,7 +221,7 @@ class MaxCopyTracker2 {
 
 object SquareTileMain {
   def main(args: Array[String]): Unit = {
-    val mapLoader = new ScalaMapLoader(HardcodedConfig.DOSPATH)
+    val mapLoader = new ScalaMapLoader(HardcodedConfig.EDUKE32PATH)
     val map = new SquareTileMain(Filename).run(mapLoader)
     ExpUtil.deployMap(map)
   }

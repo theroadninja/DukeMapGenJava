@@ -16,8 +16,8 @@ object ExperimentTester {
     HardcodedConfig.getEduke32Path(Hypercube4.Filename),
     HardcodedConfig.getDosboxPath(PipeDream.Filename),
     HardcodedConfig.getDosboxPath(PoolExperiment.Filename),
-    HardcodedConfig.getDosboxPath(SoundListMap.Filename),
-    HardcodedConfig.getDosboxPath(SquareTileMain.Filename),
+    HardcodedConfig.getEduke32Path(SoundListMap.Filename),
+    HardcodedConfig.getEduke32Path(SquareTileMain.Filename),
     HardcodedConfig.getDosboxPath(Sushi.Filename),
     HardcodedConfig.getEduke32Path(Tower.Filename),
   )
