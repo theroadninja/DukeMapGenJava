@@ -1,6 +1,8 @@
 package trn.prefab.experiments
 
-import trn.prefab.{DukeConfig, PrefabUtils}
+import trn.bespoke.MoonBase1
+import trn.bespoke.moonbase2.{MoonBase2, MoonBase3}
+import trn.prefab.{PrefabUtils, DukeConfig}
 import trn.{HardcodedConfig, ScalaMapLoader}
 
 import scala.collection.JavaConverters._
@@ -10,7 +12,8 @@ import scala.collection.JavaConverters._
   */
 object ExperimentTester {
 
-  val AllSourceMaps: Seq[String] = Seq(
+  def AllSourceMaps: Seq[String] = Seq(
+    // TODO add trn.bespoke.MoonBase1, moonbase2. ... moonbase2 (inside moonbase 2 folder)
     HardcodedConfig.getEduke32Path(Hypercube1B.Filename),
     HardcodedConfig.getEduke32Path(Hypercube2.Filename),
     HardcodedConfig.getEduke32Path(Hypercube4.Filename),
@@ -20,6 +23,10 @@ object ExperimentTester {
     HardcodedConfig.getEduke32Path(SquareTileMain.Filename),
     HardcodedConfig.getDosboxPath(Sushi.Filename),
     HardcodedConfig.getEduke32Path(Tower.Filename),
+    // "Bespoke" maps
+    MoonBase1.getMoonMap,
+    HardcodedConfig.getEduke32Path(MoonBase2.Filename),
+    HardcodedConfig.getEduke32Path(MoonBase3.Filename),
   )
 
   def main(args: Array[String]): Unit = {

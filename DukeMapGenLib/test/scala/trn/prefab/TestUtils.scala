@@ -13,9 +13,13 @@ object TestUtils {
   val ChildTest: String = "CHILDTST.MAP"
   val MultiSect: String = "UNITMULT.MAP"
   val Inner: String = "INNER.MAP" // pasting sector group inside a sector
-  val Compass = "cmpstest.map"
+  val Compass: String = "cmpstest.map"
+  val SpriteIntersectionTest: String = "sprtint.map"
 
   val TEST_DATA_PATH = System.getProperty("user.dir") + File.separator + "DukeMapGenLib" + File.separator + "testdata"
+
+
+  def testDataPath(path: String, filename: String): String = s"${TEST_DATA_PATH}/$path/$filename"
 
   /**
     * @param filename relative path starting from inside testdata/

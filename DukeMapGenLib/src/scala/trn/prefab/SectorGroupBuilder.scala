@@ -1,12 +1,12 @@
 package trn.prefab
 
 import java.util
-
-import trn.{PointXY, PointXYZ, Sprite, Wall, Map => DMap}
+import trn.{Wall, Sprite, PointXY, PointXYZ, Map => DMap}
 import trn.MapImplicits._
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer // this is the good one
+import scala.collection.mutable.ListBuffer
+import scala.util.Try // this is the good one
 
 // TODO - this should probably become a constructor on SectorGroup object if/when that is ever moved completely to scala
 object SectorGroupBuilder {
@@ -53,6 +53,14 @@ object SectorGroupBuilder {
 
     sg
   }
+
+  // TODO tryCreateSectorGroup
+  def tryCreateSectorGroup(
+    map: DMap, sectorGroupId: Int, props: SectorGroupProperties, hints: SectorGroupHints,
+  ): Try[SectorGroup] = Try(createSectorGroup(map, sectorGroupId, props, hints))
+
+
+
   def createSectorGroup(map: DMap, props: SectorGroupProperties, hints: SectorGroupHints): SectorGroup = {
     createSectorGroup(map, -1, props, hints)
   }

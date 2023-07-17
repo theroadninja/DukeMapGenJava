@@ -215,6 +215,10 @@ public class Sprite implements IRayXY {
 		return this;
 	}
 
+	/**
+	 * To get this in vector form, call getVector()
+	 * @return
+	 */
 	public int getAngle() {
 		return this.ang;
 	}

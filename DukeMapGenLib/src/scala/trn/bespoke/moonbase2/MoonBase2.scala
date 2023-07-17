@@ -219,12 +219,14 @@ object MoonBase2 {
     )
   }
 
+  val Filename: String = "moon2.map"
+
   def run(gameCfg: GameConfig): Unit = {
     println("starting run()")
     val random = new RandomX()
     val writer = MapWriter(gameCfg)
     val spacePalette = ScalaMapLoader.loadPalette(HardcodedConfig.getMapDataPath("SPACE.MAP"))
-    val moonPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon2.map"))
+    val moonPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path(Filename))
     println("loaded moon2.map")
 
     // val logicalMap = new RandomWalkGenerator(random).hardcodedTest() // TODO doesnt pull in all the rooms

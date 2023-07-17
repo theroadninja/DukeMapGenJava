@@ -138,11 +138,13 @@ object MoonBase3 {
 
   }
 
+  val Filename: String = "moon3.map"
+
   def run(gameCfg: GameConfig): Unit = {
 
     val random = new RandomX()
     val writer = MapWriter(gameCfg)
-    val moonPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path("moon3.map"))
+    val moonPalette = ScalaMapLoader.loadPalette(HardcodedConfig.getEduke32Path(Filename))
     println("loaded moon3.map successfully")
 
     val allRooms = (1 to moonPalette.numberedSectorGroupCount()).map(i => readTileSectorGroup(gameCfg, moonPalette, i))

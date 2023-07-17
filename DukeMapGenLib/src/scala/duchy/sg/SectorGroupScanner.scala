@@ -6,6 +6,7 @@ import trn.MapImplicits._
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.util.Try
 
 /**
   * A sector group that we copied from the source map, but haven't finished processing into a real "SectorGroup" yet.
@@ -18,15 +19,17 @@ case class SectorGroupFragment (
   groupIdSprite: Option[Sprite],
   teleChildSprite: Option[Sprite],
   childPointerSprite: Option[Sprite],
-  sectorGroup: SectorGroup,
+  sectorGroupTry: Try[SectorGroup],
   groupId: Option[Int],
 ) {
+
+  def sectorGroup: SectorGroup = sectorGroupTry.get
 
   // for java
   def getGroupId: Int = groupId.getOrElse(-1)
 
   def checkChildPointer(): Unit = {
-    val childPtr = sectorGroup.getChildPointer
+    val childPtr = sectorGroupTry.get.getChildPointer
     if (childPtr.connectorId == 0) throw new SpriteLogicException("child pointer connector must have a connector ID")
   }
 
@@ -115,7 +118,7 @@ object SectorGroupScanner {
     }
 
     val groupId: Int = groupIdSprite.map(_.getHiTag).getOrElse(-1)
-    val sg = SectorGroupBuilder.createSectorGroup(clipboard, groupId, props, hints)
+    val sg = SectorGroupBuilder.tryCreateSectorGroup(clipboard, groupId, props, hints)
 
     val frag = SectorGroupFragment(
       adjusted,

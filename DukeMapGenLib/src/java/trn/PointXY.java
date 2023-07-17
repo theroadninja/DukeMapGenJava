@@ -285,7 +285,8 @@ public class PointXY {
         // so, the unoptimized version is:
 		//double t = c.subtractedBy(a).crossProduct2d(d) / (double)bd;
 		//double u = (a.crossProduct2d(b) - c.crossProduct2d(b)) / (double)d.crossProduct2d(b);
-		PointXY ca = c.subtractedBy(a);
+
+		PointXY ca = c.subtractedBy(a); // vector from a to c
 		double t = ca.crossProduct2d(d) / (double)bd;
 		double u = ca.crossProduct2d(b) / (double)bd; // -bxd = dxb
 		// return (0.0 <= t && t <= 1.0) && (0.0 <= u && u <= 1.0); // simple, line segments only
@@ -295,6 +296,10 @@ public class PointXY {
 
 	/**
 	 * TODO - DRY
+	 *
+	 * `a` is a point, and `b` is the vector from `a`?
+	 * `c` is a point and `d` appears to be a vector (see MapUtil.isSpritePointedAtWall)
+	 *
 	 */
 	static boolean intersect(PointXY a, PointXY b, PointXY c, PointXY d, boolean isRay1, boolean isRay2, boolean endingExclusive) {
 		int bd = b.crossProduct2d(d);

@@ -7,6 +7,8 @@ import trn.prefab.SectorGroup;
 import java.util.*;
 
 /**
+ * TODO I intended to replace most of this with VectorMath.scala
+ *
  * See also GridUtils
  * 
  * @author Dave
