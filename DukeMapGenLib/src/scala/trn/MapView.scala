@@ -44,7 +44,8 @@ class MapView(map: DMap) extends WallContainer {
     * TODO - functions to get rid of (or convert to scala types) later
     * *************************************/
 
-  def getAllSectorWallIds(sector: Sector): java.util.List[Integer] = map.getAllSectorWallIds(sector)
+  // def getAllSectorWallIds(sector: Sector): java.util.List[Integer] = map.getAllSectorWallIds(sector)
+  // def getAllSectorWallIds(sectorId: Int): Seq[Int] = map.getAllSectorWallIds(sectorId).asScala.map(_.intValue)
 
   def getAllSectorWallIdsBySectorId(sectorId: Int): Seq[Int] = map.getAllSectorWallIds(sectorId).asScala.map(_.intValue)
 

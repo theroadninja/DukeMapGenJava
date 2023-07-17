@@ -10,6 +10,10 @@ import java.util.List;
 // TODO - or should the main feature of this class be that it matters where the sector is?
 public class RedwallConnector extends Connector {
 
+    public static int WALL_LOTAG_1 = 1;
+    public static int WALL_LOTAG_2 = 2;
+    public static int WALL_LOTAG_3 = 3;
+
     static PointXY getWallAnchor1(List<Integer> wallIds, MapView map){
         return map.getWall(wallIds.get(0)).getLocation();
     }

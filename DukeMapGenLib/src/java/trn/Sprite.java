@@ -235,6 +235,10 @@ public class Sprite implements IRayXY {
 		return new PointXYZ(this.x, this.y, this.z);
 	}
 
+	public PointXY getLocationXY(){
+		return getLocation().asXY();
+	}
+
 	@Override
 	public PointXY getPoint(){
 		return getLocation().asXY();

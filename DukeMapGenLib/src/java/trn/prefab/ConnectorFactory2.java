@@ -61,7 +61,8 @@ public class ConnectorFactory2 {
         return results;
     }
 
-    private static RedwallConnector redWallConn(Sprite s, Sector sector, List<Integer> wallIds, MapView map) throws MapErrorException {
+    // TODO I think this function can suffer from an infinite loop
+    public static RedwallConnector redWallConn(Sprite s, Sector sector, List<Integer> wallIds, MapView map) throws MapErrorException {
         List<Integer> wallIds2 = MapUtil.sortWallSection(wallIds, map);
         List<WallView> walls = MapUtil.getWallViews(wallIds2, map);
         return RedwallConnector.create(s, sector, wallIds, walls, map);

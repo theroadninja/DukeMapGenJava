@@ -7,6 +7,8 @@ import trn.MapImplicits._
 import scala.collection.JavaConverters._
 
 /**
+  * TODO meant to be replaced by RedwallConnectorScanner (maybe)
+  *
   * TODO there is another ConnectorScanner in trn.prefab.ConnectorScanner.scala
   * Meant to replace ConnectorFactory.java
   */

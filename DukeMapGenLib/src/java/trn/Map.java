@@ -177,7 +177,7 @@ public class Map implements WallContainer {
 		return result;
 	}
 
-	// see also MapImplicits.allWallViews
+	// see also MapImplicits.allWallViews  (that one doesnt take a sector id though)
 	public List<Collection<WallView>> getAllWallLoopsAsViews(int sectorId){
 		Iterator<Collection<Integer>> it = wallLoopIterator(sectorId);
 		List<Collection<WallView>> result = new ArrayList<>();

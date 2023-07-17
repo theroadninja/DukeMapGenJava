@@ -13,6 +13,8 @@ class WallSection(val wallIds: Set[Int]) {
 }
 
 /**
+  * TODO meant to be replaced by RedwallConnectorScanner (maybe)
+  *
   * Scala counterpart to ConnectorFactory
   *
   * TODO accidentally started duplicating in SimpleConnectorScanner.scala.  This one seems to handle multi-sector connectors only
@@ -24,7 +26,7 @@ object ConnectorScanner {
   /**
     * @returns true if the walls are adjacent and connected but NOT if they are opposite walls forming a redwall
     */
-  private[prefab] def adjacent(w0: WallView, w1: WallView): Boolean = {
+  def adjacent(w0: WallView, w1: WallView): Boolean = {
     if(w0.p1 == w1.p2 && w0.p2 == w1.p1){
       false // they form a redwall, but havent been linked yet
     }else{
@@ -299,7 +301,7 @@ object ConnectorScanner {
     val wallIdToSectorId = map.newWallIdToSectorIdMap
     wallSections.filter(_.marker.isDefined).map { wallSection =>
 
-      val walls = wallSection.wallIds.map(wallsById)
+      val walls: Set[WallView] = wallSection.wallIds.map(wallsById)
       val sortedWalls = sortContinuousWalls(walls)
       val wallIds = sortedWalls.map(_.getWallId)//.map(Integer.valueOf)
       val sectorIds = wallIds.map(wallIdToSectorId).toSeq

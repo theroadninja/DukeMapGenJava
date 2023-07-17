@@ -198,10 +198,9 @@ public class PrefabUtils {
 		 * 	- elevators
 		 *
 		 */
-		public static int SIMPLE_CONNECTOR = 20;
+		public static int SIMPLE_CONNECTOR = 20; // now this is basically all redwall connectors
 
-		// unused because you can still use 20
-		public static int TWO_WALL_CONNECTOR = ConnectorType.MULTI_REDWALL; // 21
+		public static int MULTISECTOR_CHILD = 21;  // accomplishes multi-sector redwall conns by being a child segment
 
 		/** a connector that spans multiple sectors */
 		public static int MULTI_SECTOR = 22;
