@@ -1,5 +1,6 @@
 package duchy.sg
 
+import duchy.sg.RedwallSection.MultiSection
 import duchy.vector.{VectorMath, Line2D}
 import trn.prefab.{ConnectorScanner, PrefabUtils, ConnectorFactory2, RedwallConnector, MultiSectorConnector, SpriteLogicException}
 import trn.{PointXY, MapUtil, WallView, MapView, Sprite}
@@ -18,16 +19,41 @@ case class RedwallSection(marker: Sprite, sortedWalls: Seq[WallView]) {
 
   def size: Int = sortedWalls.size
 
-  lazy val wallIds: Set[Int] = sortedWalls.map(_.getWallId).toSet
+  lazy val wallIds: Seq[Int] = sortedWalls.map(_.getWallId)
 
-  def overlaps(other: RedwallSection): Boolean = wallIds.intersect(other.wallIds).nonEmpty
+  /**
+    * a seq of sectors ids meant to match the walls ids.  E.g. sectorIds(X) is the sectorId of the wall in wallIds(X)
+    * This is a bit silly, since a RedwallSection is only for one sector and thus all walls have the same sectorId, but
+    * it makes it simpler to code.
+    */
+  def sectorIds: Seq[Int] = wallIds.map(_ => sectorId)
+
+  lazy val wallIdSet: Set[Int] = wallIds.toSet
+
+  def overlaps(other: RedwallSection): Boolean = wallIdSet.intersect(other.wallIdSet).nonEmpty
 
   def isChild: Boolean = marker.getLotag == PrefabUtils.MarkerSpriteLoTags.MULTISECTOR_CHILD
 
   val isRedwall: Boolean = sortedWalls.head.isRedwall
 
   val lotag: Int = sortedWalls.head.lotag
+
+  /**
+    * @param otherSection
+    * @return true if the last wall of this section lines up with the first wall of the next section.
+    */
+  def isBefore(otherSection: RedwallSection): Boolean = if(size < 1 || otherSection.size < 1){
+    false
+  }else{
+    sortedWalls.last.p2 == otherSection.sortedWalls.head.p1
+  }
 }
+
+object RedwallSection {
+  type MultiSection = Seq[RedwallSection]
+
+}
+
 
 /**
   * Meant to replace ALL of the redwall connector scanning I wrote before.
@@ -90,12 +116,12 @@ object RedwallConnectorScanner {
     *
     * TODO copying this (sort of) from ConnectorScanner.scanAllLines()
     *
-    * @param wallsById map of wallId -> WallView.   Needs to contain very wall in the sector; its ok if it includes every
+    * @param wallsById map of wallId -> WallView.   Needs to contain every wall in the sector; its ok if it includes every
     *                  wall in the map
     * @param pointToWall map of point->walls  where `point` is one of the endpoints of the wall
     * @param startWall  the wall to start the search from
     */
-  def crawlWalls(wallsById: Map[Int, WallView], pointToWall: Map[PointXY, Set[WallView]], startWall: WallView): Set[WallView] = {
+  def crawlWalls(wallsById: Map[Int, WallView], pointToWall: Map[PointXY, Set[WallView]], wallIdToSector: Map[Int, Int], startWall: WallView): Set[WallView] = {
     require(RedwallConnectorLotags.contains(startWall.lotag))
     require(wallsById.contains(startWall.getWallId))
 
@@ -107,7 +133,9 @@ object RedwallConnectorScanner {
     // and white vs redwall status
     def getNeighboor(wallView: WallView, p: PointXY): Option[WallView] = {
       val walls = pointToWall(p).filter { n =>
-        adjacent(wallView, n) && n.lotag == wallView.lotag  && n.isRedwall == wallView.isRedwall
+        val sector = wallIdToSector(wallView.getWallId)
+        val otherSector = wallIdToSector(n.getWallId)
+        adjacent(wallView, n) && n.lotag == wallView.lotag  && n.isRedwall == wallView.isRedwall && sector == otherSector
       }
       require(walls.size <= 1)  // TODO throw a nice SpriteLogic exception that contains the location of the marker sprite
       walls.headOption
@@ -115,6 +143,7 @@ object RedwallConnectorScanner {
 
     while(openList.size > 0){
       val current = openList.remove(0)
+      require(wallsById.contains(current.getWallId))
       closedList.add(current.getWallId)
 
       // 0 - 2 walls, the ones at either end of `current`
@@ -148,7 +177,8 @@ object RedwallConnectorScanner {
       }
 
       val sectorWallsById = map.getAllSectorWallIdsBySectorId(marker.getSectorId).map(wallId => wallId -> map.getWallView(wallId)).toMap
-      val walls: Set[WallView] = crawlWalls(sectorWallsById, pointsToWalls, startWall)
+      val wallIdToSector = map.newWallIdToSectorIdMap.toMap
+      val walls: Set[WallView] = crawlWalls(sectorWallsById, pointsToWalls, wallIdToSector, startWall)
       require(walls.nonEmpty)
 
       val sortedWalls = ConnectorScanner.sortContinuousWalls(walls)
@@ -156,10 +186,54 @@ object RedwallConnectorScanner {
     }
   }
 
+  /**
+    * Match a "parent" section (contiguous walls with a marker sprite of lotag 20) with as many "child" sections as will
+    * connect to it.  A child section is contiguous walls with a marker sprite of lotag 21.  Children can connect to
+    * other children, as long as there is a parent somewhere.
+    *
+    * |-+--+--|----+--|-+-----|
+    *    /\      /\      /\
+    *    |       |       |
+    *  (20)    (21)    (21)
+    *
+    * @param parent
+    * @param children list of "child" wall segments that may or may not connect to the parent.
+    * @return the sequence of walls sections that fit together
+    */
+  def matchParentToChildren(parent: RedwallSection, children: Seq[RedwallSection]): MultiSection = {
+    var openList = children
+
+    val results = mutable.ArrayBuffer[RedwallSection]()
+    results.append(parent)
+
+    var foundMatches: Boolean = true
+    while(foundMatches) {
+      val (suffixes, remaining) = openList.partition(section => results.last.isBefore(section))
+      if(suffixes.size > 1) {
+        throw new SpriteLogicException("more than one child Redwall Section is touching a parent Redwall Section", parent.marker)
+      } else if(suffixes.size  == 1){
+        results.append(suffixes.head)
+      }
+
+      val (prefixes, remaining2) = remaining.partition(section => section.isBefore(results.head))
+      if(prefixes.size > 1){
+        throw new SpriteLogicException("more than one child Redwall Section is touching a parent Redwall Section", parent.marker)
+      } else if(prefixes.size == 1){
+        results.prepend(prefixes.head)
+      }
+
+      foundMatches = !(suffixes.isEmpty && prefixes.isEmpty)
+      openList = remaining2
+    }
+
+    results
+  }
+
   def findAllRedwallConns(map: MapView, sectorIdFilter: Int => Boolean = allSectors): Seq[RedwallConnector] = {
 
     val sections = findAllRedwallSections(map, sectorIdFilter)
 
+    // detect overlap
     sections.foreach { sectionA =>
       sections.foreach { sectionB =>
         if(sectionA.marker != sectionB.marker){
@@ -174,37 +248,47 @@ object RedwallConnectorScanner {
     // assemble children and parents
 
     val (children, parents) = sections.partition(_.isChild)
-    if(children.nonEmpty) {
-      throw new RuntimeException("TODO multi-sector connectors not supported yet")
-    }
-    parents.map { section =>
-
-      // TODO  so the RedwallConnector constructor will throw here if its a loop
-      RedwallConnector.create(
-        section.marker,
-        map.getSector(section.sectorId),
-        section.sortedWalls.map(w => Integer.valueOf(w.getWallId)).asJava,
-        section.sortedWalls.asJava,
-        map,
-      )
-    }
-
-    // // TODO for multisector, something like this happens at the end
-    // val wallIdToSectorId = map.newWallIdToSectorIdMap
-    // sections.foreach { section =>
-
-
-    //   MultiSectorConnector.create(
-    //     section.marker,
-    //     sectorIds.map(Integer.valueOf).asJava,
-    //     wallIds.map(Integer.valueOf).asJava,
-    //     sortedWalls.asJava,
-    //     anchor(sortedWalls), //.withZ(anchorZ),
-    //     sortedWalls.head.p1,
-    //     sortedWalls.last.p2,
-    //     map
-    //   )
+    // if(children.nonEmpty) {
+    //   throw new RuntimeException("TODO multi-sector connectors not supported yet")
     // }
+
+    val multiSections: Seq[MultiSection] = parents.map { parent =>
+      matchParentToChildren(parent, children)
+    }
+
+    multiSections.map { multiSection: MultiSection =>
+      if(multiSection.size == 1){
+        val section = multiSection.head
+        RedwallConnector.create(
+          section.marker,
+          map.getSector(section.sectorId),
+          section.sortedWalls.map(w => Integer.valueOf(w.getWallId)).asJava,
+          section.sortedWalls.asJava,
+          map,
+        )
+      }else{
+        require(multiSection.size > 1)
+
+        val parentMarker = multiSection.filter(!_.isChild).head.marker
+        val wallIds: Seq[Int] = multiSection.flatMap(_.wallIds)
+        val sectorIds: Seq[Int] = multiSection.flatMap(_.sectorIds)
+        val wallViews = wallIds.map(wallId => map.getWallView(wallId))
+        val anchor = ConnectorScanner.anchor(wallViews)
+
+        MultiSectorConnector.create(
+          parentMarker,
+          sectorIds.map(Integer.valueOf).asJava,
+          wallIds.map(Integer.valueOf).asJava,
+          wallViews.asJava,
+          anchor,
+          wallViews.head.p1,
+          wallViews.last.p2,
+          map
+        )
+      }
+
+    }
+
   }
 
 }

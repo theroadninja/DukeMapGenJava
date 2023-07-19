@@ -2,7 +2,7 @@ package duchy.sg
 
 import org.junit.{Assert, Test}
 import trn.{Sprite, ScalaMapLoader, Map => DMap}
-import trn.prefab.{TestUtils, PrefabUtils, RedwallConnector}
+import trn.prefab.{TestUtils, PrefabUtils, RedwallConnector, DukeConfig}
 import trn.MapImplicits._
 
 class RedwallConnectorScannerTests {
@@ -37,6 +37,7 @@ class RedwallConnectorScannerTests {
 
     val allWalls = map.allWallViews
     val wallsById = allWalls.map(wv => wv.getWallId -> wv).toMap
+    val wallIdToSector = map.asView.newWallIdToSectorIdMap.toMap
     val pointToWall = RedwallConnectorScanner.pointToWallMap(allWalls)
 
     // all of the walls have a certain texture to match lotags 1, 2, 3 to make sure the crawler finds the right ones
@@ -44,31 +45,31 @@ class RedwallConnectorScannerTests {
     val Lotag2Tex = 258
     val Lotag3Tex = 237
 
-    val results1 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 616).get)
+    val results1 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 616).get)
     Assert.assertEquals(3, results1.size)
     results1.foreach { w =>
       Assert.assertTrue(w.tex == 616 || w.tex == Lotag1Tex)
     }
 
-    val results2 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 617).get)
+    val results2 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 617).get)
     Assert.assertEquals(4, results2.size)
     results2.foreach { w =>
       Assert.assertTrue(w.tex == 617 || w.tex == Lotag1Tex)
     }
 
-    val results3 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 618).get)
+    val results3 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 618).get)
     Assert.assertEquals(5, results3.size)
     results3.foreach { w =>
       Assert.assertTrue(w.tex == 618 || w.tex == Lotag1Tex)
     }
 
-    val results4 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 619).get)
+    val results4 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 619).get)
     Assert.assertEquals(2, results4.size)
     results4.foreach { w =>
       Assert.assertTrue(w.tex == 619 || w.tex == Lotag2Tex)
     }
 
-    val results5 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 633).get)
+    val results5 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 633).get)
     Assert.assertEquals(5, results5.size)
     results5.foreach { w =>
       Assert.assertTrue(w.tex == 633 || w.tex == Lotag3Tex)
@@ -77,19 +78,19 @@ class RedwallConnectorScannerTests {
     //
     // large loop on the inside
     //
-    val results6 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 595).get)
+    val results6 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 595).get)
     Assert.assertEquals(3, results6.size)
     results6.foreach { w =>
       Assert.assertTrue(w.tex == 595 || w.tex == Lotag1Tex)
     }
 
-    val results7 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 609).get)
+    val results7 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 609).get)
     Assert.assertEquals(3, results7.size)
     results7.foreach { w =>
       Assert.assertTrue(w.tex == 609 || w.tex == Lotag2Tex)
     }
 
-    val results8 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 610).get)
+    val results8 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 610).get)
     Assert.assertEquals(3, results8.size)
     results8.foreach { w =>
       Assert.assertTrue(w.tex == 610 || w.tex == Lotag3Tex)
@@ -98,7 +99,7 @@ class RedwallConnectorScannerTests {
     //
     // small loop where the whole loop is the connector
     //
-    val results9 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 503).get)
+    val results9 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 503).get)
     Assert.assertEquals(4, results9.size)
     results9.foreach { w =>
       Assert.assertTrue(w.tex == 503 || w.tex == Lotag3Tex)
@@ -107,14 +108,14 @@ class RedwallConnectorScannerTests {
     //
     // peninsula sector sticking out of the wall (make sure results10 and results11 don't overlap)
     //
-    val results10 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 285).get)
+    val results10 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 285).get)
     Assert.assertEquals(3, results10.size)
     results10.foreach { w =>
       Assert.assertTrue(w.tex == 285 || w.tex == Lotag2Tex)
       Assert.assertTrue(w.lotag == 2)
     }
 
-    val results11 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, allWalls.find(w => w.tex == 439).get)
+    val results11 = RedwallConnectorScanner.crawlWalls(wallsById, pointToWall, wallIdToSector, allWalls.find(w => w.tex == 439).get)
     Assert.assertEquals(2, results11.size)
     results11.foreach { w =>
       Assert.assertTrue(w.tex == 439 || w.tex == Lotag2Tex)
@@ -175,5 +176,41 @@ class RedwallConnectorScannerTests {
     Assert.assertEquals(4, conns.find(_.getConnectorId == 9).get.getWallCount)
     Assert.assertEquals(3, conns.find(_.getConnectorId == 10).get.getWallCount)
     Assert.assertEquals(2, conns.find(_.getConnectorId == 11).get.getWallCount)
+  }
+
+  @Test
+  def testFindMultiSector(): Unit = {
+    val map = ScalaMapLoader.loadMap(TestUtils.testDataPath("scala", "multi.map"))
+    val cfg = DukeConfig.loadHardCodedVersion()
+    val sgFrags = SectorGroupScanner.scanFragments(map, cfg)
+    val frag1 = sgFrags.find(_.groupId.getOrElse(-1) == 1).get
+    val sections: Seq[RedwallSection] = RedwallConnectorScanner.findAllRedwallSections(frag1.clipboard.asView)
+    Assert.assertEquals(2, sections.size)
+
+    val parent = sections.find(!_.isChild).get
+    val child = sections.find(_.isChild).get
+    Assert.assertTrue(parent.isBefore(child))
+    Assert.assertFalse(child.isBefore(parent))
+  }
+
+  @Test
+  def testScannMultiSectorHappyCase(): Unit = {
+    val map = ScalaMapLoader.loadMap(TestUtils.testDataPath("scala", "multi.map"))
+    val cfg = DukeConfig.loadHardCodedVersion()
+    val sgFrags = SectorGroupScanner.scanFragments(map, cfg)
+    def getFrag(sectorGroupId: Int): SectorGroupFragment = sgFrags.find(_.groupId == Some(sectorGroupId)).get
+
+    val frag1 = getFrag(1)
+    val conns = RedwallConnectorScanner.findAllRedwallConns(frag1.clipboard.asView)
+    Assert.assertEquals(1, conns.size)
+    val multi = conns.head
+    Assert.assertTrue(multi.isRedwall)
+    Assert.assertEquals(5, multi.getWallIds.size())
+
+    val conns2 = RedwallConnectorScanner.findAllRedwallConns(getFrag(2).clipboard.asView)
+    Assert.assertEquals(1, conns2.size)
+    val multi2 = conns2.head
+    Assert.assertTrue(multi2.isRedwall)
+    Assert.assertEquals(9, multi2.getWallIds.size())
   }
 }
