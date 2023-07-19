@@ -48,7 +48,7 @@ public class RedwallConnector extends Connector {
                 connectorType,
                 wallIds,
                 walls,
-                1,
+                1, // TODO this might be a bug now that redwall connector walls can be 1, 2, or 3
                 relativeConnPoints
         );
     }

@@ -88,6 +88,25 @@ public class RedConnUtil {
         }
     }
 
+    /**
+     * Calculates an anchor for complete loops by just picking a point in the "center"
+     */
+    public static PointXY getAnchorForLoop(List<Integer> wallIds, MapView map){
+        if(wallIds.size() < 1){
+            throw new IllegalArgumentException("wallIds is empty");
+        }
+        int totalX = 0;
+        int totalY = 0;
+
+        for(int i = 0; i < wallIds.size() - 1; ++i){
+            int wallId = wallIds.get(i);
+            Wall w = map.getWall(wallId);
+            totalX += w.getX();
+            totalY += w.getY();
+        }
+        return new PointXY(totalX / wallIds.size(), totalY / wallIds.size());
+    }
+
     public static PointXY getAnchor(List<Integer> wallIds, MapView map){
         // TODO - duplicate anchor logic in ConnectorScanner
         int minX = map.getWall(wallIds.get(0)).getX();
@@ -110,7 +129,7 @@ public class RedConnUtil {
         // the wall after the last wall in the sequence, because we need its X,Y coords
         int endWallId = map.getWall(wallIds.get(wallIds.size() - 1)).getNextWallInLoop();
         if(endWallId == wallIds.get(0)){
-            throw new IllegalArgumentException("walls are a complete loop");
+            return getAnchorForLoop(wallIds, map);
         }
         Wall end = map.getWall(endWallId);
         if(end.getX() < minX){

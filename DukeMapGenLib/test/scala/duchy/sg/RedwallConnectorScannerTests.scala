@@ -2,7 +2,7 @@ package duchy.sg
 
 import org.junit.{Assert, Test}
 import trn.{Sprite, ScalaMapLoader, Map => DMap}
-import trn.prefab.{TestUtils, PrefabUtils}
+import trn.prefab.{TestUtils, PrefabUtils, RedwallConnector}
 import trn.MapImplicits._
 
 class RedwallConnectorScannerTests {
@@ -161,18 +161,19 @@ class RedwallConnectorScannerTests {
   @Test
   def testFindAllRedwallConns(): Unit = {
     val map = ScalaMapLoader.loadMap(TestUtils.testDataPath("scala", "crawler.map"))
+    val conns: Seq[RedwallConnector] = RedwallConnectorScanner.findAllRedwallConns(map.asView)
+    Assert.assertEquals(11, conns.size)
 
-    // TODO RedwallConnector cannot handle loops, so temporarily sabotaging this unit test
-    for(i <- 0 until map.spriteCount){
-      val sprite = map.getSprite(i)
-      if(sprite.getHiTag == 9){
-        sprite.setTexture(0)
-      }
-    }
-
-    val conns = RedwallConnectorScanner.findAllRedwallConns(map.asView)
-    // TODO Assert.assertEquals(11, conns.size)
-    Assert.assertEquals(10, conns.size)
-
+    Assert.assertEquals(3, conns.find(_.getConnectorId == 1).get.getWallCount)
+    Assert.assertEquals(4, conns.find(_.getConnectorId == 2).get.getWallCount)
+    Assert.assertEquals(5, conns.find(_.getConnectorId == 3).get.getWallCount)
+    Assert.assertEquals(2, conns.find(_.getConnectorId == 4).get.getWallCount)
+    Assert.assertEquals(5, conns.find(_.getConnectorId == 5).get.getWallCount)
+    Assert.assertEquals(3, conns.find(_.getConnectorId == 6).get.getWallCount)
+    Assert.assertEquals(3, conns.find(_.getConnectorId == 7).get.getWallCount)
+    Assert.assertEquals(3, conns.find(_.getConnectorId == 8).get.getWallCount)
+    Assert.assertEquals(4, conns.find(_.getConnectorId == 9).get.getWallCount)
+    Assert.assertEquals(3, conns.find(_.getConnectorId == 10).get.getWallCount)
+    Assert.assertEquals(2, conns.find(_.getConnectorId == 11).get.getWallCount)
   }
 }

@@ -128,6 +128,12 @@ object RedwallConnectorScanner {
     closedList.map(wallsById).toSet
   }
 
+  /**
+    * Low level function that finds all pairs of (marker sprite, wall section).
+    * @param map
+    * @param sectorIdFilter
+    * @return
+    */
   def findAllRedwallSections(map: MapView, sectorIdFilter: Int => Boolean = allSectors): Seq[RedwallSection] = {
     val wallsById: Map[Int, WallView] = map.allWallViews.map(wv => wv.getWallId -> wv).toMap
     val pointsToWalls: Map[PointXY, Set[WallView]] = pointToWallMap(wallsById.values)
