@@ -1,9 +1,11 @@
-package trn.prefab.experiments
+package trn.prefab.experiments.hyperloop
 
-import trn.duke.{PaletteList, TextureList}
-import trn.math.SnapAngle
-import trn.{PointXYZ, PointXY, prefab, ScalaMapLoader, Main, HardcodedConfig, LineSegmentXY, Sprite, AngleUtil}
-import trn.prefab.{experiments, CompassWriter, MapWriter, DukeConfig, GameConfig, SectorGroup, RedwallConnector, PastedSectorGroup}
+import trn.duke.TextureList
+import trn.prefab.experiments.ExpUtil
+import trn.{HardcodedConfig, PointXY, ScalaMapLoader, PointXYZ}
+import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, PastedSectorGroup}
+import trn.prefab.experiments.hyperloop.EdgeIds._
+import trn.prefab.experiments.hyperloop.HyperLoopParser._
 
 import scala.collection.mutable
 
@@ -38,24 +40,24 @@ object HyperLoop0 {
   val Filename = "loop0.map"
 
 
-  /**
-    * Connector that faces the center of the circle.
-    */
-  val InnerEdgeConn = 1
+  // /**
+  //   * Connector that faces the center of the circle.
+  //   */
+  // val InnerEdgeConn = 1
 
-  /**
-   * Connector id of the anticlockwise edge.
-   * If you are inside the group facing anitclockwise, you are looking at this edge
-   */
-  val AntiClockwiseEdge = 2
+  // /**
+  //  * Connector id of the anticlockwise edge.
+  //  * If you are inside the group facing anitclockwise, you are looking at this edge
+  //  */
+  // val AntiClockwiseEdge = 2
 
-  /**
-    * Connector id of the clockwise edge.
-    * If you are inside the group facing anitclockwise, you are looking at this edge
-    */
-  val ClockwiseEdge = 3
+  // /**
+  //   * Connector id of the clockwise edge.
+  //   * If you are inside the group facing anitclockwise, you are looking at this edge
+  //   */
+  // val ClockwiseEdge = 3
 
-  val OuterEdgeConn = 4
+  // val OuterEdgeConn = 4
 
   /**
     * Calculates the anchors used to place the ring groups.   The diagonal SG anchors are lined up
@@ -149,11 +151,8 @@ object HyperLoop0 {
 
   // TODO - do a cool effect with the cycler
   def main(args: Array[String]): Unit = {
-
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
     threeLayerRing(gameCfg)
-
-
   }
 
   /**
@@ -170,19 +169,6 @@ object HyperLoop0 {
     writer.autoLink(ring.head, ring.last)
   }
 
-  /**
-    * measure the distance from the "inner" connector to the anchor.  Only works with axis-aligned ring groups
-    *
-    * With this algorithm, only the "middle" ring sector groups can have anchors.
-    *
-    * @param sg - should be an "east" axis-aligned ring group
-    * @return
-    */
-  def measureDistToAnchor(sg: SectorGroup): Int = {
-    val conn = sg.getRedwallConnector(InnerEdgeConn)
-    require(conn.isAxisAligned, "connector must be axis-aligned")
-    sg.getRedwallConnector(InnerEdgeConn).getBoundingBox.center.manhattanDistanceTo(sg.getAnchor.asXY).toInt
-  }
 
   def threeLayerRing(gameCfg: GameConfig): Unit = {
     val palette = ScalaMapLoader.loadPalette(HardcodedConfig.EDUKE32PATH + Filename, Some(gameCfg))
