@@ -454,7 +454,7 @@ public class TextureList {
 			.addedTo(new TextureFont(3022, "'"));
 
 	/** big gray */
-	public static final TextureFont FONT_BIGGRAY = new TextureFont(2965, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+	public static final TextureFont FONT_BIGGRAY = new TextureFont(2966, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
 	/** tiny yellow */
 	public static final TextureFont FONT_TINYYELLOW = new TextureFont(3010, "0123456789:/");

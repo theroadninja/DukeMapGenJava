@@ -140,6 +140,7 @@ public class Main {
 	}
 
 	// TODO this design is dumb; you have to specify "output.map" twice
+	// NOTE:  you might want to call ExpUtil.finishAndWrite() instead
 	public static void deployTest(Map map, String filename, String deployPath) throws IOException {
 
 		// 1. write to temporary location in project

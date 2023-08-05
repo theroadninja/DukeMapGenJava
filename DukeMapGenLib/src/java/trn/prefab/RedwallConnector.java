@@ -283,6 +283,10 @@ public class RedwallConnector extends Connector {
         }
     }
 
+    public final boolean isAxisAligned(){
+        return (heading == Heading.E || heading == Heading.W || heading == Heading.N || heading == Heading.S);
+    }
+
 
     /** temp, just to east the transition from having SimpleConnector vs MultiWallConnector */
     private boolean isSimpleConnector(){
@@ -296,6 +300,27 @@ public class RedwallConnector extends Connector {
             return true;
         }
 
+    }
+
+    public BoundingBox getBoundingBox(){
+        PointXY p = walls.get(0).p1();
+        int minx = p.x;
+        int miny = p.y;
+        int maxx = minx;
+        int maxy = miny;
+
+        for(WallView wall: walls){
+            minx = Math.min(minx, wall.p1().x);
+            minx = Math.min(minx, wall.p2().x);
+            maxx = Math.max(maxx, wall.p1().x);
+            maxx = Math.max(maxx, wall.p2().x);
+
+            miny = Math.min(miny, wall.p1().y);
+            miny = Math.min(miny, wall.p2().y);
+            maxy = Math.max(maxy, wall.p1().y);
+            maxy = Math.max(maxy, wall.p2().y);
+        }
+        return new BoundingBox(minx, miny, maxx, maxy);
     }
 
 
