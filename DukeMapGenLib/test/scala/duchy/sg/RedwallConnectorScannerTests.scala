@@ -1,9 +1,12 @@
 package duchy.sg
 
 import org.junit.{Assert, Test}
-import trn.{Sprite, ScalaMapLoader, Map => DMap}
-import trn.prefab.{TestUtils, PrefabUtils, RedwallConnector, DukeConfig}
+import trn.{PointXY, Wall, ScalaMapLoader, Sprite, WallView, LineSegmentXY, Map => DMap}
+import trn.prefab.{PrefabUtils, DukeConfig, RedwallConnector, TestUtils, MultiSectorConnector}
 import trn.MapImplicits._
+
+import java.util
+import java.util.{ArrayList, List}
 
 class RedwallConnectorScannerTests {
 
@@ -191,6 +194,11 @@ class RedwallConnectorScannerTests {
     val child = sections.find(_.isChild).get
     Assert.assertTrue(parent.isBefore(child))
     Assert.assertFalse(child.isBefore(parent))
+
+    val frag2 = sgFrags.find(_.groupId.getOrElse(-1) == 2).get
+    val sections2: Seq[RedwallSection] = RedwallConnectorScanner.findAllRedwallSections(frag2.clipboard.asView)
+    Assert.assertEquals(3, sections2.size)
+
   }
 
   @Test
@@ -212,5 +220,35 @@ class RedwallConnectorScannerTests {
     val multi2 = conns2.head
     Assert.assertTrue(multi2.isRedwall)
     Assert.assertEquals(9, multi2.getWallIds.size())
+
+    val conns3 = RedwallConnectorScanner.findAllRedwallConns(getFrag(3).clipboard.asView)
+    Assert.assertEquals(2, conns3.size)
+    Assert.assertEquals(9, conns3(0).getWallIds.size)
+    Assert.assertEquals(9, conns3(1).getWallIds.size)
+  }
+
+  @Test
+  def testRelativeConnPoints(): Unit = {
+    def p(x: Int, y: Int) = new PointXY(x, y)
+
+    def testWall(wallId: Int, p0: PointXY, p1: PointXY, otherWall: Int = -1): WallView = {
+      val w = new Wall(p0.x, p0.y)
+      w.setOtherSide(otherWall, -1)
+      new WallView(w, wallId, new LineSegmentXY(p0, p1), -1, -1)
+    }
+
+    val walls = Seq(
+      testWall(1, p(32, 16), p(64, 17)),
+      testWall(2, p(64, 17), p(96, 18)),
+      testWall(2, p(96, 18), p(128, 19)),
+    )
+    val anchor: PointXY = p(32, 16)
+
+    val results = RedwallConnectorScanner.getRelativeConnPoints(walls, anchor)
+    Assert.assertEquals(4, results.size)
+    Assert.assertEquals(p(0, 0), results(0))
+    Assert.assertEquals(p(32, 1), results(1))
+    Assert.assertEquals(p(64, 2), results(2))
+    Assert.assertEquals(p(96, 3), results(3))
   }
 }

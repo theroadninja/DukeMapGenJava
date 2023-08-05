@@ -77,7 +77,9 @@ public class RedwallConnector extends Connector {
 
     protected final List<WallView> walls;
 
-    /** the lotag that marks walls as connector walls:  1 or 2 */
+    /**
+     * TODO this is meaningless -- a single conn can have multiple lotags
+     * */
     protected final int wallMarkerLotag;
 
     /** if this is an axis-aligned (a.k.a. compass, or SimpleConnector) then this returns the heading; otherwise -1 */
@@ -89,7 +91,7 @@ public class RedwallConnector extends Connector {
      */
     protected final List<PointXY> relativePoints;
 
-    protected RedwallConnector(
+    public RedwallConnector(
             int connectorId,
             int spriteSectorId,
             List<Integer> sectorIds,

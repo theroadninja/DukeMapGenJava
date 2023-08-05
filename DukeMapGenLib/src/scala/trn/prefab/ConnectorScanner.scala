@@ -13,7 +13,9 @@ class WallSection(val wallIds: Set[Int]) {
 }
 
 /**
-  * TODO meant to be replaced by RedwallConnectorScanner (maybe)
+  * RedwallScanner is the newest scanner object, though it uses some code in this class.
+  *
+  * This class meant to be completely replaced by RedwallConnectorScanner
   *
   * Scala counterpart to ConnectorFactory
   *
@@ -51,7 +53,6 @@ object ConnectorScanner {
   // finds a bunch of walls that are all connected to each other
   def scanLine(walls: Seq[WallView], pointToWall: Map[PointXY, Set[WallView]] ): (Set[Int], Seq[WallView]) = {
     require(walls.size > 0)
-    require(!walls.exists(_.lotag != MultiSectorConnector.WALL_LOTAG))
     require(walls.map(_.getWallId).toSet.size == walls.size, "duplicate wall ids detected")
 
     val closedList = mutable.Set[Int]()
@@ -252,6 +253,7 @@ object ConnectorScanner {
 
   // def matchSpritesToWallSections(sprites: Seq[Sprite], wallSections: Seq[WallSection])
 
+  @deprecated // use RedwallConnectorScanner instead
   def findMultiSectorConnectors(map: MapView): java.util.List[Connector] = {
     // TODO - establish a max num of walls that can be used in this connector?  32? 512?
 
@@ -306,16 +308,18 @@ object ConnectorScanner {
       val wallIds = sortedWalls.map(_.getWallId)//.map(Integer.valueOf)
       val sectorIds = wallIds.map(wallIdToSectorId).toSeq
 
-      MultiSectorConnector.create(
-        wallSection.marker.get,
-        sectorIds.map(Integer.valueOf).asJava,
-        wallIds.map(Integer.valueOf).asJava,
-        sortedWalls.asJava,
-        anchor(sortedWalls), //.withZ(anchorZ),
-        sortedWalls.head.p1,
-        sortedWalls.last.p2,
-        map
-      )
+      throw new RuntimeException("this code can no longer scan multi-sector conns.  Use RedwallConnectorScanner instead")
+
+      // MultiSectorConnector.create(
+      //   wallSection.marker.get,
+      //   sectorIds.map(Integer.valueOf).asJava,
+      //   wallIds.map(Integer.valueOf).asJava,
+      //   sortedWalls.asJava,
+      //   anchor(sortedWalls), //.withZ(anchorZ),
+      //   sortedWalls.head.p1,
+      //   sortedWalls.last.p2,
+      //   map
+      // )
     }.map(_.asInstanceOf[Connector]).asJava
   }
 

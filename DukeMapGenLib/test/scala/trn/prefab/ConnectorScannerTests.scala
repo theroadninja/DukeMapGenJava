@@ -10,17 +10,13 @@ import scala.collection.JavaConverters._
 
 class ConnectorScannerTests {
 
-  lazy val testMap: DMap = TestUtils.load(TestUtils.MultiSect)
-
-  lazy val palette: PrefabPalette = PrefabPalette.fromMap(testMap, true);
-
   private def p(x: Int, y: Int): PointXY = new PointXY(x, y)
 
   /** creates just enough of a WallView to run ConnectorScanner tests -- not even close to being valid though */
   def testWall(wallId: Int, p0: PointXY, p1: PointXY, otherWall: Int = -1): WallView = {
     val w = new Wall(p0.x, p0.y)
     w.setOtherSide(otherWall, -1)
-    w.setLotag(MultiSectorConnector.WALL_LOTAG)
+    w.setLotag(2)
     new WallView(w, wallId, new LineSegmentXY(p0, p1), 1024, -1024)
   }
 
@@ -385,66 +381,6 @@ class ConnectorScannerTests {
       p(-1024, -128),
       ConnectorScanner.anchor(Seq(testWall(1, p(-1024, 512), p(32, -64)), testWall(2, p(64, -128), p(0, 0))))
     )
-  }
-
-  @Test
-  def testScanMultiSector: Unit = {
-
-    val multiSectorResults = ConnectorScanner.findMultiSectorConnectors(new MapView(testMap)).asScala
-    Assert.assertEquals(17, multiSectorResults.size)
-
-    val sg1 = palette.getSG(1) // this alone found most of the problems
-    Assert.assertEquals(1, sg1.connectors.size)
-    println(sg1.connectors.get(0).getClass)
-    Assert.assertEquals(1, sg1.allRedwallConnectors.size)
-    Assert.assertEquals(1, sg1.allRedwallConnectors.head.getWallCount)
-
-    val sg2 = palette.getSG(2)
-    Assert.assertEquals(1, sg2.allRedwallConnectors.size)
-    Assert.assertEquals(2, sg2.allRedwallConnectors.head.getWallCount)
-
-    val sg3 = palette.getSG(3)
-    Assert.assertEquals(1, sg3.allRedwallConnectors.size)
-    Assert.assertEquals(2, sg3.allRedwallConnectors.head.getWallCount)
-    val conn3 = sg3.allRedwallConnectors.head
-    Assert.assertEquals(conn3.getAnchorPoint.asXY, conn3.wallAnchor1)
-
-    val sg4 = palette.getSG(4)
-    Assert.assertEquals(2, sg4.allRedwallConnectors.size)
-    sg4.allRedwallConnectors.foreach { conn =>
-      Assert.assertEquals(3, conn.getWallCount)
-      Assert.assertFalse(conn.isLinked(sg4.getMap))
-    }
-
-    val sg5 = palette.getSG(5)
-    Assert.assertEquals(2, sg5.allRedwallConnectors.size)
-    sg5.allRedwallConnectors.foreach { conn =>
-      Assert.assertEquals(3, conn.getWallCount)
-      Assert.assertTrue(conn.isLinked(sg5.getMap))
-    }
-
-    val sg6 = palette.getSG(6)
-    Assert.assertEquals(1, sg6.allRedwallConnectors.size)
-    Assert.assertEquals(6, sg6.allRedwallConnectors.head.getWallCount)
-
-    val sg7 = palette.getSG(7)
-    Assert.assertEquals(1, sg7.allRedwallConnectors.size)
-    Assert.assertEquals(4, sg7.allRedwallConnectors.head.getWallCount)
-
-    val sg8 = palette.getSG(8)
-    Assert.assertEquals(2, sg8.allRedwallConnectors.size)
-    sg8.allRedwallConnectors.foreach { conn =>
-      Assert.assertEquals(2, conn.getWallCount)
-      Assert.assertFalse(conn.isLinked(sg8.getMap))
-    }
-
-    val sg9 = palette.getSG(9)
-    Assert.assertEquals(1, sg9.allRedwallConnectors.size)
-    Assert.assertEquals(4, sg9.allRedwallConnectors.head.getWallCount)
-
-
-
-    // For more tests, see MultiSectorConnectorTests
   }
 
   @Test

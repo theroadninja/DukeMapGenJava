@@ -1,16 +1,13 @@
 package duchy.sg
 
-import trn.prefab.{ConnectorFactory, ConnectorScanner, PrefabUtils, ConnectorFactory2, Connector}
+import trn.prefab.{ConnectorScanner, PrefabUtils, ConnectorFactory2, Connector}
 import trn.{MapView, CopyState, Map => DMap}
 
 import trn.MapImplicits._
 import scala.collection.JavaConverters._
 
 /**
-  * TODO meant to be replaced by RedwallConnectorScanner (maybe)
-  *
   * TODO there is another ConnectorScanner in trn.prefab.ConnectorScanner.scala
-  * Meant to replace ConnectorFactory.java
   */
 object SimpleConnectorScanner {
 
@@ -20,15 +17,15 @@ object SimpleConnectorScanner {
   private def allSectors(sectorId: Int): Boolean = true
 
   def scanAndFilter(map: MapView, sectorIdFilter: Int => Boolean = allSectors): Seq[Connector] = {
+    val redwallConns = RedwallConnectorScanner.findAllRedwallConns(map, sectorIdFilter)
+
     val markerSprites = map.allSprites.filter(s => s.getTex == PrefabUtils.MARKER_SPRITE_TEX)
-
     val connectors = markerSprites.flatMap { marker =>
-      Option(ConnectorFactory2.create(map, marker))
+      Option(ConnectorFactory2.createOther(map, marker))
     }.filter(s => sectorIdFilter(s.getSectorId))
+    // val multiSectorResults = ConnectorScanner.findMultiSectorConnectors(map).asScala
 
-    val multiSectorResults = ConnectorScanner.findMultiSectorConnectors(map).asScala
-
-    connectors ++ multiSectorResults
+    redwallConns ++ connectors
   }
 
   def scan(map: MapView): Seq[Connector] = scanAndFilter(map)

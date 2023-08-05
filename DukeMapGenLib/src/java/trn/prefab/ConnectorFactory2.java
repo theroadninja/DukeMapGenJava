@@ -10,8 +10,12 @@ import java.util.Map;
 /**
  * Temporary class I am creating in order to migrate code from ConnectorFactory.java to SimpleConnectorScanner.scala
  *
+ * NOTE:  the original ConnectorFactory has been deleted.
+ *
  * I don't want circular references going back and forth between the two classes, so I am moving the lower level methods
  * here first.
+ *
+ * THE NEWEST VERSION OF THIS CODE IS:  RedwallConnectorScanner
  */
 public class ConnectorFactory2 {
 
@@ -86,6 +90,9 @@ public class ConnectorFactory2 {
         Sector sector = map.getSector(s.getSectorId());
 
         if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.SIMPLE_CONNECTOR) {
+            // TODO this branch is deprecated -- replaced by RedwallConnectorScanner
+
+
             // TODO - this code has a bug that causes it to run forever if every wall in the sector is marked with 1
 
             List<Integer> linkWallIds = SimpleConnectorScanner$.MODULE$.getLinkWallIdsJava(map, s.getSectorId());
@@ -102,7 +109,7 @@ public class ConnectorFactory2 {
                 // only one wall segment, assume the connector matches
 
                 // TODO get rid of this ability (valid connector without pointing the sprite at the wall) ?
-                if(! matches(s, partitions.get(0), map)){
+                if (!matches(s, partitions.get(0), map)) {
                     throw new SpriteLogicException("redwall connector sprite is not pointed at a connector wall", s);
                 }
 
@@ -116,13 +123,29 @@ public class ConnectorFactory2 {
                 }
                 throw new SpriteLogicException("Cannot match connector to its walls (point the sprite at the correct wall(s)");
             }
-        }else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR) {
-            return new TeleportConnector(s, sector.getLotag());
-        }else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR){
+        }else{
+            return createOther(map, markerSprite);
+        // }else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR) {
+        //     return new TeleportConnector(s, sector.getLotag());
+        // }else if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR){
+        //     if(sector.getLotag() != 15){
+        //         throw new SpriteLogicException("elevector connector in sector with lotag != 15");
+        //     }
+        //     return new ElevatorConnector(s);
+        // }else{
+        //     return null;
+        }
+    }
+
+    public static Connector createOther(MapView map, Sprite markerSprite) throws MapErrorException {
+        Sector sector = map.getSector(markerSprite.getSectorId());
+        if(markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR) {
+            return new TeleportConnector(markerSprite, sector.getLotag());
+        }else if(markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR){
             if(sector.getLotag() != 15){
                 throw new SpriteLogicException("elevector connector in sector with lotag != 15");
             }
-            return new ElevatorConnector(s);
+            return new ElevatorConnector(markerSprite);
         }else{
             return null;
         }

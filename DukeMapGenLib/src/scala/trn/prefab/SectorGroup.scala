@@ -37,9 +37,7 @@ object SectorGroup {
     */
   def newSG(map: DMap, sectorGroupId: Int, props: SectorGroupProperties, hints: SectorGroupHints): SectorGroup = {
     val connectors = try {
-      // ConnectorFactory.findConnectors(map)
       SimpleConnectorScanner.scanAsJava(map.asView)
-
     }catch{
       case ex: Exception => throw new SpriteLogicException(
         "exception while scanning connectors in sector group.  id=" + sectorGroupId,

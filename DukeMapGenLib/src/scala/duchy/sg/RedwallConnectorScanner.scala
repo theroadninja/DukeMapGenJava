@@ -2,8 +2,8 @@ package duchy.sg
 
 import duchy.sg.RedwallSection.MultiSection
 import duchy.vector.{VectorMath, Line2D}
-import trn.prefab.{ConnectorScanner, PrefabUtils, ConnectorFactory2, RedwallConnector, MultiSectorConnector, SpriteLogicException}
-import trn.{PointXY, MapUtil, WallView, MapView, Sprite}
+import trn.prefab.{ConnectorScanner, PrefabUtils, ConnectorFactory2, RedwallConnector, ConnectorType, MultiSectorConnector, SpriteLogicException}
+import trn.{PointXYZ, PointXY, MapUtil, WallView, MapView, Sprite}
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Map
@@ -45,7 +45,10 @@ case class RedwallSection(marker: Sprite, sortedWalls: Seq[WallView]) {
   def isBefore(otherSection: RedwallSection): Boolean = if(size < 1 || otherSection.size < 1){
     false
   }else{
-    sortedWalls.last.p2 == otherSection.sortedWalls.head.p1
+    val tailWall = sortedWalls.last
+    val headWall = otherSection.sortedWalls.head
+    // the second check is to make sure we don't read joined connectors as a single connector
+    tailWall.p2 == headWall.p1 && tailWall.otherSectorId() != otherSection.sectorId
   }
 }
 
@@ -229,6 +232,25 @@ object RedwallConnectorScanner {
     results
   }
 
+  /** get the XYZ position of the "anchor" for a multi-sector redwall connector */
+  def getAnchor(walls: Seq[WallView], sectorIds: Seq[Int], map: MapView): PointXYZ = {
+    val anchorXY = ConnectorScanner.anchor(walls)
+    // The sector with the primary marker is not special, so use the lowest floor of alls sectors as the anchor
+    val z = sectorIds.map(id => map.getSector(id).getFloorZ).max  // "max" means the "lowest" floor b/c z is inverted
+    // val z = MultiSectorConnector.getAnchorZ(sectorIds.map(Integer.valueOf).asJava, map)
+    anchorXY.withZ(z)
+  }
+
+  /**
+    * For multi-sector connectors.  Returns the positions of all the wall points in the connector, but in coordinates
+    * that are relative to the anchor.
+    */
+  def getRelativeConnPoints(walls: Seq[WallView], anchor: PointXY): Seq[PointXY] = if(walls.isEmpty) {
+    Seq.empty
+  } else {
+    walls.map(_.p1.subtractedBy(anchor)) :+ walls.last.p2.subtractedBy(anchor)
+  }
+
   def findAllRedwallConns(map: MapView, sectorIdFilter: Int => Boolean = allSectors): Seq[RedwallConnector] = {
 
     val sections = findAllRedwallSections(map, sectorIdFilter)
@@ -248,9 +270,6 @@ object RedwallConnectorScanner {
     // assemble children and parents
 
     val (children, parents) = sections.partition(_.isChild)
-    // if(children.nonEmpty) {
-    //   throw new RuntimeException("TODO multi-sector connectors not supported yet")
-    // }
 
     val multiSections: Seq[MultiSection] = parents.map { parent =>
       matchParentToChildren(parent, children)
@@ -273,17 +292,30 @@ object RedwallConnectorScanner {
         val wallIds: Seq[Int] = multiSection.flatMap(_.wallIds)
         val sectorIds: Seq[Int] = multiSection.flatMap(_.sectorIds)
         val wallViews = wallIds.map(wallId => map.getWallView(wallId))
-        val anchor = ConnectorScanner.anchor(wallViews)
+        val anchor = getAnchor(wallViews, sectorIds, map)
 
-        MultiSectorConnector.create(
-          parentMarker,
+        val connectorId = if(parentMarker.getHiTag() > 0){ parentMarker.getHiTag() }else{ -1 }
+
+        val wallLotag = 1 // the "wall lotag" of a conn no longer has meaning
+
+        val walls = wallViews.asJava
+        val totalWallLength = WallView.totalLength(walls)
+        val connectorType = ConnectorType.MULTI_SECTOR
+
+        new RedwallConnector(
+          connectorId,
+          parentMarker.getSectorId,
           sectorIds.map(Integer.valueOf).asJava,
-          wallIds.map(Integer.valueOf).asJava,
-          wallViews.asJava,
+          totalWallLength,
           anchor,
           wallViews.head.p1,
           wallViews.last.p2,
-          map
+          parentMarker.getLotag,
+          connectorType,
+          wallIds.map(Integer.valueOf).asJava,
+          walls,
+          wallLotag,
+          getRelativeConnPoints(wallViews, anchor.asXY).asJava,
         )
       }
 
