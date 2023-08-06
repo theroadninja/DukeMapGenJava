@@ -284,7 +284,11 @@ object HyperLoop1 {
     // -- room full of rats (use marker to autofill)
     // -- subway going around the outer level!
     // -- switch between two different styles of outer groups (e.g. one uses a multisector connector)
-    // -- vent on inner wall connects to annother vent on inner wall  (alternative:  crack, door)
+    // -- central traversals
+    //     - vents
+    //     - shrink-ray-only passages
+    //     - normal doors/hallways
+    //     - blow way through via cracks
     // multi layered rotating shields protecting a reactor
 
     // -- something to make it easier to see that its more than one loop (half circle decorations?)
@@ -299,11 +303,12 @@ object HyperLoop1 {
     val outerStart = palette.getSG(4)
     val outerLightPulse = palette.getSG(5) // first attempt id=3
     val outerLightsDiag = palette.getSG(6)
-    val outerMirror = palette.getSG(7)
+    val outerMirror = palette.getSG(7) // https://infosuite.duke4.net/index.php?page=ae_walls_b2
 
     val midForceFieldDiag = palette.getSG(8)
     val outerForceFieldDiag = palette.getSG(9)
     val innerForceFieldDiag = palette.getSG(10)
+
 
     //
     // standard groups
@@ -319,6 +324,27 @@ object HyperLoop1 {
     // just an outer diag that makes it look like the adjacent (on the anticlockwise side) straigt wall
     // is extended farther
     val outerDiagStraightExtender = palette.getSG(17)
+    val outerDoor1 = palette.getSG(18) // has a 1024-wide space door in the outer wall
+    val powerUpRoom = palette.getSG(19) // not a ring segment!
+
+    val innerEndDiag = palette.getSG(20)
+
+    val midBigDoor = palette.getSG(21)
+    val innerBlocked = palette.getSG(22) // doesnt let you walk through the inner area
+    val outerBlocked = palette.getSG(23)
+
+
+
+
+
+
+    val r = powerUpRoom.withItem(TextureList.Items.KEY)
+    val outerDoorWithKey = outerDoor1.withGroupAttached(
+      gameCfg,
+      outerDoor1.getRedwallConnector(150),  // chose 150 b/c its the door tex in the conn
+      r,
+      r.getRedwallConnector(150),
+    )
 
 
     val ringLayout = RingLayout.fromSectorGroups(core, innerE, midE)
@@ -344,22 +370,31 @@ object HyperLoop1 {
     }
     ringPrinter.pasteInner(1, innerForceFieldDiag)
 
+    ringPrinter.pasteMiddle(8, midBigDoor)
+    ringPrinter.pasteInner(8, innerBlocked)
+    ringPrinter.pasteOuter(8, outerBlocked)
+
     for (index <- 0 until 16) {
       if(!ringPrinter.middleRing.contains(index)){
         ringPrinter.pasteMiddle(index, selectRing(index))
       }
     }
-    ringPrinter.pasteOuter(4, outerStart)
     ringPrinter.pasteOuter(0, outerMirror)
+    // 1 is the force field
     ringPrinter.pasteOuter(3, outerDiagStraightExtender)
+    ringPrinter.pasteOuter(4, outerStart)
+    // ringPrinter.pasteOuter(6, outerDoor1)
+    ringPrinter.pasteOuter(6, outerDoorWithKey)
 
-    // (0 until 16).foreach { index => ringPrinter.pasteOuter(index, selectOuterRing(index))}
+    ringPrinter.pasteInner(7, innerEndDiag)
+
 
     val pastedGuns = ringPrinter.pasteInner(0, innerSurpriseGuns)
-    //val pastedGuns = ringPrinter.pasteInside(0, innerSurpriseGuns)
     val switchLotag = allSwitchRequests(pastedGuns).head //val switchLotag = pastedGuns.allSpritesInPsg.find(s => Marker.isMarker(s, Marker.Lotags.SWITCH_REQUESTED)).get.getHiTag
-
     ringPrinter.addTouchplate(ringPrinter.middleRing(0), switchLotag) // TODO should this be a method on the printer?
+
+
+
 
     ringPrinter.fillInner(innerE, innerSE)
     // ringPrinter.fillOuter(outerE, outerSE)

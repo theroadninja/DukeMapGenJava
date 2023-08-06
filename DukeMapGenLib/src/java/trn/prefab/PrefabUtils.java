@@ -106,10 +106,7 @@ public class PrefabUtils {
 		 */
 		public static int ENEMY = 8;
 
-		/**
-		 * Location for a powerup, including keys.
-		 */
-		public static int ITEM = 9;
+		public static int ITEM = Marker.Lotags.ITEM;
 
 		/**
 		 * Used for a sector group that isnt a real sector group but it only used as input for a particular generator

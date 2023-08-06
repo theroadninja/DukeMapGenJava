@@ -140,6 +140,14 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     cp
   }
 
+  def withItem(tex: Int, pal: Int = 0): SectorGroup = {
+    val cp = copy()
+    val itemSprite: Sprite = cp.sprites.find(s => Marker.isMarker(s, Marker.Lotags.ITEM)).getOrElse(throw new RuntimeException("Sector group has no item marker"))
+    itemSprite.setTexture(tex)
+    itemSprite.setPal(pal)
+    cp
+  }
+
   /**
     * Pastes one sector group, innerGroup, inside this group.   The exact placement is determined by calculating the
     * translate that lines up the anchors.

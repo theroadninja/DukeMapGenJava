@@ -11,6 +11,11 @@ public class Marker {
 
 
         /**
+         * Location for a powerup, including keys.
+         */
+        public static int ITEM = 9;
+
+        /**
          * Used to indicate that a sector group has some kind of activated affect that needs to be paired
          * with a switch or touchplate in another sector group.  The hitag of the marker sprite has the link id.
          *
