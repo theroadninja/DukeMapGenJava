@@ -8,7 +8,7 @@ import trn.MapImplicits._
 object SectorGroupProperties {
 
   /** defaults for generating sector groups in code */
-  val Default = new SectorGroupProperties(None, false, None, Seq.empty)
+  val Default = new SectorGroupProperties(None, false, None, Seq.empty, Seq.empty)
 
   def findMarkers(map: DMap, lotag: Int, max: Option[Int] = None): Seq[Sprite] = {
     val list = map.allSprites.filter(s => s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag)
@@ -24,6 +24,10 @@ object SectorGroupProperties {
   def hasMarker(map: DMap, lotag: Int): Boolean = findMarkers(map, lotag, Some(1)).size == 1
 
 
+  /**
+    * @param map a map containing ONLY the sectors of this sector group
+    * @return
+    */
   def scanMap(map: DMap): SectorGroupProperties = {
     //public List<Sprite> findSprites(Integer picnum, Integer lotag, Integer sectorId){
     // List<Sprite> idSprite = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
@@ -36,10 +40,18 @@ object SectorGroupProperties {
 
     val axisLocks = findMarkers(map, PrefabUtils.MarkerSpriteLoTags.ALGO_AXIS_LOCK).map(_.getHiTag).map(AxisLock(_))
 
-    new SectorGroupProperties(groupIds.headOption, hasMarker(map, PrefabUtils.MarkerSpriteLoTags.STAY), zAdjust.headOption, axisLocks)
+    val switchesRequested = findMarkers(map, Marker.Lotags.SWITCH_REQUESTED).map(_.getHiTag)
+
+    new SectorGroupProperties(groupIds.headOption, hasMarker(map, PrefabUtils.MarkerSpriteLoTags.STAY), zAdjust.headOption, axisLocks, switchesRequested)
   }
 }
-class SectorGroupProperties(val groupId: Option[Int], stay: Boolean, val zAdjust: Option[Int], val axisLocks: Seq[AxisLock]) {
+class SectorGroupProperties(
+  val groupId: Option[Int],
+  stay: Boolean,
+  val zAdjust: Option[Int],
+  val axisLocks: Seq[AxisLock],
+  val switchesRequested: Seq[Int], // list of "link ids" we need switches for.  See Marker.Lotags.SWITCH_REQUESTED
+) {
 
   def stayFlag: Boolean = stay
 

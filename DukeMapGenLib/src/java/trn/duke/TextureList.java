@@ -47,6 +47,10 @@ public class TextureList {
 	 */
 	public static final int MUSIC_AND_SFX = 5;  //a big M
 	public static final int LOCATORS = 6; //a big L with a little plus sign
+
+	/**
+	 * a pulse speed of 135 seems to be about once per second (pulse speed is GPSPEED lotag)
+	 */
 	public static final int CYCLER = 7; // a big C
 
 	/**

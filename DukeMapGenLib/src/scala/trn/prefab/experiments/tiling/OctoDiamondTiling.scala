@@ -161,7 +161,7 @@ class OctoDiTileMaker(gameCfg: GameConfig, tiling: OctoDiamondTiling) extends Ti
 
         val marker = MapWriter.newMarkerSprite(sectorId, bb.center.withZ(map.getSector(sectorId).getFloorZ), lotag=PrefabUtils.MarkerSpriteLoTags.ANCHOR)
         map.addSprite(marker)
-        val props = new SectorGroupProperties(None, false, None, Seq.empty)
+        val props = new SectorGroupProperties(None, false, None, Seq.empty, Seq.empty)
         SectorGroupBuilder.createSectorGroup(map, props, SectorGroupHints.Empty)
 
       }

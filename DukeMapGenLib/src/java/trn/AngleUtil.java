@@ -27,6 +27,9 @@ public class AngleUtil {
      *  */
     public static final int ANGLE_UP = 1536;
 
+    // alias to make things less confusing.  North means "up" in the build editor
+    public static final int ANGLE_NORTH = ANGLE_UP;
+
     public static final int ANGLE_RIGHT = 0;
 
     public static final int ANGLE_DOWN = 512;

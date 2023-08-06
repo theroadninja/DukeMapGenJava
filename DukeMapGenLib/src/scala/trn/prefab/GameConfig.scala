@@ -265,7 +265,9 @@ class DukeConfig(textureWidths: Map[Int, Int], textureHeights: Map[Int, Int]) ex
       (sprite.getLotag to sprite.getLotag + 3) // must come before hasUniqueLotag()
     }else if(hasUniqueLotag(sprite.getTex)){
       Seq(sprite.getLotag)
-    }else if(hasUniqueHitag(sprite.getTex)){
+    }else if(hasUniqueHitag(sprite.getTex)) {
+      Seq(sprite.getHiTag)
+    }else if(Marker.hasUniqueHitag(sprite)) {
       Seq(sprite.getHiTag)
     }else{
       Seq.empty
@@ -296,6 +298,8 @@ class DukeConfig(textureWidths: Map[Int, Int], textureHeights: Map[Int, Int]) ex
       // TODO do these need the same check at the hitag stuff above?
       sprite.setLotag(idMap(sprite.getLotag))
     }else if(hasUniqueHitag(sprite.getTex)){
+      sprite.setHiTag(idMap(sprite.getHiTag))
+    }else if(Marker.hasUniqueHitag(sprite)) {
       sprite.setHiTag(idMap(sprite.getHiTag))
     }
   }

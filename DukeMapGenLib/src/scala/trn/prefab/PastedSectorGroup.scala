@@ -40,7 +40,10 @@ class PastedSectorGroup private (
   }
   // override def findSprites(filters: ISpriteFilter*): java.util.List[Sprite] = getMap().findSprites4Scala(filters.asJava)
 
+  /** WARNING:  returns all sprites in the MAP including sprites not in this PSG! */
   def allSprites: Seq[Sprite] = getMap().allSprites
+
+  def allSpritesInPsg: Seq[Sprite] = allSprites.filter(s => sectorIds.contains(s.getSectorId))
 
   override def getWallView(wallId: Int): WallView = map.getWallView(wallId)
 

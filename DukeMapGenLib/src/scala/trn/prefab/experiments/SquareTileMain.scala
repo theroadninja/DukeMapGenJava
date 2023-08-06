@@ -1,6 +1,6 @@
 package trn.prefab.experiments
 import trn.{BuildConstants, PointXY, FuncUtils, HardcodedConfig, ScalaMapLoader, Map => DMap}
-import trn.prefab.{CompassWriter, BoundingBox, MapWriter, PrefabUtils, MaxCopyHint, DukeConfig, SectorGroup, RedwallConnector, Heading, PrefabPalette, Matrix2D, EntropyProvider, PastedSectorGroup, SpriteLogicException}
+import trn.prefab.{CompassWriter, BoundingBox, MapWriter, PrefabUtils, MaxCopyHint, DukeConfig, SectorGroup, RedwallConnector, Heading, PrefabPalette, Matrix2D, EntropyProvider, PastedSectorGroup, SpriteLogicException, Marker}
 import trn.FuncImplicits._
 import trn.duke.TextureList
 import trn.prefab.grid2d.{Side, GridPiece, SimpleGridPiece, SectorGroupPiece}
@@ -655,7 +655,7 @@ class SquareTileMain(
     }
 
     grid.allPsg.foreach { psg =>
-      val enemyTags = psg.allSprites.filter(s => PrefabUtils.isMarker(s) && s.getLotag == PrefabUtils.MarkerSpriteLoTags.ENEMY)
+      val enemyTags = psg.allSprites.filter(s => Marker.isMarker(s) && s.getLotag == PrefabUtils.MarkerSpriteLoTags.ENEMY)
       if(enemyTags.nonEmpty){
         println("printing enemy")
         val s = writer.randomElement(enemyTags)

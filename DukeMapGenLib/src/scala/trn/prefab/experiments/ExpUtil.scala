@@ -9,11 +9,18 @@ import trn.{Map => DMap}
   * Utility Functions for Scala Experiments
   */
 object ExpUtil {
-  def finishAndWrite(writer: MapWriter, forcePlayerStart: Boolean = true, filename: String = "output.map"): Unit = {
+  def finishAndWrite(
+    writer: MapWriter,
+    forcePlayerStart: Boolean = true,
+    filename: String = "output.map",
+    removeMarkers: Boolean = true,
+  ): Unit = {
     // ////////////////////////
     writer.disarmAllSkyTextures()
     writer.setAnyPlayerStart(force = forcePlayerStart)
-    writer.sgBuilder.clearMarkers()
+    if(removeMarkers){
+      writer.sgBuilder.clearMarkers()
+    }
     writer.checkSectorCount()
     Main.deployTest(writer.outMap, filename, HardcodedConfig.getEduke32Path(filename))
   }

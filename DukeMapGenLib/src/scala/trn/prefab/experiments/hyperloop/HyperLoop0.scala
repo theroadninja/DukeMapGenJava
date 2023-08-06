@@ -147,6 +147,24 @@ object HyperLoop0 {
 
     def printAntiClockwise(sg: SectorGroup): PastedSectorGroup = printSg(sg, false)
 
+    /**
+      * Pastes a sector group to the inside of the ring, but doesnt save it.
+      *
+      * @param index index of existing middle-ring pasted group
+      * @param innerSg new sector group to paste to the inside of the middle ring
+      * @return
+      */
+    def pasteInside(index: Int, innerSg: SectorGroup): PastedSectorGroup = {
+      val (midPsg, heading) = pastedGroups(index)
+      val innerSg2 = RingPrinter.rotateEastTo(innerSg, heading)
+      writer.pasteAndLink(
+        midPsg.getRedwallConnector(InnerEdgeConn),
+        innerSg2,
+        innerSg2.getRedwallConnector(OuterEdgeConn),
+        Seq.empty,
+      )
+    }
+
   }
 
   // TODO - do a cool effect with the cycler

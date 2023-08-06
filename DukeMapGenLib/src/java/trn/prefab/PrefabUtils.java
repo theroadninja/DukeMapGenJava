@@ -11,9 +11,7 @@ import java.util.List;
 
 // TODO - idea:  marker that autopopulates rats to sector (hitag is number of rats to add)
 
-// TODO - reorder these markers before relasing (maybe space them out with reserved numbers in between)
-//        (can build a scanner to find them in all my test maps)
-
+// TODO - move most of this to Marker.java
 public class PrefabUtils {
 
 	public static class MarkerHiTags {
@@ -173,6 +171,8 @@ public class PrefabUtils {
 		 */
 		public static int ALGO_AXIS_LOCK = 14;
 
+		public static int SWITCH_REQUESTED = Marker.Lotags.SWITCH_REQUESTED;
+
 		/**
 		 * Elevator Connector
 		 *
@@ -203,6 +203,7 @@ public class PrefabUtils {
 		public static int MULTISECTOR_CHILD = 21;  // accomplishes multi-sector redwall conns by being a child segment
 
 		/** a connector that spans multiple sectors */
+		@Deprecated // use a combination of SIMPLE_CONNECTOR + MULTISECTOR_CHILD
 		public static int MULTI_SECTOR = 22;
 
 		/**
@@ -230,6 +231,7 @@ public class PrefabUtils {
 				TRANSLATE_Z,
 				ALGO_HINT,
 				ALGO_AXIS_LOCK,
+				SWITCH_REQUESTED,
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
 				MULTISECTOR_CHILD,
@@ -238,18 +240,16 @@ public class PrefabUtils {
 				});
 	}
 
-	public static int MARKER_SPRITE_TEX = 355;  // the construction sprite
-
-	public static boolean isMarker(Sprite s) {
-		return s.getTexture() == MARKER_SPRITE_TEX && s.getPal() == 0 && s.getLotag() > 0;
-	}
+	@Deprecated
+	public static int MARKER_SPRITE_TEX = Marker.MARKER_SPRITE_TEX;
 
 	public static boolean isMarker(Sprite s, int hitag, int lotag){
-	    return isMarker(s) && s.getHiTag() == hitag && s.getLotag() == lotag;
+	    return Marker.isMarker(s) && s.getHiTag() == hitag && s.getLotag() == lotag;
 	}
 
+
 	public static void checkValid(Sprite s) throws SpriteLogicException {
-		if(isMarker(s) && !MarkerSpriteLoTags.ALL.contains(s.getLotag())){
+		if(Marker.isMarker(s) && !MarkerSpriteLoTags.ALL.contains(s.getLotag())){
 			throw new SpriteLogicException("invalid marker sprite", s.getLocation().asXY());
 		}
 	}
