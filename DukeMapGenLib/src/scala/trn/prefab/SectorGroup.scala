@@ -140,6 +140,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     cp
   }
 
+  /** replaces an item marker sprite with the given item */
   def withItem(tex: Int, pal: Int = 0): SectorGroup = {
     val cp = copy()
     val itemSprite: Sprite = cp.sprites.find(s => Marker.isMarker(s, Marker.Lotags.ITEM)).getOrElse(throw new RuntimeException("Sector group has no item marker"))

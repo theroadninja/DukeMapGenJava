@@ -6,7 +6,7 @@ import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.hyperloop.EdgeIds._
 import trn.prefab.experiments.hyperloop.HyperLoop0.{calcRingAnchors, RingPrinter}
 import trn.{PointXY, HardcodedConfig, ScalaMapLoader, Sprite, AngleUtil}
-import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, PastedSectorGroup, Marker}
+import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, PrefabPalette, PastedSectorGroup, Marker}
 import trn.prefab.experiments.hyperloop.HyperLoopParser._
 
 import scala.collection.mutable
@@ -112,6 +112,8 @@ object RingLayout {
 
   def axisAligned(heading: Int): Boolean = AxisAligned.contains(heading)
 
+  def angleType(heading: Int): Int = if(axisAligned(heading)){ AXIS } else { DIAG }
+
   /**
     * Assuming you are starting with something facing East OR Southeat, return the number of 90 degree
     * rotations  to read that heading.
@@ -191,6 +193,19 @@ class RingPrinter1(writer: MapWriter, layout: RingLayout, count: Int) {
     psg
   }
 
+  def pasteSection(index: Int, ringSection: RingSection): Unit = {
+    require(index < count)
+    val heading = RingLayout.indexToHeading(index)
+    if(ringSection.angleType != RingLayout.angleType(heading)){
+      throw new RuntimeException(s"wrong index for section type")
+    }
+
+    // mid must be first
+    ringSection.mid.foreach(sg => pasteMiddle(index, sg))
+    ringSection.inner.foreach(sg => pasteInner(index, sg))
+    ringSection.outer.foreach(sg => pasteOuter(index, sg))
+  }
+
   /**
     * Fill in empty spaces with default sector groups
     */
@@ -259,6 +274,35 @@ class RingPrinter1(writer: MapWriter, layout: RingLayout, count: Int) {
 
 }
 
+
+case class RingSection(angleType: Int, inner: Option[SectorGroup], mid: Option[SectorGroup], outer: Option[SectorGroup])
+
+class Loop1Palette(gameCfg: GameConfig, palette: PrefabPalette) {
+
+  val midForceFieldDiag = palette.getSG(8)
+  val outerForceFieldDiag = palette.getSG(9)
+  val innerForceFieldDiag = palette.getSG(10)
+
+  val outerKeyDoor = palette.getSG(24) // conn 2048 wide
+  val doorAdapter = palette.getSG(25) // has a 1024 and a 3072 connection
+
+  /** diagonal section with force field stretching across the corridor */
+  def forceFieldDiag: RingSection = {
+    RingSection(RingLayout.DIAG, Some(innerForceFieldDiag), Some(midForceFieldDiag), Some(outerForceFieldDiag))
+  }
+
+  def sectionWithKey: RingSection = {
+    val outer = outerKeyDoor.withGroupAttached(
+      gameCfg,
+      outerKeyDoor.getRedwallConnector(123),
+      doorAdapter,
+      doorAdapter.allRedwallConnectors.find(conn => conn.totalManhattanLength() == 3072).get,
+    )
+    RingSection(RingLayout.AXIS, None, None, Some(outer))
+  }
+
+}
+
 object HyperLoop1 {
   val Filename = "loop1.map"
 
@@ -305,10 +349,6 @@ object HyperLoop1 {
     val outerLightsDiag = palette.getSG(6)
     val outerMirror = palette.getSG(7) // https://infosuite.duke4.net/index.php?page=ae_walls_b2
 
-    val midForceFieldDiag = palette.getSG(8)
-    val outerForceFieldDiag = palette.getSG(9)
-    val innerForceFieldDiag = palette.getSG(10)
-
 
     //
     // standard groups
@@ -333,9 +373,8 @@ object HyperLoop1 {
     val innerBlocked = palette.getSG(22) // doesnt let you walk through the inner area
     val outerBlocked = palette.getSG(23)
 
-
-
-
+    // val outerKeyDoor = palette.getSG(24) // conn 2048 wide
+    // val doorAdapter = palette.getSG(25) // has a 1024 and a 2048 connection
 
 
     val r = powerUpRoom.withItem(TextureList.Items.KEY)
@@ -356,19 +395,13 @@ object HyperLoop1 {
       midSE
     }
 
-    def selectOuterRing(index: Int): SectorGroup = if(index % 2 == 0) {
-      outerE
-    } else {
-      outerSE
-    }
+    val loop1Palette = new Loop1Palette(gameCfg, palette)
 
-    val forceMid = ringPrinter.pasteMiddle(1, midForceFieldDiag)
-    val forceChannel = allSwitchRequests(forceMid).head
-    val pastedForceOuter = ringPrinter.pasteOuter(1, outerForceFieldDiag)
-    pastedForceOuter.allSpritesInPsg.filter(s => s.getTex == TextureList.Switches.ACCESS_SWITCH_2).foreach { switch =>
+    ringPrinter.pasteSection(1, loop1Palette.forceFieldDiag)
+    val forceChannel = allSwitchRequests(ringPrinter.middleRing(1)).head
+    ringPrinter.outerRing(1).allSpritesInPsg.filter(s => s.getTex == TextureList.Switches.ACCESS_SWITCH_2).foreach { switch =>
       switch.setLotag(forceChannel)
     }
-    ringPrinter.pasteInner(1, innerForceFieldDiag)
 
     ringPrinter.pasteMiddle(8, midBigDoor)
     ringPrinter.pasteInner(8, innerBlocked)
@@ -387,6 +420,9 @@ object HyperLoop1 {
     ringPrinter.pasteOuter(6, outerDoorWithKey)
 
     ringPrinter.pasteInner(7, innerEndDiag)
+
+    ringPrinter.pasteSection(10, loop1Palette.sectionWithKey)
+    // ringPrinter.pasteOuter(10, outerKeyDoor)
 
 
     val pastedGuns = ringPrinter.pasteInner(0, innerSurpriseGuns)
