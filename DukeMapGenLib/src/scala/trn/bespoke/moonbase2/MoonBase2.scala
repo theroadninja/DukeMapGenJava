@@ -84,7 +84,8 @@ object HallwayPrinter {
     val wallAnchorA = WallAnchor(wallPointsA(0), wallPointsA(1), copyFrom.getFloorZ, copyFrom.getCeilingZ)
     val wallAnchorB = WallAnchor(wallPointsB(0), wallPointsB(1), copyFrom2.getFloorZ, copyFrom2.getCeilingZ)
 
-    if(false && LoungePrinter.canPrintLounge(wallAnchorA, wallAnchorB)){
+    // if(false && LoungePrinter.canPrintLounge(wallAnchorA, wallAnchorB)){
+    if(LoungePrinter.canPrintLounge(wallAnchorA, wallAnchorB)){
       try {
 
         val (r0, r1) = LoungePrinter.printLounge(r, gameCfg, writer.getMap, wallAnchorA, wallAnchorB)

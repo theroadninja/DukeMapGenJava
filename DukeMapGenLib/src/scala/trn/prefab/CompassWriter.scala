@@ -17,6 +17,7 @@ object CompassWriter {
   def northConnector(sg: ReadOnlySectorGroup): RedwallConnector = sg.getCompassConnectors(Heading.N).head
   def southConnector(sg: ReadOnlySectorGroup): RedwallConnector = sg.getCompassConnectors(Heading.S).head
 
+  /** the empty space is in the east direction, i.e. the connector is pointing east, is the east wall of a sector... */
   def east(sg: ReadOnlySectorGroup): Option[RedwallConnector] = sg.getCompassConnectors(Heading.E).headOption
   def south(sg: ReadOnlySectorGroup): Option[RedwallConnector] = sg.getCompassConnectors(Heading.S).headOption
   def west(sg: ReadOnlySectorGroup): Option[RedwallConnector] = sg.getCompassConnectors(Heading.W).headOption

@@ -97,6 +97,8 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
   val allSectorIds = (0 until map.getSectorCount).toSet
 
+  def allUnlinkedRedwallConns: Seq[RedwallConnector] = allRedwallConnectors.filter(c => !c.isLinked(map))
+
   def sectorCount: Int = map.getSectorCount
 
   def copy(): SectorGroup = {
@@ -128,6 +130,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   /**
+    * @param color one of DukeConfig.KeyColors
     * @returns a copy of this sector group with ALL keycards and locks set to the given color.
     */
   def withKeyLockColor(gameConfig: GameConfig, color: Int): SectorGroup = {
@@ -192,6 +195,37 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     val result = new SectorGroup(dest.map, dest.getGroupId, dest.props, dest.sghints, conns)
     // TODO: do we need to worry about the properties or hints for the SG we added?
     result
+  }
+
+  def withGroupAttachedById(
+    gameConfig: GameConfig,
+    myConnId: Int,
+    otherSg: SectorGroup,
+    otherConn: RedwallConnector,
+  ): SectorGroup = {
+    withGroupAttached(gameConfig, getRedwallConnector(myConnId), otherSg, otherConn)
+  }
+
+  /**
+    * Try to put the groups together using any redwall connector.  For now, this does not search through all redwall conns to
+    * find a match;  it just tries the first unlinked one on each side.  Its intended use is for simple uses cases
+    * like groups that only have one connector, or attaching a door to a group.
+    *
+    *
+    */
+  def withGroupAttachedByAny(gameCfg: GameConfig, otherSg: SectorGroup): SectorGroup = {
+    // TODO this fails because of rotation.  According to notes in MapWriter2.findPlacementsRaw() I didnt
+    // implement yet b/c you have to rescan connectors after a rotate, so this is probalby the wrong spot for this
+    ???
+
+    // val myConn = allUnlinkedRedwallConns.head
+    // val otherConn = otherSg.allUnlinkedRedwallConns.head
+    // require(otherConn.totalManhattanLength == myConn.totalManhattanLength)
+    // require(otherConn.getConnectorType == myConn.getConnectorType)
+    // require(otherConn.getWallCount == myConn.getWallCount)
+    // require(myConn.isMatch(otherConn))
+    // require(myConn.canLink(otherConn, None.orNull))
+    // withGroupAttached(gameCfg, myConn, otherSg, otherConn)
   }
 
 

@@ -1,13 +1,14 @@
 package trn.prefab.experiments.hyperloop
 
-import trn.duke.TextureList
+import trn.duke.{PaletteList, TextureList}
 import trn.math.SnapAngle
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.hyperloop.EdgeIds._
 import trn.prefab.experiments.hyperloop.HyperLoop0.{calcRingAnchors, RingPrinter}
-import trn.{PointXY, HardcodedConfig, ScalaMapLoader, Sprite, AngleUtil}
+import trn.{PointXY, RandomX, HardcodedConfig, ScalaMapLoader, Sprite, AngleUtil}
 import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, PrefabPalette, PastedSectorGroup, Marker}
 import trn.prefab.experiments.hyperloop.HyperLoopParser._
+import trn.prefab.experiments.hyperloop.RingLayout.{AXIS, DIAG}
 
 import scala.collection.mutable
 
@@ -76,6 +77,8 @@ object RingLayout {
     Headings(angleIndex % 8)
   }
 
+  def indexToAngleType(angleIndex: Int): Int = angleType(indexToHeading(angleIndex))
+
   val AxisAligned = Set(East, South, West, North)
 
   /**
@@ -143,6 +146,10 @@ object RingLayout {
   *              only really used to link first and last
   */
 class RingPrinter1(writer: MapWriter, layout: RingLayout, count: Int) {
+  require(count % layout.anglesPer360 == 0)
+
+  val angleIndexCount = count
+  val ringCount = count / layout.anglesPer360
 
   val innerRing = mutable.Map[Int, PastedSectorGroup]()
   val middleRing = mutable.Map[Int, PastedSectorGroup]()
@@ -191,6 +198,21 @@ class RingPrinter1(writer: MapWriter, layout: RingLayout, count: Int) {
     val psg = pasteAndLinkToMid(index, OuterEdgeConn, sg, InnerEdgeConn)
     outerRing.put(index, psg)
     psg
+  }
+
+  def tryPasteOuter(index: Int, outerSg: SectorGroup): Option[PastedSectorGroup] = {
+    require(index < count)
+    if(!outerRing.contains(index)){
+      Some(pasteOuter(index, outerSg))
+    }else{
+      None
+    }
+  }
+
+  def tryPasteInner(index: Int, innerSg: SectorGroup): Option[PastedSectorGroup] = if(!innerRing.contains(index)) {
+    Some(pasteInner(index, innerSg))
+  }else{
+    None
   }
 
   def pasteSection(index: Int, ringSection: RingSection): Unit = {
@@ -277,39 +299,14 @@ class RingPrinter1(writer: MapWriter, layout: RingLayout, count: Int) {
 
 case class RingSection(angleType: Int, inner: Option[SectorGroup], mid: Option[SectorGroup], outer: Option[SectorGroup])
 
-class Loop1Palette(gameCfg: GameConfig, palette: PrefabPalette) {
-
-  val midForceFieldDiag = palette.getSG(8)
-  val outerForceFieldDiag = palette.getSG(9)
-  val innerForceFieldDiag = palette.getSG(10)
-
-  val outerKeyDoor = palette.getSG(24) // conn 2048 wide
-  val doorAdapter = palette.getSG(25) // has a 1024 and a 3072 connection
-
-  /** diagonal section with force field stretching across the corridor */
-  def forceFieldDiag: RingSection = {
-    RingSection(RingLayout.DIAG, Some(innerForceFieldDiag), Some(midForceFieldDiag), Some(outerForceFieldDiag))
-  }
-
-  def sectionWithKey: RingSection = {
-    val outer = outerKeyDoor.withGroupAttached(
-      gameCfg,
-      outerKeyDoor.getRedwallConnector(123),
-      doorAdapter,
-      doorAdapter.allRedwallConnectors.find(conn => conn.totalManhattanLength() == 3072).get,
-    )
-    RingSection(RingLayout.AXIS, None, None, Some(outer))
-  }
-
-}
-
 object HyperLoop1 {
   val Filename = "loop1.map"
+  val SpaceFilename = "SPACE.MAP" // tried to make an input of map of "standard" space things
 
   // TODO - do a cool effect with the cycler
   def main(args: Array[String]): Unit = {
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
-    run(gameCfg)
+    run2(gameCfg)
   }
 
   def allSwitchRequests(psg: PastedSectorGroup): Seq[Int] = {
@@ -338,114 +335,149 @@ object HyperLoop1 {
     // -- something to make it easier to see that its more than one loop (half circle decorations?)
 
     val palette = ScalaMapLoader.loadPalette(HardcodedConfig.EDUKE32PATH + Filename, Some(gameCfg))
+    val spacePal = ScalaMapLoader.loadPalette(HardcodedConfig.EDUKE32PATH + SpaceFilename, Some(gameCfg))
     val writer = MapWriter(gameCfg)
+    val loop1Palette = new Loop1(gameCfg, new RandomX(), palette, spacePal)
+    val ringLayout = RingLayout.fromSectorGroups(loop1Palette.core, loop1Palette.innerE, loop1Palette.midE)
+    val ringPrinter = new RingPrinter1(writer, ringLayout, 24)
 
-    val core = palette.getSG(1)
-    val innerSurpriseGuns = palette.getSG(2)
-    require(innerSurpriseGuns.props.switchesRequested.size == 1)
-
-    val outerStart = palette.getSG(4)
-    val outerLightPulse = palette.getSG(5) // first attempt id=3
-    val outerLightsDiag = palette.getSG(6)
-    val outerMirror = palette.getSG(7) // https://infosuite.duke4.net/index.php?page=ae_walls_b2
-
-
-    //
-    // standard groups
-    //
-    val innerE = palette.getSG(11)
-    val midE = palette.getSG(12)
-    val outerE = palette.getSG(13)
-
-    val innerSE = palette.getSG(14)
-    val midSE = palette.getSG(15)
-    val outerSE = palette.getSG(16)
-
-    // just an outer diag that makes it look like the adjacent (on the anticlockwise side) straigt wall
-    // is extended farther
-    val outerDiagStraightExtender = palette.getSG(17)
-    val outerDoor1 = palette.getSG(18) // has a 1024-wide space door in the outer wall
-    val powerUpRoom = palette.getSG(19) // not a ring segment!
-
-    val innerEndDiag = palette.getSG(20)
-
-    val midBigDoor = palette.getSG(21)
-    val innerBlocked = palette.getSG(22) // doesnt let you walk through the inner area
-    val outerBlocked = palette.getSG(23)
-
-    // val outerKeyDoor = palette.getSG(24) // conn 2048 wide
-    // val doorAdapter = palette.getSG(25) // has a 1024 and a 2048 connection
-
-
-    val r = powerUpRoom.withItem(TextureList.Items.KEY)
-    val outerDoorWithKey = outerDoor1.withGroupAttached(
-      gameCfg,
-      outerDoor1.getRedwallConnector(150),  // chose 150 b/c its the door tex in the conn
-      r,
-      r.getRedwallConnector(150),
-    )
-
-
-    val ringLayout = RingLayout.fromSectorGroups(core, innerE, midE)
-    val ringPrinter = new RingPrinter1(writer, ringLayout, 16)
-
-    def selectRing(index: Int): SectorGroup = if (index % 2 == 0) {
-      midE
-    } else {
-      midSE
-    }
-
-    val loop1Palette = new Loop1Palette(gameCfg, palette)
-
+    // FORCE FIELD
     ringPrinter.pasteSection(1, loop1Palette.forceFieldDiag)
     val forceChannel = allSwitchRequests(ringPrinter.middleRing(1)).head
     ringPrinter.outerRing(1).allSpritesInPsg.filter(s => s.getTex == TextureList.Switches.ACCESS_SWITCH_2).foreach { switch =>
       switch.setLotag(forceChannel)
     }
 
-    ringPrinter.pasteMiddle(8, midBigDoor)
-    ringPrinter.pasteInner(8, innerBlocked)
-    ringPrinter.pasteOuter(8, outerBlocked)
+    ringPrinter.pasteMiddle(8, loop1Palette.midBigDoor)
+    ringPrinter.pasteInner(8, loop1Palette.innerBlocked)
+    ringPrinter.pasteOuter(8, loop1Palette.outerBlocked)
 
-    for (index <- 0 until 16) {
+    // fill in middle ring
+    for (index <- 0 until ringPrinter.angleIndexCount) {
       if(!ringPrinter.middleRing.contains(index)){
-        ringPrinter.pasteMiddle(index, selectRing(index))
+        val angleType = RingLayout.indexToAngleType(index)
+        ringPrinter.pasteMiddle(index, loop1Palette.defaultMid(angleType))
       }
     }
-    ringPrinter.pasteOuter(0, outerMirror)
-    // 1 is the force field
-    ringPrinter.pasteOuter(3, outerDiagStraightExtender)
-    ringPrinter.pasteOuter(4, outerStart)
-    // ringPrinter.pasteOuter(6, outerDoor1)
-    ringPrinter.pasteOuter(6, outerDoorWithKey)
-
-    ringPrinter.pasteInner(7, innerEndDiag)
-
+    // ringPrinter.pasteOuter(0, loop1Palette.outerMirror) // TODO
+    // ringPrinter.pasteOuter(3, loop1Palette.outerDiagStraightExtender) // TODO
+    ringPrinter.pasteOuter(4, loop1Palette.outerStart)
+    ringPrinter.pasteOuter(6, loop1Palette.outerRoomWithItem(TextureList.Items.KEY))
+    // ringPrinter.pasteInner(7, loop1Palette.innerEndDiag) // TODO
     ringPrinter.pasteSection(10, loop1Palette.sectionWithKey)
-    // ringPrinter.pasteOuter(10, outerKeyDoor)
 
 
-    val pastedGuns = ringPrinter.pasteInner(0, innerSurpriseGuns)
+    val pastedGuns = ringPrinter.pasteInner(0, loop1Palette.innerSurpriseGuns)
     val switchLotag = allSwitchRequests(pastedGuns).head //val switchLotag = pastedGuns.allSpritesInPsg.find(s => Marker.isMarker(s, Marker.Lotags.SWITCH_REQUESTED)).get.getHiTag
     ringPrinter.addTouchplate(ringPrinter.middleRing(0), switchLotag) // TODO should this be a method on the printer?
 
-
-
-
-    ringPrinter.fillInner(innerE, innerSE)
+    ringPrinter.fillInner(loop1Palette.innerE, loop1Palette.innerSE)
     // ringPrinter.fillOuter(outerE, outerSE)
 
 
     //
     // CYCLERS
     //
-    val pastedLights = ringPrinter.fillOuter(outerLightPulse, outerLightsDiag)
-    pastedLights.foreach { case (index, psg) =>
-      setupCyclers(psg, RingLayout.indexToHeading(index), 128)
+    // val pastedLights = ringPrinter.fillOuter(loop1Palette.outerLightPulse, loop1Palette.outerLightsDiag)
+    (0 until 8).foreach { index =>
+      ringPrinter.tryPasteOuter(index, loop1Palette.defaultOuter(RingLayout.indexToAngleType(index)))
     }
+    (8 until 16).foreach { index =>
+      ringPrinter.tryPasteOuter(index, loop1Palette.outerLights(RingLayout.indexToAngleType(index)))
+    }
+    (16 until 24).foreach { index =>
+      ringPrinter.tryPasteOuter(index, loop1Palette.outerLights(RingLayout.indexToAngleType(index), true))
+    }
+    // val pastedLights = ringPrinter.fillOuter(loop1Palette.outerLights(RingLayout.AXIS), loop1Palette.outerLights(RingLayout.DIAG))
+
+
+    // pastedLights.foreach { case (index, psg) =>
+    //   setupCyclers(psg, RingLayout.indexToHeading(index), 128)
+    // }
+    setupAllCyclers(ringPrinter)
 
     ringPrinter.autoLink()
+    ExpUtil.finishAndWrite(writer)
+  }
 
+  def run2(gameCfg: GameConfig): Unit = {
+    val random = new RandomX()
+    val palette = ScalaMapLoader.loadPalette(HardcodedConfig.EDUKE32PATH + Filename, Some(gameCfg))
+    val spacePal = ScalaMapLoader.loadPalette(HardcodedConfig.EDUKE32PATH + SpaceFilename, Some(gameCfg))
+    val writer = MapWriter(gameCfg)
+    val loop1Palette = new Loop1(gameCfg, random, palette, spacePal)
+    val ringLayout = RingLayout.fromSectorGroups(loop1Palette.core, loop1Palette.innerE, loop1Palette.midE)
+    val ringPrinter = new RingPrinter1(writer, ringLayout, 24)
+
+
+    // blue gate
+    ringPrinter.pasteSection(15, loop1Palette.forceFieldDiag2())
+
+    // red gate
+    ringPrinter.pasteSection(9, loop1Palette.forceFieldDiag2(true))
+
+    // door between red and clear sections
+    ringPrinter.pasteSection(0, loop1Palette.sectionBlockedByDoor(RingLayout.AXIS))
+
+
+    // fill in middle ring
+    for (index <- 0 until ringPrinter.angleIndexCount) {
+      if (!ringPrinter.middleRing.contains(index)) {
+        val angleType = RingLayout.indexToAngleType(index)
+        ringPrinter.pasteMiddle(index, loop1Palette.defaultMid(angleType))
+      }
+    }
+
+    def getTileset(index: Int): Int = if(16 <= index && index < 24){ L1Tileset.Clear } else { L1Tileset.Secure}
+
+    // random
+    Seq(18, 17, 10, 11).foreach { i =>
+      val atype = RingLayout.indexToAngleType(i)
+      val tileset = getTileset(i)
+      ringPrinter.pasteOuter(i, loop1Palette.outerItemArea(atype, tileset))
+    }
+
+    // blue key
+    ringPrinter.pasteOuter(22, loop1Palette.outerKeyArea(AXIS, PaletteList.KEYCARD_BLUE)) // TODO random
+
+    // start // TODO must be far away, to prevent starting in the wrong sector
+    ringPrinter.pasteOuter(20, loop1Palette.playerStartOuter(RingLayout.AXIS))
+
+    // red key
+    // TODO get a DIAG outer key area, so I can use random!
+    ringPrinter.pasteOuter(12, loop1Palette.outerKeyArea(AXIS, PaletteList.KEYCARD_RED))  // TODO random
+    // TODO many doors, so the player doesnt know where the key is!
+
+
+    // yellow key (1 to 8)
+    ringPrinter.pasteOuter(2, loop1Palette.outerKeyArea(AXIS, PaletteList.KEYCARD_YELLOW))  // TODO random
+
+
+    // end
+    ringPrinter.pasteInner(23, loop1Palette.innerEndDiag.withKeyLockColor(gameCfg, PaletteList.KEYCARD_YELLOW))
+
+
+    //
+    // Fill in Outer
+    //
+    // zero section:
+    (16 until 24).foreach { index =>
+      ringPrinter.tryPasteInner(index, loop1Palette.innerDefaultTileset(RingLayout.indexToAngleType(index)))
+      ringPrinter.tryPasteOuter(index, loop1Palette.defaultOuter(RingLayout.indexToAngleType(index)))
+    }
+    // blue section (normal size would be 8 to 16
+    (10 until 16).foreach { index =>
+      ringPrinter.tryPasteInner(index, loop1Palette.innerLightsTileset(RingLayout.indexToAngleType(index)))
+      ringPrinter.tryPasteOuter(index, loop1Palette.outerLights(RingLayout.indexToAngleType(index)))
+    }
+    // red section
+    (0 until 10).foreach { index =>
+      ringPrinter.tryPasteInner(index, loop1Palette.innerLightsTileset(RingLayout.indexToAngleType(index)))
+      ringPrinter.tryPasteOuter(index, loop1Palette.outerLights(RingLayout.indexToAngleType(index), true))
+    }
+    setupAllCyclers(ringPrinter)
+
+    ringPrinter.autoLink()
     ExpUtil.finishAndWrite(writer)
   }
 
@@ -461,6 +493,15 @@ object HyperLoop1 {
     RingLayout.SouthEast -> 78,
   )
 
+  def setupAllCyclers(ringPrinter: RingPrinter1): Unit = {
+    ringPrinter.outerRing.foreach { case (index, psg) =>
+      if (psg.allSpritesInPsg.find(_.getTex == TextureList.CYCLER).isDefined) {
+        setupCyclers(psg, RingLayout.indexToHeading(index), 128)
+      }
+    }
+
+  }
+
   /**
     * this is for two specific sector groups, to make it look like there is a unified light pulse all
     * the way around the ring
@@ -473,7 +514,6 @@ object HyperLoop1 {
     // because the ring wraps around multiple times)
     val TotalOffset = 8192 // calc for one beam, b/c I'm using math that pretends its a single, normal loop
     val OffsetDelta = TotalOffset / CyclerCount360
-    // val PulseSpeed = 68 // should be about one every 2 seconds
 
     // this was the bug -- returns all sprites in the map!
     // TODO should probably switch to setting these in the SectorGroup before pasting!
@@ -481,11 +521,13 @@ object HyperLoop1 {
       s.getTex == TextureList.CYCLER && cyclerPsg.allSectorIds.contains(s.getSectorId)
     }
     val cyclers = cyclersInPsg.sortBy(s => s.getLotag) // don't reverse it here
-    require(cyclers.size == 10 || cyclers.size == 12)
+    // require(cyclers.size == 10 || cyclers.size == 12)
 
     for (i <- 0 until cyclers.size){
       val cycler = cyclers(i)
-      val globalIndex = i + CyclerOffsets(heading)
+
+      // val globalIndex = i + CyclerOffsets(heading)
+      val globalIndex = CyclerOffsets(heading) + cycler.getLotag
 
       val globalIndex2 = CyclerCount360 - globalIndex // reverse it
       require(globalIndex2 >= 0)

@@ -9,6 +9,8 @@ public class PaletteList {
 
     public static int NORMAL = 0;
 
+    public static int RED = 2;
+
     /**
      * no palette change - recommended for the big orbit texture,
      * because you need a texture in order to not kill the player.
