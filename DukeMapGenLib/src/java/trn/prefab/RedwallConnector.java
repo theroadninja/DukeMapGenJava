@@ -376,6 +376,8 @@ public class RedwallConnector extends Connector {
 
     /**
      * copy of isMatch() but with a more obvious name
+     *
+     * If you are looking for couldMatchIfRotated() it doesnt exist; see trn.prefab.experiments.Placement
      */
     public final boolean couldMatch(RedwallConnector c){
         return this.isMatch(c);
