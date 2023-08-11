@@ -6,7 +6,7 @@ import trn.prefab.experiments.hyperloop.EdgeIds.{OuterEdgeConn, InnerEdgeConn}
 import trn.prefab.experiments.hyperloop.Loop2Plan.{Blank, ForceField}
 import trn.prefab.experiments.hyperloop.RingLayout.DIAG
 import trn.prefab.experiments.hyperloop.RingPrinter2.{OuterRing, MiddleRing, InnerRing, AllRings}
-import trn.{HardcodedConfig, RandomX, ScalaMapLoader}
+import trn.{HardcodedConfig, RandomX, ScalaMapLoader, Sprite}
 import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, RedwallConnector, PastedSectorGroup, SpriteLogicException, Marker}
 
 import scala.collection.mutable
@@ -25,8 +25,8 @@ class Loop2Planner(random: RandomX){
   def randomPlan(size: Int): Loop2Plan = {
     // TODO implement randomness
 
-    val inner = "_______F_E____F_"
-    val outer = "_S_k___F__K___F_"
+    val inner = "_____EEF_Z____F_"
+    val outer = "_S_k_EEF__K___F_"
 
     require(size == 16)
     require(inner.size == size)
@@ -47,7 +47,7 @@ object Loop2Plan {
   val Start = "S"
 
   /** inner section, or set piece, containing end (always requires the second key to access) */
-  val End = "E"
+  val End = "Z"
 
   // TODO ? val Blocked = "*" // for things like end having two connections
 
@@ -70,7 +70,7 @@ object Loop2Plan {
   val Powerup = "P"
 
   /** enemy section - section dedicated to enemies.  NOT used for enemies that spawn in the passage */
-  val Enemy = "N"
+  val Enemy = "E"
 }
 
 /** for set piees, a single pasted sectorgroup may be referenced by multiple pasted sections */
@@ -81,6 +81,8 @@ case class PastedSection(
   clockwise: RedwallConnector,
   outer: Option[RedwallConnector],
 ) {
+
+  lazy val switchesRequested: Seq[Sprite] = psg.allSpritesInPsg.filter(s => Marker.isMarker(s, Marker.Lotags.SWITCH_REQUESTED))
 }
 
 object PastedSection {
@@ -172,6 +174,12 @@ class RingPrinter2(writer: MapWriter, layout: RingLayout, columnCount: Int) {
         }
         val ps = PastedSection(writer.pasteAndLink(midConn, sg, newSgConn, Seq.empty))
         rings(ringIndex).put(colIndex, ps)
+
+        // touchplate
+        if(ps.switchesRequested.size > 0){
+          require(ps.switchesRequested.size == 1, "cannot handle more than 1 switch requested")
+          addTouchplate(MiddleRing, colIndex, ps.switchesRequested.head.getHiTag())
+        }
         ps
       }
     }
@@ -223,6 +231,20 @@ class RingPrinter2(writer: MapWriter, layout: RingLayout, columnCount: Int) {
 
   def autoLink(): Unit = {
     Seq(InnerRing, MiddleRing, OuterRing).foreach(ringIndex => autoLinkRing(rings(ringIndex)))
+  }
+
+  /**
+    * Adds a touchplate to a middle ring sector group
+    *
+    * @param psg   must be a mid group
+    * @param lotag the lotag of the touchplate
+    */
+  def addTouchplate(ringIndex: Int, columnIndex: Int, lotag: Int): Unit = {
+    val psg = rings(ringIndex)(columnIndex).psg
+    val loc = psg.boundingBox.center
+    val marker = psg.allSpritesInPsg.find(s => Marker.isMarker(s, Marker.Lotags.ALGO_GENERIC)).getOrElse(throw new Exception("missing marker for touchplate"))
+    val touch = SpriteFactory.touchplate(loc.withZ(0), marker.getSectorId, lotag)
+    psg.map.addSprite(touch)
   }
 
 
@@ -311,6 +333,7 @@ object HyperLoop2 {
         case Loop2Plan.End => ringPrinter.paste(InnerRing, index, loop2Palette.getEnd(angleType, key2.pal))
         case Loop2Plan.Start => throw new RuntimeException("cannot place START section on inner ring")
         case Loop2Plan.ForceField => {} // already handled
+        case Loop2Plan.Enemy => ringPrinter.paste(InnerRing, index, loop2Palette.getDroneInner(angleType))
         case s: String => println(s"ERROR ${s}")
       }
       plan.outer(index) match {
@@ -323,6 +346,7 @@ object HyperLoop2 {
         case Loop2Plan.Key1 => ringPrinter.paste(OuterRing, index, loop2Palette.getItemOuter(angleType, key1))
         case Loop2Plan.Key2 => ringPrinter.paste(OuterRing, index, loop2Palette.getItemOuter(angleType, key2))
         case Loop2Plan.ForceField => {} // already handled
+        case Loop2Plan.Enemy => ringPrinter.paste(OuterRing, index, loop2Palette.getDroneOuter(angleType))
         case s: String => println(s"ERROR ${s}")
       }
     }

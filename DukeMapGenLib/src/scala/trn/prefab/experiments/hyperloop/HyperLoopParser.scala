@@ -54,5 +54,17 @@ object HyperLoopParser {
     sg.getRedwallConnector(EdgeIds.InnerEdgeConn).getBoundingBox.center.manhattanDistanceTo(sg.getAnchor.asXY).toInt
   }
 
+  def checkInner(sg: SectorGroup): Unit = {
+    Seq(EdgeIds.OuterEdgeConn, EdgeIds.AntiClockwiseEdge, EdgeIds.ClockwiseEdge).foreach(sg.getRedwallConnector)
+  }
+
+  def checkMid(sg: SectorGroup): Unit = {
+    Seq(EdgeIds.InnerEdgeConn, EdgeIds.OuterEdgeConn, EdgeIds.AntiClockwiseEdge, EdgeIds.ClockwiseEdge).foreach(sg.getRedwallConnector)
+  }
+
+  def checkOuter(sg: SectorGroup): Unit = {
+    Seq(EdgeIds.InnerEdgeConn, EdgeIds.AntiClockwiseEdge, EdgeIds.ClockwiseEdge).foreach(sg.getRedwallConnector)
+  }
+
 
 }

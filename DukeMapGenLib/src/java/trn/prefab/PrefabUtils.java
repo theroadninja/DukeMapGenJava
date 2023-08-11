@@ -170,6 +170,8 @@ public class PrefabUtils {
 
 		public static int SWITCH_REQUESTED = Marker.Lotags.SWITCH_REQUESTED;
 
+		public static int ALGO_GENERIC  = Marker.Lotags.ALGO_GENERIC;
+
 		/**
 		 * Elevator Connector
 		 *
@@ -229,6 +231,7 @@ public class PrefabUtils {
 				ALGO_HINT,
 				ALGO_AXIS_LOCK,
 				SWITCH_REQUESTED,
+				ALGO_GENERIC,
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
 				MULTISECTOR_CHILD,

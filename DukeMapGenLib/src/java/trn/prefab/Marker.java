@@ -35,6 +35,14 @@ public class Marker {
          */
         public static int SWITCH_REQUESTED = 15;
 
+        /**
+         * For simple, algorithm-specific use cases that require a marker that are too esoteric to be worth making into
+         * a generic feature.
+         *
+         * E.g. inventing this to mark sectors where touchplaces get inserted for the HyperLoop algorithm.
+         */
+        public static int ALGO_GENERIC = 16;
+
     }
 
     // TODO this text should be game-specific!

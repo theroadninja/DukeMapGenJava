@@ -75,6 +75,15 @@ class Loop2Palette (
   val forceField: SectorGroup = palette.getSG(22)
   val forceFieldDiag: SectorGroup = palette.getSG(23)
 
+  val droneDoors = Map[(Int, Int), SectorGroup](
+    (RingPrinter2.InnerRing, RingLayout.AXIS) -> palette.getSG(24),
+    (RingPrinter2.InnerRing, RingLayout.DIAG) -> palette.getSG(25),
+    (RingPrinter2.OuterRing, RingLayout.AXIS) -> palette.getSG(26),
+    (RingPrinter2.OuterRing, RingLayout.DIAG) -> palette.getSG(27),
+  )
+
+  val armoryInner: SectorGroup = palette.getSG(28)
+
 
 
   // def getBlank(ringIndex: Int, angleType: Int): SectorGroup = { // TODO ?
@@ -129,5 +138,15 @@ class Loop2Palette (
     case RingLayout.DIAG => forceFieldDiag
   }
 
+  def getDroneInner(angleType: Int): SectorGroup = droneDoors((RingPrinter2.InnerRing, angleType))
+  def getDroneOuter(angleType: Int): SectorGroup = droneDoors((RingPrinter2.OuterRing, angleType))
+
+  def getWeapon(angleType: Int): SectorGroup = ??? // TODO use armory thing
+
+  // TODO put more things here
+  HyperLoopParser.checkInner(droneDoors((RingPrinter2.InnerRing, RingLayout.AXIS)))
+  HyperLoopParser.checkInner(droneDoors((RingPrinter2.InnerRing, RingLayout.DIAG)))
+  HyperLoopParser.checkOuter(droneDoors((RingPrinter2.OuterRing, RingLayout.AXIS)))
+  HyperLoopParser.checkOuter(droneDoors((RingPrinter2.OuterRing, RingLayout.DIAG)))
 
 }
