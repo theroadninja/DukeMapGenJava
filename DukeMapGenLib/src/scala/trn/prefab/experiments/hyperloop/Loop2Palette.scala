@@ -1,7 +1,38 @@
 package trn.prefab.experiments.hyperloop
 
 import trn.RandomX
-import trn.prefab.{PrefabPalette, GameConfig, SectorGroup}
+import trn.duke.{TextureList, PaletteList}
+import trn.prefab.{SectorGroup, PrefabPalette, GameConfig}
+
+object Loop2Palette {
+
+  def makeRed(gameCfg: GameConfig, sg: SectorGroup): SectorGroup = {
+    val textures = Seq(
+      TextureList.ForceFields.W_FORCEFIELD,
+      276, // blue boxes I use around the force field
+    )
+    val color = PaletteList.RED
+
+    val cp = sg.withKeyLockColor(gameCfg, PaletteList.KEYCARD_RED)
+    for (i <- 0 until cp.map.getWallCount) {
+      val wall = cp.map.getWall(i)
+      if (textures.contains(wall.getTex) || textures.contains(wall.getMaskTex)) {
+        wall.setPal(color)
+      }
+    }
+    for(i <- 0 until cp.map.getSectorCount){
+      val sector = cp.map.getSector(i)
+      if(textures.contains(sector.getFloorTexture)){
+        sector.setFloorPalette(color)
+      }
+      if(textures.contains(sector.getCeilingTexture)){
+        sector.setCeilingPalette(color)
+      }
+    }
+    cp
+
+  }
+}
 
 class Loop2Palette (
   gameCfg: GameConfig,
@@ -42,6 +73,7 @@ class Loop2Palette (
   val itemRoomForOuterDoor150Diag: SectorGroup = palette.getSG(21)
 
   val forceField: SectorGroup = palette.getSG(22)
+  val forceFieldDiag: SectorGroup = palette.getSG(23)
 
 
 
@@ -94,7 +126,7 @@ class Loop2Palette (
 
   def getForceField(angleType: Int): SectorGroup = angleType match {
     case RingLayout.AXIS => forceField
-    case RingLayout.DIAG => ???
+    case RingLayout.DIAG => forceFieldDiag
   }
 
 

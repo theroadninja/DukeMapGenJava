@@ -158,6 +158,8 @@ object DukeConfig {
   /** Lotags of SE sprites with unique hitags */
   private[prefab] val UniqueHiSE = Set(0, 1, 3, 6, 7, 8, 9, 12, 13, 14, 15, 17, 19, 21, 22, 24, 30) // TODO consider using trn.duke.Lotags
 
+  /** the nuke button is supposed to have this lotag so this value should be ignored during tag mapping */
+  val EndLevelTag = 65535
   // TODO - for SE6 (subway engine) - is the sector hitag of car sectors also unique?
   // TODO - does SE 11 (rotate sector door) use unique hitags to link doors?
   // TODO - SE 22 hitag matches hitag of sector with lotag 29...
@@ -263,7 +265,7 @@ class DukeConfig(textureWidths: Map[Int, Int], textureHeights: Map[Int, Int]) ex
       }
     }else if(sprite.getTex == TextureList.Switches.MULTI_SWITCH){
       (sprite.getLotag to sprite.getLotag + 3) // must come before hasUniqueLotag()
-    }else if(hasUniqueLotag(sprite.getTex)){
+    }else if(hasUniqueLotag(sprite.getTex) && sprite.getLotag != DukeConfig.EndLevelTag){
       Seq(sprite.getLotag)
     }else if(hasUniqueHitag(sprite.getTex)) {
       Seq(sprite.getHiTag)
@@ -294,7 +296,7 @@ class DukeConfig(textureWidths: Map[Int, Int], textureHeights: Map[Int, Int]) ex
       }else{
         println(s"GameConfig.updateUniqueTagInPlace() WARNING:  not setting unique hitag on sprite at ${sprite.getPoint}")
       }
-    }else if(hasUniqueLotag(sprite.getTex)){
+    }else if(hasUniqueLotag(sprite.getTex) && sprite.getLotag != DukeConfig.EndLevelTag){
       // TODO do these need the same check at the hitag stuff above?
       sprite.setLotag(idMap(sprite.getLotag))
     }else if(hasUniqueHitag(sprite.getTex)){

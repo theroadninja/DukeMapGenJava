@@ -1,11 +1,13 @@
 package trn.prefab.experiments.hyperloop
 
+import trn.duke.TextureList
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.hyperloop.EdgeIds.{OuterEdgeConn, InnerEdgeConn}
 import trn.prefab.experiments.hyperloop.Loop2Plan.{Blank, ForceField}
+import trn.prefab.experiments.hyperloop.RingLayout.DIAG
 import trn.prefab.experiments.hyperloop.RingPrinter2.{OuterRing, MiddleRing, InnerRing, AllRings}
 import trn.{HardcodedConfig, RandomX, ScalaMapLoader}
-import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, RedwallConnector, PastedSectorGroup, SpriteLogicException}
+import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, RedwallConnector, PastedSectorGroup, SpriteLogicException, Marker}
 
 import scala.collection.mutable
 
@@ -23,8 +25,8 @@ class Loop2Planner(random: RandomX){
   def randomPlan(size: Int): Loop2Plan = {
     // TODO implement randomness
 
-    val inner = "_________E____F_"
-    val outer = "_S_k_K__K_____F_"
+    val inner = "_______F_E____F_"
+    val outer = "_S_k___F__K___F_"
 
     require(size == 16)
     require(inner.size == size)
@@ -249,23 +251,53 @@ object HyperLoop2 {
     }
   }
 
+  def allSwitchRequests(psg: PastedSectorGroup): Seq[Int] = {
+    psg.allSpritesInPsg.filter(s => Marker.isMarker(s, Marker.Lotags.SWITCH_REQUESTED)).map(_.getHiTag)
+  }
+
+  /**
+    * takes two force fields and links them (so they use the same channel, and get opened simultaneously)
+    * @param psgA
+    * @param psgB
+    */
+  def linkForceFields(gameCfg: GameConfig, psgA: PastedSectorGroup, psgB: PastedSectorGroup): Unit = {
+    val channelA = allSwitchRequests(psgA).head
+    val channelB = allSwitchRequests(psgB).head
+    // val tagMap = Map(channelB -> channelA)
+    psgB.allSpritesInPsg.foreach { sprite =>
+      // doesk work; we dont have the full map: gameCfg.updateUniqueTagInPlace(sprite, tagMap)
+      if(sprite.getTex == TextureList.Switches.ACCESS_SWITCH_2) {
+        sprite.setLotag(channelA)
+      }
+    }
+    psgB.getAllWallViews.map(_.getWallId).foreach { wallId =>
+      val wall = psgB.map.getWall(wallId)
+      // doesk work; we dont have the full map: gameCfg.updateUniqueTagInPlace(wall, tagMap)
+      if(wall.getMaskTex == TextureList.ForceFields.W_FORCEFIELD) {
+        wall.setLotag(channelA)
+      }
+    }
+  }
+
   def renderPlan(gameCfg: GameConfig, writer: MapWriter, plan: Loop2Plan, loop2Palette: Loop2Palette): Unit = {
     val sectionCount = 16
     val ringLayout = RingLayout.fromHyperLoopPalette(loop2Palette)
     // val ringPrinter = new RingPrinter1(writer, ringLayout, sectionCount)
     val ringPrinter = new RingPrinter2(writer, ringLayout, sectionCount)
 
-    val key1 = Item.BlueKey
-    val key2 = Item.RedKey
+    val key1 = Item.RedKey // for force fields
+    val key2 = Item.YellowKey
 
 
     // Force Fields
-    (0 until sectionCount).foreach { index =>
-      if(plan.isForceField(index)){
-        val angleType = RingLayout.indexToAngleType(index)
-        ringPrinter.pasteSetPiece(index, loop2Palette.getForceField(angleType))
-      }
+    val pastedForceFields = (0 until sectionCount).filter(i => plan.isForceField(i)).map { index =>
+      val angleType = RingLayout.indexToAngleType(index)
+      val sg = Loop2Palette.makeRed(gameCfg, loop2Palette.getForceField(angleType))
+      val pasted = ringPrinter.pasteSetPiece(index, sg)
+      pasted(1) // return the middle one
     }
+    linkForceFields(gameCfg, pastedForceFields(0).psg, pastedForceFields(1).psg)
+
 
     (0 until sectionCount).foreach { index =>
       val angleType = RingLayout.indexToAngleType(index)
