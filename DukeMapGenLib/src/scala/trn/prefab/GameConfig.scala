@@ -176,7 +176,7 @@ object DukeConfig {
   private[prefab] lazy val Switches: Seq[Int] = TextureList.Switches.ALL.asScala.map(_.intValue)
 
   /** tiles that can trigger activators.  NOT the same as "tiles that look like doors" */
-  private[prefab] lazy val DoorTiles: Seq[Int] = TextureList.DOORS.ALL.asScala.map(_.intValue)
+  lazy val DoorTiles: Seq[Int] = TextureList.DOORS.ALL.asScala.map(_.intValue)
 
   private[prefab] lazy val ForceFields: Seq[Int] = TextureList.ForceFields.ALL.asScala.map(_.intValue)
 
@@ -304,6 +304,8 @@ class DukeConfig(textureWidths: Map[Int, Int], textureHeights: Map[Int, Int]) ex
     }
   }
 
+  // WARNING:  if you create a connector using a wall with a door texture, the lotag will get messed up by
+  // this function
   override def updateUniqueTagInPlace(wall: Wall, idMap: Map[Int, Int]): Unit = {
     if((isDoor(wall.getTex) || isForceField(wall.getTex)) && wall.getLotag > 0){
       wall.setLotag(idMap(wall.getLotag))

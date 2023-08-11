@@ -2,7 +2,7 @@ package duchy.sg
 
 import duchy.sg.RedwallSection.MultiSection
 import duchy.vector.{VectorMath, Line2D}
-import trn.prefab.{ConnectorScanner, PrefabUtils, ConnectorFactory2, RedwallConnector, ConnectorType, MultiSectorConnector, SpriteLogicException}
+import trn.prefab.{ConnectorScanner, PrefabUtils, DukeConfig, ConnectorFactory2, RedwallConnector, ConnectorType, MultiSectorConnector, SpriteLogicException}
 import trn.{PointXYZ, PointXY, MapUtil, WallView, MapView, Sprite}
 
 import scala.collection.JavaConverters._
@@ -251,6 +251,21 @@ object RedwallConnectorScanner {
     walls.map(_.p1.subtractedBy(anchor)) :+ walls.last.p2.subtractedBy(anchor)
   }
 
+  /**
+    * Makes sure the walls do not use door texture, which could screw up tag mapping (see updateUniqueTagsInPlace()
+    * in GameConfig.scala).
+    *
+    * @param walls wallviews that are used in a redwall connector
+    */
+  def validateWalls(walls: TraversableOnce[WallView]): Unit = {
+    // TODO this requires game-specific logic.  It would be better if the tag-mapping code was aware of which walls
+    // were used in redwall conns
+    walls.filter(w => DukeConfig.DoorTiles.contains(w.getTex)).foreach { w =>
+      throw new SpriteLogicException(s"Redwall connector wall cannot have a door texture", w.p1())
+    }
+    // TODO make sure they don't have a door texture!
+  }
+
   def findAllRedwallConns(map: MapView, sectorIdFilter: Int => Boolean = allSectors): Seq[RedwallConnector] = {
 
     val sections = findAllRedwallSections(map, sectorIdFilter)
@@ -273,6 +288,11 @@ object RedwallConnectorScanner {
 
     val multiSections: Seq[MultiSection] = parents.map { parent =>
       matchParentToChildren(parent, children)
+    }
+
+    // make sure none of the walls have a door tex
+    multiSections.foreach { multiSection =>
+      multiSection.foreach(section => validateWalls(section.sortedWalls))
     }
 
     multiSections.map { multiSection: MultiSection =>

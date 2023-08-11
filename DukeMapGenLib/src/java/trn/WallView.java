@@ -77,6 +77,10 @@ public class WallView {
         return this.wall.yrepeat;
     }
 
+    public int getTex(){
+        return this.wall.getTex();
+    }
+
     public final double length(){
         return wallSegment.getLength();
     }

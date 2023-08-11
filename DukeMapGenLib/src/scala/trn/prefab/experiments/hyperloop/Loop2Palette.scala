@@ -41,7 +41,7 @@ class Loop2Palette (
   )
   val itemRoomForOuterDoor150Diag: SectorGroup = palette.getSG(21)
 
-  // TODO val outerDoor150Diag = ...
+  val forceField: SectorGroup = palette.getSG(22)
 
 
 
@@ -70,24 +70,31 @@ class Loop2Palette (
     }
   }
 
-  def getEnd(angleType: Int): SectorGroup = angleType match {
-    case RingLayout.AXIS => innerEnd
-    case RingLayout.DIAG => innerEndDiag
+  def getEnd(angleType: Int, keyLockColor: Int): SectorGroup = angleType match {
+    case RingLayout.AXIS => innerEnd.withKeyLockColor(gameCfg, keyLockColor)
+    case RingLayout.DIAG => innerEndDiag.withKeyLockColor(gameCfg, keyLockColor)
   }
 
-  def getItemOuter(angleType: Int): SectorGroup = angleType match {
+  def getItemOuter(angleType: Int, item: Item): SectorGroup = angleType match {
     case RingLayout.AXIS => {
       val outer = random.randomElement(outerDoor150)
       val conn = outer.getRedwallConnector(123)
       val otherConn = itemRoomForOuterDoor150.allUnlinkedRedwallConns.filter(c => c.couldMatch(conn)).head
       outer.withGroupAttached(gameCfg, conn, itemRoomForOuterDoor150, otherConn)
+        .withItem(item.tex, item.pal)
     }
     case RingLayout.DIAG => {
       val outer = random.randomElement(outerDoor150Diag)
       val conn = outer.getRedwallConnector(123)
       val otherConn = itemRoomForOuterDoor150Diag.allUnlinkedRedwallConns.filter(c => c.couldMatch(conn)).head
       outer.withGroupAttached(gameCfg, conn, itemRoomForOuterDoor150Diag, otherConn)
+        .withItem(item.tex, item.pal)
     }
+  }
+
+  def getForceField(angleType: Int): SectorGroup = angleType match {
+    case RingLayout.AXIS => forceField
+    case RingLayout.DIAG => ???
   }
 
 
