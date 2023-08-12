@@ -25,8 +25,8 @@ class Loop2Planner(random: RandomX){
   def randomPlan(size: Int): Loop2Plan = {
     // TODO implement randomness
 
-    val inner = "_____EEF_Z____F_"
-    val outer = "_S_k_EEF__K___F_"
+    val inner = "**___EEF_Z____F_"
+    val outer = "**Sk_EEF__K___F_"
 
     require(size == 16)
     require(inner.size == size)
@@ -40,6 +40,8 @@ class Loop2Planner(random: RandomX){
 }
 
 object Loop2Plan {
+
+  val Test = "*" // for testing
 
   val Blank = "_"
 
@@ -329,6 +331,7 @@ object HyperLoop2 {
     (0 until sectionCount).foreach { index =>
       val angleType = RingLayout.indexToAngleType(index)
       plan.inner(index) match {
+        case Loop2Plan.Test => ringPrinter.tryPaste(InnerRing, index, loop2Palette.getTestInner(angleType))
         case Loop2Plan.Blank => ringPrinter.tryPaste(InnerRing, index, loop2Palette.getInnerBlank(angleType))
         case Loop2Plan.End => ringPrinter.paste(InnerRing, index, loop2Palette.getEnd(angleType, key2.pal))
         case Loop2Plan.Start => throw new RuntimeException("cannot place START section on inner ring")
@@ -337,6 +340,7 @@ object HyperLoop2 {
         case s: String => println(s"ERROR ${s}")
       }
       plan.outer(index) match {
+        case Loop2Plan.Test => ringPrinter.tryPaste(OuterRing, index, loop2Palette.getTestOuter(angleType))
         case Loop2Plan.Blank => ringPrinter.tryPaste(OuterRing, index, loop2Palette.getOuterBlank(angleType))
         case Loop2Plan.Start => {
           val sg = loop2Palette.getPlayerStartOuter(angleType)

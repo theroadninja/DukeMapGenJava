@@ -41,6 +41,8 @@ public class AngleUtil {
 
     public static final int RANGE = 16383;
 
+    public static final int FORTYFIVE_DEGREES = 768;
+
     public static double toRadians(int ang){
         return (Math.PI/1024.0) * (double)ang;
     }

@@ -82,9 +82,45 @@ class Loop2Palette (
     (RingPrinter2.OuterRing, RingLayout.DIAG) -> palette.getSG(27),
   )
 
-  val armoryInner: SectorGroup = palette.getSG(28)
+  val armoryInner: SectorGroup = palette.getSG(28) // red circular "armory" thing with items
+  val suppliesInner: SectorGroup = palette.getSG(29) // blue circular "supplies" thing with items
 
+  val tripmineInner: SectorGroup = palette.getSG(30)
+  val tripmineOuter: SectorGroup = palette.getSG(31)
 
+  val tripmineInnerDiag: SectorGroup = palette.getSG(32)
+  val tripmineOuterDiag: SectorGroup = palette.getSG(33)
+
+  val screensOuter: SectorGroup = palette.getSG(34)
+  val screensOuterDiag: SectorGroup = palette.getSG(35)
+
+  val outerConferenceRoom: SectorGroup = palette.getSG(36) // item area
+
+  val screenAreaAxis: SectorGroup = palette.getSG(37)
+  val screenAreaDiag: SectorGroup = palette.getSG(38) // only matches door of group 19
+
+  // TODO dead end, as an alternative to one of the force fields
+
+  def getTestInner(angleType: Int): SectorGroup = angleType match {
+    case RingLayout.AXIS => tripmineInner // armoryInner
+    case RingLayout.DIAG => tripmineInnerDiag // suppliesInner
+  }
+
+  def getTestOuter(angleType: Int): SectorGroup = angleType match {
+    case RingLayout.AXIS => screenArea(RingLayout.AXIS)
+    case RingLayout.DIAG => screenArea(RingLayout.DIAG)
+  }
+
+  def screenArea(angleType: Int): SectorGroup = angleType match {
+    case RingLayout.AXIS => {
+      val outer = palette.getSG(16)
+      outer.withGroupAttachedById(gameCfg, 123, screenAreaAxis, screenAreaAxis.allRedwallConnectors.head)
+    }
+    case RingLayout.DIAG => {
+      val outer = palette.getSG(19)
+      outer.withGroupAttachedById(gameCfg, 123, screenAreaDiag, screenAreaDiag.allRedwallConnectors.head)
+    }
+  }
 
   // def getBlank(ringIndex: Int, angleType: Int): SectorGroup = { // TODO ?
   def getInnerBlank(angleType: Int): SectorGroup = angleType match {

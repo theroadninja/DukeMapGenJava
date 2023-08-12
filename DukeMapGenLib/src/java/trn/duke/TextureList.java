@@ -80,6 +80,9 @@ public class TextureList {
 	public static final int GPSSPEED = 10; //this is the one thats not a big letter
 	
 	//11 and/or 12 might be the cam
+
+	/** tripbombs placed in level; not ammo.  For ammo use tex 27 */
+	public static final int PLACED_TRIP_BOMB = 2566;
 	
 	public static class Items {
 		
@@ -89,6 +92,8 @@ public class TextureList {
 		public static final int FREEZE_RAY = 24;
 		public static final int SHRINK_RAY = 25;
 		public static final int PIPE_BOMB_SINGLE = 26;
+
+		/** WARNING:  this is ONLY the ammo pickup.  To place them in the level use tex 2566 */
 		public static final int TRIP_BOMB = 27;
 		public static final int SHOTGUN = 28;
 		public static final int DEVASTATOR = 29; //a.k.a. "cycloid" ?
