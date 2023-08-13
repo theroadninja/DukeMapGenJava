@@ -1,8 +1,52 @@
 package trn.prefab.experiments.hyperloop
 
 import trn.RandomX
-import trn.duke.{TextureList, PaletteList}
+import trn.duke.{PaletteList, TextureList}
+import trn.prefab.experiments.hyperloop.RingLayout.{DIAG, AXIS}
 import trn.prefab.{SectorGroup, PrefabPalette, GameConfig}
+
+/**
+  * Represents an abstract section of a ring that can be pasted at a position,
+  * e.g. "key room 1" or "shuttle bay" and tries to hide the fact that different sector
+  * groups might be needed for different angle types.
+  */
+trait Section {
+
+  def has(ringType: Int, angleType: Int): Boolean
+
+  def hasRingIndex(ringIndex: Int): Boolean = has(ringIndex, AXIS) && has(ringIndex, DIAG)
+
+  def get(ringType: Int, angleType: Int): Option[SectorGroup]
+
+  final def apply(ringType: Int, angleType: Int): SectorGroup = get(ringType, angleType).get
+
+}
+
+case class SimpleSection (
+  innerAxis: Option[SectorGroup],
+  innerDiag: Option[SectorGroup],
+  outerAxis: Option[SectorGroup],
+  outerDiag: Option[SectorGroup],
+) extends Section {
+  val groups = Map(
+    RingIndex.InnerRing -> Map(
+      AXIS -> innerAxis,
+      DIAG -> innerDiag,
+    ),
+    RingIndex.OuterRing -> Map(
+      AXIS -> outerAxis,
+      DIAG -> outerDiag,
+    ),
+  )
+
+  def has(ringType: Int, angleType: Int): Boolean = get(ringType, angleType).isDefined
+
+  def get(ringType: Int, angleType: Int): Option[SectorGroup] = groups(ringType)(angleType)
+}
+
+object SimpleSection {
+  def outer(axis: SectorGroup, diag: SectorGroup): SimpleSection = apply(None, None, Some(axis), Some(diag))
+}
 
 object Loop2Palette {
 
@@ -53,7 +97,7 @@ class Loop2Palette (
 
   val outerHallway: SectorGroup = palette.getSG(10)
   val outerHallwayDiag: SectorGroup = palette.getSG(11)
-  val playerStart: SectorGroup = palette.getSG(12)
+  val playerStartPartial: SectorGroup = palette.getSG(12)
 
   val innerEnd: SectorGroup = palette.getSG(13)
   val innerEndDiag: SectorGroup = palette.getSG(14)
@@ -75,11 +119,11 @@ class Loop2Palette (
   val forceField: SectorGroup = palette.getSG(22)
   val forceFieldDiag: SectorGroup = palette.getSG(23)
 
-  val droneDoors = Map[(Int, Int), SectorGroup](
-    (RingPrinter2.InnerRing, RingLayout.AXIS) -> palette.getSG(24),
-    (RingPrinter2.InnerRing, RingLayout.DIAG) -> palette.getSG(25),
-    (RingPrinter2.OuterRing, RingLayout.AXIS) -> palette.getSG(26),
-    (RingPrinter2.OuterRing, RingLayout.DIAG) -> palette.getSG(27),
+  val droneDoors = SimpleSection(
+    Some(palette.getSG(24)),
+    Some(palette.getSG(25)),
+    Some(palette.getSG(26)),
+    Some(palette.getSG(27)),
   )
 
   val armoryInner: SectorGroup = palette.getSG(28) // red circular "armory" thing with items
@@ -90,26 +134,46 @@ class Loop2Palette (
 
   val tripmineInnerDiag: SectorGroup = palette.getSG(32)
   val tripmineOuterDiag: SectorGroup = palette.getSG(33)
+  val tripBombs = SimpleSection(
+    innerAxis=Some(palette.getSG(30)),
+    innerDiag=Some(palette.getSG(32)),
+    outerAxis=Some(palette.getSG(31)),
+    outerDiag=Some(palette.getSG(33)),
+  )
 
-  val screensOuter: SectorGroup = palette.getSG(34)
-  val screensOuterDiag: SectorGroup = palette.getSG(35)
+  val screensOuter: SectorGroup = palette.getSG(34) // decor
+  val screensOuterDiag: SectorGroup = palette.getSG(35) // decor
+  val screensOuterDecor = SimpleSection.outer(
+    screensOuter,
+    screensOuterDiag,
+  )
 
   val outerConferenceRoom: SectorGroup = palette.getSG(36) // item area
 
+  // separate area with screens
   val screenAreaAxis: SectorGroup = palette.getSG(37)
   val screenAreaDiag: SectorGroup = palette.getSG(38) // only matches door of group 19
 
+  // TODO next=39
+
   // TODO dead end, as an alternative to one of the force fields
 
-  def getTestInner(angleType: Int): SectorGroup = angleType match {
-    case RingLayout.AXIS => tripmineInner // armoryInner
-    case RingLayout.DIAG => tripmineInnerDiag // suppliesInner
+  def getTest(ringIndex: Int, angleType: Int): SectorGroup = (ringIndex, angleType) match {
+    case (RingIndex.InnerRing, RingLayout.AXIS) => tripmineInner
+    case (RingIndex.InnerRing, RingLayout.DIAG) => tripmineInnerDiag
+    case (RingIndex.OuterRing, RingLayout.AXIS) => screenArea(RingLayout.AXIS)
+    case (RingIndex.OuterRing, RingLayout.DIAG) => screenArea(RingLayout.DIAG)
   }
 
-  def getTestOuter(angleType: Int): SectorGroup = angleType match {
-    case RingLayout.AXIS => screenArea(RingLayout.AXIS)
-    case RingLayout.DIAG => screenArea(RingLayout.DIAG)
-  }
+  // def getTestInner(angleType: Int): SectorGroup = angleType match {
+  //   case RingLayout.AXIS => tripmineInner // armoryInner
+  //   case RingLayout.DIAG => tripmineInnerDiag // suppliesInner
+  // }
+
+  // def getTestOuter(angleType: Int): SectorGroup = angleType match {
+  //   case RingLayout.AXIS => screenArea(RingLayout.AXIS)
+  //   case RingLayout.DIAG => screenArea(RingLayout.DIAG)
+  // }
 
   def screenArea(angleType: Int): SectorGroup = angleType match {
     case RingLayout.AXIS => {
@@ -122,37 +186,40 @@ class Loop2Palette (
     }
   }
 
-  // def getBlank(ringIndex: Int, angleType: Int): SectorGroup = { // TODO ?
-  def getInnerBlank(angleType: Int): SectorGroup = angleType match {
-    case RingLayout.AXIS => innerBlank
-    case RingLayout.DIAG => innerBlankDiag
-  }
+  // // def getBlank(ringIndex: Int, angleType: Int): SectorGroup = { // TODO ?
+  // def getInnerBlank(angleType: Int): SectorGroup = angleType match {
+  //   case RingLayout.AXIS => innerBlank
+  //   case RingLayout.DIAG => innerBlankDiag
+  // }
 
   def getMidBlank(angleType: Int): SectorGroup = angleType match {
     case RingLayout.AXIS => midBlank
     case RingLayout.DIAG => midBlankDiag
   }
 
-  def getOuterBlank(angleType: Int): SectorGroup = angleType match {
-    case RingLayout.AXIS => outerBlank
-    case RingLayout.DIAG => outerBlankDiag
+  // def getOuterBlank(angleType: Int): SectorGroup = angleType match {
+  //   case RingLayout.AXIS => outerBlank
+  //   case RingLayout.DIAG => outerBlankDiag
+  // }
+
+  def getBlank(ringIndex: Int, angleType: Int): SectorGroup = (ringIndex, angleType) match {
+    case (RingIndex.InnerRing, RingLayout.AXIS) => innerBlank
+    case (RingIndex.InnerRing, RingLayout.DIAG) => innerBlankDiag
+    case (RingIndex.OuterRing, RingLayout.AXIS) => outerBlank
+    case (RingIndex.OuterRing, RingLayout.DIAG) => outerBlankDiag
   }
 
-  def getPlayerStartOuter(angleType: Int): SectorGroup = angleType match {
-    case RingLayout.AXIS => {
-      outerHallway.withGroupAttachedById(gameCfg, 123, playerStart, playerStart.allRedwallConnectors.head)
-    }
-    case RingLayout.DIAG => {
-      outerHallwayDiag.withGroupAttachedById(gameCfg, 123, playerStart, playerStart.allRedwallConnectors.head)
-    }
-  }
+  val playerStart = SimpleSection.outer(
+    axis=outerHallway.withGroupAttachedById(gameCfg, 123, playerStartPartial, playerStartPartial.allRedwallConnectors.head),
+    diag=outerHallwayDiag.withGroupAttachedById(gameCfg, 123, playerStartPartial, playerStartPartial.allRedwallConnectors.head)
+  )
 
   def getEnd(angleType: Int, keyLockColor: Int): SectorGroup = angleType match {
     case RingLayout.AXIS => innerEnd.withKeyLockColor(gameCfg, keyLockColor)
     case RingLayout.DIAG => innerEndDiag.withKeyLockColor(gameCfg, keyLockColor)
   }
 
-  def getItemOuter(angleType: Int, item: Item): SectorGroup = angleType match {
+  def getFanOuter(angleType: Int, item: Item): SectorGroup = angleType match {
     case RingLayout.AXIS => {
       val outer = random.randomElement(outerDoor150)
       val conn = outer.getRedwallConnector(123)
@@ -169,20 +236,36 @@ class Loop2Palette (
     }
   }
 
+  def getWeaponOuter(angleType: Int, item: Item): SectorGroup = angleType match {
+    case RingLayout.AXIS => random.randomElement(Seq(1, 2, 3)) match {
+      case 1 => getFanOuter(angleType, item)
+      case 2 => screenArea(angleType).withItem(item.tex, item.pal)
+      case 3 => outerConferenceRoom.withItem(item.tex, item.pal)
+    }
+    case RingLayout.DIAG => random.randomElement(Seq(1, 2)) match {
+      case 1 => getFanOuter(angleType, item)
+      case 2 => screenArea(angleType).withItem(item.tex, item.pal)
+    }
+  }
+
+  def getWeaponInner(angleType: Int, item: Item): SectorGroup = angleType match {
+    case RingLayout.AXIS => random.randomElement(Seq(1)) match {
+      case 1 => armoryInner.withItem(item.tex, item.pal)
+    }
+    case RingLayout.DIAG => random.randomElement(Seq(1)) match {
+      case 1 => suppliesInner.withItem(item.tex, item.pal)
+    }
+  }
+
   def getForceField(angleType: Int): SectorGroup = angleType match {
     case RingLayout.AXIS => forceField
     case RingLayout.DIAG => forceFieldDiag
   }
 
-  def getDroneInner(angleType: Int): SectorGroup = droneDoors((RingPrinter2.InnerRing, angleType))
-  def getDroneOuter(angleType: Int): SectorGroup = droneDoors((RingPrinter2.OuterRing, angleType))
-
-  def getWeapon(angleType: Int): SectorGroup = ??? // TODO use armory thing
-
-  // TODO put more things here
-  HyperLoopParser.checkInner(droneDoors((RingPrinter2.InnerRing, RingLayout.AXIS)))
-  HyperLoopParser.checkInner(droneDoors((RingPrinter2.InnerRing, RingLayout.DIAG)))
-  HyperLoopParser.checkOuter(droneDoors((RingPrinter2.OuterRing, RingLayout.AXIS)))
-  HyperLoopParser.checkOuter(droneDoors((RingPrinter2.OuterRing, RingLayout.DIAG)))
+  // TODO put more things here (and create a check function that takes a Section ?)
+  HyperLoopParser.checkInner(droneDoors(RingPrinter2.InnerRing, RingLayout.AXIS))
+  HyperLoopParser.checkInner(droneDoors(RingPrinter2.InnerRing, RingLayout.DIAG))
+  HyperLoopParser.checkOuter(droneDoors(RingPrinter2.OuterRing, RingLayout.AXIS))
+  HyperLoopParser.checkOuter(droneDoors(RingPrinter2.OuterRing, RingLayout.DIAG))
 
 }

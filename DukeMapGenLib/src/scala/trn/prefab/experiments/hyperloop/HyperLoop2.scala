@@ -4,10 +4,11 @@ import trn.duke.TextureList
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.hyperloop.EdgeIds.{OuterEdgeConn, InnerEdgeConn}
 import trn.prefab.experiments.hyperloop.Loop2Plan.{Blank, ForceField}
-import trn.prefab.experiments.hyperloop.RingLayout.DIAG
+import trn.prefab.experiments.hyperloop.RingLayout.{DIAG, AXIS}
 import trn.prefab.experiments.hyperloop.RingPrinter2.{OuterRing, MiddleRing, InnerRing, AllRings}
-import trn.{HardcodedConfig, RandomX, ScalaMapLoader, Sprite}
+import trn.{Sprite, HardcodedConfig, RandomX, ScalaMapLoader}
 import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, RedwallConnector, PastedSectorGroup, SpriteLogicException, Marker}
+import trn.prefab.experiments.hyperloop.Item._
 
 import scala.collection.mutable
 
@@ -24,9 +25,10 @@ class Loop2Planner(random: RandomX){
 
   def randomPlan(size: Int): Loop2Plan = {
     // TODO implement randomness
+    // TODO add validation, like ensuring there is exactly one start, one end, etc
 
-    val inner = "**___EEF_Z____F_"
-    val outer = "**Sk_EEF__K___F_"
+    val inner = "_______F_Z____F_"
+    val outer = "__Sk___F__K___F_"
 
     require(size == 16)
     require(inner.size == size)
@@ -43,7 +45,14 @@ object Loop2Plan {
 
   val Test = "*" // for testing
 
-  val Blank = "_"
+  val Blank = "_" // val Blank = "_"
+
+  /** like blank, except that it can have weapons, powerups, enemies
+    */
+  // val Random = "R"
+  val Random = "R"
+
+  val Decor = "D" // just using as a subsection for random
 
   /** outer section containing player start */
   val Start = "S"
@@ -73,6 +82,7 @@ object Loop2Plan {
 
   /** enemy section - section dedicated to enemies.  NOT used for enemies that spawn in the passage */
   val Enemy = "E"
+
 }
 
 /** for set piees, a single pasted sectorgroup may be referenced by multiple pasted sections */
@@ -127,9 +137,9 @@ object PastedSection {
 }
 
 object RingPrinter2 {
-  val InnerRing = 0
-  val MiddleRing = 1
-  val OuterRing = 2
+  val InnerRing = RingIndex.InnerRing
+  val MiddleRing = RingIndex.MiddleRing
+  val OuterRing = RingIndex.OuterRing
   val AllRings = Seq(InnerRing, MiddleRing, OuterRing)
 }
 
@@ -266,7 +276,7 @@ object HyperLoop2 {
     val palette = ScalaMapLoader.loadPalette(HardcodedConfig.EDUKE32PATH + Filename, Some(gameCfg))
     val writer = MapWriter(gameCfg)
     try {
-      renderPlan(gameCfg, writer, plan, new Loop2Palette(gameCfg, random, palette))
+      renderPlan(gameCfg, random, writer, plan, new Loop2Palette(gameCfg, random, palette))
     } catch {
       case e: SpriteLogicException => {
         e.printStackTrace()
@@ -303,15 +313,13 @@ object HyperLoop2 {
     }
   }
 
-  def renderPlan(gameCfg: GameConfig, writer: MapWriter, plan: Loop2Plan, loop2Palette: Loop2Palette): Unit = {
+  def renderPlan(gameCfg: GameConfig, random: RandomX, writer: MapWriter, plan: Loop2Plan, loop2Palette: Loop2Palette): Unit = {
     val sectionCount = 16
     val ringLayout = RingLayout.fromHyperLoopPalette(loop2Palette)
-    // val ringPrinter = new RingPrinter1(writer, ringLayout, sectionCount)
     val ringPrinter = new RingPrinter2(writer, ringLayout, sectionCount)
 
     val key1 = Item.RedKey // for force fields
     val key2 = Item.YellowKey
-
 
     // Force Fields
     val pastedForceFields = (0 until sectionCount).filter(i => plan.isForceField(i)).map { index =>
@@ -322,41 +330,123 @@ object HyperLoop2 {
     }
     linkForceFields(gameCfg, pastedForceFields(0).psg, pastedForceFields(1).psg)
 
-
     (0 until sectionCount).foreach { index =>
       val angleType = RingLayout.indexToAngleType(index)
       ringPrinter.tryPasteMid(index, loop2Palette.getMidBlank(angleType))
     }
 
+    val picker = new SectionPicker(random, loop2Palette, key1, key2)
+
     (0 until sectionCount).foreach { index =>
       val angleType = RingLayout.indexToAngleType(index)
-      plan.inner(index) match {
-        case Loop2Plan.Test => ringPrinter.tryPaste(InnerRing, index, loop2Palette.getTestInner(angleType))
-        case Loop2Plan.Blank => ringPrinter.tryPaste(InnerRing, index, loop2Palette.getInnerBlank(angleType))
-        case Loop2Plan.End => ringPrinter.paste(InnerRing, index, loop2Palette.getEnd(angleType, key2.pal))
-        case Loop2Plan.Start => throw new RuntimeException("cannot place START section on inner ring")
-        case Loop2Plan.ForceField => {} // already handled
-        case Loop2Plan.Enemy => ringPrinter.paste(InnerRing, index, loop2Palette.getDroneInner(angleType))
-        case s: String => println(s"ERROR ${s}")
+      if(!ringPrinter.rings(InnerRing).contains(index)){
+        val sg = picker.getSection(plan.inner(index), InnerRing, angleType).get
+        ringPrinter.tryPaste(InnerRing, index, sg)
       }
-      plan.outer(index) match {
-        case Loop2Plan.Test => ringPrinter.tryPaste(OuterRing, index, loop2Palette.getTestOuter(angleType))
-        case Loop2Plan.Blank => ringPrinter.tryPaste(OuterRing, index, loop2Palette.getOuterBlank(angleType))
-        case Loop2Plan.Start => {
-          val sg = loop2Palette.getPlayerStartOuter(angleType)
-          ringPrinter.tryPaste(OuterRing, index, sg)
-        }
-        case Loop2Plan.End => ??? // TODO ?
-        case Loop2Plan.Key1 => ringPrinter.paste(OuterRing, index, loop2Palette.getItemOuter(angleType, key1))
-        case Loop2Plan.Key2 => ringPrinter.paste(OuterRing, index, loop2Palette.getItemOuter(angleType, key2))
-        case Loop2Plan.ForceField => {} // already handled
-        case Loop2Plan.Enemy => ringPrinter.paste(OuterRing, index, loop2Palette.getDroneOuter(angleType))
-        case s: String => println(s"ERROR ${s}")
+      if (!ringPrinter.rings(OuterRing).contains(index)) {
+        val sg = picker.getSection(plan.outer(index), OuterRing, angleType).get
+        ringPrinter.tryPaste(OuterRing, index, sg)
       }
     }
 
     ringPrinter.autoLink()
     ExpUtil.finishAndWrite(writer)
+  }
+
+}
+
+class SectionPicker(random: RandomX, palette: Loop2Palette, key1: Item, key2: Item) {
+
+  val Weapons = Seq[Item](
+    Shotgun,
+    Chaingun,
+    Rpg,
+    FreezeRay,
+    ShrinkRay,
+    PipeBomb,
+    Devastator,
+  )
+
+  // TODO
+  def getSection(sectionType: String, ringIndex: Int, angleType: Int): Option[SectorGroup] = {
+    sectionType match {
+      case Loop2Plan.Test => Some(palette.getTest(ringIndex, angleType))
+      // case Loop2Plan.Blank => Some(getBlank(ringIndex, angleType))
+      case Loop2Plan.Blank | Loop2Plan.Random => {
+        // Some(getRandom(ringIndex, angleType))
+        getSection(
+          random.randomElement(Seq(Loop2Plan.Decor, Loop2Plan.Enemy, Loop2Plan.Weapon)), ringIndex, angleType
+        )
+      }
+      case Loop2Plan.Decor => Some(getDecor(ringIndex, angleType))
+      case Loop2Plan.End => Some(getEnd(ringIndex, angleType, key2.pal))
+      case Loop2Plan.Start => Some(getStart(ringIndex, angleType))
+      case Loop2Plan.ForceField => ??? // this shouldn't be called
+      case Loop2Plan.Key1 => {
+        require(ringIndex == OuterRing, "inner keys not implemented yet") // TODO implement
+        Some(palette.getFanOuter(angleType, key1))
+      }
+      case Loop2Plan.Key2 => {
+        require(ringIndex == OuterRing, "inner keys not implemented yet") // TODO implement
+        Some(palette.getFanOuter(angleType, key2))
+      }
+      case Loop2Plan.Enemy => Some(getEnemy(ringIndex, angleType))
+      case Loop2Plan.Weapon => ringIndex match {
+        // TODO there should be a getWeapon() function in this object
+        case InnerRing => Some(palette.getWeaponInner(angleType, random.randomElement(Weapons)))
+        case OuterRing => Some(palette.getWeaponOuter(angleType, random.randomElement(Weapons)))
+      }
+      case s: String => {
+        println(s"ERROR ${s}")
+        None
+      }
+    }
+  }
+
+  def getRandom(ringIndex: Int, angleType: Int): SectorGroup = {
+    // TODO include item/powerup rooms, but with nothing in them...
+    ???
+  }
+
+  def getStart(ringIndex: Int, angleType: Int): SectorGroup = {
+    ringIndex match {
+      case InnerRing => throw new RuntimeException("can't have player starts on inner ring - player ends up in an overlapping sector")
+      case OuterRing => palette.playerStart(OuterRing, angleType)
+    }
+  }
+
+  def getEnemy(ringIndex: Int, angleType: Int): SectorGroup = {
+    val enemies = Seq(palette.droneDoors, palette.tripBombs)
+    val section = random.randomElement(enemies.filter(_.hasRingIndex(ringIndex)))
+    section(ringIndex, angleType)
+  }
+
+  def getDecor(ringIndex: Int, angleType: Int): SectorGroup = {
+    ringIndex match {
+      case InnerRing => palette.getBlank(ringIndex, angleType)
+      case OuterRing => random.randomElement(Seq(1, 2)) match {
+        case 1 => palette.getBlank(ringIndex, angleType)
+        case 2 => palette.screensOuterDecor(ringIndex, angleType)
+        // case 3 => palette.outerConferenceRoom // TODO - but its only straight
+      }
+    }
+  }
+
+  def getBlank(ringIndex: Int, angleType: Int): SectorGroup = {
+    ringIndex match {
+      case InnerRing => palette.getBlank(ringIndex, angleType)
+      case OuterRing => random.randomElement(Seq(1, 2)) match {
+        case 1 => palette.getBlank(ringIndex, angleType)
+        case 2 => palette.screensOuterDecor(ringIndex, angleType)
+      }
+    }
+  }
+
+  def getEnd(ringIndex: Int, angleType: Int, key2pal: Int): SectorGroup = {
+    ringIndex match {
+      case InnerRing => palette.getEnd(angleType, key2pal)
+      case OuterRing => ???
+    }
   }
 
 }
