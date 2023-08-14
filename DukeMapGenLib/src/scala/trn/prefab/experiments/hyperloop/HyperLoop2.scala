@@ -3,7 +3,7 @@ package trn.prefab.experiments.hyperloop
 import trn.duke.TextureList
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.hyperloop.EdgeIds.{OuterEdgeConn, InnerEdgeConn}
-import trn.prefab.experiments.hyperloop.Loop2Plan.{Blank, ForceField}
+import trn.prefab.experiments.hyperloop.Loop2Plan.{Blank, ForceField, LightWeapon}
 import trn.prefab.experiments.hyperloop.RingLayout.{DIAG, AXIS}
 import trn.prefab.experiments.hyperloop.RingPrinter2.{OuterRing, MiddleRing, InnerRing, AllRings}
 import trn.{Sprite, HardcodedConfig, RandomX, ScalaMapLoader}
@@ -12,31 +12,103 @@ import trn.prefab.experiments.hyperloop.Item._
 
 import scala.collection.mutable
 
-case class Loop2Plan(inner: Seq[String], outer: Seq[String]){
+/** rough sense of how difficult the enemies should be in an area */
+object ThreatLevel {
+  val Low = 0
+  val High = 1
+}
+
+// case class Shape(ringIndex: Int, angleType: Int)
+
+/**
+  *
+  * @param inner
+  * @param outer
+  * @param generalThreat rough idea of threat level for that section -- sections can override though
+  */
+case class Loop2Plan(
+  inner: Seq[String],
+  outer: Seq[String],
+  generalThreat: Seq[Int],
+){
+  require(inner.size == outer.size && outer.size == generalThreat.size)
+
   def isForceField(index: Int): Boolean = {
     val a = inner(index) == ForceField
     val b = inner(index) == ForceField
     require(a == b)
     return a
   }
+
+  def validate(): Loop2Plan = {
+    val all = inner ++ outer
+    require(all.filter(_ == Loop2Plan.Start).size == 1)
+    require(all.filter(_ == Loop2Plan.End).size == 1)
+    this
+  }
 }
 
-class Loop2Planner(random: RandomX){
+class Loop2Planner(random: RandomX, size: Int = 16){
 
-  def randomPlan(size: Int): Loop2Plan = {
-    // TODO implement randomness
-    // TODO add validation, like ensuring there is exactly one start, one end, etc
-
-    val inner = "_______F_Z____F_"
-    val outer = "__Sk___F__K___F_"
-
+  def testPlan: Loop2Plan = {
     require(size == 16)
+    val inner = "PPL____F_Z____F_"
+    val outer = "*PSk___F__K___F_"
+    val threat = Seq(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
     require(inner.size == size)
     require(outer.size == size)
     Loop2Plan(
       inner.map(s => s.toString),
       outer.map(s => s.toString),
-    )
+      threat,
+    ).validate()
+  }
+
+  def findEmpty(ring: mutable.Map[Int, String], range: Seq[Int]): Int = {
+    random.randomElement((0 until size).filter(range.contains).filterNot(ring.contains))
+  }
+
+  def randomPlan(): Loop2Plan = {
+    return testPlan
+    require(size == 16)
+    // TODO add validation, like ensuring there is exactly one start, one end, etc
+
+    val secureZoneStart = 6 + random.scalaRandom.nextInt(2) // end value is exclusive
+    val secureZoneEnd =  13 + random.scalaRandom.nextInt(2) // 13-15
+    val secureZone = (secureZoneStart to secureZoneEnd)
+    val clearZone = (0 until size).filterNot(secureZone.contains)
+
+    val inner = mutable.Map[Int, String]()
+    val outer = mutable.Map[Int, String]()
+
+    inner.put(secureZone.head, ForceField)
+    outer.put(secureZone.head, ForceField)
+    inner.put(secureZone.last, ForceField)
+    outer.put(secureZone.last, ForceField)
+
+    val startLoc = findEmpty(outer, clearZone)
+    outer.put(startLoc, Loop2Plan.Start)
+
+    val lightWeaponRange = clearZone.filter(i => Math.abs(i - startLoc) < 2)
+    inner.put(findEmpty(inner, lightWeaponRange), Loop2Plan.LightWeapon) // TODO outer or inner
+
+    outer.put(findEmpty(outer, clearZone), Loop2Plan.Key1)
+    outer.put(findEmpty(outer, secureZone), Loop2Plan.Key2)
+
+    inner.put(findEmpty(inner, (0 until size)), Loop2Plan.End)
+
+    Loop2Plan(
+      (0 until size).map(i => inner.getOrElse(i, Blank)),
+      (0 until size).map(i => outer.getOrElse(i, Blank)),
+      (0 until size).map { i =>
+        if(secureZone.contains(i)){
+          ThreatLevel.High
+        }else{
+          ThreatLevel.Low
+        }
+      }
+    ).validate()
   }
 
 }
@@ -270,7 +342,7 @@ object HyperLoop2 {
 
     val random = new RandomX()
 
-    val plan = new Loop2Planner(random).randomPlan(16)
+    val plan = new Loop2Planner(random).randomPlan()
     println(plan)
 
     val palette = ScalaMapLoader.loadPalette(HardcodedConfig.EDUKE32PATH + Filename, Some(gameCfg))
@@ -339,12 +411,13 @@ object HyperLoop2 {
 
     (0 until sectionCount).foreach { index =>
       val angleType = RingLayout.indexToAngleType(index)
+      val threat = plan.generalThreat(index)
       if(!ringPrinter.rings(InnerRing).contains(index)){
-        val sg = picker.getSection(plan.inner(index), InnerRing, angleType).get
+        val sg = picker.getSection(plan.inner(index), InnerRing, angleType, threat).get
         ringPrinter.tryPaste(InnerRing, index, sg)
       }
       if (!ringPrinter.rings(OuterRing).contains(index)) {
-        val sg = picker.getSection(plan.outer(index), OuterRing, angleType).get
+        val sg = picker.getSection(plan.outer(index), OuterRing, angleType, threat).get
         ringPrinter.tryPaste(OuterRing, index, sg)
       }
     }
@@ -357,6 +430,12 @@ object HyperLoop2 {
 
 class SectionPicker(random: RandomX, palette: Loop2Palette, key1: Item, key2: Item) {
 
+  val PowerUps = Seq[Item](
+    Medkit, Armor, Steroids, Nightvision, HoloDuke, AtomicHealth, Jetpack
+    // skipping scuba
+
+  )
+
   val Weapons = Seq[Item](
     Shotgun,
     Chaingun,
@@ -367,15 +446,17 @@ class SectionPicker(random: RandomX, palette: Loop2Palette, key1: Item, key2: It
     Devastator,
   )
 
+  val LightWeapons = Seq[Item](Shotgun, Chaingun)
+
   // TODO
-  def getSection(sectionType: String, ringIndex: Int, angleType: Int): Option[SectorGroup] = {
+  def getSection(sectionType: String, ringIndex: Int, angleType: Int, threat: Int): Option[SectorGroup] = {
     sectionType match {
       case Loop2Plan.Test => Some(palette.getTest(ringIndex, angleType))
       // case Loop2Plan.Blank => Some(getBlank(ringIndex, angleType))
       case Loop2Plan.Blank | Loop2Plan.Random => {
         // Some(getRandom(ringIndex, angleType))
         getSection(
-          random.randomElement(Seq(Loop2Plan.Decor, Loop2Plan.Enemy, Loop2Plan.Weapon)), ringIndex, angleType
+          random.randomElement(Seq(Loop2Plan.Decor, Loop2Plan.Enemy, Loop2Plan.Weapon)), ringIndex, angleType, threat
         )
       }
       case Loop2Plan.Decor => Some(getDecor(ringIndex, angleType))
@@ -390,16 +471,30 @@ class SectionPicker(random: RandomX, palette: Loop2Palette, key1: Item, key2: It
         require(ringIndex == OuterRing, "inner keys not implemented yet") // TODO implement
         Some(palette.getFanOuter(angleType, key2))
       }
-      case Loop2Plan.Enemy => Some(getEnemy(ringIndex, angleType))
-      case Loop2Plan.Weapon => ringIndex match {
-        // TODO there should be a getWeapon() function in this object
-        case InnerRing => Some(palette.getWeaponInner(angleType, random.randomElement(Weapons)))
-        case OuterRing => Some(palette.getWeaponOuter(angleType, random.randomElement(Weapons)))
-      }
+      case Loop2Plan.Enemy => Some(getEnemy(ringIndex, angleType, threat))
+      case Loop2Plan.LightWeapon => getWeapon(ringIndex, angleType, random.randomElement(LightWeapons))
+      case Loop2Plan.Weapon => getWeapon(ringIndex, angleType, random.randomElement(Weapons))
+      case Loop2Plan.Powerup => getPowerUp(ringIndex, angleType, random.randomElement(PowerUps))
       case s: String => {
         println(s"ERROR ${s}")
         None
       }
+    }
+  }
+
+  def getWeapon(ringIndex: Int, angleType: Int, weapon: Item): Option[SectorGroup] = {
+    ringIndex match {
+      case InnerRing => {
+        Some(palette.armoryInnerSection(ringIndex, angleType).withItem(weapon.tex, weapon.pal))
+      }
+      case OuterRing => Some(palette.getWeaponOuter(angleType, weapon))
+    }
+  }
+
+  def getPowerUp(ringIndex: Int, angleType: Int, weapon: Item): Option[SectorGroup] = {
+    ringIndex match {
+      case InnerRing => Some(palette.suppliesInnerSection(ringIndex, angleType).withItem(weapon.tex, weapon.pal))
+      case OuterRing => Some(palette.getWeaponOuter(angleType, weapon)) // TODO better places
     }
   }
 
@@ -410,12 +505,12 @@ class SectionPicker(random: RandomX, palette: Loop2Palette, key1: Item, key2: It
 
   def getStart(ringIndex: Int, angleType: Int): SectorGroup = {
     ringIndex match {
-      case InnerRing => throw new RuntimeException("can't have player starts on inner ring - player ends up in an overlapping sector")
+      case InnerRing => throw new RuntimeException("can't have player start on inner ring - player ends up in an overlapping sector")
       case OuterRing => palette.playerStart(OuterRing, angleType)
     }
   }
 
-  def getEnemy(ringIndex: Int, angleType: Int): SectorGroup = {
+  def getEnemy(ringIndex: Int, angleType: Int, threat: Int): SectorGroup = {
     val enemies = Seq(palette.droneDoors, palette.tripBombs)
     val section = random.randomElement(enemies.filter(_.hasRingIndex(ringIndex)))
     section(ringIndex, angleType)

@@ -93,6 +93,8 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
   def allSprites: Seq[Sprite] = map.allSprites
 
+  def allSpritesWithIndex: Seq[(Sprite, Int)] = allSprites.zipWithIndex
+
   def allWalls: Seq[Wall] = wallSeq
 
   val allSectorIds = (0 until map.getSectorCount).toSet
