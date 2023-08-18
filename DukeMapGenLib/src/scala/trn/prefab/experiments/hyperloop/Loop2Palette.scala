@@ -5,12 +5,21 @@ import trn.duke.{PaletteList, TextureList}
 import trn.prefab.experiments.hyperloop.RingLayout.{DIAG, AXIS}
 import trn.prefab.{SectorGroup, PrefabPalette, GameConfig}
 
+object TileNames {
+  val BigWindow = "big_window"
+  val Mirror = "mirror"
+}
+
 /**
   * Represents an abstract section of a ring that can be pasted at a position,
   * e.g. "key room 1" or "shuttle bay" and tries to hide the fact that different sector
   * groups might be needed for different angle types.
+  *
+  * TODO maybe this should have been called "tile" ?  or is a section made of tiles?
   */
 trait Section {
+
+  def name: Option[String]
 
   def has(ringType: Int, angleType: Int): Boolean
 
@@ -28,6 +37,7 @@ case class SimpleSection (
   outerAxis: Option[SectorGroup],
   outerDiag: Option[SectorGroup],
   threatModifier: (SectorGroup, Int) => SectorGroup = SimpleSection.defaultThreatModifier,
+  name: Option[String] = None,
 ) extends Section {
   val groups = Map(
     RingIndex.InnerRing -> Map(
@@ -50,9 +60,9 @@ case class SimpleSection (
 object SimpleSection {
   def defaultThreatModifier(sg: SectorGroup, threat: Int): SectorGroup = sg
 
-  def outer(axis: SectorGroup, diag: SectorGroup): SimpleSection = apply(None, None, Some(axis), Some(diag))
+  def outer(axis: SectorGroup, diag: SectorGroup, name: Option[String] = None): SimpleSection = apply(None, None, Some(axis), Some(diag), name=name)
 
-  def inner(axis: SectorGroup, diag: SectorGroup): SimpleSection = apply(Some(axis), Some(diag), None, None)
+  def inner(axis: SectorGroup, diag: SectorGroup, name: Option[String] = None): SimpleSection = apply(Some(axis), Some(diag), None, None, name=name)
 }
 
 object Loop2Palette {
@@ -180,15 +190,27 @@ class Loop2Palette (
 
   val bigWindowsOuterAxis: SectorGroup = palette.getSG(41)
 
-  // TODO next=42
+  val bigWindowsOuter = SimpleSection.outer(
+    bigWindowsOuterAxis,
+    outerBlankDiag, // TODO
+    name=Some(TileNames.BigWindow),
+  )
+
+  val mirrorOuter = SimpleSection.outer(
+    palette.getSG(42),
+    palette.getSG(43),
+    name=Some(TileNames.Mirror),
+  )
+
+  // TODO next=44
 
   // TODO dead end, as an alternative to one of the force fields
 
   def getTest(ringIndex: Int, angleType: Int): SectorGroup = (ringIndex, angleType) match {
     case (RingIndex.InnerRing, RingLayout.AXIS) => tripmineInner
     case (RingIndex.InnerRing, RingLayout.DIAG) => tripmineInnerDiag
-    case (RingIndex.OuterRing, RingLayout.AXIS) => bigWindowsOuterAxis
-    case (RingIndex.OuterRing, RingLayout.DIAG) => screenArea(RingLayout.DIAG)
+    case (RingIndex.OuterRing, RingLayout.AXIS) => mirrorOuter(ringIndex, angleType)
+    case (RingIndex.OuterRing, RingLayout.DIAG) => mirrorOuter(ringIndex, angleType)
   }
 
   // def getTestInner(angleType: Int): SectorGroup = angleType match {
@@ -287,6 +309,14 @@ class Loop2Palette (
   def getForceField(angleType: Int): SectorGroup = angleType match {
     case RingLayout.AXIS => forceField
     case RingLayout.DIAG => forceFieldDiag
+  }
+
+  val tiles: Map[String, Section] = Map(
+    TileNames.BigWindow -> bigWindowsOuter
+  )
+
+  def getTile(tileName: String): Section = {
+    tiles(tileName)
   }
 
   // TODO put more things here (and create a check function that takes a Section ?)

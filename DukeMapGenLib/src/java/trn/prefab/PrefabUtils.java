@@ -144,6 +144,8 @@ public class PrefabUtils {
 		/**
 		 * Generic algorithm "Hint" sprite.  The meaning of the sprite is specific to the algorithm being used to
 		 * generate the map.
+		 *
+		 * TODO possibly replaced by ALGO_GENERIC?
 		 */
 		public static int ALGO_HINT = 13;
 

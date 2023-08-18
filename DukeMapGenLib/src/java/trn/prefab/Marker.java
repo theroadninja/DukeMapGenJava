@@ -40,6 +40,8 @@ public class Marker {
          * a generic feature.
          *
          * E.g. inventing this to mark sectors where touchplaces get inserted for the HyperLoop algorithm.
+         *
+         * This may be an accidental duplicate of ALGO_HINT
          */
         public static int ALGO_GENERIC = 16;
 

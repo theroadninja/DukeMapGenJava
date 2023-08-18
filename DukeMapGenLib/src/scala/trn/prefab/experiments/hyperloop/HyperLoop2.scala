@@ -52,8 +52,8 @@ class Loop2Planner(random: RandomX, size: Int = 16){
 
   def testPlan: Loop2Plan = {
     require(size == 16)
-    val inner = "PPL____F_Z____F_"
-    val outer = "*PSk___F__K___F_"
+    val inner = "_L_____F_Z____F_"
+    val outer = "*S_k___F__K___F_"
     val threat = Seq(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 
     require(inner.size == size)
@@ -517,11 +517,13 @@ class SectionPicker(random: RandomX, palette: Loop2Palette, key1: Item, key2: It
   }
 
   def getDecor(ringIndex: Int, angleType: Int): SectorGroup = {
+    // "decor" ->  "big mirror" => actual sector group
     ringIndex match {
       case InnerRing => palette.getBlank(ringIndex, angleType)
-      case OuterRing => random.randomElement(Seq(1, 2)) match {
+      case OuterRing => random.randomElement(Seq(1, 2, 3)) match {
         case 1 => palette.getBlank(ringIndex, angleType)
         case 2 => palette.screensOuterDecor(ringIndex, angleType)
+        case 3 => palette.bigWindowsOuter(ringIndex, angleType)
         // case 3 => palette.outerConferenceRoom // TODO - but its only straight
       }
     }
