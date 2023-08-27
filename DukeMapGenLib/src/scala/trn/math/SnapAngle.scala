@@ -58,6 +58,8 @@ object SnapAngle {
     *
     * val rotateMe = Tile(...) // tile extends RotatesCW
     * val angle: Option[SnapAngle] = SnapAngle.rotateUntil(rotateMe){ tile =>  tile.isWhatever() }
+    *
+    * TODO this should be called getRotationsUntil
     */
   def rotateUntil[T <: RotatesCW[T]](r: T)(predicate: T => Boolean): Option[SnapAngle] = {
     lazy val r90 = r.rotatedCW
@@ -74,6 +76,24 @@ object SnapAngle {
     }else{
       None
     }
+  }
+
+  def rotateUntil2[T <: RotatesCW[T]](r: T)(predicate: T => Boolean): Option[(SnapAngle, T)] = {
+    lazy val r90 = r.rotatedCW
+    lazy val r180 = r90.rotatedCW
+    lazy val r270 = r180.rotatedCW
+    if (predicate(r)) {
+      Some(SnapAngle(0), r)
+    } else if (predicate(r90)) {
+      Some(SnapAngle(1), r90)
+    } else if (predicate(r180)) {
+      Some(SnapAngle(2), r180)
+    } else if (predicate(r270)) {
+      Some(SnapAngle(3), r270)
+    } else {
+      None
+    }
+
   }
 
   def apply(cwCount: Int): SnapAngle = new SnapAngle(modulo(cwCount, 4))

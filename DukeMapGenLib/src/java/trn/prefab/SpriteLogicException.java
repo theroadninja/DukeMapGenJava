@@ -57,9 +57,10 @@ public class SpriteLogicException extends RuntimeException {
 		this(message + " near " + locationsToString(locations));
 	}
 
+	// TODO replace `Sprite` with some kind of interface about having a position, so I can use it with RedwallConns
 	// TODO document somewhere that in mapster32 you can hold single quote and press J to jump to coordinates!
-	public SpriteLogicException(String message, Sprite location){
-		this(message, location.getLocation().asXY());
+	public SpriteLogicException(String message, HasLocationXY location){
+		this(message, location.getLocationXY());
 	}
 
 	public SpriteLogicException(String message, Exception cause){

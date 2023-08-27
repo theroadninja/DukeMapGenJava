@@ -9,6 +9,13 @@ public class Marker {
 
     public static class Lotags {
 
+        /**
+         * lotag of construction sprite whose hitag serves as an id for the group
+         *
+         * Note: if a sector group does NOT have a group id, then it also cannot have a sprite with texture 0 and a
+         * lotag of 1 (only doing this to remind user they forgot to set the texture).
+         */
+        public static int GROUP_ID = 1;
 
         /**
          * Location for a powerup, including keys.

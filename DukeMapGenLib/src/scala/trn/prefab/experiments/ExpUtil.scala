@@ -9,20 +9,41 @@ import trn.{Map => DMap}
   * Utility Functions for Scala Experiments
   */
 object ExpUtil {
+
+
+  def finish(
+    writer: MapWriter,
+    forcePlayerStart: Boolean = true,
+    removeMarkers: Boolean = true,
+  ): DMap = {
+    // ////////////////////////
+    writer.disarmAllSkyTextures()
+    writer.setAnyPlayerStart(force = forcePlayerStart)
+    if (removeMarkers) {
+      writer.sgBuilder.clearMarkers()
+    }
+    writer.checkSectorCount()
+    writer.outMap
+  }
+
+  /** convenience method for local testing */
+  def write(
+    outMap: DMap,
+    filename: String = "output.map",
+  ): Unit = {
+    Main.deployTest(outMap, filename, HardcodedConfig.getEduke32Path(filename))
+
+  }
+
   def finishAndWrite(
     writer: MapWriter,
     forcePlayerStart: Boolean = true,
     filename: String = "output.map",
     removeMarkers: Boolean = true,
   ): Unit = {
-    // ////////////////////////
-    writer.disarmAllSkyTextures()
-    writer.setAnyPlayerStart(force = forcePlayerStart)
-    if(removeMarkers){
-      writer.sgBuilder.clearMarkers()
-    }
-    writer.checkSectorCount()
-    Main.deployTest(writer.outMap, filename, HardcodedConfig.getEduke32Path(filename))
+    finish(writer, forcePlayerStart, removeMarkers)
+    write(writer.outMap, filename)
+    // Main.deployTest(writer.outMap, filename, HardcodedConfig.getEduke32Path(filename))
   }
 
   /** for older code that is not ready to call finishAndWrite() b/c it doesnt use MapWriter yet */

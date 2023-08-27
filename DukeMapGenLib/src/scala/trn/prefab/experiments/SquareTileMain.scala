@@ -402,6 +402,7 @@ object TilePainter {
         }else{tiles3}
         val tile = tiles4.find(t => writer.canFitSectors(t.sg) && t.couldMatch(matchTile))
 
+        // TODO if you are looking for how to auto rotate when pasting & linking, see `Placement`
         tile.flatMap(_.rotateToMatch(matchTile)).foreach { t =>
           grid.put(cell, t)
           copyTracker.record(t.getSg.get)

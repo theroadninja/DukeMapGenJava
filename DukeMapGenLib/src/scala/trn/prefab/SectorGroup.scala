@@ -54,6 +54,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     with ISectorGroup
     with RotatesCW[SectorGroup]
     with ReadOnlySectorGroup
+    with HasLocationXY
 {
   // val connectors: java.util.List[Connector] = new java.util.ArrayList[Connector]();
   val autoTexts: java.util.List[AutoText] = new java.util.ArrayList[AutoText]
@@ -76,6 +77,15 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   def toBlueprint: BlueprintGroup = BlueprintGroup(boundingBox, fineBoundingBoxes, allRedwallConnectors.map(_.toBlueprint))
 
   override def getMap: DMap = map
+
+  // for now this is just a general idea of a location, for things like SpriteLogicExceptions
+  override def getLocationXY: PointXY = {
+    val hasLoc: HasLocationXY = getAnchorSprite
+      .orElse(allSprites.find(s => Marker.isMarker(s, Marker.Lotags.GROUP_ID)))
+      .orElse(allRedwallConnectors.headOption)
+      .getOrElse(allWalls.head)
+    hasLoc.getLocationXY
+  }
 
   override def findSprites(picnum: Int, lotag: Int, sectorId: Int): java.util.List[Sprite] = {
     getMap().findSprites(picnum, lotag, sectorId)

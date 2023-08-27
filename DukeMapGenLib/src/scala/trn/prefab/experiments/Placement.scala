@@ -6,6 +6,8 @@ import trn.prefab.{MapWriter, PastedSectorGroup, RedwallConnector, SectorGroup}
 
 object Placement {
 
+  // TODO improved version currently at trn.prefab.experiments.subway.Subway1 .rotateAndPasteToTrack
+  // TODO see also SnapAngle.rotateUntil2
   private def placements(writer: MapWriter, existingConns: Seq[RedwallConnector], sg: SectorGroup, allowOverlap: Boolean = false): Seq[Placement] = {
     val conns2 = sg.allRedwallConnectors
     existingConns.flatMap(c1 => conns2.map(c2 => Placement(c1, c2, sg))).filter { p =>

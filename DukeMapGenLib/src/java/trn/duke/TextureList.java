@@ -217,7 +217,8 @@ public class TextureList {
 	public static final boolean isDeadly(int tex){
 		return tex == SKIES.MOON_SKY || tex == SKIES.BIG_ORBIT;
 	}
-	
+
+
 	//NOTE: there are some lights here (120) that I'm skipping
 
 	
@@ -319,7 +320,11 @@ public class TextureList {
 			ALIEN_SWITCH, ALIEN_SWITCH_OFF, HANDPRINT_SWITCH
 		});
 	}
-	
+
+	public static final boolean isLock(int tex){
+		return Switches.ACCESS_SWITCH == tex || Switches.ACCESS_SWITCH_2 == tex;
+	}
+
 	/**
 	 * See
 	 * http://infosuite.duke4.net/index.php?page=references_special_textures

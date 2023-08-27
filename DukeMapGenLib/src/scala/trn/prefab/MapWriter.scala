@@ -1,11 +1,11 @@
 package trn.prefab
 
 import java.util
-
 import trn.duke.{PaletteList, TextureList}
-import trn.{BuildConstants, ISpriteFilter, IdMap, PlayerStart, PointXY, PointXYZ, RandomX, Sprite, WallView, Map => DMap}
+import trn.{PointXY, RandomX, ISpriteFilter, WallView, IdMap, BuildConstants, PointXYZ, Sprite, PlayerStart, Map => DMap}
 import trn.MapImplicits._
 import trn.FuncImplicits._
+import trn.math.{RotatesCW, SnapAngle}
 import trn.prefab.experiments._
 import trn.render.WallAnchor
 
@@ -165,6 +165,21 @@ class MapWriter(
   //  Pasting and Linking
   //
   def pastedSectorGroups: Seq[PastedSectorGroup] = sgBuilder.pastedSectorGroups
+
+  def rotatePasteAndLink[T <: RotatesCW[T]](
+    existingConn: RedwallConnector,
+    newSg: T,
+    floatingGroups: Seq[SectorGroup],
+    checkSpace: Boolean = true,
+  )(postRotateFn: T => (RedwallConnector, SectorGroup)): PastedSectorGroup = {
+    val (_, rotatedThing) = SnapAngle.rotateUntil2(newSg) { candidate =>
+      val (rotatedNewConn, rotatedNewSg) = postRotateFn(candidate)
+      canPlaceAndConnect(existingConn, rotatedNewConn, rotatedNewSg, checkSpace)
+    }.getOrElse(throw new SpriteLogicException("could not find matcing rotation!"))
+
+    val (newConn, newSg2) = postRotateFn(rotatedThing)
+    pasteAndLink(existingConn, newSg2, newConn, floatingGroups)
+  }
 
   override def pasteAndLink(
     existingConn: RedwallConnector,

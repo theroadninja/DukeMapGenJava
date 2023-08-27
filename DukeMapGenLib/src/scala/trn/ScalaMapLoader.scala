@@ -35,4 +35,6 @@ object ScalaMapLoader {
     val cfg = gameCfg.getOrElse(DukeConfig.load(HardcodedConfig.getAtomicWidthsFile))
     PrefabPalette.fromMap(cfg, loadMap(filename), true)
   }
+
+  def paletteFromMap(cfg: GameConfig, map: Map): PrefabPalette = PrefabPalette.fromMap(cfg, map, true)
 }

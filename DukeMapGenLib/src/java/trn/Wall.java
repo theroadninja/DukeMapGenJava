@@ -6,8 +6,9 @@ import java.io.OutputStream;
 
 import trn.duke.MapErrorException;
 import trn.duke.experiments.WallPrefab;
+import trn.prefab.HasLocationXY;
 
-public class Wall {
+public class Wall implements HasLocationXY {
 
 	public static final class CSTAT_FLAGS {
 		
@@ -240,6 +241,11 @@ public class Wall {
 	 */
 	public PointXY getLocation(){
 		return new PointXY(getX(), getY());
+	}
+
+	@Override
+	public PointXY getLocationXY(){
+		return getLocation();
 	}
 
 	public void setLocation(PointXY p){

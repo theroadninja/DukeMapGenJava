@@ -1,14 +1,13 @@
 package trn.prefab;
 
 import trn.*;
-import trn.duke.MapErrorException;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 // TODO - or should the main feature of this class be that it matters where the sector is?
-public class RedwallConnector extends Connector {
+public class RedwallConnector extends Connector implements HasLocationXY {
 
     public static int WALL_LOTAG_1 = 1;
     public static int WALL_LOTAG_2 = 2;
@@ -152,6 +151,11 @@ public class RedwallConnector extends Connector {
                 wallAnchor1, wallAnchor2, markerSpriteLotag, connectorType, wallIds, walls, wallMarkerLotag, relativePoints);
     }
 
+    @Override
+    public PointXY getLocationXY(){
+        return this.getAnchorPoint().asXY();
+    }
+
     public int getHeading(){
         return this.heading;
     }
@@ -189,6 +193,38 @@ public class RedwallConnector extends Connector {
                 this.connectorType,
                 newWallIds,
                 newWalls,
+                this.wallMarkerLotag,
+                this.relativePoints
+        );
+    }
+
+    /**
+     * Returns a shallow copy of this Redwall Conn with the z coord of its anchor changed (the anchor that
+     * is used when pasting and linking sector groups by their redwall conns.
+     *
+     * Since this changes the ANCHOR, it will have the opposite effect on the
+     * final paste (e.g. moving the anchor up will cause the pasted group to
+     * be lower) however also keep in mind that Build coordinates are reversed,
+     * and positive Z goes down.  So: passing a negative number to this will make
+     * the resulting group lower, and a positive number will make it higher.
+     *
+     * @param deltaZ amount to add to the z coordinate of this redwall conn's anchor (positive amounts
+     *                 will cause the resulting pasted SG to be higher)
+     * @returns a copy of this RedwallAnchor, but with the z coordinate of its anchor changed by `detlaZ`
+     */
+    public final RedwallConnector withAnchorZAdjusted(final int deltaZ){
+        return new RedwallConnector(
+                this.connectorId,
+                this.spriteSectorId,
+                this.allSectorIds,
+                this.totalLength,
+                this.anchor.add(new PointXYZ(0, 0, deltaZ)),
+                this.wallAnchor1,
+                this.wallAnchor2,
+                this.markerSpriteLotag,
+                this.connectorType,
+                this.wallIds,
+                this.walls,
                 this.wallMarkerLotag,
                 this.relativePoints
         );

@@ -143,6 +143,10 @@ public class PrefabPalette {
 		return this.getSectorGroup(sectorGroupId);
 	}
 
+	public boolean hasSG(int sectorGroupId){
+		return this.numberedSectorGroups.containsKey(sectorGroupId);
+	}
+
 	/**
 	 * get a sector group AND all of its "teleport children" -- sectors that belong to it logically (and
 	 * which share unique tag values with it) but are not connected via redwalls.

@@ -1,10 +1,12 @@
 package trn;
 
+import trn.prefab.HasLocationXY;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class Sprite implements IRayXY {
+public class Sprite implements IRayXY, HasLocationXY {
 
 	/**
 	 * TODO - is this correct??
@@ -235,6 +237,7 @@ public class Sprite implements IRayXY {
 		return new PointXYZ(this.x, this.y, this.z);
 	}
 
+	@Override
 	public PointXY getLocationXY(){
 		return getLocation().asXY();
 	}
@@ -280,6 +283,10 @@ public class Sprite implements IRayXY {
 		return this.picnum;
 	}
 	public short getTex(){
+		return getTexture();
+	}
+
+	public int tex(){
 		return getTexture();
 	}
 	
