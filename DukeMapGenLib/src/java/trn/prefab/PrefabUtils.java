@@ -26,9 +26,8 @@ public class PrefabUtils {
 	public static class MarkerSpriteLoTags {
 		
 		public static int GROUP_ID = Marker.Lotags.GROUP_ID; // 1
-		
-		// is the hitag then a priority to beat out other player starts?
-		public static int PLAYER_START = 2;
+
+		public static int PLAYER_START = Marker.Lotags.PLAYER_START; // 2
 
 		/**
 		 * An anchor whose position you can read to help place a sector group on the grid.

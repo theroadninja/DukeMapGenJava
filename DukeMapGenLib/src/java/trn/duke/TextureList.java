@@ -250,6 +250,11 @@ public class TextureList {
 		 * Setting the palette to greater than zero makes it a secret level button.  Usually palette 14 is used.
 		 *
 		 * See http://infosuite.duke4.net/index.php?page=references_special_textures
+		 *
+		 * NUKE BUTTON TROUBLESHOOTING
+		 * - if blocking is set on the sprite, it won't work
+		 * 	- open a level that works and compare the cstat of the sprite!
+		 * - https://infosuite.duke4.net/index.php?page=references_faq
 		 */
 		public static final int NUKE_BUTTON = 142; //TODO:  document the pallete to make it a special level
 		

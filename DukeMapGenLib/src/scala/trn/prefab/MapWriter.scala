@@ -175,7 +175,7 @@ class MapWriter(
     val (_, rotatedThing) = SnapAngle.rotateUntil2(newSg) { candidate =>
       val (rotatedNewConn, rotatedNewSg) = postRotateFn(candidate)
       canPlaceAndConnect(existingConn, rotatedNewConn, rotatedNewSg, checkSpace)
-    }.getOrElse(throw new SpriteLogicException("could not find matcing rotation!"))
+    }.getOrElse(throw new SpriteLogicException("could not find matching rotation!"))
 
     val (newConn, newSg2) = postRotateFn(rotatedThing)
     pasteAndLink(existingConn, newSg2, newConn, floatingGroups)

@@ -4,6 +4,7 @@ import trn.{PointXYZ, RandomX, HardcodedConfig, ScalaMapLoader, Sprite, Map => D
 import trn.duke.TextureList
 import trn.math.SnapAngle
 import trn.prefab.experiments.ExpUtil
+import trn.prefab.experiments.hyperloop.Item
 import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, RedwallConnector, PrefabPalette, PastedSectorGroup, SpriteLogicException}
 
 import scala.collection.JavaConverters._
@@ -56,8 +57,34 @@ object ConnectionIds {
     (108, 109),
   )
 
+  /** map of [track conn id -> lotag of station locator] */
+  val ConnToLocator: Map[Int, Int] = Map(
+    101 -> 8,
+    102 -> 8,
+    103 -> 16,
+    104 -> 16,
+    105 -> 36,
+    106 -> 36,
+    107 -> 18,
+    108 -> 18,
+    109 -> 27,
+    110 -> 27,
+
+
+  )
+
   def conflict(a: Int, b: Int): Boolean = if(a < b){ Conflicts(a, b) }else{ Conflicts(b, a)}
 
+  def hasConflict(newConn: Int, existing: Set[Int]): Boolean = existing.exists(b => conflict(newConn, b))
+}
+
+object AreaTypes {
+  val Start = "S"
+  val Key1 = "K1"
+  val Gate1Key2 = "G2K2"
+  val Gate2End = "K2E"
+
+  val All: Seq[String] = Seq(Start, Key1, Gate1Key2, Gate2End)
 }
 
 
@@ -99,15 +126,33 @@ object Subway1 {
   def tryRun(gameCfg: GameConfig, inputMap: DMap): GenerationResult = {
     val writer = MapWriter(gameCfg)
     try {
-      val outMap = run(gameCfg, inputMap, writer)
+      val random = RandomX()
+      val outMap = run(gameCfg, random, inputMap, writer)
       GenerationResult(true, outMap, None)
     } catch {
       case e: SpriteLogicException => {
         e.printStackTrace()
-        ExpUtil.finish(writer, removeMarkers=false)
+        ExpUtil.finish(writer, removeMarkers=false, errorOnWarnings=false)
         GenerationResult(false, writer.outMap, Some(e))
       }
     }
+  }
+
+
+  def rotateAndPasteToTrack2(
+    writer: MapWriter,
+    trackConn: RedwallConnector,
+    newSg: SectorGroup,
+  )(
+    postRotateFn: SectorGroup => (RedwallConnector, SectorGroup),
+  ): PastedSectorGroup = {
+    // val zAdjust = 8192
+    writer.rotatePasteAndLink(
+      trackConn,
+      newSg,
+      Seq.empty,
+      false, // the overlap detection is primitive and will prevent pasting inside the track
+    ) (postRotateFn)
   }
 
   // TODO there is an incoming "TODO" link from Placement.placements()
@@ -125,9 +170,9 @@ object Subway1 {
       trackConn,
       platformEdge,
       Seq.empty,
+      false, // the overlap detection is primitive and will prevent pasting inside the track
     ){ rotatedPlatformEdge =>
       (rotatedPlatformEdge.connToTrack.withAnchorZAdjusted(zAdjust), rotatedPlatformEdge.sg)
-
     }
 
     // val (_, rotatedEdge) = SnapAngle.rotateUntil2(platformEdge) { edge =>
@@ -136,16 +181,121 @@ object Subway1 {
     // writer.pasteAndLink(trackConn, rotatedEdge.sg, rotatedEdge.connToTrack.withAnchorZAdjusted(8192), Seq.empty)
   }
 
-  def run(gameCfg: GameConfig, inputMap: DMap, writer: MapWriter): DMap = {
+  def chooseTrackLocations(random: RandomX, count: Int): Seq[Int] = {
+    val all = ConnectionIds.Track.toSet
+    val chosen = mutable.Set[Int]()
+    for(_ <- 0 until count){
+      val next = random.randomElement(all.diff(chosen).filterNot(ConnectionIds.hasConflict(_, chosen.toSet)))
+      chosen.add(next)
+    }
+    random.shuffle(chosen).toSeq
+  }
+
+  def attach(gameCfg: GameConfig, sgA: SectorGroup, sgB: SectorGroup, sharedConnId: Int): SectorGroup  = {
+    val connA = sgA.getRedwallConnector(sharedConnId)
+    sgA.withGroupAttachedAutoRotate(gameCfg, connA, sgB){ sg =>
+      sg.getRedwallConnector(sharedConnId)
+    }
+  }
+
+  def connectAll(
+    gameCfg: GameConfig,
+    platformEdge: SectorGroup,
+    platformArea: SectorGroup,
+    door: SectorGroup,
+    specialArea: SectorGroup,
+  ): SectorGroup = {
+    val sg = attach(gameCfg, platformEdge, platformArea, ConnectionIds.TypeB)
+    val sg2 = attach(gameCfg, sg, door, ConnectionIds.TypeC)
+    attach(gameCfg, sg2, specialArea, ConnectionIds.TypeD)
+  }
+
+  def createArea(gameCfg: GameConfig, random: RandomX, pal: SubwayPalette1, area: String): SectorGroup = {
+    // gate can be on the platform itself, or a locked door
+    // val gateAtPlatform = random.nextBool()  TODO
+    val key1 = Item.BlueKey
+    val key2 = Item.RedKey
+    area match {
+      case AreaTypes.Start => {
+        val edge = random.randomElement(pal.platformEdgesWithoutGates)
+        val area = random.randomElement(pal.platformAreas)
+        val door = random.randomElement(pal.doorsWithoutGates)
+        val start = random.randomElement(pal.specialAreas.filter{a => a.isStart})
+        connectAll(gameCfg, edge.sg, area.sg, door.sg, start.sg)
+      }
+      case AreaTypes.Key1 => {
+        val edge = random.randomElement(pal.platformEdgesWithoutGates)
+        val area = random.randomElement(pal.platformAreas)
+        val door = random.randomElement(pal.doorsWithoutGates)
+        val key = random.randomElement(pal.specialAreas.filter(_.isItem))
+        connectAll(gameCfg, edge.sg, area.sg, door.sg, key.sg.withItem(key1.tex, key1.pal))
+      }
+      case AreaTypes.Gate1Key2 => {
+        // TODO other version of gates (not at platform edge)
+        val edge = random.randomElement(pal.platformEdgesWithGates)
+        val area = random.randomElement(pal.platformAreas)
+        val door = random.randomElement(pal.doorsWithoutGates)
+        val key = random.randomElement(pal.specialAreas.filter(_.isItem))
+        connectAll(gameCfg, edge.sg.withKeyLockColor(gameCfg, key1.pal), area.sg, door.sg, key.sg.withItem(key2.tex, key2.pal))
+      }
+      case AreaTypes.Gate2End => {
+        val edge = random.randomElement(pal.platformEdgesWithGates)
+        val area = random.randomElement(pal.platformAreas)
+        val door = random.randomElement(pal.doorsWithoutGates)
+        val end = random.randomElement(pal.specialAreas.filter(_.isEnd))
+        connectAll(gameCfg, edge.sg.withKeyLockColor(gameCfg, key2.pal), area.sg, door.sg, end.sg)
+      }
+    }
+  }
+
+  def setTrainPauses(trackSG: SectorGroup, chosenConnectors: Seq[Int]): SectorGroup = {
+    val cp = trackSG.copy
+    val allLocators = ConnectionIds.ConnToLocator.values
+    val usedLocators = chosenConnectors.map(ConnectionIds.ConnToLocator)
+    allLocators.foreach { lotag =>
+      val locator = cp.allSprites.find(s => s.getTex == TextureList.LOCATORS && s.getLotag == lotag).get
+      if(usedLocators.contains(lotag)){
+        locator.setHiTag(1)
+      }else{
+        locator.setHiTag(0)
+      }
+    }
+    cp
+  }
+
+  def run(gameCfg: GameConfig, random: RandomX, inputMap: DMap, writer: MapWriter): DMap = {
     val palette = ScalaMapLoader.paletteFromMap(gameCfg, inputMap)
     val subwayPal = SubwayPalette1(palette)
 
-    val trackPSG = writer.pasteSectorGroupAt(subwayPal.trackSg, PointXYZ.ZERO)
+    val trackLocations = chooseTrackLocations(random, 4)
+    val trackSG = setTrainPauses(subwayPal.trackSg, trackLocations)
+    val trackPSG = writer.pasteSectorGroupAt(trackSG, PointXYZ.ZERO)
 
-    val psgConn = trackPSG.getRedwallConnector(ConnectionIds.Track(0))
-    val edge = subwayPal.platformEdgesWithoutGates(0)
-    rotateAndPasteToTrack(writer, psgConn, edge)
+    // Areas:
+    // - start
+    // - k1
+    // - g1, k2
+    // - k2, end
 
+    // val area = createArea(gameCfg, random, subwayPal, AreaTypes.Start)
+
+    trackLocations.zip(AreaTypes.All).foreach { case (trackConnId, areaType) =>
+      val trackConn = trackPSG.getRedwallConnector(trackConnId)
+      val area = createArea(gameCfg, random, subwayPal, areaType)
+      rotateAndPasteToTrack2(writer, trackConn, area){ sg =>
+        val zAdjust = 8192
+        val conn = sg.getRedwallConnector(ConnectionIds.TypeA).withAnchorZAdjusted(zAdjust)
+        (conn, sg)
+      }
+    }
+
+    // trackLocations.foreach { connId =>
+    //   val psgConn = trackPSG.getRedwallConnector(connId)
+    //   rotateAndPasteToTrack2(writer, psgConn, area){ sg =>
+    //     val conn = sg.getRedwallConnector(ConnectionIds.TypeA)
+    //     (conn, sg)
+    //   }
+    // }
 
     ExpUtil.finish(writer)
   }

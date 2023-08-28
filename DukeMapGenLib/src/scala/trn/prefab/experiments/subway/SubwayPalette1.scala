@@ -3,7 +3,7 @@ package trn.prefab.experiments.subway
 import trn.duke.TextureList
 import trn.Sprite
 import trn.math.RotatesCW
-import trn.prefab.{SectorGroup, SpriteLogicException, PrefabPalette, RedwallConnector}
+import trn.prefab.{SectorGroup, RedwallConnector, PrefabPalette, SpriteLogicException, Marker}
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
@@ -19,6 +19,7 @@ case class PlatformEdge(sg: SectorGroup) extends RotatesCW[PlatformEdge] {
 }
 
 case class PlatformArea(sg: SectorGroup) {
+
   // TODO isInner, etc
 }
 
@@ -28,6 +29,11 @@ case class Door(sg: SectorGroup) {
 }
 
 case class SpecialArea(sg: SectorGroup) {
+  lazy val isStart: Boolean = sg.allSprites.exists(s => Marker.isMarker(s, Marker.Lotags.PLAYER_START))
+
+  lazy val isItem: Boolean = sg.allSprites.exists(s => Marker.isMarker(s, Marker.Lotags.ITEM))
+
+  lazy val isEnd: Boolean = sg.allSprites.exists(s => s.tex  == TextureList.Switches.NUKE_BUTTON)
 
 }
 
@@ -64,6 +70,17 @@ object SubwayPalette1 {
     }
   }
 
+  def checkConn(name: String, conn: RedwallConnector, expectedLength: Int): Unit = {
+    if(!conn.isAxisAligned){
+      throw new SpriteLogicException(s"Redwall Connection ${name} is not axis-aligned")
+    }
+    if(conn.totalManhattanLength() != expectedLength){
+      throw new SpriteLogicException(s"Redwall Connection ${name} is wrong length ${conn.totalManhattanLength()} != ${expectedLength}")
+    }
+  }
+
+  def checkConnC(conn: RedwallConnector): Unit = checkConn("typeA", conn, 2048)
+
   /** only returns connectors in the track sector group */
   def getTrackConns(sg: SectorGroup): Seq[RedwallConnector] = {
     val conns = sg.allRedwallConnectors.filter(conn => ConnectionIds.Track.contains(conn.getConnectorId))
@@ -94,9 +111,12 @@ object SubwayPalette1 {
 
   def isPlatformArea(sg: SectorGroup): Boolean = if (getConn(sg, ConnectionIds.TypeA).isEmpty && getConn(sg, ConnectionIds.TypeB).isDefined) {
     // Has TypeB(edge<->area) but no TypeA(track<->edge)
-    if (sg.allRedwallConnectors.filter(conn => conn.getConnectorId == ConnectionIds.TypeC).size < 1) {
+
+    val connC = sg.allRedwallConnectors.find(conn => conn.getConnectorId == ConnectionIds.TypeC)
+    if (connC.isEmpty) {
       throw new SpriteLogicException(s"Platform Area must have at least one Redwall Connector with id ${ConnectionIds.TypeC}")
     }
+    checkConnC(connC.get)
     true
   } else {
     false
@@ -122,6 +142,15 @@ object SubwayPalette1 {
   }
 
   def apply(palette: PrefabPalette): SubwayPalette1 = {
+    palette.allSectorGroups().asScala.foreach { sg =>
+      sg.allSprites.foreach { s =>
+        if(Marker.isInvalidMarker(s)){
+          throw new SpriteLogicException(s"Invalid marker sprite found", s)
+        }
+      }
+    }
+
+
     val trackSGs = mutable.ArrayBuffer[SectorGroup]()
     val edges = mutable.ArrayBuffer[PlatformEdge]()
     val areas = mutable.ArrayBuffer[PlatformArea]()
@@ -144,6 +173,8 @@ object SubwayPalette1 {
           doors.append(Door(sg))
         }else if(isSpecialArea(sg)){
           specialAreas.append(SpecialArea(sg))
+        }else{
+          throw new SpriteLogicException("cant classify sector group")
         }
       }
     }
@@ -152,6 +183,12 @@ object SubwayPalette1 {
       throw new SpriteLogicException(s"There must be exactly 1 track group; detected ${trackSGs.size}")
     }
     // val edgesWithGates = edges.filter(_.hasGate)
+    // println(s"Found ${palette.allSectorGroups().asScala.size} total sector groups")
+    // println(s"Found ${edges.size} platform edges")
+    // println(s"Found ${areas.size} platform areas")
+    // println(s"Found ${doors.size} doors")
+    // println(s"Found ${specialAreas.size} special areas")
+
     val (edgesWithGates, edgesWithoutGates) = edges.partition(_.hasGate)
     val (doorsWithGates, doorsWithoutGates) = doors.partition(_.hasGate)
 
@@ -162,6 +199,7 @@ object SubwayPalette1 {
       areas,
       doorsWithGates,
       doorsWithoutGates,
+      specialAreas,
     )
   }
 
@@ -174,6 +212,13 @@ case class SubwayPalette1(
   platformAreas: Seq[PlatformArea],
   doorsWithGates: Seq[Door],
   doorsWithoutGates: Seq[Door],
+  specialAreas: Seq[SpecialArea],
 ) {
+  require(platformEdgesWithGates.size > 0)
+  require(platformEdgesWithoutGates.size > 0)
+  require(platformAreas.size > 0)
+  require(doorsWithGates.size > 0)
+  require(doorsWithoutGates.size > 0)
+  require(specialAreas.size > 0)
 
 }

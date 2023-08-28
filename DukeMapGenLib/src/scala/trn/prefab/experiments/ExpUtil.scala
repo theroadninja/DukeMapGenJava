@@ -1,9 +1,9 @@
 package trn.prefab.experiments
 
+import trn.duke.TextureList
 import trn.logic.Tile2d
 import trn.{HardcodedConfig, Main}
-import trn.prefab.{CompassWriter, MapWriter, SectorGroup}
-
+import trn.prefab.{SectorGroup, MapWriter, CompassWriter, SpriteLogicException}
 import trn.{Map => DMap}
 /**
   * Utility Functions for Scala Experiments
@@ -15,10 +15,20 @@ object ExpUtil {
     writer: MapWriter,
     forcePlayerStart: Boolean = true,
     removeMarkers: Boolean = true,
+    errorOnWarnings: Boolean = true,
   ): DMap = {
     // ////////////////////////
     writer.disarmAllSkyTextures()
     writer.setAnyPlayerStart(force = forcePlayerStart)
+    for(i <- 0 until writer.outMap.getSpriteCount){
+      val s = writer.outMap.getSprite(i)
+      if(s.tex() == TextureList.Switches.NUKE_BUTTON && s.getStat.isBlocking){
+        // TODO actually this should be checked when reading the input map!
+        if(errorOnWarnings){
+          throw new SpriteLogicException("Nuke button has blocking flag enabled", s)
+        }
+      }
+    }
     if (removeMarkers) {
       writer.sgBuilder.clearMarkers()
     }

@@ -4,7 +4,7 @@ import duchy.sg.SimpleConnectorScanner
 import trn.duke.{MapErrorException, TextureList}
 import trn.{PointXYZ, PointXY, MapUtil, Sector, MapUtilScala, Wall, ISpriteFilter, WallView, MapView, Sprite, Map => DMap}
 import trn.MapImplicits._
-import trn.math.RotatesCW
+import trn.math.{RotatesCW, SnapAngle}
 
 import scala.collection.JavaConverters._ // this is the good one
 
@@ -142,7 +142,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   /**
-    * @param color one of DukeConfig.KeyColors
+    * @param color the pal number (red, blue, yellow, etc) -- one of DukeConfig.KeyColors
     * @returns a copy of this sector group with ALL keycards and locks set to the given color.
     */
   def withKeyLockColor(gameConfig: GameConfig, color: Int): SectorGroup = {
@@ -203,12 +203,27 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     val psgOtherConn = otherConn.translateIds(copyState.idmap, translate, new MapView(dest.map))
     myConn.linkConnectors(dest.map, psgOtherConn)
 
-    // val conns = ConnectorFactory.findConnectors(dest.map)
     val conns = SimpleConnectorScanner.scanAsJava(dest.map.asView)
 
     val result = new SectorGroup(dest.map, dest.getGroupId, dest.props, dest.sghints, conns)
     // TODO: do we need to worry about the properties or hints for the SG we added?
     result
+  }
+
+  def withGroupAttachedAutoRotate(
+    gameConfig: GameConfig,
+    myConn: RedwallConnector,
+    otherSg: SectorGroup,
+  )(
+    connSelector: SectorGroup => RedwallConnector
+  ): SectorGroup = {
+    val (_, rotatedSg) = SnapAngle.rotateUntil2(otherSg.copy){ sg =>
+      val otherConn = connSelector(sg)
+      myConn.isMatch(otherConn)
+    }.getOrElse(throw new SpriteLogicException("could not find valid rotation"))
+
+    val otherConn = connSelector(rotatedSg)
+    withGroupAttached(gameConfig, myConn, rotatedSg, otherConn)
   }
 
   def withGroupAttachedById(

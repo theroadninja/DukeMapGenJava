@@ -30,7 +30,8 @@ public class Sprite implements IRayXY, HasLocationXY {
 	
 	public static final short DEFAULT_X_REPEAT = 64;
 	public static final short DEFAULT_Y_REPEAT = 64;
-	
+
+	/** TODO migrate this all to SpriteStat */
 	public static class CSTAT_FLAGS {
 
 		/**
@@ -332,9 +333,11 @@ public class Sprite implements IRayXY, HasLocationXY {
 	public short getCstat(){
 		return this.cstat;
 	}
-	
 	public void setCstat(short cstat){
 		this.cstat = cstat;
+	}
+	public SpriteStat getStat(){
+		return new SpriteStat(this.cstat);
 	}
 	
 	public void setXRepeat(short s){

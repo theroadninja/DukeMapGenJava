@@ -25,6 +25,8 @@ class RandomX(seed: Long = System.currentTimeMillis()) {
 
   def nextInt(bound: Int): Int = random.nextInt(bound)
 
+  def nextBool(): Boolean = random.nextBoolean()
+
   def nextInt(start: Int, end: Int): Int = start + random.nextInt(end - start)
 
   /** randomly executes 1 of 2 blocks of code and returns the result. */

@@ -17,6 +17,9 @@ public class Marker {
          */
         public static int GROUP_ID = 1;
 
+        // is the hitag then a priority to beat out other player starts?
+        public static int PLAYER_START = 2;
+
         /**
          * Location for a powerup, including keys.
          */
@@ -64,6 +67,11 @@ public class Marker {
 
     public static boolean isMarker(Sprite s, int lotag){
         return isMarker(s) && s.getLotag() == lotag;
+    }
+
+    public static boolean isInvalidMarker(Sprite s){
+        boolean isMarker = s.getTexture() == MARKER_SPRITE_TEX && s.getPal() == 0;
+        return isMarker && s.getLotag() == 0;  // TODO if lotag nonzero, make sure its valid
     }
 
     public static boolean hasUniqueHitag(Sprite s){
