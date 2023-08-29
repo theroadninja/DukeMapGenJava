@@ -5,7 +5,7 @@ import trn.duke.TextureList
 import trn.math.SnapAngle
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.hyperloop.Item
-import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, RedwallConnector, PrefabPalette, PastedSectorGroup, SpriteLogicException}
+import trn.prefab.{MapWriter, DukeConfig, EnemyMarker, GameConfig, SectorGroup, RedwallConnector, PrefabPalette, PastedSectorGroup, SpriteLogicException, Marker}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -282,6 +282,10 @@ object Subway1 {
     trackLocations.zip(AreaTypes.All).foreach { case (trackConnId, areaType) =>
       val trackConn = trackPSG.getRedwallConnector(trackConnId)
       val area = createArea(gameCfg, random, subwayPal, areaType)
+      doEnemyMarkers(random, area)
+
+
+
       rotateAndPasteToTrack2(writer, trackConn, area){ sg =>
         val zAdjust = 8192
         val conn = sg.getRedwallConnector(ConnectionIds.TypeA).withAnchorZAdjusted(zAdjust)
@@ -298,6 +302,21 @@ object Subway1 {
     // }
 
     ExpUtil.finish(writer)
+  }
+
+  def doEnemyMarkers(random: RandomX, sg: SectorGroup): Unit = {
+    sg.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.ENEMY)).foreach { markerSprite =>
+      val enemyMarker = EnemyMarker(markerSprite)
+      if(enemyMarker.turnIntoRespawn){
+        throw new SpriteLogicException("Enemy Marker turn-into-respawn feature not implemented yet")
+      }
+      if (enemyMarker.locationFuzzing) {
+        throw new SpriteLogicException("Enemy Marker location fuzzing not implemented yet")
+      }
+      val enemy = random.randomElement(enemyMarker.enemyList)
+      enemy.writeTo(markerSprite)
+    }
+
   }
 
 }

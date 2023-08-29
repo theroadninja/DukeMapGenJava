@@ -93,11 +93,7 @@ public class PrefabUtils {
 		// /** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the north edge of the sector */
 		// public static int VERTICAL_CONNECTOR_NORTH = 19;
 
-
-		/**
-		 * Sprite marks a good location for an enemy.
-		 */
-		public static int ENEMY = 8;
+		public static int ENEMY = Marker.Lotags.ENEMY; // 8
 
 		public static int ITEM = Marker.Lotags.ITEM;
 

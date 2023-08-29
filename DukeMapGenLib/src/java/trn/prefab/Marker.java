@@ -21,6 +21,15 @@ public class Marker {
         public static int PLAYER_START = 2;
 
         /**
+         * Sprite marks a good location for an enemy.
+         *
+         * See the `EnemyMarker` scala class.
+         *
+         * See MoonBase2.adjustEnemies(), MoonBase2.Enemy
+         */
+        public static int ENEMY = 8;
+
+        /**
          * Location for a powerup, including keys.
          */
         public static int ITEM = 9;

@@ -372,7 +372,7 @@ public class TextureList {
 		public static final int BOSS1_STAYPUT = 2631;
 		public static final int BOSS2 = 2710;
 		public static final int BOSS3 = 2760;
-		public static final int NEWBEAST = 4610;
+		public static final int NEWBEAST = 4610; // this is the protector drone?
 		public static final int NEWBEAST_STAYPUT = 4611;
 		public static final int NEWBEAST_HANG = 4670;
 		public static final int NEWBEAST_HANGDEAD = 4671;
