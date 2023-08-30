@@ -27,7 +27,7 @@ public class Marker {
          *
          * See MoonBase2.adjustEnemies(), MoonBase2.Enemy
          */
-        public static int ENEMY = 8;
+        public static int ENEMY = 8;  // maybe this should be called "random enemy"
 
         /**
          * Location for a powerup, including keys.
@@ -64,6 +64,17 @@ public class Marker {
          */
         public static int ALGO_GENERIC = 16;
 
+        /**
+         * Used to place randomly chosen items (weapons, ammo, powerups).
+         *
+         * Not meant for important things that the algorithm needs to work with, like keys.  For those,
+         * see "ITEM" (lotag 9).
+         *
+         * Since I don't know what I'm doing yet, the hitag will just indicate behavior for specific algorithms.
+         *
+         * For more info see the RandomItemMarker class.
+         */
+        public static int RANDOM_ITEM = 23;
     }
 
     // TODO this text should be game-specific!

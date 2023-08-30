@@ -5,7 +5,7 @@ import trn.duke.TextureList
 import trn.math.SnapAngle
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.hyperloop.Item
-import trn.prefab.{MapWriter, DukeConfig, EnemyMarker, GameConfig, SectorGroup, RedwallConnector, PrefabPalette, PastedSectorGroup, SpriteLogicException, Marker}
+import trn.prefab.{MapWriter, EnemyMarker, GameConfig, SectorGroup, RedwallConnector, PrefabPalette, PastedSectorGroup, RandomItemMarker, DukeConfig, SpriteLogicException, Marker}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -282,7 +282,7 @@ object Subway1 {
     trackLocations.zip(AreaTypes.All).foreach { case (trackConnId, areaType) =>
       val trackConn = trackPSG.getRedwallConnector(trackConnId)
       val area = createArea(gameCfg, random, subwayPal, areaType)
-      doEnemyMarkers(random, area)
+      processArea(random, area)
 
 
 
@@ -304,6 +304,18 @@ object Subway1 {
     ExpUtil.finish(writer)
   }
 
+
+  def processArea(random: RandomX, sg: SectorGroup): Unit  = {
+    doEnemyMarkers(random, sg)
+    doAmmo(random, sg)
+
+  }
+
+  def doAmmo(random: RandomX, sg: SectorGroup): Unit = sg.allSprites.filter(Marker.isMarker(_, Marker.Lotags.RANDOM_ITEM)).foreach { marker =>
+    RandomItemMarker.writeTo(random, marker)
+  }
+
+  // TODO I think this should be a "with" method on SectorGroup
   def doEnemyMarkers(random: RandomX, sg: SectorGroup): Unit = {
     sg.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.ENEMY)).foreach { markerSprite =>
       val enemyMarker = EnemyMarker(markerSprite)

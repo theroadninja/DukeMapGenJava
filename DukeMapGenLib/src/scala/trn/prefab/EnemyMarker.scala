@@ -22,6 +22,7 @@ case class Enemy(
 
 /**
   * 264 = lizard, pigcop
+  * 824 = lizard, lizard cmdr, pigcop, octabrain, enforcer
   */
 case class EnemyMarker(
   turnIntoRespawn: Boolean,

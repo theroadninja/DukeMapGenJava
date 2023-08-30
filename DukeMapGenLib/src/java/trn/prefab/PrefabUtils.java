@@ -159,9 +159,9 @@ public class PrefabUtils {
 		 */
 		public static int ALGO_AXIS_LOCK = 14;
 
-		public static int SWITCH_REQUESTED = Marker.Lotags.SWITCH_REQUESTED;
+		public static int SWITCH_REQUESTED = Marker.Lotags.SWITCH_REQUESTED; // 15
 
-		public static int ALGO_GENERIC  = Marker.Lotags.ALGO_GENERIC;
+		public static int ALGO_GENERIC  = Marker.Lotags.ALGO_GENERIC; // 16
 
 		/**
 		 * Elevator Connector
@@ -196,6 +196,8 @@ public class PrefabUtils {
 		@Deprecated // use a combination of SIMPLE_CONNECTOR + MULTISECTOR_CHILD
 		public static int MULTI_SECTOR = 22;
 
+		public static int RANDOM_ITEM = Marker.Lotags.RANDOM_ITEM; // 23
+
 		/**
 		 * A connector sprite that becomes a normal or water teleporter.
 		 * (but not a silent teleporter).
@@ -226,6 +228,7 @@ public class PrefabUtils {
 				ELEVATOR_CONNECTOR,
 				SIMPLE_CONNECTOR,
 				MULTISECTOR_CHILD,
+				RANDOM_ITEM,
 				MULTI_SECTOR,
 				TELEPORT_CONNECTOR
 				});
