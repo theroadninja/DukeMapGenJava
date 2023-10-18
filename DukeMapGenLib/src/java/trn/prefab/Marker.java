@@ -75,6 +75,12 @@ public class Marker {
          * For more info see the RandomItemMarker class.
          */
         public static int RANDOM_ITEM = 23;
+
+
+        /**
+         * A teleporter off the ground that simulates falling between sectors.
+         */
+        public static int FALL_CONNECTOR = 28;
     }
 
     // TODO this text should be game-specific!

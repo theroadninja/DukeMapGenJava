@@ -16,7 +16,7 @@ public abstract class Connector {
         this.connectorId = connectorId;
     }
 
-    abstract int getConnectorType();
+    public abstract int getConnectorType();
 
     // why this ugliness?  because elevators, teleporters, and redconns shouldnt have had a common base class.
     public abstract boolean isTeleporter();

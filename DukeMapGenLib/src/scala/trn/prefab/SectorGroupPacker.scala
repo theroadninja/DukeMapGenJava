@@ -5,6 +5,8 @@ import trn.PointXY
 /**
   * Packs unrelated and floating sector groups (like underwater areas) into a region
   * of the map so you don't have to think about where they are placed.
+  *
+  * see also dijkdrop.GridLayout
   */
 trait SectorGroupPacker {
 

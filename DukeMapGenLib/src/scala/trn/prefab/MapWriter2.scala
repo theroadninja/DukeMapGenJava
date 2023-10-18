@@ -78,6 +78,16 @@ trait MapWriter2 {
     psg
   }
 
+  def tryPasteInside(sg: SectorGroup, bb: BoundingBox): Option[PastedSectorGroup] = {
+    if(sg.boundingBox.fitsInsideBox(bb)){
+      val tr = sg.boundingBox.getTranslateTo(bb.topLeft).withZ(0)
+      val (psg, _) = pasteSectorGroup2(sg, tr, Seq.empty, true)
+      Some(psg)
+    }else{
+      None
+    }
+  }
+
   def pasteSectorGroup2(sg: SectorGroup, translate: PointXYZ, floatingGroups: Seq[SectorGroup], changeUniqueTags: Boolean): (PastedSectorGroup, IdMap)
 
   def canPlaceAndConnect(

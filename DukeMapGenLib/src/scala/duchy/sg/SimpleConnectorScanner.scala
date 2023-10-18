@@ -20,7 +20,7 @@ object SimpleConnectorScanner {
     val redwallConns = RedwallConnectorScanner.findAllRedwallConns(map, sectorIdFilter)
 
     val markerSprites = map.allSprites.filter(s => s.getTex == PrefabUtils.MARKER_SPRITE_TEX)
-    val connectors = markerSprites.flatMap { marker =>
+    val connectors: Seq[Connector] = markerSprites.flatMap { marker =>
       Option(ConnectorFactory2.createOther(map, marker))
     }.filter(s => sectorIdFilter(s.getSectorId))
     // val multiSectorResults = ConnectorScanner.findMultiSectorConnectors(map).asScala

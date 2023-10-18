@@ -137,15 +137,20 @@ public class ConnectorFactory2 {
         }
     }
 
+    /**
+     * Called from SimpleConnectorScanner
+     */
     public static Connector createOther(MapView map, Sprite markerSprite) throws MapErrorException {
         Sector sector = map.getSector(markerSprite.getSectorId());
         if(markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR) {
             return new TeleportConnector(markerSprite, sector.getLotag());
-        }else if(markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR){
-            if(sector.getLotag() != 15){
+        }else if(markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR) {
+            if (sector.getLotag() != 15) {
                 throw new SpriteLogicException("elevector connector in sector with lotag != 15");
             }
             return new ElevatorConnector(markerSprite);
+        }else if(markerSprite.getLotag() == Marker.Lotags.FALL_CONNECTOR){
+            return new FallConnector(markerSprite, sector);
         }else{
             return null;
         }

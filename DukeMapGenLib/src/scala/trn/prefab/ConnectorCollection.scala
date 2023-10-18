@@ -20,6 +20,8 @@ trait ConnectorCollection {
     connectors.asScala.filter(c => c.isRedwall).map(_.asInstanceOf[RedwallConnector]).toSeq
   }
 
+  final def allConnectors: Seq[Connector] = connectors.asScala
+
   final def getConnector(connectorId: Int): Connector = {
     if(connectorId < 0) throw new IllegalArgumentException
     connectors.asScala.find(_.connectorId == connectorId) match {

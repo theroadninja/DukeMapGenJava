@@ -209,6 +209,8 @@ public class PrefabUtils {
 		 */
 		public static int TELEPORT_CONNECTOR = 27;
 
+		public static int FALL_CONNECTOR = Marker.Lotags.FALL_CONNECTOR;
+
 		public static List<Integer> ALL = Arrays.asList(new Integer[]{
 				GROUP_ID,
 				PLAYER_START,
@@ -230,7 +232,8 @@ public class PrefabUtils {
 				MULTISECTOR_CHILD,
 				RANDOM_ITEM,
 				MULTI_SECTOR,
-				TELEPORT_CONNECTOR
+				TELEPORT_CONNECTOR,
+				FALL_CONNECTOR,
 				});
 	}
 

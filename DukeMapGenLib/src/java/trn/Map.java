@@ -9,6 +9,8 @@ public class Map implements WallContainer {
 
 	/** The DOS build editor will crash if a map has more than 1024 sectors */
 	public static final int MAX_SECTOR_GROUPS = 1024;
+
+	/** see BuildConstants.MapBounds for a more convenient representation */
 	public static final int MAX_X = 65536;
 	public static final int MIN_X = -65536;
 	public static final int MAX_Y = 65536;

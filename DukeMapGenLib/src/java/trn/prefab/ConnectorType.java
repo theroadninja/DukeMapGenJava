@@ -55,4 +55,6 @@ public class ConnectorType {
 
     /** multi redwall that can be in more than one sector */
     public static int MULTI_SECTOR = 22;
+
+    public static int FALL_CONNECTOR = Marker.Lotags.FALL_CONNECTOR;
 }
