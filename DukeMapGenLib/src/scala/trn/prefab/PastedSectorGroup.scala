@@ -45,6 +45,8 @@ class PastedSectorGroup private (
 
   def allSpritesInPsg: Seq[Sprite] = allSprites.filter(s => sectorIds.contains(s.getSectorId))
 
+  def allConnsInPsg: Seq[Connector] = connectorCollection.connectors.asScala.filter(c => sectorIds.contains(c.getSectorId))
+
   override def getWallView(wallId: Int): WallView = map.getWallView(wallId)
 
   override def getSector(sectorId: Int): Sector = map.getSector(sectorId)

@@ -1,6 +1,10 @@
 package trn.prefab;
 
 import trn.*;
+import trn.duke.Lotags;
+import trn.duke.TextureList;
+
+import java.util.List;
 
 /**
  * TODO:  I dont want to make this extends `Connector` however there is too much code to fix this now.
@@ -13,6 +17,7 @@ public class FallConnector extends OtherConnector implements HasTags<FallConnect
     private final int markerZ;
     private final int floorZ;
     private final int ceilZ;
+    private final boolean closerToFlr;
 
     public static int getId(Sprite marker){
         int connId = marker.getHiTag();
@@ -30,6 +35,11 @@ public class FallConnector extends OtherConnector implements HasTags<FallConnect
         this.markerZ = markerZ;
         this.floorZ = floorZ;
         this.ceilZ = ceilZ;
+
+        int df = Math.abs(floorZ - markerZ);
+        int dc = Math.abs(markerZ - ceilZ);
+        this.closerToFlr = df < dc;
+
     }
 
     public FallConnector(Sprite marker, Sector sector) {
@@ -57,5 +67,46 @@ public class FallConnector extends OtherConnector implements HasTags<FallConnect
     @Override
     public short getSectorId() {
         return (short)this.sectorId;
+    }
+
+    /**
+     *
+     * @return True if the sprite is closer to floor (something you fall into),
+     *  False if the sprite is closer to the ceiling (something you fall out of)
+     */
+    public boolean closerToFloor() {
+        return this.closerToFlr;
+    }
+
+    Sprite getMarkerSprite(Map map){
+        List<Sprite> list = map.findSprites(
+            Marker.MARKER_SPRITE_TEX,
+            Marker.Lotags.FALL_CONNECTOR,
+            sectorId
+        );
+        Sprite marker = null;
+        for(Sprite s: list){
+            if(s.getHiTag() == connectorId){
+                if (marker != null){
+                    throw new SpriteLogicException(String.format("more than one fall connector marker with id %s", connectorId));
+                }
+                marker = s;
+            }
+        }
+        if(marker == null){
+            throw new SpriteLogicException(String.format("cannot find marker with connector id %s", connectorId));
+        }
+        return marker;
+    }
+
+    public void replaceMarkerSprite(Map map, int channel){
+        Sprite marker = getMarkerSprite(map);
+        marker.setTexture(TextureList.SE);
+        marker.setLotag(Lotags.SE.TELEPORT);
+        marker.setHiTag(channel);
+    }
+
+    public static boolean isFallConn(Connector c){
+        return c.getConnectorType() == ConnectorType.FALL_CONNECTOR;
     }
 }
