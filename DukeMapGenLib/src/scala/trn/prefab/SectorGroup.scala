@@ -124,6 +124,12 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     cp
   }
 
+  def withModifiedSprites(f: Sprite => Unit): SectorGroup = {
+    val cp = copy()
+    cp.allSprites.foreach(f)
+    cp
+  }
+
   /**
     * Replaces textures that are specified in the map.
     * @param textures map of (texture to replace -> replacement)
@@ -233,6 +239,22 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     otherConn: RedwallConnector,
   ): SectorGroup = {
     withGroupAttached(gameConfig, getRedwallConnector(myConnId), otherSg, otherConn)
+  }
+
+  /**
+    * See also SgMapBuilder.autoLink()
+    * @return a copy of this sectorgroup, but will all redwalls autolinked if possible
+    */
+  def autoLinked: SectorGroup = {
+    val copy = this.copy()
+    copy.allUnlinkedRedwallConns.foreach { connA =>
+      copy.allUnlinkedRedwallConns.foreach { connB =>
+        if(connA != connB && connA.isFullMatch(connB, copy.map)){
+          connA.linkConnectors(copy.map, connB)
+        }
+      }
+    }
+    copy
   }
 
   /**

@@ -28,6 +28,11 @@ object UniqueTags {
     tags.toSet
   }
 
+  def nextTag(gameCfg: GameConfig, map: DMap): Int = {
+    val usedTags = usedUniqueTags(gameCfg, map)
+    (Set(0) ++ usedTags).max + 1
+  }
+
   def usedUniqueTagsAsJava(cfg: GameConfig, map: DMap): java.util.Set[Integer] = {
     usedUniqueTags(cfg, map).map(Integer.valueOf).asJava
   }

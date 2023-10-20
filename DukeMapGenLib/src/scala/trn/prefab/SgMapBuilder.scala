@@ -105,6 +105,9 @@ class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenera
     count
   }
 
+  /**
+    * see also SectorGroup.autoLinked()
+    */
   def autoLink(c1: RedwallConnector, c2: RedwallConnector): Boolean = {
     if (c1.isFullMatch(c2, map)) {
       c1.linkConnectors(map, c2)

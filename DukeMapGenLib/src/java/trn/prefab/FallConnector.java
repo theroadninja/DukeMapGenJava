@@ -106,6 +106,17 @@ public class FallConnector extends OtherConnector implements HasTags<FallConnect
         marker.setHiTag(channel);
     }
 
+    /**
+     * "links" the two FallConnectors together, though you have to provide the "channel" (unique hitag)
+     *
+     * This doesnt really do much, but other connectors have a method like this so it makes the API easier to
+     * understand.
+     */
+    public void linkConnectors(Map map, FallConnector other, int channel) {
+        replaceMarkerSprite(map, channel);
+        other.replaceMarkerSprite(map, channel);
+    }
+
     public static boolean isFallConn(Connector c){
         return c.getConnectorType() == ConnectorType.FALL_CONNECTOR;
     }

@@ -361,6 +361,52 @@ public class RedwallConnector extends Connector implements HasLocationXY {
 
 
     /**
+     * throws if the other conn is not a match, for debugging
+     */
+    public final void expectMatch(RedwallConnector other){
+        if(isSimpleConnector()){
+            if(! other.isSimpleConnector()){
+                throw new RuntimeException("one connector is simple, the other isnt");
+            }
+            if(!isSimpleMatch(other)){
+                throw new RuntimeException("isSimpleMatch failed");
+            }
+        }else{
+            // TODO - this has code duplicated from canLink()
+            if(this.wallIds.size() != other.wallIds.size()){
+                throw new RuntimeException(String.format("wall size mismatch %s ! %s", this.wallIds.size(), other.wallIds.size()));
+            }
+            PointXY p1 = this.wallAnchor1.subtractedBy(this.anchor);
+            PointXY p2 = this.wallAnchor2.subtractedBy(this.anchor);
+            PointXY otherP1 = other.wallAnchor1.subtractedBy(other.anchor);
+            PointXY otherP2 = other.wallAnchor2.subtractedBy(other.anchor);
+            if(! p1.equals(otherP2)) throw new RuntimeException(String.format("anchor matching failed A %s != %s", p1, otherP2));
+            if(! p2.equals(otherP1)) throw new RuntimeException("anchor matching failed B");
+
+            List<PointXY> list1 = this.relativePoints;
+            List<PointXY> list2 = other.relativePoints;
+            if(! list1.get(0).equals(p1)) throw new RuntimeException();
+            if(! list2.get(0).equals(otherP1)) throw new RuntimeException();
+            if(list1.size() != list2.size()) throw new RuntimeException();
+
+            for(int i = 0; i < list1.size(); ++i){
+                int j = list2.size() - 1 - i;
+                if(! list1.get(i).equals(list2.get(j))){
+                    // System.out.println("no match: " + list1.get(i).toString() + "," + list2.get(i).toString());
+                    // System.out.println("i=" + i + " j=" + j);
+                    throw new RuntimeException("relative points failed");
+                }
+            }
+
+        }
+    }
+
+    private boolean isSimpleMatch(RedwallConnector c){
+        return Heading.opposite(this.heading) == c.heading && this.getWallCount() == c.getWallCount()
+                && this.totalLength == c.totalLength;
+    }
+
+    /**
      * Tests if the connectors match, i.e. if they could mate.
      * The sector groups dont have to be already lined up, but there must exist
      * a transformation that will line the sectors up.
@@ -373,8 +419,7 @@ public class RedwallConnector extends Connector implements HasLocationXY {
             if(! c.isSimpleConnector()){
                 return false;
             }
-            return Heading.opposite(this.heading) == c.heading && this.getWallCount() == c.getWallCount()
-                    && this.totalLength == c.totalLength;
+            return isSimpleMatch(c);
         }else{
             RedwallConnector other = c; // TODO cleanup
 
@@ -403,11 +448,8 @@ public class RedwallConnector extends Connector implements HasLocationXY {
                     return false;
                 }
             }
-
             return true;
-
         }
-
     }
 
     /**
