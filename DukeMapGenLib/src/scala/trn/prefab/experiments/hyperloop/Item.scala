@@ -6,7 +6,7 @@ import trn.duke.TextureList.Items._
 /**
   * Abstract Representation of an item for pickup like key, ammo, weapon, powerup.
   *
-  * TODO consider making this more generic to be used among any algorithm
+  * TODO - this was a good idea.  I put the new version in prefab/Item.scala.  Switch to that one
   */
 case class Item(tex: Int, pal: Int = 0)
 

@@ -172,6 +172,9 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     cp
   }
 
+  // TODO fix name
+  def withItem2(item: Item): SectorGroup = withItem(item.tex, item.pal)
+
   /**
     * Pastes one sector group, innerGroup, inside this group.   The exact placement is determined by calculating the
     * translate that lines up the anchors.
@@ -225,6 +228,9 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   ): SectorGroup = {
     val (_, rotatedSg) = SnapAngle.rotateUntil2(otherSg.copy){ sg =>
       val otherConn = connSelector(sg)
+      if(myConn.totalManhattanLength != otherConn.totalManhattanLength){
+        throw new SpriteLogicException(s"Redwall connectors with different lengths cannot match ${myConn.totalManhattanLength} != ${otherConn.totalManhattanLength}")
+      }
       myConn.isMatch(otherConn)
     }.getOrElse(throw new SpriteLogicException("could not find valid rotation"))
 
