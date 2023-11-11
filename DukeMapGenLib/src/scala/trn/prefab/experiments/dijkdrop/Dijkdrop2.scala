@@ -1,7 +1,7 @@
 package trn.prefab.experiments.dijkdrop
 
 import trn.{BuildConstants, UniqueTags, RandomX, HardcodedConfig, ScalaMapLoader, Sprite, Map => DMap}
-import trn.prefab.{FallConnector, MapWriter, DukeConfig, GameConfig, SectorGroup, RedwallConnector, PrefabPalette, Item, PastedSectorGroup, SpriteLogicException, Marker}
+import trn.prefab.{FallConnector, MapWriter, DukeConfig, EnemyMarker, SectorGroup, RedwallConnector, PrefabPalette, Item, PastedSectorGroup, Enemy, GameConfig, SpriteLogicException, Marker}
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.dijkdrop.NodePalette.{getUnlinkedTunnelConnIds, Dirt, Gray, Green, Wood, Red, Blue, White}
 
@@ -144,8 +144,6 @@ object NodePalette {
 }
 
 class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) {
-
-
   val blueRoom = NodeTile2(palette.getSG(1), Blue)
   val redRoom = NodeTile2(palette.getSG(2), Red)
   val greenRoom = NodeTile2(palette.getSG(3), Green)
@@ -160,14 +158,30 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   val exitRoom = NodeTile2(palette.getSG(11))
 
   val startRoom = NodeTile2(palette.getSG(12))
+  val castleStairs = NodeTile2(palette.getSG(13)).modified { sg =>
+    val enemies = Seq(
+      Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroop,
+      Enemy.LizTroopCmdr,
+      Enemy.Enforcer,
+      Enemy.OctaBrain,
+      Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank,
+    )
+    val sg2 = Utils.withRandomSprites(sg, Marker.Lotags.RANDOM_ITEM, Seq(Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.ShotgunAmmo))
+    Utils.withRandomSprites(sg2, Marker.Lotags.ENEMY, enemies)
+  }
 
+  val moon3way = NodeTile2(palette.getSG(14)).modified { sg =>
+    val enemies = Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.Blank, Enemy.AssaultCmdr)
+    Utils.withRandomEnemies(sg, enemies)
+  }
 
 
   def randomizeStartRoom(): NodeTile2 = {
     val startItems: Seq[Item] = random.shuffle(Seq(Item.Armor, Item.Medkit, Item.Shotgun, Item.Chaingun, Item.PipeBomb, Item.HandgunAmmo, Item.ChaingunAmmo)).toSeq
     startRoom.modified { sg =>
-      val itemSlots: Int = sg.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.ITEM)).size
-      (0 until itemSlots).map(startItems).foldLeft(sg){ case (sg2, item) => sg2.withItem2(item)}
+      Utils.withRandomSprites(sg, Marker.Lotags.RANDOM_ITEM, startItems)
+      // val itemSlots: Int = sg.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.RANDOM_ITEM)).size
+      // (0 until itemSlots).map(startItems).foldLeft(sg){ case (sg2, item) => sg2.withItem2(item)}
     }
   }
 
@@ -342,8 +356,10 @@ object Dijkdrop2 {
     graph.addNode(Node2("START", nodepal.randomizeStartRoom()))
     graph.addNode(Node2("1", nodepal.bluePentagon))
     graph.addNode(Node2("2", nodepal.redGate)) // redRoom
-    graph.addNode(Node2("3", nodepal.greenRoom))
-    graph.addNode(Node2("4", nodepal.whiteRoom))
+    // graph.addNode(Node2("3", nodepal.greenRoom)) // TODO back in
+    graph.addNode(Node2("3", nodepal.castleStairs))
+    // graph.addNode(Node2("4", nodepal.whiteRoom)) // TODO
+    graph.addNode(Node2("4", nodepal.moon3way))
     graph.addNode(Node2("5", nodepal.grayRoom))
     graph.addNode(Node2("6", nodepal.dirtRoom))
     graph.addNode(Node2("7", nodepal.blueItemRoom, NodeProperties(true)))

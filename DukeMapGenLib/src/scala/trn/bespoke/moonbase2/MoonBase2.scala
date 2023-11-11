@@ -13,6 +13,14 @@ import trn.prefab.experiments.ExpUtil
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+/**
+  * TODO see also EnemyMarker
+  * @param picnum
+  * @param palette
+  * @param crouch
+  * @param jump
+  * @param stay
+  */
 case class Enemy(
   picnum: Int,
   palette: Int = 0,

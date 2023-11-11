@@ -211,6 +211,8 @@ public class PrefabUtils {
 
 		public static int FALL_CONNECTOR = Marker.Lotags.FALL_CONNECTOR;
 
+		public static int BLANK = Marker.Lotags.BLANK;
+
 		public static List<Integer> ALL = Arrays.asList(new Integer[]{
 				GROUP_ID,
 				PLAYER_START,

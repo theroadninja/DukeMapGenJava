@@ -7,7 +7,7 @@ import trn.duke.TextureList.Items._
 /**
   * TODO copied from hyperloop/Item.scala -- replace that with this
   */
-case class Item(tex: Int, pal: Int = 0)
+case class Item(tex: Int, pal: Int = 0) extends SpritePrefab
 
 object Item {
   val BlueKey = Item(TextureList.Items.KEY, PaletteList.KEYCARD_BLUE)
@@ -35,6 +35,8 @@ object Item {
   // // val SHRINK_RAY_AMMO = 46
   val ShotgunAmmo = Item(TextureList.Items.SHOTGUN_AMMO)
 
+  val SmallHealth = Item(TextureList.Items.HEALTH_SMALL)
+  val MediumHealth = Item(TextureList.Items.HEALTH_MEDIUM)
   val Medkit = Item(TextureList.Items.HEALTH_MEDKIT)
   val Armor = Item(TextureList.Items.ARMOR)
   // val Steroids = Item(TextureList.Items.STEROIDS)

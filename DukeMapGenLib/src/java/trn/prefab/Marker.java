@@ -81,6 +81,12 @@ public class Marker {
          * A teleporter off the ground that simulates falling between sectors.
          */
         public static int FALL_CONNECTOR = 28;
+
+        /**
+         * A placeholder that does nothing and gets removed.  I'm using this to as a hack to avoid using Option
+         * in some places.
+         */
+        public static int BLANK = 29;
     }
 
     // TODO this text should be game-specific!

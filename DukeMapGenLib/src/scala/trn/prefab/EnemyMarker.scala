@@ -8,16 +8,33 @@ import trn.duke.{TextureList, PaletteList}
   * @param picnum
   * @param palette
   */
-case class Enemy(
-  tex: Int,
-  palette: Int = 0,
-) {
+case class Enemy(override val tex: Int, palette: Int = 0, override val lotag: Int = 0) extends SpritePrefab {
+
+  override def pal = palette
+
   def writeTo(sprite: Sprite): Unit = {
     sprite.setTexture(tex)
     sprite.setPal(palette)
     sprite.setLotag(0)
     sprite.setHiTag(0)
   }
+}
+
+object Enemy {
+
+  val Blank = Enemy(355, lotag=29) // 355 is the marker sprite, 29 is the BLANk lotag
+  val LizTroop = Enemy(1680)
+  val LizTroopCrouch = Enemy(1744)
+  val LizTroopCmdr = Enemy(1680, palette = 21)
+  val LizTroopCmdrCrouch = Enemy(1744, palette = 21)
+  val OctaBrain = Enemy(1820)
+  val Drone = Enemy(1880)
+  val AssaultCmdr = Enemy(1920)
+  val PigCop = Enemy(2000)
+  val Enforcer = Enemy(2120)
+  val EnforcerJump = Enemy(2165)
+  val EnforcerStay = Enemy(2121)
+  val MiniBattlelord = Enemy(2630, palette = 21) // Battlelord Sentry
 }
 
 /**
