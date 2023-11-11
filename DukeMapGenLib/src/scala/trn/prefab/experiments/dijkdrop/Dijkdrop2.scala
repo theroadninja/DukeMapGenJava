@@ -18,6 +18,8 @@ import scala.collection.mutable.ArrayBuffer
   */
 case class NodeTile2(sg: SectorGroup, tunnelTheme: Int, maxEdges: Int) {
 
+  def modified(fn: SectorGroup => SectorGroup): NodeTile2 = NodeTile2(fn(sg))
+
 }
 
 object NodeTile2 {
@@ -156,6 +158,18 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   val blueItemRoom = NodeTile2(palette.getSG(9))
   val redGate = NodeTile2(palette.getSG(10))
   val exitRoom = NodeTile2(palette.getSG(11))
+
+  val startRoom = NodeTile2(palette.getSG(12))
+
+
+
+  def randomizeStartRoom(): NodeTile2 = {
+    val startItems: Seq[Item] = random.shuffle(Seq(Item.Armor, Item.Medkit, Item.Shotgun, Item.Chaingun, Item.PipeBomb, Item.HandgunAmmo, Item.ChaingunAmmo)).toSeq
+    startRoom.modified { sg =>
+      val itemSlots: Int = sg.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.ITEM)).size
+      (0 until itemSlots).map(startItems).foldLeft(sg){ case (sg2, item) => sg2.withItem2(item)}
+    }
+  }
 
 
   // tunnel connector that goes nowhere
@@ -318,12 +332,14 @@ object Dijkdrop2 {
     }
   }
 
+
   def run(gameCfg: GameConfig, random: RandomX, inputMap: DMap, writer: MapWriter): DMap = {
     val palette = ScalaMapLoader.paletteFromMap(gameCfg, inputMap)
 
     val nodepal = new NodePalette(gameCfg, random, palette)
 
     val graph = new MutableGraph()
+    graph.addNode(Node2("START", nodepal.randomizeStartRoom()))
     graph.addNode(Node2("1", nodepal.bluePentagon))
     graph.addNode(Node2("2", nodepal.redGate)) // redRoom
     graph.addNode(Node2("3", nodepal.greenRoom))
@@ -337,6 +353,7 @@ object Dijkdrop2 {
     val edge = graph.addEdge("2", "EXIT")
     edge.startConnectorId = Some(999)
 
+    graph.addEdge("START", "1")
     graph.addEdge("1", "2")
     graph.addEdge("2", "3")
     graph.addEdge("3", "4")
@@ -349,6 +366,7 @@ object Dijkdrop2 {
     connectRandomNodes(random, graph)
 
 
+    println(s"start edge count ${graph.edgeCount("START")}")
 
 
     var index = 0
