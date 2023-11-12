@@ -27,6 +27,7 @@ object Enemy {
   val LizTroopCrouch = Enemy(1744)
   val LizTroopCmdr = Enemy(1680, palette = 21)
   val LizTroopCmdrCrouch = Enemy(1744, palette = 21)
+  val LizTroopOnToilet = Enemy(1741)
   val OctaBrain = Enemy(1820)
   val Drone = Enemy(1880)
   val AssaultCmdr = Enemy(1920)

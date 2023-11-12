@@ -172,9 +172,9 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     cp
   }
 
-  def withMarkerReplaced(markerLotag: Int, item: SpritePrefab): SectorGroup = {
+  def withMarkerReplaced(markerHitag: Int, markerLotag: Int, item: SpritePrefab): SectorGroup = {
     val cp = copy()
-    val itemSprite: Sprite = cp.sprites.find(s => Marker.isMarker(s, markerLotag)).getOrElse(throw new RuntimeException("missing marker"))
+    val itemSprite: Sprite = cp.sprites.find(s => Marker.isMarker(s, markerLotag) && s.getHiTag == markerHitag).getOrElse(throw new RuntimeException("missing marker"))
     itemSprite.setTexture(item.tex)
     itemSprite.setPal(item.pal)
     itemSprite.setLotag(item.lotag)

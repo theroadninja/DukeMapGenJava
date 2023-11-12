@@ -166,20 +166,24 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
       Enemy.OctaBrain,
       Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank,
     )
-    val sg2 = Utils.withRandomSprites(sg, Marker.Lotags.RANDOM_ITEM, Seq(Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.ShotgunAmmo))
-    Utils.withRandomSprites(sg2, Marker.Lotags.ENEMY, enemies)
+    val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, Seq(Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.ShotgunAmmo))
+    Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, enemies)
   }
 
   val moon3way = NodeTile2(palette.getSG(14)).modified { sg =>
-    val enemies = Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.Blank, Enemy.AssaultCmdr)
+    val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.Blank, Enemy.AssaultCmdr)).toSeq
     Utils.withRandomEnemies(sg, enemies)
   }
 
+  val bathrooms = NodeTile2(palette.getSG(15)).modified { sg =>
+    val sg2 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroopOnToilet, Enemy.Blank, Enemy.Blank)).toSeq)
+    Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
+  }
 
   def randomizeStartRoom(): NodeTile2 = {
     val startItems: Seq[Item] = random.shuffle(Seq(Item.Armor, Item.Medkit, Item.Shotgun, Item.Chaingun, Item.PipeBomb, Item.HandgunAmmo, Item.ChaingunAmmo)).toSeq
     startRoom.modified { sg =>
-      Utils.withRandomSprites(sg, Marker.Lotags.RANDOM_ITEM, startItems)
+      Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, startItems)
       // val itemSlots: Int = sg.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.RANDOM_ITEM)).size
       // (0 until itemSlots).map(startItems).foldLeft(sg){ case (sg2, item) => sg2.withItem2(item)}
     }
@@ -360,7 +364,8 @@ object Dijkdrop2 {
     graph.addNode(Node2("3", nodepal.castleStairs))
     // graph.addNode(Node2("4", nodepal.whiteRoom)) // TODO
     graph.addNode(Node2("4", nodepal.moon3way))
-    graph.addNode(Node2("5", nodepal.grayRoom))
+    // graph.addNode(Node2("5", nodepal.grayRoom)) // TODO back in
+    graph.addNode(Node2("5", nodepal.bathrooms))
     graph.addNode(Node2("6", nodepal.dirtRoom))
     graph.addNode(Node2("7", nodepal.blueItemRoom, NodeProperties(true)))
     graph.addNode(Node2("8", nodepal.woodRoom))
