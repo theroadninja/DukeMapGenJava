@@ -59,7 +59,7 @@ case class Node2(nodeId: String, tile: NodeTile2, props: NodeProperties = NodePr
 
   def tunnelTheme: Int = tile.tunnelTheme
 
-  def maxEdges: Int = tile.maxEdges
+  def maxEdges: Int = tile.maxEdges // TODO does not account for special vs not
 }
 
 
@@ -109,6 +109,11 @@ object MutableGraph {
 }
 
 object NodePalette {
+
+  // no handgun, pipe bombs, or trip mines
+  val StandardAmmo = Seq(Item.ChaingunAmmo, Item.ShotgunAmmo, Item.FreezeAmmo, Item.DevastatorAmmo, Item.RpgAmmo, Item.ShrinkRayAmmo)
+  val STANDARD_AMMO = 16
+
   // THEMES (i.e. tunnel color)
   val Blue = 1
   val Red = 2
@@ -141,9 +146,16 @@ object NodePalette {
     ids.toSeq.sorted
   }
 
+  def standardRoomSetup(sg: SectorGroup): SectorGroup = {
+    Utils.withRandomSprites(sg, STANDARD_AMMO, Marker.Lotags.RANDOM_ITEM, StandardAmmo)
+  }
+
+
 }
 
 class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) {
+
+
   val blueRoom = NodeTile2(palette.getSG(1), Blue)
   val redRoom = NodeTile2(palette.getSG(2), Red)
   val greenRoom = NodeTile2(palette.getSG(3), Green)
@@ -157,7 +169,11 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   val redGate = NodeTile2(palette.getSG(10))
   val exitRoom = NodeTile2(palette.getSG(11))
 
-  val startRoom = NodeTile2(palette.getSG(12))
+  val startRoom = NodeTile2(palette.getSG(12)).modified { sg =>
+    val startItems: Seq[Item] = random.shuffle(Seq(Item.Armor, Item.Medkit, Item.Shotgun, Item.Chaingun, Item.PipeBomb, Item.HandgunAmmo, Item.ChaingunAmmo)).toSeq
+    Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, startItems)
+  }
+
   val castleStairs = NodeTile2(palette.getSG(13)).modified { sg =>
     val enemies = Seq(
       Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroop,
@@ -180,14 +196,15 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
     Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
   }
 
-  def randomizeStartRoom(): NodeTile2 = {
-    val startItems: Seq[Item] = random.shuffle(Seq(Item.Armor, Item.Medkit, Item.Shotgun, Item.Chaingun, Item.PipeBomb, Item.HandgunAmmo, Item.ChaingunAmmo)).toSeq
-    startRoom.modified { sg =>
-      Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, startItems)
-      // val itemSlots: Int = sg.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.RANDOM_ITEM)).size
-      // (0 until itemSlots).map(startItems).foldLeft(sg){ case (sg2, item) => sg2.withItem2(item)}
-    }
-  }
+  val greenCastle = NodeTile2(palette.getSG(16)).modified { sg =>
+    val heavies = random.shuffle(Seq(Enemy.AssaultCmdr, Enemy.MiniBattlelord, Enemy.OctaBrain, Enemy.Blank, Enemy.Blank)).toSeq
+    val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.OctaBrain, Enemy.OctaBrain, Enemy.Enforcer, Enemy.Blank)).toSeq
+    val powerups = random.shuffle(Seq(Item.AtomicHealth, Item.Rpg, Item.Devastator, Item.ShrinkRay, Item.FreezeRay, Item.Medkit)).toSeq
+    val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.ENEMY, heavies)
+    val sg3 = Utils.withRandomSprites(sg2, 1, Marker.Lotags.ENEMY, enemies)
+    Utils.withRandomSprites(sg3, 0, Marker.Lotags.RANDOM_ITEM, powerups)
+  }.modified(NodePalette.standardRoomSetup)
+
 
 
   // tunnel connector that goes nowhere
@@ -236,15 +253,14 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
       sg = sg.withItem2(Item.BlueKey)
     }
 
-    val connIds: Seq[Int] = random.shuffle(NodePalette.getUnlinkedTunnelConnIds(sg)).toSeq.filter { i =>
-      i < 500 // filter out the special/hardcoded connectors
-    }
 
+    val allConnIds: Seq[Int] = random.shuffle(NodePalette.getUnlinkedTunnelConnIds(sg)).toSeq
     val outCount = graph.edgesFrom(nodeId).size
     val inCount = graph.edgesTo(nodeId).size
-    if(connIds.size < outCount + inCount) {
-      throw new SpriteLogicException(s"not enough spaces for tunnels")
+    if(allConnIds.size < outCount + inCount) {
+      throw new SpriteLogicException(s"not enough spaces for tunnels sgId=${sg.getGroupId} unlinked conns = ${allConnIds.size}")
     }
+    val connIds = allConnIds.filter { i => i < 500 }
 
     // outoing, special/hardcoded
     graph.edgesFrom(nodeId).filter(_.startConnectorId.isDefined).zipWithIndex.foreach { case (edge, index) =>
@@ -351,44 +367,57 @@ object Dijkdrop2 {
   }
 
 
+  /** for testing */
+  def makeGraph(random: RandomX, nodepal: NodePalette): MutableGraph = {
+
+    val startRooms = Seq(nodepal.startRoom)
+    val gateRooms = Seq(nodepal.redGate)
+    val exits = Seq(nodepal.exitRoom)
+    val keyRooms = Seq(nodepal.blueItemRoom)
+
+    val normalRooms = random.shuffle(Seq(
+      nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom,
+      nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
+      nodepal.grayRoom, nodepal.bluePentagon, nodepal.bathrooms,
+    )).toSeq
+
+
+    val graph = new MutableGraph()
+    graph.addNode(Node2("START", random.randomElement(startRooms)))
+    graph.addNode(Node2("GATE", random.randomElement(gateRooms)))
+    graph.addNode(Node2("EXIT", random.randomElement(exits)))
+    graph.addNode(Node2("KEY", random.randomElement(keyRooms), NodeProperties(key=true)))
+
+    graph.addNode(Node2("1", normalRooms(0)))
+    graph.addNode(Node2("3", normalRooms(1)))
+    graph.addNode(Node2("4", normalRooms(2)))
+    graph.addNode(Node2("5", normalRooms(3)))
+    graph.addNode(Node2("6", normalRooms(4)))
+    graph.addNode(Node2("8", normalRooms(5)))
+
+    val edge = graph.addEdge("GATE", "EXIT")
+    edge.startConnectorId = Some(999)
+
+    graph.addEdge("START", "1")
+    graph.addEdge("1", "GATE")
+    graph.addEdge("GATE", "3")
+    graph.addEdge("3", "4")
+    graph.addEdge("4", "5")
+    graph.addEdge("5", "6")
+    graph.addEdge("6", "KEY")
+    graph.addEdge("KEY", "8")
+    graph.addEdge("8", "1")
+
+    connectRandomNodes(random, graph)
+    graph
+  }
+
   def run(gameCfg: GameConfig, random: RandomX, inputMap: DMap, writer: MapWriter): DMap = {
     val palette = ScalaMapLoader.paletteFromMap(gameCfg, inputMap)
 
     val nodepal = new NodePalette(gameCfg, random, palette)
-
-    val graph = new MutableGraph()
-    graph.addNode(Node2("START", nodepal.randomizeStartRoom()))
-    graph.addNode(Node2("1", nodepal.bluePentagon))
-    graph.addNode(Node2("2", nodepal.redGate)) // redRoom
-    // graph.addNode(Node2("3", nodepal.greenRoom)) // TODO back in
-    graph.addNode(Node2("3", nodepal.castleStairs))
-    // graph.addNode(Node2("4", nodepal.whiteRoom)) // TODO
-    graph.addNode(Node2("4", nodepal.moon3way))
-    // graph.addNode(Node2("5", nodepal.grayRoom)) // TODO back in
-    graph.addNode(Node2("5", nodepal.bathrooms))
-    graph.addNode(Node2("6", nodepal.dirtRoom))
-    graph.addNode(Node2("7", nodepal.blueItemRoom, NodeProperties(true)))
-    graph.addNode(Node2("8", nodepal.woodRoom))
-    graph.addNode(Node2("EXIT", nodepal.exitRoom))
-
-    val edge = graph.addEdge("2", "EXIT")
-    edge.startConnectorId = Some(999)
-
-    graph.addEdge("START", "1")
-    graph.addEdge("1", "2")
-    graph.addEdge("2", "3")
-    graph.addEdge("3", "4")
-    graph.addEdge("4", "5")
-    graph.addEdge("5", "6")
-    graph.addEdge("6", "7")
-    graph.addEdge("7", "8")
-    graph.addEdge("8", "1")
-
-    connectRandomNodes(random, graph)
-
-
+    val graph = makeGraph(random, nodepal)
     println(s"start edge count ${graph.edgeCount("START")}")
-
 
     var index = 0
     val layout = new GridLayout(BuildConstants.MapBounds, 5, 5)
@@ -398,7 +427,6 @@ object Dijkdrop2 {
       index += 1
       nodeId -> psg
     }.toMap
-
 
     def getFallConnector(psg: PastedSectorGroup, connId: Int): FallConnector = {
       psg.allConnsInPsg.find(c => FallConnector.isFallConn(c) && c.getConnectorId == connId).get.asInstanceOf[FallConnector]
