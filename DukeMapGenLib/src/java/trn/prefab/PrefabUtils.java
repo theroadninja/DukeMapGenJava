@@ -190,6 +190,7 @@ public class PrefabUtils {
 		 */
 		public static int SIMPLE_CONNECTOR = 20; // now this is basically all redwall connectors
 
+		// NOTE this is NOT about making child sectors.  See Redwall Child for that (lotag 4)
 		public static int MULTISECTOR_CHILD = 21;  // accomplishes multi-sector redwall conns by being a child segment
 
 		/** a connector that spans multiple sectors */

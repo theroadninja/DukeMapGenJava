@@ -118,6 +118,10 @@ object NodePalette {
   val StandardAmmo = Seq(Item.ChaingunAmmo, Item.ShotgunAmmo, Item.FreezeAmmo, Item.DevastatorAmmo, Item.RpgAmmo, Item.ShrinkRayAmmo)
   val STANDARD_AMMO = 16
 
+  // ammo for the more basic weapons
+  val BasicAmmo = Seq(Item.ChaingunAmmo, Item.ShotgunAmmo, Item.HandgunAmmo)
+  val BASIC_AMMO = 17
+
   // THEMES (i.e. tunnel color)
   val Blue = 1
   val Red = 2
@@ -151,7 +155,8 @@ object NodePalette {
   }
 
   def standardRoomSetup(sg: SectorGroup): SectorGroup = {
-    Utils.withRandomSprites(sg, STANDARD_AMMO, Marker.Lotags.RANDOM_ITEM, StandardAmmo)
+    val sg2 = Utils.withRandomSprites(sg, STANDARD_AMMO, Marker.Lotags.RANDOM_ITEM, StandardAmmo)
+    Utils.withRandomSprites(sg2, BASIC_AMMO, Marker.Lotags.RANDOM_ITEM, BasicAmmo)
   }
 
 
@@ -172,7 +177,7 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   val blueItemRoom = NodeTile2(palette.getSG(9))
     .modified(NodePalette.standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroopCmdr, Enemy.PigCop, Enemy.Blank))
-    .withEnemies(random, Seq(Enemy.OctaBrain), hitag=1)
+    .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.OctaBrain, Enemy.OctaBrain, Enemy.Blank), hitag=1)
 
 
   val redGate = NodeTile2(palette.getSG(10))
@@ -202,11 +207,12 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   val moon3way = NodeTile2(palette.getSG(14)).modified { sg =>
     val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.Blank, Enemy.AssaultCmdr)).toSeq
     Utils.withRandomEnemies(sg, enemies)
-  }
+  }.modified(NodePalette.standardRoomSetup)
 
   val bathrooms = NodeTile2(palette.getSG(15)).modified { sg =>
     val sg2 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroopOnToilet, Enemy.Blank, Enemy.Blank)).toSeq)
-    Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
+    val sg3 = Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
+    Utils.withRandomSprites(sg3, 1, Marker.Lotags.RANDOM_ITEM, random.shuffle(Seq(Item.RpgAmmo, Item.Devastator)).toSeq)
   }.modified(NodePalette.standardRoomSetup)
 
   val greenCastle = NodeTile2(palette.getSG(16)).modified { sg =>
@@ -221,7 +227,15 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   val buildingEdge = NodeTile2(palette.getSG(17)).modified(NodePalette.standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop))
 
+  val cavern = NodeTile2(palette.getSG(18)).modified(NodePalette.standardRoomSetup)
+    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.OctaBrain, Enemy.Blank))
 
+  val nukeSymbolCarpet = NodeTile2(palette.getSG(19)).modified(NodePalette.standardRoomSetup)
+    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.LizTroop, Enemy.Blank))
+    .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.AssaultCmdr, Enemy.Blank))
+
+  val parkingGarage = NodeTile2(palette.getSG(20)).modified(NodePalette.standardRoomSetup)
+    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer, Enemy.Blank))
 
   // tunnel connector that goes nowhere
   val blank = palette.getSG(99)
@@ -392,10 +406,11 @@ object Dijkdrop2 {
     val keyRooms = Seq(nodepal.blueItemRoom)
 
     val normalRooms = random.shuffle(Seq(
-      // nodepal.blueRoom, nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom,
-      nodepal.buildingEdge,
+      // nodepal.blueRoom, nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom, nodepal.grayRoom
+      // nodepal.bluePentagon,
+      nodepal.buildingEdge, nodepal.cavern, nodepal.nukeSymbolCarpet,
       nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
-      nodepal.grayRoom, nodepal.bluePentagon, nodepal.bathrooms,
+      nodepal.bathrooms, nodepal.parkingGarage,
     )).toSeq
 
 
