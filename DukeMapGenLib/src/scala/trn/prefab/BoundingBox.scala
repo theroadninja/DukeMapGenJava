@@ -88,6 +88,9 @@ case class BoundingBox(xMin: Int, yMin: Int, xMax: Int, yMax: Int) {
 
   def area: Int = w * h
 
+  def width: Int = w
+  def height: Int = h
+
   /**
     * @return if both bounding boxes have the same shape (without rotating)
     */

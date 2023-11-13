@@ -1,7 +1,7 @@
 package trn.prefab.experiments.dijkdrop
 
 import trn.{BuildConstants, UniqueTags, RandomX, HardcodedConfig, ScalaMapLoader, Sprite, Map => DMap}
-import trn.prefab.{FallConnector, MapWriter, DukeConfig, EnemyMarker, SectorGroup, RedwallConnector, PrefabPalette, Item, PastedSectorGroup, Enemy, GameConfig, SpriteLogicException, Marker}
+import trn.prefab.{FallConnector, MapWriter, DukeConfig, EnemyMarker, SectorGroup, RedwallConnector, SpritePrefab, PrefabPalette, Item, PastedSectorGroup, Enemy, GameConfig, SpriteLogicException, Marker}
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.dijkdrop.NodePalette.{getUnlinkedTunnelConnIds, Dirt, Gray, Green, Wood, Red, Blue, White}
 
@@ -19,6 +19,10 @@ import scala.collection.mutable.ArrayBuffer
 case class NodeTile2(sg: SectorGroup, tunnelTheme: Int, maxEdges: Int) {
 
   def modified(fn: SectorGroup => SectorGroup): NodeTile2 = NodeTile2(fn(sg))
+
+  def withEnemies(random: RandomX, enemies: Seq[SpritePrefab], hitag: Int = 0): NodeTile2 = modified { sg =>
+    Utils.withRandomSprites(sg, hitag, Marker.Lotags.ENEMY, random.shuffle(enemies).toSeq)
+  }
 
 }
 
@@ -110,7 +114,7 @@ object MutableGraph {
 
 object NodePalette {
 
-  // no handgun, pipe bombs, or trip mines
+  // no handgun, pipe bombs, or trip mines.  To use:  marker w/ lotag 23, hitag 16
   val StandardAmmo = Seq(Item.ChaingunAmmo, Item.ShotgunAmmo, Item.FreezeAmmo, Item.DevastatorAmmo, Item.RpgAmmo, Item.ShrinkRayAmmo)
   val STANDARD_AMMO = 16
 
@@ -166,7 +170,16 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
 
   val bluePentagon = NodeTile2(palette.getSG(8))
   val blueItemRoom = NodeTile2(palette.getSG(9))
+    .modified(NodePalette.standardRoomSetup)
+    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroopCmdr, Enemy.PigCop, Enemy.Blank))
+    .withEnemies(random, Seq(Enemy.OctaBrain), hitag=1)
+
+
   val redGate = NodeTile2(palette.getSG(10))
+    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.PigCop, Enemy.PigCop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.AssaultCmdr))
+    .modified(NodePalette.standardRoomSetup)
+
+
   val exitRoom = NodeTile2(palette.getSG(11))
 
   val startRoom = NodeTile2(palette.getSG(12)).modified { sg =>
@@ -184,7 +197,7 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
     )
     val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, Seq(Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.ShotgunAmmo))
     Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, enemies)
-  }
+  }.modified(NodePalette.standardRoomSetup)
 
   val moon3way = NodeTile2(palette.getSG(14)).modified { sg =>
     val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.Blank, Enemy.AssaultCmdr)).toSeq
@@ -194,7 +207,7 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   val bathrooms = NodeTile2(palette.getSG(15)).modified { sg =>
     val sg2 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroopOnToilet, Enemy.Blank, Enemy.Blank)).toSeq)
     Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
-  }
+  }.modified(NodePalette.standardRoomSetup)
 
   val greenCastle = NodeTile2(palette.getSG(16)).modified { sg =>
     val heavies = random.shuffle(Seq(Enemy.AssaultCmdr, Enemy.MiniBattlelord, Enemy.OctaBrain, Enemy.Blank, Enemy.Blank)).toSeq
@@ -204,6 +217,9 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
     val sg3 = Utils.withRandomSprites(sg2, 1, Marker.Lotags.ENEMY, enemies)
     Utils.withRandomSprites(sg3, 0, Marker.Lotags.RANDOM_ITEM, powerups)
   }.modified(NodePalette.standardRoomSetup)
+
+  val buildingEdge = NodeTile2(palette.getSG(17)).modified(NodePalette.standardRoomSetup)
+    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop))
 
 
 
@@ -376,7 +392,8 @@ object Dijkdrop2 {
     val keyRooms = Seq(nodepal.blueItemRoom)
 
     val normalRooms = random.shuffle(Seq(
-      nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom,
+      // nodepal.blueRoom, nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom,
+      nodepal.buildingEdge,
       nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
       nodepal.grayRoom, nodepal.bluePentagon, nodepal.bathrooms,
     )).toSeq
@@ -423,7 +440,8 @@ object Dijkdrop2 {
     val layout = new GridLayout(BuildConstants.MapBounds, 5, 5)
     val pastedGroups = graph.nodes.map { case (nodeId, node) =>
       val sg = nodepal.getSg(graph, nodeId, node)
-      val psg = writer.tryPasteInside(sg, layout.bbForIndex(index)).getOrElse(throw new SpriteLogicException("sector group too big"))
+      val bb = layout.bbForIndex(index)
+      val psg = writer.tryPasteInside(sg, bb).getOrElse(throw new SpriteLogicException(s"sector group too big for ${bb.width} X ${bb.height}"))
       index += 1
       nodeId -> psg
     }.toMap
