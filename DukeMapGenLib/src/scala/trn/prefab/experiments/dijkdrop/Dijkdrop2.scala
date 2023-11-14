@@ -130,6 +130,7 @@ object NodePalette {
   val Gray = 5 // like the gray brick texture
   val Dirt = 6 // classic dirt/canyon walls
   val Wood = 7 // wood
+  val Stone = 8
 
   def isTunnelConn(conn: RedwallConnector): Boolean = {
 
@@ -162,7 +163,12 @@ object NodePalette {
 
 }
 
-class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) {
+class NodePalette(
+  gameCfg: GameConfig,
+  random: RandomX,
+  palette: PrefabPalette,  // the main palette for this map
+  stonePalette: PrefabPalette,  // <- a source map dedicated to the stone room
+) {
 
 
   val blueRoom = NodeTile2(palette.getSG(1), Blue)
@@ -237,10 +243,14 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   val parkingGarage = NodeTile2(palette.getSG(20)).modified(NodePalette.standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer, Enemy.Blank))
 
+  val stoneVaults = NodeTile2(stonePalette.getSG(1)).modified(NodePalette.standardRoomSetup)
+
+  // ----------------------------------------------
+
   // tunnel connector that goes nowhere
   val blank = palette.getSG(99)
 
-  val tunnels = Seq(100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113).map(palette.getSG).map(sg => TunnelTile(sg))
+  val tunnels = Seq(100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115).map(palette.getSG).map(sg => TunnelTile(sg))
 
   val floorTunnels = tunnels.filter(_.isFloor).map(tile => tile.tunnelTheme -> tile).toMap
   val ceilingTunnels = tunnels.filter(!_.isFloor).map(tile => tile.tunnelTheme -> tile).toMap
@@ -344,6 +354,8 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   }
 }
 
+case class SourceMapCollection(input: DMap, stoneInput: DMap)
+
 /**
   * Trying to create a c.s. graph and then alter the nodes to fit it.
   *
@@ -353,15 +365,19 @@ class NodePalette(gameCfg: GameConfig, random: RandomX, palette: PrefabPalette) 
   */
 object Dijkdrop2 {
   val Filename = "dijkdrp2.map"
+  val OtherFilename = "dijk/djkstone.map"
 
   def main(args: Array[String]): Unit = {
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+
+    // TODO map contents to a case class
     val input: DMap = ScalaMapLoader.loadMap(HardcodedConfig.EDUKE32PATH + Filename)
-    val result = tryRun(gameCfg, input)
+    val input2: DMap = ScalaMapLoader.loadMap(HardcodedConfig.EDUKE32PATH + OtherFilename)
+    val result = tryRun(gameCfg, SourceMapCollection(input, input2))
     ExpUtil.write(result)
   }
 
-  def tryRun(gameCfg: GameConfig, input: DMap): DMap = {
+  def tryRun(gameCfg: GameConfig, input: SourceMapCollection): DMap = {
     val writer = MapWriter(gameCfg)
     try {
       val random = RandomX()
@@ -410,7 +426,7 @@ object Dijkdrop2 {
       // nodepal.bluePentagon,
       nodepal.buildingEdge, nodepal.cavern, nodepal.nukeSymbolCarpet,
       nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
-      nodepal.bathrooms, nodepal.parkingGarage,
+      nodepal.bathrooms, nodepal.parkingGarage, nodepal.stoneVaults
     )).toSeq
 
 
@@ -444,10 +460,11 @@ object Dijkdrop2 {
     graph
   }
 
-  def run(gameCfg: GameConfig, random: RandomX, inputMap: DMap, writer: MapWriter): DMap = {
-    val palette = ScalaMapLoader.paletteFromMap(gameCfg, inputMap)
+  def run(gameCfg: GameConfig, random: RandomX, input: SourceMapCollection, writer: MapWriter): DMap = {
+    val palette = ScalaMapLoader.paletteFromMap(gameCfg, input.input)
+    val stonePalette = ScalaMapLoader.paletteFromMap(gameCfg, input.stoneInput)
 
-    val nodepal = new NodePalette(gameCfg, random, palette)
+    val nodepal = new NodePalette(gameCfg, random, palette, stonePalette)
     val graph = makeGraph(random, nodepal)
     println(s"start edge count ${graph.edgeCount("START")}")
 
