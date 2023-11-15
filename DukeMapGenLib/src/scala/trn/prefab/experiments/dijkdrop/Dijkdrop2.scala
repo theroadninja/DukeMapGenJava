@@ -3,7 +3,9 @@ package trn.prefab.experiments.dijkdrop
 import trn.{BuildConstants, UniqueTags, RandomX, HardcodedConfig, ScalaMapLoader, Sprite, Map => DMap}
 import trn.prefab.{FallConnector, MapWriter, DukeConfig, EnemyMarker, SectorGroup, RedwallConnector, SpritePrefab, PrefabPalette, Item, PastedSectorGroup, Enemy, GameConfig, SpriteLogicException, Marker}
 import trn.prefab.experiments.ExpUtil
-import trn.prefab.experiments.dijkdrop.NodePalette.{getUnlinkedTunnelConnIds, Dirt, Gray, Green, Wood, Red, Blue, White}
+import trn.prefab.experiments.dijkdrop.DropPalette2._
+import trn.prefab.experiments.dijkdrop.NodePalette.getUnlinkedTunnelConnIds
+import trn.prefab.experiments.dijkdrop.SpriteGroups.{STANDARD_AMMO, StandardAmmo, BASIC_AMMO, BasicAmmo}
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
@@ -18,10 +20,17 @@ import scala.collection.mutable.ArrayBuffer
   */
 case class NodeTile2(sg: SectorGroup, tunnelTheme: Int, maxEdges: Int) {
 
+  // TODO should this be allUnlinkedRedwallConnectors instead?
+  val tunnelConnIds = sg.allRedwallConnectors.filter(NodePalette.isTunnelConn).map(_.getConnectorId)
+
   def modified(fn: SectorGroup => SectorGroup): NodeTile2 = NodeTile2(fn(sg))
 
   def withEnemies(random: RandomX, enemies: Seq[SpritePrefab], hitag: Int = 0): NodeTile2 = modified { sg =>
     Utils.withRandomSprites(sg, hitag, Marker.Lotags.ENEMY, random.shuffle(enemies).toSeq)
+  }
+
+  def withRandomItems(random: RandomX, items: Seq[SpritePrefab], hitag: Int = 0): NodeTile2 = modified { sg =>
+    Utils.withRandomSprites(sg, hitag, Marker.Lotags.RANDOM_ITEM, random.shuffle(items).toSeq)
   }
 
 }
@@ -114,24 +123,6 @@ object MutableGraph {
 
 object NodePalette {
 
-  // no handgun, pipe bombs, or trip mines.  To use:  marker w/ lotag 23, hitag 16
-  val StandardAmmo = Seq(Item.ChaingunAmmo, Item.ShotgunAmmo, Item.FreezeAmmo, Item.DevastatorAmmo, Item.RpgAmmo, Item.ShrinkRayAmmo)
-  val STANDARD_AMMO = 16
-
-  // ammo for the more basic weapons
-  val BasicAmmo = Seq(Item.ChaingunAmmo, Item.ShotgunAmmo, Item.HandgunAmmo)
-  val BASIC_AMMO = 17
-
-  // THEMES (i.e. tunnel color)
-  val Blue = 1
-  val Red = 2
-  val Green = 3
-  val White = 4 // moon
-  val Gray = 5 // like the gray brick texture
-  val Dirt = 6 // classic dirt/canyon walls
-  val Wood = 7 // wood
-  val Stone = 8
-
   def isTunnelConn(conn: RedwallConnector): Boolean = {
 
     // TODO - pasting "loop" connectors is broken because the RedwallConnector.isMatch() fails
@@ -157,7 +148,9 @@ object NodePalette {
 
   def standardRoomSetup(sg: SectorGroup): SectorGroup = {
     val sg2 = Utils.withRandomSprites(sg, STANDARD_AMMO, Marker.Lotags.RANDOM_ITEM, StandardAmmo)
-    Utils.withRandomSprites(sg2, BASIC_AMMO, Marker.Lotags.RANDOM_ITEM, BasicAmmo)
+    val sg3 = Utils.withRandomSprites(sg2, BASIC_AMMO, Marker.Lotags.RANDOM_ITEM, BasicAmmo)
+    val sg4 = Utils.withRandomSprites(sg3, SpriteGroups.FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.FootSoldiers)
+    sg4
   }
 
 
@@ -169,189 +162,6 @@ class NodePalette(
   palette: PrefabPalette,  // the main palette for this map
   stonePalette: PrefabPalette,  // <- a source map dedicated to the stone room
 ) {
-
-
-  val blueRoom = NodeTile2(palette.getSG(1), Blue)
-  val redRoom = NodeTile2(palette.getSG(2), Red)
-  val greenRoom = NodeTile2(palette.getSG(3), Green)
-  val whiteRoom = NodeTile2(palette.getSG(4), White)
-  val grayRoom = NodeTile2(palette.getSG(5), Gray)
-  val dirtRoom = NodeTile2(palette.getSG(6), Dirt)
-  val woodRoom = NodeTile2(palette.getSG(7), Wood)
-
-  val bluePentagon = NodeTile2(palette.getSG(8))
-  val blueItemRoom = NodeTile2(palette.getSG(9))
-    .modified(NodePalette.standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroopCmdr, Enemy.PigCop, Enemy.Blank))
-    .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.OctaBrain, Enemy.OctaBrain, Enemy.Blank), hitag=1)
-
-
-  val redGate = NodeTile2(palette.getSG(10))
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.PigCop, Enemy.PigCop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.AssaultCmdr))
-    .modified(NodePalette.standardRoomSetup)
-
-
-  val exitRoom = NodeTile2(palette.getSG(11))
-
-  val startRoom = NodeTile2(palette.getSG(12)).modified { sg =>
-    val startItems: Seq[Item] = random.shuffle(Seq(Item.Armor, Item.Medkit, Item.Shotgun, Item.Chaingun, Item.PipeBomb, Item.HandgunAmmo, Item.ChaingunAmmo)).toSeq
-    Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, startItems)
-  }
-
-  val castleStairs = NodeTile2(palette.getSG(13)).modified { sg =>
-    val enemies = Seq(
-      Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroop,
-      Enemy.LizTroopCmdr,
-      Enemy.Enforcer,
-      Enemy.OctaBrain,
-      Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank,
-    )
-    val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, Seq(Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.ShotgunAmmo))
-    Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, enemies)
-  }.modified(NodePalette.standardRoomSetup)
-
-  val moon3way = NodeTile2(palette.getSG(14)).modified { sg =>
-    val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.Blank, Enemy.AssaultCmdr)).toSeq
-    Utils.withRandomEnemies(sg, enemies)
-  }.modified(NodePalette.standardRoomSetup)
-
-  val bathrooms = NodeTile2(palette.getSG(15)).modified { sg =>
-    val sg2 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroopOnToilet, Enemy.Blank, Enemy.Blank)).toSeq)
-    val sg3 = Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
-    Utils.withRandomSprites(sg3, 1, Marker.Lotags.RANDOM_ITEM, random.shuffle(Seq(Item.RpgAmmo, Item.Devastator)).toSeq)
-  }.modified(NodePalette.standardRoomSetup)
-
-  val greenCastle = NodeTile2(palette.getSG(16)).modified { sg =>
-    val heavies = random.shuffle(Seq(Enemy.AssaultCmdr, Enemy.MiniBattlelord, Enemy.OctaBrain, Enemy.Blank, Enemy.Blank)).toSeq
-    val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.OctaBrain, Enemy.OctaBrain, Enemy.Enforcer, Enemy.Blank)).toSeq
-    val powerups = random.shuffle(Seq(Item.AtomicHealth, Item.Rpg, Item.Devastator, Item.ShrinkRay, Item.FreezeRay, Item.Medkit)).toSeq
-    val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.ENEMY, heavies)
-    val sg3 = Utils.withRandomSprites(sg2, 1, Marker.Lotags.ENEMY, enemies)
-    Utils.withRandomSprites(sg3, 0, Marker.Lotags.RANDOM_ITEM, powerups)
-  }.modified(NodePalette.standardRoomSetup)
-
-  val buildingEdge = NodeTile2(palette.getSG(17)).modified(NodePalette.standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop))
-
-  val cavern = NodeTile2(palette.getSG(18)).modified(NodePalette.standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.OctaBrain, Enemy.Blank))
-
-  val nukeSymbolCarpet = NodeTile2(palette.getSG(19)).modified(NodePalette.standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.LizTroop, Enemy.Blank))
-    .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.AssaultCmdr, Enemy.Blank))
-
-  val parkingGarage = NodeTile2(palette.getSG(20)).modified(NodePalette.standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer, Enemy.Blank))
-
-  val stoneVaults = NodeTile2(stonePalette.getSG(1)).modified(NodePalette.standardRoomSetup)
-
-  // ----------------------------------------------
-
-  // tunnel connector that goes nowhere
-  val blank = palette.getSG(99)
-
-  val tunnels = Seq(100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115).map(palette.getSG).map(sg => TunnelTile(sg))
-
-  val floorTunnels = tunnels.filter(_.isFloor).map(tile => tile.tunnelTheme -> tile).toMap
-  val ceilingTunnels = tunnels.filter(!_.isFloor).map(tile => tile.tunnelTheme -> tile).toMap
-
-  def isFallConn(sprite: Sprite): Boolean = Marker.isMarker(sprite, Marker.Lotags.FALL_CONNECTOR)
-
-  def getFloorTunnel(connectorId: Int, tunnelTheme: Int): SectorGroup = {
-    val tSG = floorTunnels(tunnelTheme).sg
-    tSG.withModifiedSprites { sprite =>
-      if(isFallConn(sprite)) {
-        sprite.setHiTag(connectorId)
-      }
-    }
-  }
-
-  def getCeilingTunnel(connectorId: Int, tunnelTheme: Int): SectorGroup = {
-    val tSG = ceilingTunnels(tunnelTheme).sg
-    tSG.withModifiedSprites { sprite =>
-      if(isFallConn(sprite)) {
-        sprite.setHiTag(connectorId)
-      }
-    }
-  }
-
-
-  /**
-    * this function needs to know about incoming and outgoing nodes
-    * @param node
-    * @return
-    */
-  def getSg(graph: MutableGraph, nodeId: String, node: Node2): SectorGroup = {
-
-    // // TODO for the nodes, maybe its more than just theme (dont want to select based on theme)
-    // var sg = node.tile.tunnelTheme match {
-    //   case Blue => blueRoom.sg
-    //   case Red => redRoom.sg
-    // }
-    var sg = node.tile.sg
-    if(node.props.key){
-      sg = sg.withItem2(Item.BlueKey)
-    }
-
-
-    val allConnIds: Seq[Int] = random.shuffle(NodePalette.getUnlinkedTunnelConnIds(sg)).toSeq
-    val outCount = graph.edgesFrom(nodeId).size
-    val inCount = graph.edgesTo(nodeId).size
-    if(allConnIds.size < outCount + inCount) {
-      throw new SpriteLogicException(s"not enough spaces for tunnels sgId=${sg.getGroupId} unlinked conns = ${allConnIds.size}")
-    }
-    val connIds = allConnIds.filter { i => i < 500 }
-
-    // outoing, special/hardcoded
-    graph.edgesFrom(nodeId).filter(_.startConnectorId.isDefined).zipWithIndex.foreach { case (edge, index) =>
-      val conn = sg.getRedwallConnector(edge.startConnectorId.get)
-      val fallConnectorId = 2000 + index
-      edge.startFallConnectorId = Some(fallConnectorId)
-      val destNode = graph.nodes(edge.endNode)
-      val tunnelSg = getFloorTunnel(fallConnectorId, destNode.tunnelTheme)
-      sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg){ otherSg =>
-        otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
-      }
-    }
-
-    // outgoing (floor)
-    graph.edgesFrom(nodeId).filter(_.startConnectorId.isEmpty).zipWithIndex.foreach { case (edge, index) =>
-      val conn = sg.getRedwallConnector(connIds(index))
-
-      val fallConnectorId = 1000 + index
-      edge.startFallConnectorId = Some(fallConnectorId)
-      val destNode = graph.nodes(edge.endNode)
-      val tunnelSg = getFloorTunnel(fallConnectorId, destNode.tunnelTheme)
-      sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg){ otherSg =>
-        otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
-      }
-    }
-
-    // incoming (ceiling)
-    graph.edgesTo(nodeId).zipWithIndex.foreach { case (edge, index) =>
-      val conn = sg.getRedwallConnector(connIds(outCount + index))
-      val fallConnectorId = 1000 + outCount + index
-      val otherNode = graph.nodes(edge.startNode)
-      val tunnelSg = getCeilingTunnel(fallConnectorId, otherNode.tunnelTheme)
-      edge.endFallConnectorId = Some(fallConnectorId)
-      sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg){ otherSg =>
-        otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
-      }
-    }
-
-    var break = false
-    while(! break){
-      val connOpt = NodePalette.getUnlinkedTunnelConns(sg).headOption
-      if(connOpt.isDefined) {
-        sg = sg.withGroupAttachedAutoRotate(gameCfg, connOpt.get, blank) { otherSg =>
-          otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
-        }
-      }else{
-        break = true
-      }
-    }
-    sg.autoLinked
-  }
 }
 
 case class SourceMapCollection(input: DMap, stoneInput: DMap)
@@ -412,9 +222,81 @@ object Dijkdrop2 {
     }
   }
 
+  /**
+    * this function needs to know about incoming and outgoing nodes
+    *
+    * @param node
+    * @return
+    */
+  def getSg(gameCfg: GameConfig, random: RandomX, nodepal: DropPalette2, graph: MutableGraph, nodeId: String, node: Node2): SectorGroup = {
+
+    var sg = node.tile.sg
+    if (node.props.key) {
+      sg = sg.withItem2(Item.BlueKey)
+    }
+
+
+    val allConnIds: Seq[Int] = random.shuffle(NodePalette.getUnlinkedTunnelConnIds(sg)).toSeq
+    val outCount = graph.edgesFrom(nodeId).size
+    val inCount = graph.edgesTo(nodeId).size
+    if (allConnIds.size < outCount + inCount) {
+      throw new SpriteLogicException(s"not enough spaces for tunnels sgId=${sg.getGroupId} unlinked conns = ${allConnIds.size}")
+    }
+    val connIds = allConnIds.filter { i => i < 500 }
+
+    // outoing, special/hardcoded
+    graph.edgesFrom(nodeId).filter(_.startConnectorId.isDefined).zipWithIndex.foreach { case (edge, index) =>
+      val conn = sg.getRedwallConnector(edge.startConnectorId.get)
+      val fallConnectorId = 2000 + index
+      edge.startFallConnectorId = Some(fallConnectorId)
+      val destNode = graph.nodes(edge.endNode)
+      val tunnelSg = nodepal.getFloorTunnel(fallConnectorId, destNode.tunnelTheme)
+      sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg) { otherSg =>
+        otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
+      }
+    }
+
+    // outgoing (floor)
+    graph.edgesFrom(nodeId).filter(_.startConnectorId.isEmpty).zipWithIndex.foreach { case (edge, index) =>
+      val conn = sg.getRedwallConnector(connIds(index))
+
+      val fallConnectorId = 1000 + index
+      edge.startFallConnectorId = Some(fallConnectorId)
+      val destNode = graph.nodes(edge.endNode)
+      val tunnelSg = nodepal.getFloorTunnel(fallConnectorId, destNode.tunnelTheme)
+      sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg) { otherSg =>
+        otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
+      }
+    }
+
+    // incoming (ceiling)
+    graph.edgesTo(nodeId).zipWithIndex.foreach { case (edge, index) =>
+      val conn = sg.getRedwallConnector(connIds(outCount + index))
+      val fallConnectorId = 1000 + outCount + index
+      val otherNode = graph.nodes(edge.startNode)
+      val tunnelSg = nodepal.getCeilingTunnel(fallConnectorId, otherNode.tunnelTheme)
+      edge.endFallConnectorId = Some(fallConnectorId)
+      sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg) { otherSg =>
+        otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
+      }
+    }
+
+    var break = false
+    while (!break) {
+      val connOpt = NodePalette.getUnlinkedTunnelConns(sg).headOption
+      if (connOpt.isDefined) {
+        sg = sg.withGroupAttachedAutoRotate(gameCfg, connOpt.get, nodepal.blank) { otherSg =>
+          otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
+        }
+      } else {
+        break = true
+      }
+    }
+    sg.autoLinked
+  }
 
   /** for testing */
-  def makeGraph(random: RandomX, nodepal: NodePalette): MutableGraph = {
+  def makeGraph(random: RandomX, nodepal: DropPalette2): MutableGraph = {
 
     val startRooms = Seq(nodepal.startRoom)
     val gateRooms = Seq(nodepal.redGate)
@@ -426,7 +308,7 @@ object Dijkdrop2 {
       // nodepal.bluePentagon,
       nodepal.buildingEdge, nodepal.cavern, nodepal.nukeSymbolCarpet,
       nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
-      nodepal.bathrooms, nodepal.parkingGarage, nodepal.stoneVaults
+      nodepal.bathrooms, nodepal.parkingGarage, nodepal.stoneVaults, nodepal.fountain
     )).toSeq
 
 
@@ -464,14 +346,16 @@ object Dijkdrop2 {
     val palette = ScalaMapLoader.paletteFromMap(gameCfg, input.input)
     val stonePalette = ScalaMapLoader.paletteFromMap(gameCfg, input.stoneInput)
 
-    val nodepal = new NodePalette(gameCfg, random, palette, stonePalette)
+    // val nodepal = new NodePalette(gameCfg, random, palette, stonePalette)
+    val nodepal = new DropPalette2(gameCfg, random, palette, stonePalette)
+
     val graph = makeGraph(random, nodepal)
     println(s"start edge count ${graph.edgeCount("START")}")
 
     var index = 0
     val layout = new GridLayout(BuildConstants.MapBounds, 5, 5)
     val pastedGroups = graph.nodes.map { case (nodeId, node) =>
-      val sg = nodepal.getSg(graph, nodeId, node)
+      val sg = getSg(gameCfg, random, nodepal, graph, nodeId, node)
       val bb = layout.bbForIndex(index)
       val psg = writer.tryPasteInside(sg, bb).getOrElse(throw new SpriteLogicException(s"sector group too big for ${bb.width} X ${bb.height}"))
       index += 1

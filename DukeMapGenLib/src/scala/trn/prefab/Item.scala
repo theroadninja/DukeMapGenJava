@@ -46,4 +46,7 @@ object Item {
   // val Boots = Item(TextureList.Items.BOOTS)
   // val HoloDuke = Item(TextureList.Items.HOLODUKE)
   val AtomicHealth = Item(TextureList.Items.HEALTH_ATOMIC)
+
+
+  val Blank = Enemy(355, lotag=29) // 355 is the marker sprite, 29 is the BLANk lotag
 }
