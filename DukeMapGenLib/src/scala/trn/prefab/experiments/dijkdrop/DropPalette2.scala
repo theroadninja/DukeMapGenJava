@@ -4,6 +4,16 @@ import trn.{Sprite, RandomX}
 import trn.prefab.{SectorGroup, PrefabPalette, Item, Marker, Enemy, GameConfig}
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+
+case class DropTileSet (
+  start: NodeTile2,
+  exit: NodeTile2,
+  gate: NodeTile2,
+  key: NodeTile2,
+  normalRooms: Seq[NodeTile2],
+)
+
 
 object DropPalette2 {
   // THEMES (i.e. tunnel color)
@@ -64,6 +74,25 @@ class DropPalette2(
         sprite.setHiTag(connectorId)
       }
     }
+  }
+
+  /**
+    * connects a "blank" tunnel sg to every unlinked "tunnel" redwall conn
+    */
+  def withEmptyTunnelsBlanked(sg: SectorGroup): SectorGroup = {
+    var sg2 = sg
+    var break = false
+    while (!break) {
+      val connOpt = NodePalette.getUnlinkedTunnelConns(sg2).headOption
+      if (connOpt.isDefined) {
+        sg2 = sg2.withGroupAttachedAutoRotate(gameCfg, connOpt.get, blank) { otherSg =>
+          otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
+        }
+      } else {
+        break = true
+      }
+    }
+    sg2
   }
 
   // ================================ Rooms ================================
@@ -140,9 +169,50 @@ class DropPalette2(
   val parkingGarage = NodeTile2(palette.getSG(20)).modified(NodePalette.standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer, Enemy.Blank))
 
+  // can have key OR heavy weapon (but only want it in the level once)
   val stoneVaults = NodeTile2(stonePalette.getSG(1)).modified(NodePalette.standardRoomSetup)
 
   val fountain = NodeTile2(palette.getSG(21)).modified(NodePalette.standardRoomSetup)
     .withRandomItems(random, Seq(Item.Blank, Item.SmallHealth, Item.SmallHealth, Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.MediumHealth, Item.MediumHealth, Item.Rpg))
 
+  val sushi = NodeTile2(palette.getSG(22)).modified(NodePalette.standardRoomSetup)
+
+
+  def chooseTiles(): DropTileSet = {
+
+    // convert a room that could hold a key, to one that holds a heavy weapon
+    def toPowerUp(random: RandomX, tile: NodeTile2): NodeTile2 = tile.modified { sg =>
+      val item = random.randomElement(Seq(Item.Rpg, Item.Devastator, Item.AtomicHealth))
+      sg.withItem2(item)
+    }
+
+    // these rooms MUST have an Item (lotag=9) Marker
+    val keyOrNormal = Seq(
+      blueItemRoom,
+      stoneVaults
+    )
+    val keyRoom::others = random.shuffle(keyOrNormal)
+
+    val normalRooms = Seq(
+      // nodepal.blueRoom, nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom, nodepal.grayRoom
+      // nodepal.bluePentagon,
+      buildingEdge, cavern, nukeSymbolCarpet,
+      castleStairs, greenCastle, moon3way,
+      bathrooms, parkingGarage, fountain, sushi
+    ) ++ others.map(t => toPowerUp(random, t))
+
+
+    // val keyRoom = if(random.nextBool()){
+    //   normalRooms.append(stoneVaults.modified(sg => sg.withItem2(Item.Rpg)))
+    //   blueItemRoom
+    // }
+
+    DropTileSet(
+      startRoom,
+      exitRoom,
+      redGate,
+      keyRoom,
+      random.shuffle(normalRooms).toSeq
+    )
+  }
 }

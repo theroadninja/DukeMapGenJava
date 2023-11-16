@@ -5,12 +5,12 @@ import trn.prefab.{FallConnector, MapWriter, DukeConfig, EnemyMarker, SectorGrou
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.dijkdrop.DropPalette2._
 import trn.prefab.experiments.dijkdrop.NodePalette.getUnlinkedTunnelConnIds
+import trn.prefab.experiments.dijkdrop.Room.RoomId
 import trn.prefab.experiments.dijkdrop.SpriteGroups.{STANDARD_AMMO, StandardAmmo, BASIC_AMMO, BasicAmmo}
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
-
 
 
 
@@ -222,6 +222,50 @@ object Dijkdrop2 {
     }
   }
 
+  def connectRandomNodes2(random: RandomX, graph: DropGraph): Unit = {
+    // each room is getting linked a max of two times per pass, so the number of passes is related to the number
+    // of nodes in each room
+    for(_ <- 0 until 10){
+      val rooms = graph.roomsWithUnlinkedNodes
+      if(rooms.isEmpty){
+        return
+      }
+      println(s"rooms with unlinked nodes: ${rooms}")
+      random.randomUnequalPairs(graph.roomsWithUnlinkedNodes)._1.foreach { case (roomA, roomB) =>
+        // NOTE:  (A, D), (B, D), (C, D) could mean:  D is filled up by the time you get to (C, D)
+        graph.tryAddRandomUniqueEdge(random, roomA, roomB)
+      }
+    }
+  }
+
+  def getSg2(gameCfg: GameConfig, random: RandomX, nodepal: DropPalette2, graph: DropGraph,
+    roomId: RoomId, room: Room): SectorGroup = {
+    var sg = room.tile.sg
+    if(room.nodeProps.key) {
+      sg = sg.withItem2(Item.BlueKey)
+    }
+
+    graph.allNodesInRoom(roomId).foreach { nodeId =>
+      val node = graph.nodes(nodeId)
+      node.edge.foreach { edge =>
+        val conn = sg.getRedwallConnector(nodeId.redwallConnId)
+        val fallConnectorId = nodeId.fallConnectorId
+
+
+        val tunnelSg = if (edge.fromNode == nodeId) {
+          nodepal.getFloorTunnel(fallConnectorId, edge.floorTheme)
+        } else {
+          nodepal.getCeilingTunnel(fallConnectorId, edge.ceilTheme)
+        }
+        sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg) { otherSg =>
+          otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
+        }
+      }
+    }
+
+    nodepal.withEmptyTunnelsBlanked(sg).autoLinked
+  }
+
   /**
     * this function needs to know about incoming and outgoing nodes
     *
@@ -242,7 +286,7 @@ object Dijkdrop2 {
     if (allConnIds.size < outCount + inCount) {
       throw new SpriteLogicException(s"not enough spaces for tunnels sgId=${sg.getGroupId} unlinked conns = ${allConnIds.size}")
     }
-    val connIds = allConnIds.filter { i => i < 500 }
+    val connIds = allConnIds.filter { i => i != 99 }
 
     // outoing, special/hardcoded
     graph.edgesFrom(nodeId).filter(_.startConnectorId.isDefined).zipWithIndex.foreach { case (edge, index) =>
@@ -281,18 +325,8 @@ object Dijkdrop2 {
       }
     }
 
-    var break = false
-    while (!break) {
-      val connOpt = NodePalette.getUnlinkedTunnelConns(sg).headOption
-      if (connOpt.isDefined) {
-        sg = sg.withGroupAttachedAutoRotate(gameCfg, connOpt.get, nodepal.blank) { otherSg =>
-          otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
-        }
-      } else {
-        break = true
-      }
-    }
-    sg.autoLinked
+    nodepal.withEmptyTunnelsBlanked(sg).autoLinked
+    // sg.autoLinked
   }
 
   /** for testing */
@@ -326,7 +360,7 @@ object Dijkdrop2 {
     graph.addNode(Node2("8", normalRooms(5)))
 
     val edge = graph.addEdge("GATE", "EXIT")
-    edge.startConnectorId = Some(999)
+    edge.startConnectorId = Some(99)
 
     graph.addEdge("START", "1")
     graph.addEdge("1", "GATE")
@@ -342,6 +376,49 @@ object Dijkdrop2 {
     graph
   }
 
+  def makeGraph2(random: RandomX, nodepal: DropPalette2): DropGraph = {
+    val tiles = nodepal.chooseTiles()
+    // val startRooms = Seq(nodepal.startRoom)
+    // val gateRooms = Seq(nodepal.redGate)
+    // val exits = Seq(nodepal.exitRoom)
+    // val keyRooms = Seq(nodepal.blueItemRoom)
+    // val normalRooms = random.shuffle(Seq(
+    //   // nodepal.blueRoom, nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom, nodepal.grayRoom
+    //   // nodepal.bluePentagon,
+    //   nodepal.buildingEdge, nodepal.cavern, nodepal.nukeSymbolCarpet,
+    //   nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
+    //   nodepal.bathrooms, nodepal.parkingGarage, nodepal.stoneVaults, nodepal.fountain
+    // )).toSeq
+
+    val graph = new DropGraph()
+    val START = 0
+    val GATE = 1
+    val EXIT = 2
+    val KEY = 3
+    graph.addRoom(START, tiles.start)
+    graph.addRoom(GATE, tiles.gate)
+    graph.addRoom(EXIT, tiles.exit)
+    graph.addRoom(KEY, tiles.key, NodeProperties(key=true))
+    for(i <- 0 until 6){ // TODO is the count of normal rooms part of the tileset?
+      graph.addRoom(4 + i, tiles.normalRooms(i))
+    }
+    graph.connectRooms(random, GATE, EXIT, fromRedwallConnId = Some(99))
+
+    graph.connectRooms(random, START, 4)
+    graph.connectRooms(random, 4, GATE)
+    graph.connectRooms(random, GATE, 5)
+    graph.connectRooms(random, 5, 6)
+    graph.connectRooms(random, 6, 7)
+    graph.connectRooms(random, 7, 8)
+    graph.connectRooms(random, 8, KEY)
+
+    graph.connectRooms(random, KEY, 9)
+    graph.connectRooms(random, 9, 4)
+
+    connectRandomNodes2(random, graph)
+    graph
+  }
+
   def run(gameCfg: GameConfig, random: RandomX, input: SourceMapCollection, writer: MapWriter): DMap = {
     val palette = ScalaMapLoader.paletteFromMap(gameCfg, input.input)
     val stonePalette = ScalaMapLoader.paletteFromMap(gameCfg, input.stoneInput)
@@ -349,8 +426,43 @@ object Dijkdrop2 {
     // val nodepal = new NodePalette(gameCfg, random, palette, stonePalette)
     val nodepal = new DropPalette2(gameCfg, random, palette, stonePalette)
 
-    val graph = makeGraph(random, nodepal)
-    println(s"start edge count ${graph.edgeCount("START")}")
+    // val graph = makeGraph(random, nodepal)
+    val graph2 = makeGraph2(random, nodepal)
+
+    //renderOldGraph(gameCfg, random, writer, nodepal, graph)
+    renderNewGraph(gameCfg, random, writer, nodepal, graph2)
+    ExpUtil.finish(writer)
+    writer.outMap
+  }
+
+  def getFallConnector(psg: PastedSectorGroup, connId: Int): FallConnector = {
+    psg.allConnsInPsg.find(c => FallConnector.isFallConn(c) && c.getConnectorId == connId).get.asInstanceOf[FallConnector]
+  }
+
+  def renderNewGraph(gameCfg: GameConfig, random: RandomX, writer: MapWriter, nodepal: DropPalette2, graph: DropGraph): Unit = {
+    var index = 0
+    val layout = new GridLayout(BuildConstants.MapBounds, 5, 5)
+
+    val pastedGroups = graph.rooms.map { case(roomId, room) =>
+      val sg = getSg2(gameCfg, random, nodepal, graph, roomId, room)
+      val bb = layout.bbForIndex(index)
+      val psg = writer.tryPasteInside(sg, bb).getOrElse(throw new SpriteLogicException(s"sector group too big for ${bb.width} X ${bb.height}"))
+      index += 1
+      roomId -> psg
+    }.toMap
+
+    // TODO link the fall conns
+    var channel = nextTag(gameCfg, writer.getMap)
+    graph.edges.foreach { edge =>
+      val startConn = getFallConnector(pastedGroups(edge.fromNode.roomId), edge.fromNode.fallConnectorId)
+      val destConn = getFallConnector(pastedGroups(edge.toNode.roomId), edge.toNode.fallConnectorId)
+      startConn.linkConnectors(writer.getMap, destConn, channel)
+      channel += 1
+    }
+
+  }
+
+  def renderOldGraph(gameCfg: GameConfig, random: RandomX, writer: MapWriter, nodepal: DropPalette2, graph: MutableGraph): Unit = {
 
     var index = 0
     val layout = new GridLayout(BuildConstants.MapBounds, 5, 5)
@@ -362,9 +474,6 @@ object Dijkdrop2 {
       nodeId -> psg
     }.toMap
 
-    def getFallConnector(psg: PastedSectorGroup, connId: Int): FallConnector = {
-      psg.allConnsInPsg.find(c => FallConnector.isFallConn(c) && c.getConnectorId == connId).get.asInstanceOf[FallConnector]
-    }
 
     var channel = nextTag(gameCfg, writer.getMap)
     graph.edges.foreach { edge =>
@@ -382,7 +491,6 @@ object Dijkdrop2 {
 
     // val psg = writer.tryPasteInside(sg1, layout.bbForIndex(0)).get
 
-    ExpUtil.finish(writer)
-    writer.outMap
+
   }
 }
