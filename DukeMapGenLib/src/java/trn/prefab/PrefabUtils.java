@@ -218,6 +218,8 @@ public class PrefabUtils {
 
 		public static int BLANK = Marker.Lotags.BLANK;
 
+		public static int ALTERNATE_FLOOR_TEX = Marker.Lotags.ALTERNATE_FLOOR_TEX;
+
 		public static List<Integer> ALL = Arrays.asList(new Integer[]{
 				GROUP_ID,
 				PLAYER_START,
@@ -241,6 +243,8 @@ public class PrefabUtils {
 				MULTI_SECTOR,
 				TELEPORT_CONNECTOR,
 				FALL_CONNECTOR,
+				BLANK,
+				ALTERNATE_FLOOR_TEX,
 				});
 	}
 

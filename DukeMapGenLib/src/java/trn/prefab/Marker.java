@@ -89,6 +89,16 @@ public class Marker {
          * in some places.
          */
         public static int BLANK = 29;
+
+        /**
+         * Supplies an alternate texture that can be applied to the floor, so make the sector group more random.
+         * Can use more than one in a sector.
+         *
+         * Set the hitag to the texture number of the other texture.
+         *
+         * TODO:  do we randomly apply, or also have a method to create the cartesian product of all variations?
+         */
+        public static int ALTERNATE_FLOOR_TEX = 30;
     }
 
     // TODO this text should be game-specific!

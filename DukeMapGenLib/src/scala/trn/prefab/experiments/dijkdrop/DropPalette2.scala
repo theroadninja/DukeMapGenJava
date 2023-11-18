@@ -1,7 +1,7 @@
 package trn.prefab.experiments.dijkdrop
 
 import trn.{Sprite, RandomX}
-import trn.prefab.{SectorGroup, PrefabPalette, Item, Marker, Enemy, GameConfig}
+import trn.prefab.{SectorGroup, PrefabPalette, Item, Enemy, GameConfig, SpriteLogicException, Marker}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -131,7 +131,7 @@ class DropPalette2(
       Enemy.LizTroopCmdr,
       Enemy.Enforcer,
       Enemy.OctaBrain,
-      Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank,
+      Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank
     )
     val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, Seq(Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.ShotgunAmmo))
     Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, enemies)
@@ -179,7 +179,25 @@ class DropPalette2(
   val sushi = NodeTile2(palette.getSG(22)).modified(NodePalette.standardRoomSetup)
 
   val sewer = NodeTile2(PipeRoom.makePipeRoom(gameCfg, random, sewerPalette)).modified(NodePalette.standardRoomSetup)
+    // .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.Blank), hitag=1)
   require(sewer.tunnelConnIds.size == 4)
+
+  val rooftopGate = {
+    val mainRoof = palette.getSG(23)
+    val fansA = palette.getSG(24)
+
+    val roof2 = mainRoof.withGroupAttached(gameCfg, mainRoof.getRedwallConnector(100), fansA, fansA.getRedwallConnector(100)).autoLinked
+
+    NodeTile2(roof2).modified(NodePalette.standardRoomSetup)
+  }
+
+
+  def validateGate(gate: NodeTile2): NodeTile2 = {
+    gate.sg.allRedwallConnectors.find(c => c.getConnectorId == 99).getOrElse {
+      throw new SpriteLogicException(s"gate room id=${gate.sg.getGroupId} missing connector with id 99")
+    }
+    gate
+  }
 
   def chooseTiles(): DropTileSet = {
 
@@ -210,10 +228,12 @@ class DropPalette2(
     //   blueItemRoom
     // }
 
+    val gateRooms = Seq(redGate, rooftopGate).map(validateGate)
+
     DropTileSet(
       startRoom,
       exitRoom,
-      redGate,
+      rooftopGate, // redGate,
       keyRoom,
       random.shuffle(normalRooms).toSeq
     )

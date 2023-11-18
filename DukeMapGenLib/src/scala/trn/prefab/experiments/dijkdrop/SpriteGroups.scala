@@ -23,4 +23,6 @@ object SpriteGroups {
   val FOOT_SOLDIERS = 16
   val FootSoldiers = Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer)
 
+  val OCTABRAINS = 1820
+  val Octabrains = Seq(Enemy.OctaBrain, Enemy.OctaBrain)
 }

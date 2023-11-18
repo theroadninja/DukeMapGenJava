@@ -151,18 +151,10 @@ object NodePalette {
     val sg2 = Utils.withRandomSprites(sg, STANDARD_AMMO, Marker.Lotags.RANDOM_ITEM, StandardAmmo)
     val sg3 = Utils.withRandomSprites(sg2, BASIC_AMMO, Marker.Lotags.RANDOM_ITEM, BasicAmmo)
     val sg4 = Utils.withRandomSprites(sg3, SpriteGroups.FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.FootSoldiers)
-    sg4
+    val sg5 = Utils.withRandomSprites(sg4, SpriteGroups.OCTABRAINS, Marker.Lotags.ENEMY, SpriteGroups.Octabrains)
+    sg5
   }
 
-
-}
-
-class NodePalette(
-  gameCfg: GameConfig,
-  random: RandomX,
-  palette: PrefabPalette,  // the main palette for this map
-  stonePalette: PrefabPalette,  // <- a source map dedicated to the stone room
-) {
 }
 
 case class SourceMapCollection(input: DMap, stoneInput: DMap, pipeInpt: DMap)
@@ -205,25 +197,6 @@ object Dijkdrop2 {
   }
 
   def nextTag(gameCfg: GameConfig, map: DMap): Int = UniqueTags.nextTag(gameCfg, map)
-
-  def connectRandomNodes(random: RandomX, graph: MutableGraph): Unit = {
-    // val MaxEdges = 4
-
-    val available = mutable.ArrayBuffer[String]()
-    graph.nodes.keys.foreach { nodeId =>
-      val cnt = graph.nodes(nodeId).maxEdges - graph.edgeCount(nodeId)
-      for(_ <- 0 until cnt){
-        available.append(nodeId)
-      }
-    }
-
-    val (edges, _) = random.randomUnequalPairs(available)
-    edges.foreach { case (a, b) =>
-      if(!graph.edgeExists(a, b)){
-        graph.addEdge(a, b)
-      }
-    }
-  }
 
   def connectRandomNodes2(random: RandomX, graph: DropGraph): Unit = {
     // each room is getting linked a max of two times per pass, so the number of passes is related to the number
@@ -269,128 +242,8 @@ object Dijkdrop2 {
     nodepal.withEmptyTunnelsBlanked(sg).autoLinked
   }
 
-  /**
-    * this function needs to know about incoming and outgoing nodes
-    *
-    * @param node
-    * @return
-    */
-  def getSg(gameCfg: GameConfig, random: RandomX, nodepal: DropPalette2, graph: MutableGraph, nodeId: String, node: Node2): SectorGroup = {
-
-    var sg = node.tile.sg
-    if (node.props.key) {
-      sg = sg.withItem2(Item.BlueKey)
-    }
-
-
-    val allConnIds: Seq[Int] = random.shuffle(NodePalette.getUnlinkedTunnelConnIds(sg)).toSeq
-    val outCount = graph.edgesFrom(nodeId).size
-    val inCount = graph.edgesTo(nodeId).size
-    if (allConnIds.size < outCount + inCount) {
-      throw new SpriteLogicException(s"not enough spaces for tunnels sgId=${sg.getGroupId} unlinked conns = ${allConnIds.size}")
-    }
-    val connIds = allConnIds.filter { i => i != 99 }
-
-    // outoing, special/hardcoded
-    graph.edgesFrom(nodeId).filter(_.startConnectorId.isDefined).zipWithIndex.foreach { case (edge, index) =>
-      val conn = sg.getRedwallConnector(edge.startConnectorId.get)
-      val fallConnectorId = 2000 + index
-      edge.startFallConnectorId = Some(fallConnectorId)
-      val destNode = graph.nodes(edge.endNode)
-      val tunnelSg = nodepal.getFloorTunnel(fallConnectorId, destNode.tunnelTheme)
-      sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg) { otherSg =>
-        otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
-      }
-    }
-
-    // outgoing (floor)
-    graph.edgesFrom(nodeId).filter(_.startConnectorId.isEmpty).zipWithIndex.foreach { case (edge, index) =>
-      val conn = sg.getRedwallConnector(connIds(index))
-
-      val fallConnectorId = 1000 + index
-      edge.startFallConnectorId = Some(fallConnectorId)
-      val destNode = graph.nodes(edge.endNode)
-      val tunnelSg = nodepal.getFloorTunnel(fallConnectorId, destNode.tunnelTheme)
-      sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg) { otherSg =>
-        otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
-      }
-    }
-
-    // incoming (ceiling)
-    graph.edgesTo(nodeId).zipWithIndex.foreach { case (edge, index) =>
-      val conn = sg.getRedwallConnector(connIds(outCount + index))
-      val fallConnectorId = 1000 + outCount + index
-      val otherNode = graph.nodes(edge.startNode)
-      val tunnelSg = nodepal.getCeilingTunnel(fallConnectorId, otherNode.tunnelTheme)
-      edge.endFallConnectorId = Some(fallConnectorId)
-      sg = sg.withGroupAttachedAutoRotate(gameCfg, conn, tunnelSg) { otherSg =>
-        otherSg.allRedwallConnectors.find(_.getWallCount == 1).get
-      }
-    }
-
-    nodepal.withEmptyTunnelsBlanked(sg).autoLinked
-    // sg.autoLinked
-  }
-
-  // def makeGraph(random: RandomX, nodepal: DropPalette2): MutableGraph = {
-
-  //   val startRooms = Seq(nodepal.startRoom)
-  //   val gateRooms = Seq(nodepal.redGate)
-  //   val exits = Seq(nodepal.exitRoom)
-  //   val keyRooms = Seq(nodepal.blueItemRoom)
-
-  //   val normalRooms = random.shuffle(Seq(
-  //     // nodepal.blueRoom, nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom, nodepal.grayRoom
-  //     // nodepal.bluePentagon,
-  //     nodepal.buildingEdge, nodepal.cavern, nodepal.nukeSymbolCarpet,
-  //     nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
-  //     nodepal.bathrooms, nodepal.parkingGarage, nodepal.stoneVaults, nodepal.fountain
-  //   )).toSeq
-
-
-  //   val graph = new MutableGraph()
-  //   graph.addNode(Node2("START", random.randomElement(startRooms)))
-  //   graph.addNode(Node2("GATE", random.randomElement(gateRooms)))
-  //   graph.addNode(Node2("EXIT", random.randomElement(exits)))
-  //   graph.addNode(Node2("KEY", random.randomElement(keyRooms), NodeProperties(key=true)))
-
-  //   graph.addNode(Node2("1", normalRooms(0)))
-  //   graph.addNode(Node2("3", normalRooms(1)))
-  //   graph.addNode(Node2("4", normalRooms(2)))
-  //   graph.addNode(Node2("5", normalRooms(3)))
-  //   graph.addNode(Node2("6", normalRooms(4)))
-  //   graph.addNode(Node2("8", normalRooms(5)))
-
-  //   val edge = graph.addEdge("GATE", "EXIT")
-  //   edge.startConnectorId = Some(99)
-
-  //   graph.addEdge("START", "1")
-  //   graph.addEdge("1", "GATE")
-  //   graph.addEdge("GATE", "3")
-  //   graph.addEdge("3", "4")
-  //   graph.addEdge("4", "5")
-  //   graph.addEdge("5", "6")
-  //   graph.addEdge("6", "KEY")
-  //   graph.addEdge("KEY", "8")
-  //   graph.addEdge("8", "1")
-
-  //   connectRandomNodes(random, graph)
-  //   graph
-  // }
-
   def makeGraph2(random: RandomX, nodepal: DropPalette2): DropGraph = {
     val tiles = nodepal.chooseTiles()
-    // val startRooms = Seq(nodepal.startRoom)
-    // val gateRooms = Seq(nodepal.redGate)
-    // val exits = Seq(nodepal.exitRoom)
-    // val keyRooms = Seq(nodepal.blueItemRoom)
-    // val normalRooms = random.shuffle(Seq(
-    //   // nodepal.blueRoom, nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom, nodepal.grayRoom
-    //   // nodepal.bluePentagon,
-    //   nodepal.buildingEdge, nodepal.cavern, nodepal.nukeSymbolCarpet,
-    //   nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
-    //   nodepal.bathrooms, nodepal.parkingGarage, nodepal.stoneVaults, nodepal.fountain
-    // )).toSeq
 
     val graph = new DropGraph()
     val START = 0
@@ -426,13 +279,9 @@ object Dijkdrop2 {
     val stonePalette = ScalaMapLoader.paletteFromMap(gameCfg, input.stoneInput)
     val sewerPalette = ScalaMapLoader.paletteFromMap(gameCfg, input.pipeInpt)
 
-    // val nodepal = new NodePalette(gameCfg, random, palette, stonePalette)
     val nodepal = new DropPalette2(gameCfg, random, palette, stonePalette, sewerPalette)
-
-    // val graph = makeGraph(random, nodepal)
     val graph2 = makeGraph2(random, nodepal)
 
-    //renderOldGraph(gameCfg, random, writer, nodepal, graph)
     renderNewGraph(gameCfg, random, writer, nodepal, graph2)
     ExpUtil.finish(writer)
     writer.outMap
@@ -462,38 +311,6 @@ object Dijkdrop2 {
       startConn.linkConnectors(writer.getMap, destConn, channel)
       channel += 1
     }
-
-  }
-
-  def renderOldGraph(gameCfg: GameConfig, random: RandomX, writer: MapWriter, nodepal: DropPalette2, graph: MutableGraph): Unit = {
-
-    var index = 0
-    val layout = new GridLayout(BuildConstants.MapBounds, 5, 5)
-    val pastedGroups = graph.nodes.map { case (nodeId, node) =>
-      val sg = getSg(gameCfg, random, nodepal, graph, nodeId, node)
-      val bb = layout.bbForIndex(index)
-      val psg = writer.tryPasteInside(sg, bb).getOrElse(throw new SpriteLogicException(s"sector group too big for ${bb.width} X ${bb.height}"))
-      index += 1
-      nodeId -> psg
-    }.toMap
-
-
-    var channel = nextTag(gameCfg, writer.getMap)
-    graph.edges.foreach { edge =>
-      if(edge.readyToLink){
-        val start = pastedGroups(edge.startNode)
-        val startConn = getFallConnector(start, edge.startFallConnectorId.get)
-        val end = pastedGroups(edge.endNode)
-        val endConn = getFallConnector(end, edge.endFallConnectorId.get)
-        startConn.linkConnectors(writer.getMap, endConn, channel)
-        channel += 1
-      }else{
-        println(s"not ready: ${edge}")
-      }
-    }
-
-    // val psg = writer.tryPasteInside(sg1, layout.bbForIndex(0)).get
-
 
   }
 }
