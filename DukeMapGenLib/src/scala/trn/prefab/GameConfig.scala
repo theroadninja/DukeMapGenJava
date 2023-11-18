@@ -294,7 +294,11 @@ class DukeConfig(textureWidths: Map[Int, Int], textureHeights: Map[Int, Int]) ex
       if(sprite.getHiTag != 0){ // make sure the old hitag is nonzero
         sprite.setHiTag(idMap(sprite.getHiTag))
       }else{
-        println(s"GameConfig.updateUniqueTagInPlace() WARNING:  not setting unique hitag on sprite at ${sprite.getPoint}")
+        if(sprite.getTex == TextureList.SE && sprite.getLotag == 24){
+          // conveyor sprite, doesnt need a hitag
+        }else{
+          println(s"GameConfig.updateUniqueTagInPlace() WARNING:  not setting unique hitag on sprite (tex=${sprite.getTex} lotag=${sprite.getLotag}) at ${sprite.getPoint}")
+        }
       }
     }else if(hasUniqueLotag(sprite.getTex) && sprite.getLotag != DukeConfig.EndLevelTag){
       // TODO do these need the same check at the hitag stuff above?

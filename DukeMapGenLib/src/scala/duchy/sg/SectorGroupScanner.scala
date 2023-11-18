@@ -149,6 +149,7 @@ object SectorGroupScanner {
     fragments
   }
 
+  // "sort" means separate by type
   private[sg] def sortFragments(
     fragments: TraversableOnce[SectorGroupFragment]
   ): (Map[Int, SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment]) = {

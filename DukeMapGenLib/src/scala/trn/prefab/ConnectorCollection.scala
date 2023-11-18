@@ -30,18 +30,9 @@ trait ConnectorCollection {
     }
   }
 
-  // // TODO - copied from PastedConnectorCollection.findFirstConnector()
-  // @Deprecated
-  // def findFirstConnectorOpt(cf: ConnectorFilter): Option[Connector] = {
-  //   val it: java.util.Iterator[Connector] = ConnectorFactory.findConnectors(connectors, cf).iterator // TODO - does the caller need us to rescan every time???
-  //   //Iterator<Connector> it = Connector.findConnectors(this.connectors_(), cf).iterator();
-  //   //return it.hasNext() ? it.next() : null;
-  //   if(it.hasNext){
-  //     Some(it.next)
-  //   }else{
-  //     None
-  //   }
-  // }
+  final def getRedwallConnectorOpt(connectorId: Int): Option[RedwallConnector] = {
+    getRedwallConnectorsById(connectorId).headOption
+  }
 
   final def getRedwallConnectorsById(connectorId: Int): Seq[RedwallConnector] = {
     if(connectorId < 0) throw new IllegalArgumentException

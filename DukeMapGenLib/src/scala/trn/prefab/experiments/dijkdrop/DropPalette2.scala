@@ -45,6 +45,7 @@ class DropPalette2(
   random: RandomX,
   palette: PrefabPalette, // the main palette for this map
   stonePalette: PrefabPalette, // <- a source map dedicated to the stone room
+  sewerPalette: PrefabPalette, // <- a source map dedicated to the sewer tunnel
 ) {
 
   // The Blank tunnel connector, for when there is no edge
@@ -177,6 +178,8 @@ class DropPalette2(
 
   val sushi = NodeTile2(palette.getSG(22)).modified(NodePalette.standardRoomSetup)
 
+  val sewer = NodeTile2(PipeRoom.makePipeRoom(gameCfg, random, sewerPalette)).modified(NodePalette.standardRoomSetup)
+  require(sewer.tunnelConnIds.size == 4)
 
   def chooseTiles(): DropTileSet = {
 
@@ -198,7 +201,7 @@ class DropPalette2(
       // nodepal.bluePentagon,
       buildingEdge, cavern, nukeSymbolCarpet,
       castleStairs, greenCastle, moon3way,
-      bathrooms, parkingGarage, fountain, sushi
+      bathrooms, parkingGarage, fountain, sushi, sewer
     ) ++ others.map(t => toPowerUp(random, t))
 
 

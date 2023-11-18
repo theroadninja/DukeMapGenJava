@@ -22,6 +22,7 @@ case class NodeTile2(sg: SectorGroup, tunnelTheme: Int, maxEdges: Int) {
 
   // TODO should this be allUnlinkedRedwallConnectors instead?
   val tunnelConnIds = sg.allRedwallConnectors.filter(NodePalette.isTunnelConn).map(_.getConnectorId)
+  require(tunnelConnIds.toSet.size == tunnelConnIds.size)
 
   def modified(fn: SectorGroup => SectorGroup): NodeTile2 = NodeTile2(fn(sg))
 
@@ -164,7 +165,7 @@ class NodePalette(
 ) {
 }
 
-case class SourceMapCollection(input: DMap, stoneInput: DMap)
+case class SourceMapCollection(input: DMap, stoneInput: DMap, pipeInpt: DMap)
 
 /**
   * Trying to create a c.s. graph and then alter the nodes to fit it.
@@ -176,6 +177,7 @@ case class SourceMapCollection(input: DMap, stoneInput: DMap)
 object Dijkdrop2 {
   val Filename = "dijkdrp2.map"
   val OtherFilename = "dijk/djkstone.map"
+  val OtherOtherFilename = "dijk/dijkpipe.map"
 
   def main(args: Array[String]): Unit = {
     val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
@@ -183,7 +185,8 @@ object Dijkdrop2 {
     // TODO map contents to a case class
     val input: DMap = ScalaMapLoader.loadMap(HardcodedConfig.EDUKE32PATH + Filename)
     val input2: DMap = ScalaMapLoader.loadMap(HardcodedConfig.EDUKE32PATH + OtherFilename)
-    val result = tryRun(gameCfg, SourceMapCollection(input, input2))
+    val input3: DMap = ScalaMapLoader.loadMap(HardcodedConfig.EDUKE32PATH + OtherOtherFilename)
+    val result = tryRun(gameCfg, SourceMapCollection(input, input2, input3))
     ExpUtil.write(result)
   }
 
@@ -329,52 +332,51 @@ object Dijkdrop2 {
     // sg.autoLinked
   }
 
-  /** for testing */
-  def makeGraph(random: RandomX, nodepal: DropPalette2): MutableGraph = {
+  // def makeGraph(random: RandomX, nodepal: DropPalette2): MutableGraph = {
 
-    val startRooms = Seq(nodepal.startRoom)
-    val gateRooms = Seq(nodepal.redGate)
-    val exits = Seq(nodepal.exitRoom)
-    val keyRooms = Seq(nodepal.blueItemRoom)
+  //   val startRooms = Seq(nodepal.startRoom)
+  //   val gateRooms = Seq(nodepal.redGate)
+  //   val exits = Seq(nodepal.exitRoom)
+  //   val keyRooms = Seq(nodepal.blueItemRoom)
 
-    val normalRooms = random.shuffle(Seq(
-      // nodepal.blueRoom, nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom, nodepal.grayRoom
-      // nodepal.bluePentagon,
-      nodepal.buildingEdge, nodepal.cavern, nodepal.nukeSymbolCarpet,
-      nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
-      nodepal.bathrooms, nodepal.parkingGarage, nodepal.stoneVaults, nodepal.fountain
-    )).toSeq
+  //   val normalRooms = random.shuffle(Seq(
+  //     // nodepal.blueRoom, nodepal.redRoom, nodepal.greenRoom, nodepal.whiteRoom, nodepal.dirtRoom, nodepal.woodRoom, nodepal.grayRoom
+  //     // nodepal.bluePentagon,
+  //     nodepal.buildingEdge, nodepal.cavern, nodepal.nukeSymbolCarpet,
+  //     nodepal.castleStairs, nodepal.greenCastle, nodepal.moon3way,
+  //     nodepal.bathrooms, nodepal.parkingGarage, nodepal.stoneVaults, nodepal.fountain
+  //   )).toSeq
 
 
-    val graph = new MutableGraph()
-    graph.addNode(Node2("START", random.randomElement(startRooms)))
-    graph.addNode(Node2("GATE", random.randomElement(gateRooms)))
-    graph.addNode(Node2("EXIT", random.randomElement(exits)))
-    graph.addNode(Node2("KEY", random.randomElement(keyRooms), NodeProperties(key=true)))
+  //   val graph = new MutableGraph()
+  //   graph.addNode(Node2("START", random.randomElement(startRooms)))
+  //   graph.addNode(Node2("GATE", random.randomElement(gateRooms)))
+  //   graph.addNode(Node2("EXIT", random.randomElement(exits)))
+  //   graph.addNode(Node2("KEY", random.randomElement(keyRooms), NodeProperties(key=true)))
 
-    graph.addNode(Node2("1", normalRooms(0)))
-    graph.addNode(Node2("3", normalRooms(1)))
-    graph.addNode(Node2("4", normalRooms(2)))
-    graph.addNode(Node2("5", normalRooms(3)))
-    graph.addNode(Node2("6", normalRooms(4)))
-    graph.addNode(Node2("8", normalRooms(5)))
+  //   graph.addNode(Node2("1", normalRooms(0)))
+  //   graph.addNode(Node2("3", normalRooms(1)))
+  //   graph.addNode(Node2("4", normalRooms(2)))
+  //   graph.addNode(Node2("5", normalRooms(3)))
+  //   graph.addNode(Node2("6", normalRooms(4)))
+  //   graph.addNode(Node2("8", normalRooms(5)))
 
-    val edge = graph.addEdge("GATE", "EXIT")
-    edge.startConnectorId = Some(99)
+  //   val edge = graph.addEdge("GATE", "EXIT")
+  //   edge.startConnectorId = Some(99)
 
-    graph.addEdge("START", "1")
-    graph.addEdge("1", "GATE")
-    graph.addEdge("GATE", "3")
-    graph.addEdge("3", "4")
-    graph.addEdge("4", "5")
-    graph.addEdge("5", "6")
-    graph.addEdge("6", "KEY")
-    graph.addEdge("KEY", "8")
-    graph.addEdge("8", "1")
+  //   graph.addEdge("START", "1")
+  //   graph.addEdge("1", "GATE")
+  //   graph.addEdge("GATE", "3")
+  //   graph.addEdge("3", "4")
+  //   graph.addEdge("4", "5")
+  //   graph.addEdge("5", "6")
+  //   graph.addEdge("6", "KEY")
+  //   graph.addEdge("KEY", "8")
+  //   graph.addEdge("8", "1")
 
-    connectRandomNodes(random, graph)
-    graph
-  }
+  //   connectRandomNodes(random, graph)
+  //   graph
+  // }
 
   def makeGraph2(random: RandomX, nodepal: DropPalette2): DropGraph = {
     val tiles = nodepal.chooseTiles()
@@ -422,9 +424,10 @@ object Dijkdrop2 {
   def run(gameCfg: GameConfig, random: RandomX, input: SourceMapCollection, writer: MapWriter): DMap = {
     val palette = ScalaMapLoader.paletteFromMap(gameCfg, input.input)
     val stonePalette = ScalaMapLoader.paletteFromMap(gameCfg, input.stoneInput)
+    val sewerPalette = ScalaMapLoader.paletteFromMap(gameCfg, input.pipeInpt)
 
     // val nodepal = new NodePalette(gameCfg, random, palette, stonePalette)
-    val nodepal = new DropPalette2(gameCfg, random, palette, stonePalette)
+    val nodepal = new DropPalette2(gameCfg, random, palette, stonePalette, sewerPalette)
 
     // val graph = makeGraph(random, nodepal)
     val graph2 = makeGraph2(random, nodepal)

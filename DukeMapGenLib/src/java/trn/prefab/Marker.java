@@ -64,6 +64,8 @@ public class Marker {
          */
         public static int ALGO_GENERIC = 16;
 
+        public static int REDWALL_MARKER = 20;
+
         /**
          * Used to place randomly chosen items (weapons, ammo, powerups).
          *

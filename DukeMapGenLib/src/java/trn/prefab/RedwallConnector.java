@@ -160,11 +160,13 @@ public class RedwallConnector extends Connector implements HasLocationXY {
         return this.heading;
     }
 
+
     public final PointXYZ getTransformTo(RedwallConnector other) {
         if(other == null) throw new IllegalArgumentException();
 
         // TODO
         if(! canLink(other, null)){
+            throwOnLinkFailure(other);
             throw new SpriteLogicException("cannot link to other connector");
         }
 
@@ -521,6 +523,33 @@ public class RedwallConnector extends Connector implements HasLocationXY {
         return sb.toString();
     }
 
+
+    // TODO see also expectMatch
+    private void throwOnLinkFailure(RedwallConnector other){
+        // TODO clean this up / better error messages
+        // (for now I'm just duplicating the logic inside canLink())
+        if(this.wallIds.size() != other.wallIds.size()){
+            String msg = String.format(
+                    "cannot link to other connector; wall sizes dont match %s != %s",
+                    this.wallIds.size(),
+                    other.wallIds.size()
+            );
+            throw new SpriteLogicException(msg);
+        }
+        if(this.totalManhattanLength() != other.totalManhattanLength()){
+            throw new SpriteLogicException("cannot link to other connector; total length is off");
+        }
+        PointXY p1 = this.wallAnchor1.subtractedBy(this.anchor);
+        PointXY p2 = this.wallAnchor2.subtractedBy(this.anchor);
+
+        PointXY otherP1 = other.wallAnchor1.subtractedBy(other.anchor);
+        PointXY otherP2 = other.wallAnchor2.subtractedBy(other.anchor);
+        if(! p1.equals(otherP2)) throw new SpriteLogicException(("p1 != otherP2"));
+        if(! p2.equals(otherP1)) throw new SpriteLogicException(("p2 != otherP1"));
+
+        // TODO a helpful test would be to throw all wall sizes into a set or a sorted list, and report any diffs
+
+    }
     public final boolean canLink(RedwallConnector other, Map map) {
         // this was added while consolidating SimpleConnector, MultiWall and MultiSector into RedwallConnector
         if(isSimpleConnector()){
@@ -583,7 +612,10 @@ public class RedwallConnector extends Connector implements HasLocationXY {
         }else{
             if(otherConn.getConnectorType() != this.getConnectorType()) throw new IllegalArgumentException("connector type mismatch");
             //MultiWallConnector c2 = (MultiWallConnector)otherConn;
-            if(! canLink(otherConn, map)) throw new SpriteLogicException("cannot link connector (other=" + otherConn.getConnectorId() + ")");
+            if(! canLink(otherConn, map)) {
+                throwOnLinkFailure(otherConn);
+                throw new SpriteLogicException("cannot link connector (other=" + otherConn.getConnectorId() + ")");
+            }
 
             // i think we just link up the walls in reverse order
             for(int i = 0; i < this.wallIds.size(); ++i){
