@@ -10,6 +10,8 @@ import trn.duke.TextureList.Items._
 case class Item(tex: Int, pal: Int = 0) extends SpritePrefab
 
 object Item {
+  val KeyColors = Seq(PaletteList.KEYCARD_BLUE, PaletteList.KEYCARD_RED, PaletteList.KEYCARD_YELLOW)
+
   val BlueKey = Item(TextureList.Items.KEY, PaletteList.KEYCARD_BLUE)
   val RedKey = Item(TextureList.Items.KEY, PaletteList.KEYCARD_RED)
   val YellowKey = Item(TextureList.Items.KEY, PaletteList.KEYCARD_YELLOW)

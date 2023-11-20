@@ -1,7 +1,8 @@
 package trn.prefab.experiments.dijkdrop
 
+import trn.duke.TextureList
 import trn.{Sprite, RandomX}
-import trn.prefab.{SectorGroup, PrefabPalette, Item, Enemy, GameConfig, SpriteLogicException, Marker}
+import trn.prefab.{SectorGroup, RedwallConnector, PrefabPalette, Item, Enemy, GameConfig, SpriteLogicException, Marker}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -25,6 +26,10 @@ object DropPalette2 {
   val Dirt = 6 // classic dirt/canyon walls
   val Wood = 7 // wood
   val Stone = 8
+  val Lava = 9
+  val BathroomTile = 10
+  val RedBrick = 11 // Tile 3387
+  val DirtyGrayLedge = 12
 
   def isTunnelTile(sg: SectorGroup): Boolean = {
     val bb = sg.boundingBox
@@ -171,7 +176,28 @@ class DropPalette2(
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer, Enemy.Blank))
 
   // can have key OR heavy weapon (but only want it in the level once)
-  val stoneVaults = NodeTile2(stonePalette.getSG(1)).modified(NodePalette.standardRoomSetup)
+  val stoneVaults = {
+    val sg: SectorGroup = stonePalette.getSG(2)
+    val itemChunk = stonePalette.getSG(3)
+    val tunnelChunk = stonePalette.getSG(4)
+    val flameWall = stonePalette.getSG(5)
+    val torchWall = stonePalette.getSG(6)
+
+    // all the subgroups use redwall conn 100 to connet to the main group
+    def get100conn(sg: SectorGroup): RedwallConnector = sg.getRedwallConnector(100)
+
+    val chunks = random.shuffle(
+      Seq(itemChunk, tunnelChunk, tunnelChunk, tunnelChunk, tunnelChunk, flameWall, flameWall, torchWall)
+    ).toSeq
+
+    var sg2: SectorGroup = sg
+    Seq(100, 101, 102, 103, 104, 105, 106, 107).zipWithIndex.foreach{ case (connId, i) =>
+      val conn = sg2.getRedwallConnector(connId)
+      sg2 = sg2.withGroupAttachedAutoRotate(gameCfg, conn, chunks(i))(get100conn)
+    }
+    val sg3 = PipeRoom.fixTunnelRedwallConnIds(sg2)
+    NodeTile2(sg3).modified(NodePalette.standardRoomSetup)
+  }
 
   val fountain = NodeTile2(palette.getSG(21)).modified(NodePalette.standardRoomSetup)
     .withRandomItems(random, Seq(Item.Blank, Item.SmallHealth, Item.SmallHealth, Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.MediumHealth, Item.MediumHealth, Item.Rpg))
@@ -184,9 +210,15 @@ class DropPalette2(
 
   val rooftopGate = {
     val mainRoof = palette.getSG(23)
-    val fansA = palette.getSG(24)
+    val decor = random.randomElement(
+      Seq(
+        palette.getSG(24),
+        palette.getSG(25),
+        palette.getSG(26),
+      )
+    ).withAlternateFloors(random)
 
-    val roof2 = mainRoof.withGroupAttached(gameCfg, mainRoof.getRedwallConnector(100), fansA, fansA.getRedwallConnector(100)).autoLinked
+    val roof2 = mainRoof.withGroupAttached(gameCfg, mainRoof.getRedwallConnector(100), decor, decor.getRedwallConnector(100)).autoLinked
 
     NodeTile2(roof2).modified(NodePalette.standardRoomSetup)
   }
@@ -230,10 +262,11 @@ class DropPalette2(
 
     val gateRooms = Seq(redGate, rooftopGate).map(validateGate)
 
+    // NOTE:  can't set key colors here - key hasnt been inserted
     DropTileSet(
       startRoom,
       exitRoom,
-      rooftopGate, // redGate,
+      random.randomElement(gateRooms),
       keyRoom,
       random.shuffle(normalRooms).toSeq
     )

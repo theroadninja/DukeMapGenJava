@@ -324,6 +324,9 @@ public class Sector {
 	public int getFloorSlope(){
 		return this.floorheinum;
 	}
+	public int getFloorShade(){
+		return this.floorshade;
+	}
 	public void setFloorSlope(int slope){
 		this.floorheinum = (short)slope;
 	}

@@ -95,6 +95,7 @@ public class Marker {
          * Can use more than one in a sector.
          *
          * Set the hitag to the texture number of the other texture.
+         * Set the shade of the sprite to the shade the texture will be.
          *
          * TODO:  do we randomly apply, or also have a method to create the cartesian product of all variations?
          */

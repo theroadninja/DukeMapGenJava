@@ -114,6 +114,15 @@ object PipeRoom {
     writer.outMap
   }
 
+  def fixTunnelRedwallConnIds(sg: SectorGroup): SectorGroup = {
+    // I gave all the pipe conns in this map id 1
+    val sprites = sg.allSprites.filter { s =>
+      Marker.isMarker(s, Marker.Lotags.REDWALL_MARKER) && s.getHiTag == 1
+    }
+    sprites.zipWithIndex.foreach { case (marker, index) => marker.setHiTag(index + 1) }
+    sg.copy() // MUST rescan redwall connectors, so they have the new ids
+  }
+
   def makePipeRoom(gameCfg: GameConfig, random: RandomX, input: PrefabPalette): SectorGroup = {
     val palette = new PipePalette(input)
 
@@ -123,15 +132,8 @@ object PipeRoom {
     val middle = random.shuffle(Seq(STRAIGHT1, STRAIGHT1, DIAG, DIAG, STRAIGHT2)).toSeq.take(4)
     val pipes = start +: middle :+ end
 
-
     val sgZZ = pipes.map(palette.getSG).reduce { (left: SectorGroup, right: SectorGroup) => palette.combine(gameCfg, left, right) }
 
-    // I gave all the pipe conns in this map id 1
-    val sprites = sgZZ.allSprites.filter { s =>
-      Marker.isMarker(s, Marker.Lotags.REDWALL_MARKER) && s.getHiTag == 1
-    }
-
-    sprites.zipWithIndex.foreach { case (marker, index) => marker.setHiTag(index + 1) }
-    sgZZ.copy() // MUST rescan redwall connectors, so they have the new ids
+    fixTunnelRedwallConnIds(sgZZ)
   }
 }

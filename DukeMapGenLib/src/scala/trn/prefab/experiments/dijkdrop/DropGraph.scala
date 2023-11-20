@@ -58,6 +58,10 @@ class DropGraph {
 
   // TODO ? val nodesByRoom = mutable.Map[Int, ...]  (map of roomId to list of nodes?)
 
+  def getEdgesBetweenRooms(roomA: RoomId, roomB: RoomId): Seq[DropEdge] = {
+    edges.filter(e => e.connectsToRoom(roomA) && e.connectsToRoom(roomB))
+  }
+
   def getUnlinkedNodesInRoom(roomId: RoomId): Seq[DropNodeId] = {
     nodes.filter { case (nodeId, node) => nodeId.roomId == roomId && node.edge.isEmpty}.map(_._1).toSeq
   }
@@ -124,14 +128,14 @@ class DropGraph {
     //   edges.exists(e => e.fromNode.roomId == a && e.toNode.roomId == b)
     // }
 
-    def getRoomEdges(roomA: RoomId, roomB: RoomId): Seq[DropEdge] = {
-      edges.filter(e => e.connectsToRoom(roomA) && e.connectsToRoom(roomB))
-    }
+    // def getRoomEdges(roomA: RoomId, roomB: RoomId): Seq[DropEdge] = {
+    //   edges.filter(e => e.connectsToRoom(roomA) && e.connectsToRoom(roomB))
+    // }
     if(getUnlinkedNodesInRoom(roomA).isEmpty || getUnlinkedNodesInRoom(roomB).isEmpty){
       println(s"Rooms ${roomA}, ${roomB} no unlinked nodes")
       None
     }else{
-      val existing = getRoomEdges(roomA, roomB)
+      val existing = getEdgesBetweenRooms(roomA, roomB)
       existing.size match {
         case 2 => {
           println(s"Rooms ${roomA}, ${roomB} both edges already exist")

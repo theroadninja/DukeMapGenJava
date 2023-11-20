@@ -26,6 +26,10 @@ case class NodeTile2(sg: SectorGroup, tunnelTheme: Int, maxEdges: Int) {
 
   def modified(fn: SectorGroup => SectorGroup): NodeTile2 = NodeTile2(fn(sg))
 
+  // def withKeyColor(gameCfg: GameConfig, keycolor: Int): NodeTile2 = modified { sg =>
+  //   sg.withKeyLockColor(gameCfg, keycolor)
+  // }
+
   def withEnemies(random: RandomX, enemies: Seq[SpritePrefab], hitag: Int = 0): NodeTile2 = modified { sg =>
     Utils.withRandomSprites(sg, hitag, Marker.Lotags.ENEMY, random.shuffle(enemies).toSeq)
   }
@@ -63,7 +67,7 @@ object TunnelTile {
   }
 }
 
-case class NodeProperties(key: Boolean = false)
+case class NodeProperties(key: Boolean = false, gate: Boolean = false)
 
 object NodeProperties {
   val Default = NodeProperties()
@@ -206,10 +210,28 @@ object Dijkdrop2 {
       if(rooms.isEmpty){
         return
       }
-      println(s"rooms with unlinked nodes: ${rooms}")
+      // println(s"rooms with unlinked nodes: ${rooms}")
       random.randomUnequalPairs(graph.roomsWithUnlinkedNodes)._1.foreach { case (roomA, roomB) =>
         // NOTE:  (A, D), (B, D), (C, D) could mean:  D is filled up by the time you get to (C, D)
         graph.tryAddRandomUniqueEdge(random, roomA, roomB)
+      }
+    }
+
+    graph.rooms.keys.foreach { roomA =>
+      graph.rooms.keys.foreach { roomB =>
+        if(roomA < roomB){
+          val count = graph.getEdgesBetweenRooms(roomA, roomB).size
+          if(count > 2){
+            throw new RuntimeException(s"too many edges bewteen rooms ${roomA}, ${roomB}")
+          }
+          if(count > 0){
+            println(s"Edges between ${roomA} and ${roomB}: ${count}")
+          }
+        }else{
+          // println(s"wtf between ${roomA} and ${roomB}")
+
+        }
+
       }
     }
   }
@@ -251,7 +273,7 @@ object Dijkdrop2 {
     val EXIT = 2
     val KEY = 3
     graph.addRoom(START, tiles.start)
-    graph.addRoom(GATE, tiles.gate)
+    graph.addRoom(GATE, tiles.gate, NodeProperties(gate=true))
     graph.addRoom(EXIT, tiles.exit)
     graph.addRoom(KEY, tiles.key, NodeProperties(key=true))
     for(i <- 0 until 6){ // TODO is the count of normal rooms part of the tileset?
@@ -294,11 +316,17 @@ object Dijkdrop2 {
   def renderNewGraph(gameCfg: GameConfig, random: RandomX, writer: MapWriter, nodepal: DropPalette2, graph: DropGraph): Unit = {
     var index = 0
     val layout = new GridLayout(BuildConstants.MapBounds, 5, 5)
+    val keycolor = random.randomElement(Item.KeyColors)
 
     val pastedGroups = graph.rooms.map { case(roomId, room) =>
       val sg = getSg2(gameCfg, random, nodepal, graph, roomId, room)
+      val sg2 = if(room.nodeProps.key || room.nodeProps.gate){
+        sg.withKeyLockColor(gameCfg, keycolor)
+      }else {
+        sg
+      }
       val bb = layout.bbForIndex(index)
-      val psg = writer.tryPasteInside(sg, bb).getOrElse(throw new SpriteLogicException(s"sector group too big for ${bb.width} X ${bb.height}"))
+      val psg = writer.tryPasteInside(sg2, bb).getOrElse(throw new SpriteLogicException(s"sector group too big for ${bb.width} X ${bb.height}"))
       index += 1
       roomId -> psg
     }.toMap

@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static trn.prefab.ConnectorType.MULTI_REDWALL;
+
 // TODO - or should the main feature of this class be that it matters where the sector is?
 public class RedwallConnector extends Connector implements HasLocationXY {
 
@@ -328,7 +330,7 @@ public class RedwallConnector extends Connector implements HasLocationXY {
 
     /** temp, just to east the transition from having SimpleConnector vs MultiWallConnector */
     private boolean isSimpleConnector(){
-        if(getConnectorType() == ConnectorType.MULTI_REDWALL) {
+        if(getConnectorType() == MULTI_REDWALL) {
             return false;
         }else if(getConnectorType() == ConnectorType.MULTI_SECTOR){
             return false;
@@ -544,7 +546,7 @@ public class RedwallConnector extends Connector implements HasLocationXY {
 
         PointXY otherP1 = other.wallAnchor1.subtractedBy(other.anchor);
         PointXY otherP2 = other.wallAnchor2.subtractedBy(other.anchor);
-        if(! p1.equals(otherP2)) throw new SpriteLogicException(("p1 != otherP2"));
+        if(! p1.equals(otherP2)) throw new SpriteLogicException(("p1 != otherP2 (did you forget to rotate the SG?"));
         if(! p2.equals(otherP1)) throw new SpriteLogicException(("p2 != otherP1"));
 
         // TODO a helpful test would be to throw all wall sizes into a set or a sorted list, and report any diffs
@@ -610,7 +612,16 @@ public class RedwallConnector extends Connector implements HasLocationXY {
             //map.linkRedWalls(this.getSectorId(), wallIds.get(0), otherConn.getSectorId(), otherConn.wallIds.get(0));
             map.linkRedWalls(allSectorIds.get(0), wallIds.get(0), otherConn.allSectorIds.get(0), otherConn.wallIds.get(0));
         }else{
-            if(otherConn.getConnectorType() != this.getConnectorType()) throw new IllegalArgumentException("connector type mismatch");
+            if(otherConn.getConnectorType() != this.getConnectorType()){
+                // public static int MULTI_REDWALL = 21;
+                // public static int MULTI_SECTOR = 22;
+                int t1 = getConnectorType(), t2 = otherConn.getConnectorType();
+                if((t1 == 21 || t1 == 22) && (t2 == 21 || t2 == 22)){
+                    // lets try allowing a multi-sector to connect to a multi-wall
+                }else{
+                    throw new IllegalArgumentException(String.format("connector type mismatch %s != %s", getConnectorType(), otherConn.getConnectorType()));
+                }
+            }
             //MultiWallConnector c2 = (MultiWallConnector)otherConn;
             if(! canLink(otherConn, map)) {
                 throwOnLinkFailure(otherConn);

@@ -2,7 +2,7 @@ package trn.prefab
 
 import duchy.sg.SimpleConnectorScanner
 import trn.duke.{MapErrorException, TextureList}
-import trn.{PointXYZ, PointXY, MapUtil, Sector, MapUtilScala, Wall, ISpriteFilter, WallView, MapView, Sprite, Map => DMap}
+import trn.{PointXYZ, PointXY, MapUtil, Sector, Wall, ISpriteFilter, WallView, MapView, Sprite, MapUtilScala, RandomX, Map => DMap}
 import trn.MapImplicits._
 import trn.math.{RotatesCW, SnapAngle}
 
@@ -145,6 +145,24 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
       textures.get(sector.getCeilingTexture).foreach { newTex => sector.setCeilingTexture(newTex)}
     }
     result
+  }
+
+  /**
+    * @return a copy of this sector, with floors randomly replaced by alternate floor textures
+    */
+  def withAlternateFloors(random: RandomX): SectorGroup = {
+    println("WITH ALTERNATE FLOORS")
+    val result = this.copy()
+    result.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.ALTERNATE_FLOOR_TEX)).groupBy(_.getSectorIdInt).foreach { case (sectorId, sprites) =>
+      println(s"WITH ALTERNATE FLOORS sectorId=${sectorId}")
+      val sector = result.map.getSector(sectorId)
+      val textures = sprites.map(s => (s.getHiTag, s.getShade)) :+ (sector.getFloorTexture.toInt, sector.getFloorShade)
+      val (tex, shade) = random.randomElement(textures)
+      sector.setFloorTexture(tex)
+      sector.setFloorShade(shade.toShort)
+    }
+    result
+
   }
 
   /**

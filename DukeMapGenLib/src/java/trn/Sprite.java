@@ -276,6 +276,10 @@ public class Sprite implements IRayXY, HasLocationXY {
 	public short getSectorId(){
 		return this.sectnum;
 	}
+	public int getSectorIdInt(){
+		return this.sectnum;
+	}
+
 	void setSectorId(int i){
 		this.sectnum = (short)i;
 	}
@@ -303,7 +307,11 @@ public class Sprite implements IRayXY, HasLocationXY {
 	    // TODO - throw exception if i is out of range
 		this.shade = (short)i;
 	}
-	
+
+	public int getShade(){
+		return this.shade;
+	}
+
 	public void setPal(int pallette){
 		this.pal = (short)pallette;
 	}
