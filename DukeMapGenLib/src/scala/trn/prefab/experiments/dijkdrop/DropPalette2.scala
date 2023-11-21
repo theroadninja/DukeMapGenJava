@@ -223,6 +223,8 @@ class DropPalette2(
     NodeTile2(roof2).modified(NodePalette.standardRoomSetup)
   }
 
+  val caveGate = NodeTile2(palette.getSG(27)).modified(NodePalette.standardRoomSetup)
+
 
   def validateGate(gate: NodeTile2): NodeTile2 = {
     gate.sg.allRedwallConnectors.find(c => c.getConnectorId == 99).getOrElse {
@@ -260,13 +262,13 @@ class DropPalette2(
     //   blueItemRoom
     // }
 
-    val gateRooms = Seq(redGate, rooftopGate).map(validateGate)
+    val gateRooms = Seq(redGate, rooftopGate, caveGate).map(validateGate)
 
     // NOTE:  can't set key colors here - key hasnt been inserted
     DropTileSet(
       startRoom,
       exitRoom,
-      random.randomElement(gateRooms),
+      caveGate, // random.randomElement(gateRooms),
       keyRoom,
       random.shuffle(normalRooms).toSeq
     )
