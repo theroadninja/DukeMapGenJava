@@ -268,7 +268,7 @@ class DropPalette2(
     DropTileSet(
       startRoom,
       exitRoom,
-      caveGate, // random.randomElement(gateRooms),
+      random.randomElement(gateRooms),
       keyRoom,
       random.shuffle(normalRooms).toSeq
     )

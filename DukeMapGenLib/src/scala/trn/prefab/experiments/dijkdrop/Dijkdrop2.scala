@@ -3,14 +3,10 @@ package trn.prefab.experiments.dijkdrop
 import trn.{BuildConstants, UniqueTags, RandomX, HardcodedConfig, ScalaMapLoader, Sprite, Map => DMap}
 import trn.prefab.{FallConnector, MapWriter, DukeConfig, EnemyMarker, SectorGroup, RedwallConnector, SpritePrefab, PrefabPalette, Item, PastedSectorGroup, Enemy, GameConfig, SpriteLogicException, Marker}
 import trn.prefab.experiments.ExpUtil
-import trn.prefab.experiments.dijkdrop.DropPalette2._
-import trn.prefab.experiments.dijkdrop.NodePalette.getUnlinkedTunnelConnIds
 import trn.prefab.experiments.dijkdrop.Room.RoomId
 import trn.prefab.experiments.dijkdrop.SpriteGroups.{STANDARD_AMMO, StandardAmmo, BASIC_AMMO, BasicAmmo}
 
-import scala.collection.mutable
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ArrayBuffer
 
 
 
@@ -25,10 +21,6 @@ case class NodeTile2(sg: SectorGroup, tunnelTheme: Int, maxEdges: Int) {
   require(tunnelConnIds.toSet.size == tunnelConnIds.size)
 
   def modified(fn: SectorGroup => SectorGroup): NodeTile2 = NodeTile2(fn(sg))
-
-  // def withKeyColor(gameCfg: GameConfig, keycolor: Int): NodeTile2 = modified { sg =>
-  //   sg.withKeyLockColor(gameCfg, keycolor)
-  // }
 
   def withEnemies(random: RandomX, enemies: Seq[SpritePrefab], hitag: Int = 0): NodeTile2 = modified { sg =>
     Utils.withRandomSprites(sg, hitag, Marker.Lotags.ENEMY, random.shuffle(enemies).toSeq)
@@ -227,11 +219,7 @@ object Dijkdrop2 {
           if(count > 0){
             println(s"Edges between ${roomA} and ${roomB}: ${count}")
           }
-        }else{
-          // println(s"wtf between ${roomA} and ${roomB}")
-
         }
-
       }
     }
   }
