@@ -39,7 +39,8 @@ object NodeTile2 {
   }
 
   def apply(sg: SectorGroup): NodeTile2 = {
-    val theme = sg.allSprites.find(s => Marker.isMarker(s, Marker.Lotags.ALGO_GENERIC)).get.getHiTag
+    val marker = sg.allSprites.find(s => Marker.isMarker(s, Marker.Lotags.ALGO_GENERIC)).getOrElse(throw new SpriteLogicException(s"missing theme marker for sector group"))
+    val theme = marker.getHiTag
     apply(sg, theme)
   }
 }
@@ -148,12 +149,14 @@ object NodePalette {
     val sg3 = Utils.withRandomSprites(sg2, BASIC_AMMO, Marker.Lotags.RANDOM_ITEM, BasicAmmo)
     val sg4 = Utils.withRandomSprites(sg3, SpriteGroups.FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.FootSoldiers)
     val sg5 = Utils.withRandomSprites(sg4, SpriteGroups.OCTABRAINS, Marker.Lotags.ENEMY, SpriteGroups.Octabrains)
-    sg5
+    val sg6 = Utils.withRandomSprites(sg5, SpriteGroups.SPACE_FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.SpaceFootSoldiers)
+    val sg7 = Utils.withRandomSprites(sg6, SpriteGroups.BASIC_GUNS, Marker.Lotags.RANDOM_ITEM, SpriteGroups.BasicGuns)
+    sg7
   }
 
 }
 
-case class SourceMapCollection(input: DMap, stoneInput: DMap, pipeInpt: DMap)
+case class SourceMapCollection(input: DMap, stoneInput: DMap, pipeInpt: DMap, randomMoonInput: DMap)
 
 /**
   * Trying to create a c.s. graph and then alter the nodes to fit it.
@@ -174,7 +177,8 @@ object Dijkdrop2 {
     val input: DMap = ScalaMapLoader.loadMap(HardcodedConfig.EDUKE32PATH + Filename)
     val input2: DMap = ScalaMapLoader.loadMap(HardcodedConfig.EDUKE32PATH + OtherFilename)
     val input3: DMap = ScalaMapLoader.loadMap(HardcodedConfig.EDUKE32PATH + OtherOtherFilename)
-    val result = tryRun(gameCfg, SourceMapCollection(input, input2, input3))
+    val input4: DMap = ScalaMapLoader.loadMap(HardcodedConfig.EDUKE32PATH + RandomMoonRoom.Filename)
+    val result = tryRun(gameCfg, SourceMapCollection(input, input2, input3, input4))
     ExpUtil.write(result)
   }
 
@@ -294,8 +298,9 @@ object Dijkdrop2 {
     val palette = ScalaMapLoader.paletteFromMap(gameCfg, input.input)
     val stonePalette = ScalaMapLoader.paletteFromMap(gameCfg, input.stoneInput)
     val sewerPalette = ScalaMapLoader.paletteFromMap(gameCfg, input.pipeInpt)
+    val randomMoonPal = ScalaMapLoader.paletteFromMap(gameCfg, input.randomMoonInput)
 
-    val nodepal = new DropPalette2(gameCfg, random, palette, stonePalette, sewerPalette)
+    val nodepal = new DropPalette2(gameCfg, random, palette, stonePalette, sewerPalette, randomMoonPal)
     val graph2 = makeGraph2(random, nodepal)
 
     renderNewGraph(gameCfg, random, writer, nodepal, graph2)

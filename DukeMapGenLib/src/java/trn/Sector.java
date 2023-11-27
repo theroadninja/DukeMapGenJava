@@ -260,6 +260,9 @@ public class Sector {
 	public short getCeilingTexture(){
 		return this.ceilingPicNum;
 	}
+	public int getCeilingTex(){
+		return (int)this.ceilingPicNum;
+	}
 
 	public void setCeilingParallax(boolean parallax){
 		if(parallax){
@@ -315,6 +318,9 @@ public class Sector {
 	}
 	public short getFloorTexture(){
 		return this.floorpicnum;
+	}
+	public int getFloorTex(){
+		return (int)this.floorpicnum;
 	}
 
 	/**

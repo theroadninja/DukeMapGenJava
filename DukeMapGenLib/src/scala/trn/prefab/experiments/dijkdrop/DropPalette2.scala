@@ -51,6 +51,7 @@ class DropPalette2(
   palette: PrefabPalette, // the main palette for this map
   stonePalette: PrefabPalette, // <- a source map dedicated to the stone room
   sewerPalette: PrefabPalette, // <- a source map dedicated to the sewer tunnel
+  randomMoonRoomPalette: PrefabPalette,
 ) {
 
   // The Blank tunnel connector, for when there is no edge
@@ -225,6 +226,12 @@ class DropPalette2(
 
   val caveGate = NodeTile2(palette.getSG(27)).modified(NodePalette.standardRoomSetup)
 
+  val randomMoonRoom = {
+    NodeTile2(RandomMoonRoom.makeRoom(gameCfg, random, randomMoonRoomPalette)).modified(NodePalette.standardRoomSetup)
+  }
+
+  val spaceStation = NodeTile2(palette.getSG(28)).modified(NodePalette.standardRoomSetup)
+
 
   def validateGate(gate: NodeTile2): NodeTile2 = {
     gate.sg.allRedwallConnectors.find(c => c.getConnectorId == 99).getOrElse {
@@ -253,7 +260,9 @@ class DropPalette2(
       // nodepal.bluePentagon,
       buildingEdge, cavern, nukeSymbolCarpet,
       castleStairs, greenCastle, moon3way,
-      bathrooms, parkingGarage, fountain, sushi, sewer
+      bathrooms, parkingGarage, fountain, sushi, sewer,
+      // randomMoonRoom, TODO this one isnt good
+      spaceStation
     ) ++ others.map(t => toPowerUp(random, t))
 
 
