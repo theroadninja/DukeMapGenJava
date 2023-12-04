@@ -30,6 +30,7 @@ object DropPalette2 {
   val BathroomTile = 10
   val RedBrick = 11 // Tile 3387
   val DirtyGrayLedge = 12
+  val LightWood = 13
 
   def isTunnelTile(sg: SectorGroup): Boolean = {
     val bb = sg.boundingBox
@@ -232,6 +233,8 @@ class DropPalette2(
 
   val spaceStation = NodeTile2(palette.getSG(28)).modified(NodePalette.standardRoomSetup)
 
+  val chessRoom = NodeTile2(palette.getSG(29)).modified(NodePalette.standardRoomSetup)
+
 
   def validateGate(gate: NodeTile2): NodeTile2 = {
     gate.sg.allRedwallConnectors.find(c => c.getConnectorId == 99).getOrElse {
@@ -262,7 +265,7 @@ class DropPalette2(
       castleStairs, greenCastle, moon3way,
       bathrooms, parkingGarage, fountain, sushi, sewer,
       // randomMoonRoom, TODO this one isnt good
-      spaceStation
+      spaceStation, chessRoom
     ) ++ others.map(t => toPowerUp(random, t))
 
 

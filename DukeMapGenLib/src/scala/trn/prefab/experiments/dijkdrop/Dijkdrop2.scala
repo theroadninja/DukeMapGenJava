@@ -84,40 +84,6 @@ case class Edge(startNode: String, endNode: String) {
   def readyToLink: Boolean = startFallConnectorId.isDefined && endFallConnectorId.isDefined
 }
 
-// class MutableGraph {
-//   val nodes = mutable.Map[String, Node2]()
-//   val edges = mutable.ArrayBuffer[Edge]()
-//   val edgesByStart = mutable.Map[String, mutable.ArrayBuffer[Edge]]()
-//   val edgesByEnd = mutable.Map[String, mutable.ArrayBuffer[Edge]]()
-//
-//   def addNode(node: Node2): Unit = nodes.put(node.nodeId, node)
-//
-//   def addEdge(from: String, to: String): Edge = {
-//     val e = Edge(from, to)
-//     MutableGraph.addEdgeToMap(edgesByStart, e.startNode, e)
-//     MutableGraph.addEdgeToMap(edgesByEnd, e.endNode, e)
-//     edges.append(e)
-//     e
-//   }
-//
-//   def edgeExists(nodeA: String, nodeB: String): Boolean = edgesByStart.get(nodeA).map(list =>
-//     list.exists(_.endNode == nodeB)
-//   ).getOrElse(false)
-//
-//   def edgesFrom(from: String): Seq[Edge] = edgesByStart.get(from).getOrElse(Seq.empty)
-//   def edgesTo(to: String): Seq[Edge] = edgesByEnd.get(to).getOrElse(Seq.empty)
-//
-//   def edgeCount(nodeId: String): Int = edgesFrom(nodeId).size + edgesTo(nodeId).size
-// }
-
-// object MutableGraph {
-//   def addEdgeToMap[A, B](map: mutable.Map[A, mutable.ArrayBuffer[B]], key: A, edge: B): Unit = {
-//     if(!map.contains(key)){
-//       map.put(key, mutable.ArrayBuffer())
-//     }
-//     map(key).append(edge)
-//   }
-// }
 
 object NodePalette {
 
@@ -274,21 +240,15 @@ object Dijkdrop2 {
     graph.connectRooms(random, GATE, EXIT, fromRedwallConnId = Some(99))
 
     graph.connectRooms(random, START, 4)
-    val roomSequence = Seq(4, GATE, 5, 6, 7, 8, KEY, 9)
 
-    val roomSequence2 = roomSequence :+ 4
+    // most of my testing was with this many (10 including start, exit)
+    // val roomSequence = Seq(4, GATE, 5, 6, 7, 8, KEY, 9)
+    val roomSequence = Seq(4, GATE, 5, 6, 8, KEY, 9)
+
+    val roomSequence2 = roomSequence :+ 4 // loop it back to the first room after start
     for(i <- 0 until roomSequence2.size - 1){
       graph.connectRooms(random, roomSequence2(i), roomSequence2(i+1))
     }
-
-    // graph.connectRooms(random, 4, GATE)
-    // graph.connectRooms(random, GATE, 5)
-    // graph.connectRooms(random, 5, 6)
-    // graph.connectRooms(random, 6, 7)
-    // graph.connectRooms(random, 7, 8)
-    // graph.connectRooms(random, 8, KEY)
-    // graph.connectRooms(random, KEY, 9)
-    // graph.connectRooms(random, 9, 4)
 
     connectRandomNodes2(random, graph)
     graph
