@@ -1,6 +1,6 @@
 package duchy.sg
 
-import trn.prefab.{SectorGroupHints, PrefabUtils, GameConfig, SectorGroup, SectorGroupProperties, ChildPointer, SectorGroupBuilder, SpriteLogicException, TagGenerator}
+import trn.prefab.{SectorGroupHints, PrefabUtils, GameConfig, SectorGroup, SectorGroupProperties, ChildPointer, SectorGroupBuilder, SpriteLogicException, Marker, TagGenerator}
 import trn.{PointXYZ, MapUtil, CopyState, MapImplicits, Sprite, Map => DMap}
 import trn.MapImplicits._
 
@@ -19,6 +19,7 @@ case class SectorGroupFragment (
   groupIdSprite: Option[Sprite],
   teleChildSprite: Option[Sprite],
   childPointerSprite: Option[Sprite],
+  spriteGroupIdSprite: Option[Sprite],
   sectorGroupTry: Try[SectorGroup],
   groupId: Option[Int],
 ) {
@@ -100,7 +101,8 @@ object SectorGroupScanner {
     val groupIdSprite = findAtMostOneMarker(adjusted, PrefabUtils.MarkerSpriteLoTags.GROUP_ID)
     val teleChildSprite = findAtMostOneMarker(adjusted, PrefabUtils.MarkerSpriteLoTags.TELEPORT_CHILD)
     val redwallChildSprite = findAtMostOneMarker(adjusted, PrefabUtils.MarkerSpriteLoTags.REDWALL_CHILD)
-    val groupSprites = Seq(groupIdSprite, teleChildSprite, redwallChildSprite).filter(_.isDefined).map(_.get)
+    val spriteGroupIdSprite = findAtMostOneMarker(adjusted, Marker.Lotags.SPRITE_GROUP_ID)
+    val groupSprites = Seq(groupIdSprite, teleChildSprite, redwallChildSprite, spriteGroupIdSprite).filter(_.isDefined).map(_.get)
     if(groupSprites.size == 0) {
       // check for the case where someone added a group id sprite in the 2d view but forgot to give it the marker sprite tex
       val DefaultSprite = 0
@@ -128,6 +130,7 @@ object SectorGroupScanner {
       groupIdSprite,
       teleChildSprite,
       redwallChildSprite,
+      spriteGroupIdSprite,
       sg,
       groupIdSprite.map(_.getHiTag),
     )
@@ -152,11 +155,13 @@ object SectorGroupScanner {
   // "sort" means separate by type
   private[sg] def sortFragments(
     fragments: TraversableOnce[SectorGroupFragment]
-  ): (Map[Int, SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment]) = {
+  ): (Map[Int, SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment], Seq[SectorGroupFragment], Map[Int, SectorGroupFragment]) = {
     val numberedGroups = mutable.Map[Int, SectorGroupFragment]()
     val redwallChildren = mutable.ArrayBuffer[SectorGroupFragment]()
     val teleportChildren = mutable.ArrayBuffer[SectorGroupFragment]()
     val anonymous = mutable.ArrayBuffer[SectorGroupFragment]()
+    val spriteGroups = mutable.Map[Int, SectorGroupFragment]()
+
     fragments.foreach { fragment =>
       if(fragment.groupIdSprite.isDefined) {
         val groupId = fragment.getGroupId
@@ -168,14 +173,23 @@ object SectorGroupScanner {
         numberedGroups.put(groupId, fragment)
       }else if(fragment.childPointerSprite.isDefined){
         redwallChildren.append(fragment)
-      }else if(fragment.teleChildSprite.isDefined){
+      }else if(fragment.teleChildSprite.isDefined) {
         teleportChildren.append(fragment)
+      }else if(fragment.spriteGroupIdSprite.isDefined){
+        val marker = fragment.spriteGroupIdSprite.get
+        if(marker.getHiTag < 1) {
+          throw new SpriteLogicException(s"Sprite Group ID not set", marker)
+        }
+        if(spriteGroups.contains(marker.getHiTag)) {
+            throw new SpriteLogicException(s"More than one sprite group contains id=${marker.getHiTag}", marker)
+        }
+        spriteGroups.put(marker.getHiTag, fragment)
       }else{
         anonymous.append(fragment)
       }
     }
 
-    (numberedGroups.toMap, redwallChildren, teleportChildren, anonymous)
+    (numberedGroups.toMap, redwallChildren, teleportChildren, anonymous, spriteGroups.toMap)
   }
 
   def assembleFragments(
@@ -184,7 +198,7 @@ object SectorGroupScanner {
     fragments: Seq[SectorGroupFragment],
   ): SgPaletteScala = {
 
-    val (numberedFrags, redwallChildFrags, teleChildFrags, anonFrags) = sortFragments(fragments)
+    val (numberedFrags, redwallChildFrags, teleChildFrags, anonFrags, spriteGroupFrags) = sortFragments(fragments)
 
     // val numberedSectorGroups = numberedFrags.map {
     //   case (groupId, fragment) => (groupId -> fragment.sectorGroup)
@@ -220,7 +234,17 @@ object SectorGroupScanner {
       }
     }
 
-    SgPaletteScala(numberedSectorGroups, teleportChildren.toMap, anonFrags.map(_.sectorGroup))
+    val spriteGroups: Map[Int, SectorGroup] = spriteGroupFrags.map { case (id, frag) =>
+      val marker = frag.spriteGroupIdSprite.get
+      val sg = frag.sectorGroup
+      if(sg.map.getSectorCount > 1){
+        val s = s"Only 1 sector allowed in the special 'sprite group' sector group, you have ${sg.map.getSectorCount}"
+        throw new SpriteLogicException(s, marker)
+      }
+      id -> sg
+    }
+
+    SgPaletteScala(numberedSectorGroups, teleportChildren.toMap, anonFrags.map(_.sectorGroup), spriteGroups)
   }
 
   // TODO:  `sourceMap` does not need to be a mutable map --- something like an immutable "MapView" would be fine

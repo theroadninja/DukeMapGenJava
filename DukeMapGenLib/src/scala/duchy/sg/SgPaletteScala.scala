@@ -1,6 +1,8 @@
 package duchy.sg
 
-import trn.prefab.SectorGroup
+import trn.Sprite
+import trn.prefab.{SectorGroup, Marker}
+
 import scala.collection.JavaConverters._
 
 /**
@@ -27,7 +29,13 @@ case class SgPaletteScala(
     */
   anonymousSectorGroups: Seq[SectorGroup],
 
+
+  spriteSectorGroups: Map[Int, SectorGroup],
+
 ) {
+  lazy val spriteGroups: Map[Int, Seq[Sprite]] = spriteSectorGroups.map { case (id, sg) =>
+    id -> sg.allSprites.filterNot(s => Marker.isMarker(s)).toSeq
+  }
 
   def getNumberedGroupsAsJava: java.util.Map[Integer, SectorGroup] = numberedGroups.map {
     case (groupId, group) => {
@@ -45,5 +53,8 @@ case class SgPaletteScala(
   }.asJava
 
   def getAnonymousAsJava: java.util.List[SectorGroup] = anonymousSectorGroups.asJava
+
+  def getSpriteGroup(spriteGroupId: Int): Seq[Sprite] = spriteGroups(spriteGroupId)
+
 
 }

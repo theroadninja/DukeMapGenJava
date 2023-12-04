@@ -32,14 +32,22 @@ public class PrefabPalette {
 	/** sector groups that dont have ids */
 	private final List<SectorGroup> anonymousSectorGroups;
 
+	/**
+	 * This class is meant to be replaced by SgPaletteScala.  This is a hack to enable
+	 * that transition.
+	 */
+	public final SgPaletteScala scalaObj;
+
 	public PrefabPalette(
 			java.util.Map<Integer, SectorGroup> numberedSectorGroups,
 			java.util.Map<Integer, List<SectorGroup>> teleportChildGroups,
-			List<SectorGroup> anonymousSectorGroups
+			List<SectorGroup> anonymousSectorGroups,
+			SgPaletteScala scala
 	){
 		this.numberedSectorGroups = numberedSectorGroups;
 		this.teleportChildGroups = teleportChildGroups;
 		this.anonymousSectorGroups = anonymousSectorGroups;
+		this.scalaObj = scala;
 	}
 
 	public final java.util.Set<Integer> numberedSectorGroupIds(){
@@ -68,20 +76,18 @@ public class PrefabPalette {
 
 	}
 	public static PrefabPalette fromMap(GameConfig cfg, Map map, boolean strict) throws MapErrorException {
-		final java.util.Map<Integer, SectorGroup> numberedSectorGroups = new java.util.TreeMap<>();
-		final java.util.Map<Integer, List<SectorGroup>> redwallChildren = new java.util.TreeMap<>();
-		final java.util.Map<Integer, List<SectorGroup>> teleportChildren = new java.util.TreeMap<>();
-
-		final List<SectorGroup> anonymousSectorGroups = new ArrayList<>();
+		// final java.util.Map<Integer, SectorGroup> numberedSectorGroups = new java.util.TreeMap<>();
+		// final java.util.Map<Integer, List<SectorGroup>> redwallChildren = new java.util.TreeMap<>();
+		// final java.util.Map<Integer, List<SectorGroup>> teleportChildren = new java.util.TreeMap<>();
+		// final List<SectorGroup> anonymousSectorGroups = new ArrayList<>();
 
 		TagGenerator tagGenerator = new SimpleTagGenerator(500); // TODO - should be passed in
-		//List<SectorGroupFragment> fragments = SectorGroupScanner$.MODULE$.scanFragmentsAsJava(map, cfg);
-		//SgPaletteScala scala = SectorGroupScanner$.MODULE$.assembleFragments(cfg, tagGenerator, fragments);
 		SgPaletteScala scala = SectorGroupScanner$.MODULE$.scanMap(cfg, tagGenerator, map);
 		return new PrefabPalette(
 				scala.getNumberedGroupsAsJava(),
 				scala.getTeleportChildrenAsJava(),
-				scala.getAnonymousAsJava()
+				scala.getAnonymousAsJava(),
+				scala
 		);
 
 		// for(SectorGroupFragment fragment: fragments) {

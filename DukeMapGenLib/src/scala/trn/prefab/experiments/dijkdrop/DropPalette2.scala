@@ -1,6 +1,7 @@
 package trn.prefab.experiments.dijkdrop
 
 import trn.duke.TextureList
+import trn.prefab.experiments.dijkdrop.SpriteGroups.{STANDARD_AMMO, StandardAmmo, BASIC_AMMO, BasicAmmo}
 import trn.{Sprite, RandomX}
 import trn.prefab.{SectorGroup, RedwallConnector, PrefabPalette, Item, Enemy, GameConfig, SpriteLogicException, Marker}
 
@@ -54,6 +55,7 @@ class DropPalette2(
   sewerPalette: PrefabPalette, // <- a source map dedicated to the sewer tunnel
   randomMoonRoomPalette: PrefabPalette,
 ) {
+  val spriteGroups: Map[Int, Seq[Sprite]] = palette.scalaObj.spriteGroups
 
   // The Blank tunnel connector, for when there is no edge
   val blank = palette.getSG(99)
@@ -105,6 +107,20 @@ class DropPalette2(
 
   // ================================ Rooms ================================
 
+  def standardRoomSetup(sg: SectorGroup): SectorGroup = {
+    val sg2 = Utils.withRandomSprites(sg, STANDARD_AMMO, Marker.Lotags.RANDOM_ITEM, StandardAmmo)
+    val sg3 = Utils.withRandomSprites(sg2, BASIC_AMMO, Marker.Lotags.RANDOM_ITEM, BasicAmmo)
+    val sg4 = Utils.withRandomSprites(sg3, SpriteGroups.FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.FootSoldiers)
+    val sg5 = Utils.withRandomSprites(sg4, SpriteGroups.OCTABRAINS, Marker.Lotags.ENEMY, SpriteGroups.Octabrains)
+    val sg6 = Utils.withRandomSprites(sg5, SpriteGroups.SPACE_FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.SpaceFootSoldiers)
+    val sg7 = Utils.withRandomSprites(sg6, SpriteGroups.BASIC_GUNS, Marker.Lotags.RANDOM_ITEM, SpriteGroups.BasicGuns)
+
+    // TODO this is messy
+    val FirstSpriteGroupFromMap = 1
+    val sg8: SectorGroup = Utils.withRandomEnemySpritesFromGroup(sg7, spriteGroups, FirstSpriteGroupFromMap)
+    sg8
+  }
+
   val blueRoom = NodeTile2(palette.getSG(1), DropPalette2.Blue)
   val redRoom = NodeTile2(palette.getSG(2), DropPalette2.Red)
   val greenRoom = NodeTile2(palette.getSG(3), DropPalette2.Green)
@@ -115,14 +131,14 @@ class DropPalette2(
 
   val bluePentagon = NodeTile2(palette.getSG(8))
   val blueItemRoom = NodeTile2(palette.getSG(9))
-    .modified(NodePalette.standardRoomSetup)
+    .modified(standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroopCmdr, Enemy.PigCop, Enemy.Blank))
     .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.OctaBrain, Enemy.OctaBrain, Enemy.Blank), hitag = 1)
 
 
   val redGate = NodeTile2(palette.getSG(10))
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.PigCop, Enemy.PigCop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.AssaultCmdr))
-    .modified(NodePalette.standardRoomSetup)
+    .modified(standardRoomSetup)
 
 
   val exitRoom = NodeTile2(palette.getSG(11))
@@ -142,18 +158,18 @@ class DropPalette2(
     )
     val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, Seq(Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.ShotgunAmmo))
     Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, enemies)
-  }.modified(NodePalette.standardRoomSetup)
+  }.modified(standardRoomSetup)
 
   val moon3way = NodeTile2(palette.getSG(14)).modified { sg =>
     val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.Blank, Enemy.AssaultCmdr)).toSeq
     Utils.withRandomEnemies(sg, enemies)
-  }.modified(NodePalette.standardRoomSetup)
+  }.modified(standardRoomSetup)
 
   val bathrooms = NodeTile2(palette.getSG(15)).modified { sg =>
     val sg2 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroopOnToilet, Enemy.Blank, Enemy.Blank)).toSeq)
     val sg3 = Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
     Utils.withRandomSprites(sg3, 1, Marker.Lotags.RANDOM_ITEM, random.shuffle(Seq(Item.RpgAmmo, Item.Devastator)).toSeq)
-  }.modified(NodePalette.standardRoomSetup)
+  }.modified(standardRoomSetup)
 
   val greenCastle = NodeTile2(palette.getSG(16)).modified { sg =>
     val heavies = random.shuffle(Seq(Enemy.AssaultCmdr, Enemy.MiniBattlelord, Enemy.OctaBrain, Enemy.Blank, Enemy.Blank)).toSeq
@@ -162,19 +178,19 @@ class DropPalette2(
     val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.ENEMY, heavies)
     val sg3 = Utils.withRandomSprites(sg2, 1, Marker.Lotags.ENEMY, enemies)
     Utils.withRandomSprites(sg3, 0, Marker.Lotags.RANDOM_ITEM, powerups)
-  }.modified(NodePalette.standardRoomSetup)
+  }.modified(standardRoomSetup)
 
-  val buildingEdge = NodeTile2(palette.getSG(17)).modified(NodePalette.standardRoomSetup)
+  val buildingEdge = NodeTile2(palette.getSG(17)).modified(standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop))
 
-  val cavern = NodeTile2(palette.getSG(18)).modified(NodePalette.standardRoomSetup)
+  val cavern = NodeTile2(palette.getSG(18)).modified(standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.OctaBrain, Enemy.Blank))
 
-  val nukeSymbolCarpet = NodeTile2(palette.getSG(19)).modified(NodePalette.standardRoomSetup)
+  val nukeSymbolCarpet = NodeTile2(palette.getSG(19)).modified(standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.LizTroop, Enemy.Blank))
     .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.AssaultCmdr, Enemy.Blank))
 
-  val parkingGarage = NodeTile2(palette.getSG(20)).modified(NodePalette.standardRoomSetup)
+  val parkingGarage = NodeTile2(palette.getSG(20)).modified(standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer, Enemy.Blank))
 
   // can have key OR heavy weapon (but only want it in the level once)
@@ -198,15 +214,15 @@ class DropPalette2(
       sg2 = sg2.withGroupAttachedAutoRotate(gameCfg, conn, chunks(i))(get100conn)
     }
     val sg3 = PipeRoom.fixTunnelRedwallConnIds(sg2)
-    NodeTile2(sg3).modified(NodePalette.standardRoomSetup)
+    NodeTile2(sg3).modified(standardRoomSetup)
   }
 
-  val fountain = NodeTile2(palette.getSG(21)).modified(NodePalette.standardRoomSetup)
+  val fountain = NodeTile2(palette.getSG(21)).modified(standardRoomSetup)
     .withRandomItems(random, Seq(Item.Blank, Item.SmallHealth, Item.SmallHealth, Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.MediumHealth, Item.MediumHealth, Item.Rpg))
 
-  val sushi = NodeTile2(palette.getSG(22)).modified(NodePalette.standardRoomSetup)
+  val sushi = NodeTile2(palette.getSG(22)).modified(standardRoomSetup)
 
-  val sewer = NodeTile2(PipeRoom.makePipeRoom(gameCfg, random, sewerPalette)).modified(NodePalette.standardRoomSetup)
+  val sewer = NodeTile2(PipeRoom.makePipeRoom(gameCfg, random, sewerPalette)).modified(standardRoomSetup)
     // .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.Blank), hitag=1)
   require(sewer.tunnelConnIds.size == 4)
 
@@ -222,18 +238,20 @@ class DropPalette2(
 
     val roof2 = mainRoof.withGroupAttached(gameCfg, mainRoof.getRedwallConnector(100), decor, decor.getRedwallConnector(100)).autoLinked
 
-    NodeTile2(roof2).modified(NodePalette.standardRoomSetup)
+    NodeTile2(roof2).modified(standardRoomSetup)
   }
 
-  val caveGate = NodeTile2(palette.getSG(27)).modified(NodePalette.standardRoomSetup)
+  val caveGate = NodeTile2(palette.getSG(27)).modified(standardRoomSetup)
 
   val randomMoonRoom = {
-    NodeTile2(RandomMoonRoom.makeRoom(gameCfg, random, randomMoonRoomPalette)).modified(NodePalette.standardRoomSetup)
+    NodeTile2(RandomMoonRoom.makeRoom(gameCfg, random, randomMoonRoomPalette)).modified(standardRoomSetup)
   }
 
-  val spaceStation = NodeTile2(palette.getSG(28)).modified(NodePalette.standardRoomSetup)
+  val spaceStation = NodeTile2(palette.getSG(28)).modified(standardRoomSetup)
 
-  val chessRoom = NodeTile2(palette.getSG(29)).modified(NodePalette.standardRoomSetup)
+  val chessRoom = NodeTile2(palette.getSG(29)).modified(standardRoomSetup)
+
+  val militaryComplex = NodeTile2(palette.getSG(30)).modified(standardRoomSetup)
 
 
   def validateGate(gate: NodeTile2): NodeTile2 = {
@@ -282,7 +300,7 @@ class DropPalette2(
       exitRoom,
       random.randomElement(gateRooms),
       keyRoom,
-      random.shuffle(normalRooms).toSeq
+      Seq(militaryComplex) ++ random.shuffle(normalRooms).toSeq
     )
   }
 }

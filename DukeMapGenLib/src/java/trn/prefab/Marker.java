@@ -100,6 +100,21 @@ public class Marker {
          * TODO:  do we randomly apply, or also have a method to create the cartesian product of all variations?
          */
         public static int ALTERNATE_FLOOR_TEX = 30;
+
+        /**
+         * Marks a SectorGroup as the definition of  "Sprite Group" -- a bag of sprites that can be
+         * randomly inserted by enemy and item markers.
+         *
+         * Lotag: 31
+         * Hitag:  the id of the sprite group
+         *
+         * Other Requirements:
+         * - the sectorgroup must have exactly 1 sector
+         * - the sectorgroup must not have an ID (marker lotag=1)
+         *
+         */
+        public static int SPRITE_GROUP_ID = 31;
+
     }
 
     // TODO this text should be game-specific!
