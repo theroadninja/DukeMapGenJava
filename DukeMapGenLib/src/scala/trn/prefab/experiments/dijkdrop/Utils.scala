@@ -1,6 +1,6 @@
 package trn.prefab.experiments.dijkdrop
 
-import trn.Sprite
+import trn.{Sprite, RandomX}
 import trn.prefab.{Enemy, SectorGroup, SpritePrefab, Item, Marker}
 
 
@@ -11,6 +11,10 @@ case class SimpleSpritePrefab(
   override val lotag: Int,
   override val hitag: Int,
 ) extends SpritePrefab { }
+
+object SimpleSpritePrefab {
+  def apply(sprite: Sprite): SimpleSpritePrefab = SimpleSpritePrefab(sprite.getTex, sprite.getPal, 0, 0)
+}
 
 /**
   * Creating this class to hold candidates for more generic functions
@@ -38,14 +42,14 @@ object Utils {
 
 
   // TODO this is a temp hack to get working - not final design
-  def withRandomEnemySpritesFromGroup(sg: SectorGroup, spriteGroups: Map[Int, Seq[Sprite]], spriteGroupId: Int): SectorGroup = {
+  def withRandomEnemySpritesFromGroup(random: RandomX, sg: SectorGroup, spriteGroups: Map[Int, Seq[Sprite]], spriteGroupId: Int): SectorGroup = {
     val sprites = spriteGroups(spriteGroupId).map { sprite =>
       SimpleSpritePrefab(sprite.getTex, sprite.getPal, 0, 0)
     }
     require(spriteGroups(1).size == 3)
     require(spriteGroupId == 1)
     // val enemies = Seq(Enemy.AssaultCmdr)
-    withRandomSprites(sg, spriteGroupId, Marker.Lotags.ENEMY, sprites)
+    withRandomSprites(sg, spriteGroupId, Marker.Lotags.ENEMY, random.shuffle(sprites).toSeq)
   }
 
 }

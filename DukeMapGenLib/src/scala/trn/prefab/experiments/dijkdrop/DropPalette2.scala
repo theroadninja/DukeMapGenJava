@@ -56,6 +56,9 @@ class DropPalette2(
   randomMoonRoomPalette: PrefabPalette,
 ) {
   val spriteGroups: Map[Int, Seq[Sprite]] = palette.scalaObj.spriteGroups
+  val spriteGroups2: Map[Int, Seq[SimpleSpritePrefab]] = spriteGroups.mapValues { sprites =>
+    sprites.map(s => SimpleSpritePrefab(s))
+  }
 
   // The Blank tunnel connector, for when there is no edge
   val blank = palette.getSG(99)
@@ -117,8 +120,24 @@ class DropPalette2(
 
     // TODO this is messy
     val FirstSpriteGroupFromMap = 1
-    val sg8: SectorGroup = Utils.withRandomEnemySpritesFromGroup(sg7, spriteGroups, FirstSpriteGroupFromMap)
+    val sg8: SectorGroup = Utils.withRandomEnemySpritesFromGroup(random, sg7, spriteGroups, FirstSpriteGroupFromMap)
     sg8
+  }
+
+  def withEnemySpriteGroups(sg: SectorGroup): SectorGroup = {
+    // distinct hitags of all "enemy" markers -- so we know which sprite groups to pull
+    val enemyHiTags: Set[Int] = sg.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.ENEMY))
+      .map(_.getHiTag)
+      .filter(_ > 0)
+      .toSet
+
+    enemyHiTags.foldLeft(sg){ (sg_, spriteGroupId) =>
+      val group = spriteGroups2.get(spriteGroupId).getOrElse {
+        val msg = s"There is an enemy marker requesting sprite group ${spriteGroupId} but there is no Sprite Group Sector with that id (marker lotag ${Marker.Lotags.SPRITE_GROUP_ID}"
+        throw new SpriteLogicException(msg)
+      }
+      Utils.withRandomSprites(sg_, spriteGroupId, Marker.Lotags.ENEMY, random.shuffle(group).toSeq)
+    }
   }
 
   val blueRoom = NodeTile2(palette.getSG(1), DropPalette2.Blue)
@@ -131,15 +150,15 @@ class DropPalette2(
 
   val bluePentagon = NodeTile2(palette.getSG(8))
   val blueItemRoom = NodeTile2(palette.getSG(9))
+    .withEnemies(random, spriteGroups2(2), hitag = 2)
+    .withEnemies(random, spriteGroups2(3), hitag = 3)
     .modified(standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroopCmdr, Enemy.PigCop, Enemy.Blank))
-    .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.OctaBrain, Enemy.OctaBrain, Enemy.Blank), hitag = 1)
 
 
   val redGate = NodeTile2(palette.getSG(10))
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.PigCop, Enemy.PigCop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.AssaultCmdr))
+    // .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.PigCop, Enemy.PigCop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.AssaultCmdr))
+    .withEnemies(random, spriteGroups2(10), hitag = 10)
     .modified(standardRoomSetup)
-
 
   val exitRoom = NodeTile2(palette.getSG(11))
 
@@ -149,27 +168,25 @@ class DropPalette2(
   }
 
   val castleStairs = NodeTile2(palette.getSG(13)).modified { sg =>
-    val enemies = Seq(
-      Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroop,
-      Enemy.LizTroopCmdr,
-      Enemy.Enforcer,
-      Enemy.OctaBrain,
-      Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank
-    )
+    // val enemies = Seq(
+    //   Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroop,
+    //   Enemy.LizTroopCmdr,
+    //   Enemy.Enforcer,
+    //   Enemy.OctaBrain,
+    //   Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank
+    // )
     val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, Seq(Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.ShotgunAmmo))
-    Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, enemies)
+    // Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, enemies)
+    Utils.withRandomSprites(sg2, 13, Marker.Lotags.ENEMY, spriteGroups2(13)) // TODO needs to be shuffled!
   }.modified(standardRoomSetup)
 
-  val moon3way = NodeTile2(palette.getSG(14)).modified { sg =>
-    val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.Blank, Enemy.AssaultCmdr)).toSeq
-    Utils.withRandomEnemies(sg, enemies)
-  }.modified(standardRoomSetup)
+  val moon3way = NodeTile2(palette.getSG(14)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
   val bathrooms = NodeTile2(palette.getSG(15)).modified { sg =>
-    val sg2 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroopOnToilet, Enemy.Blank, Enemy.Blank)).toSeq)
-    val sg3 = Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
-    Utils.withRandomSprites(sg3, 1, Marker.Lotags.RANDOM_ITEM, random.shuffle(Seq(Item.RpgAmmo, Item.Devastator)).toSeq)
-  }.modified(standardRoomSetup)
+    // val sg2 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroopOnToilet, Enemy.Blank, Enemy.Blank)).toSeq)
+    //val sg3 = Utils.withRandomSprites(sg, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
+    Utils.withRandomSprites(sg, 1, Marker.Lotags.RANDOM_ITEM, random.shuffle(Seq(Item.RpgAmmo, Item.Devastator)).toSeq)
+  }.modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
   val greenCastle = NodeTile2(palette.getSG(16)).modified { sg =>
     val heavies = random.shuffle(Seq(Enemy.AssaultCmdr, Enemy.MiniBattlelord, Enemy.OctaBrain, Enemy.Blank, Enemy.Blank)).toSeq
@@ -180,11 +197,11 @@ class DropPalette2(
     Utils.withRandomSprites(sg3, 0, Marker.Lotags.RANDOM_ITEM, powerups)
   }.modified(standardRoomSetup)
 
-  val buildingEdge = NodeTile2(palette.getSG(17)).modified(standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop))
+  val buildingEdge = NodeTile2(palette.getSG(17)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
+    // .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop))
 
-  val cavern = NodeTile2(palette.getSG(18)).modified(standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.OctaBrain, Enemy.Blank))
+  val cavern = NodeTile2(palette.getSG(18)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
+    // .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.OctaBrain, Enemy.Blank))
 
   val nukeSymbolCarpet = NodeTile2(palette.getSG(19)).modified(standardRoomSetup)
     .withEnemies(random, Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.LizTroop, Enemy.Blank))
@@ -283,7 +300,7 @@ class DropPalette2(
       castleStairs, greenCastle, moon3way,
       bathrooms, parkingGarage, fountain, sushi, sewer,
       // randomMoonRoom, TODO this one isnt good
-      spaceStation, chessRoom
+      spaceStation, chessRoom, militaryComplex
     ) ++ others.map(t => toPowerUp(random, t))
 
 
@@ -300,7 +317,7 @@ class DropPalette2(
       exitRoom,
       random.randomElement(gateRooms),
       keyRoom,
-      Seq(militaryComplex) ++ random.shuffle(normalRooms).toSeq
+      random.shuffle(normalRooms).toSeq,
     )
   }
 }
