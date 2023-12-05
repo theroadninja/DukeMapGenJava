@@ -23,12 +23,12 @@ object SpriteGroups {
   // Enemies
   //
 
-  val FOOT_SOLDIERS = 16
-  val FootSoldiers = Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer)
+  // val FOOT_SOLDIERS = 16
+  // val FootSoldiers = Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer)
 
-  val SPACE_FOOT_SOLDIERS = 17
-  val SpaceFootSoldiers = Seq(Enemy.LizTroop, Enemy.Enforcer)
+  // val SPACE_FOOT_SOLDIERS = 17
+  // val SpaceFootSoldiers = Seq(Enemy.LizTroop, Enemy.Enforcer)
 
-  val OCTABRAINS = 1820
-  val Octabrains = Seq(Enemy.OctaBrain, Enemy.OctaBrain)
+  // val OCTABRAINS = 1820
+  // val Octabrains = Seq(Enemy.OctaBrain, Enemy.OctaBrain)
 }

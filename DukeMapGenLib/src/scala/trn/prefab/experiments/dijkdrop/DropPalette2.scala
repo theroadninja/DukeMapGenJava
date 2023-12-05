@@ -37,12 +37,10 @@ object DropPalette2 {
     val bb = sg.boundingBox
     val c1: Int = sg.allRedwallConnectors.size
     val c2 = sg.allUnlinkedRedwallConns.filter { conn =>
-      // conn.getWallCount == 4 && conn.totalManhattanLength == 2048 * 4
       conn.getWallCount == 3 || conn.getWallCount == 1
     }
     val totalConnLength: Long = c2.map(_.totalManhattanLength()).sum
     val themeMarker = sg.sprites.find(s => Marker.isMarker(s, Marker.Lotags.ALGO_GENERIC)).size
-    // bb.width == 2048 && bb.height == 2048 && c1 == 1 && c2 == 1 && themeMarker == 1
     bb.width == 2048 && bb.height == 2048 && c1 == 2 && c2.size == 2 && totalConnLength == 2048 * 4 && themeMarker == 1
   }
 }
@@ -63,9 +61,7 @@ class DropPalette2(
   // The Blank tunnel connector, for when there is no edge
   val blank = palette.getSG(99)
 
-  // val tunnelsOld = Seq(100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115).map(palette.getSG).map(sg => TunnelTile(sg))
   val tunnels: Seq[TunnelTile] = palette.numberedSectorGroupIds.asScala.toSeq.map(i => palette.getSG(i)).filter(DropPalette2.isTunnelTile).map(sg => TunnelTile(sg))
-
   val floorTunnels = tunnels.filter(_.isFloor).map(tile => tile.tunnelTheme -> tile).toMap
   val ceilingTunnels = tunnels.filter(!_.isFloor).map(tile => tile.tunnelTheme -> tile).toMap
 
@@ -111,17 +107,14 @@ class DropPalette2(
   // ================================ Rooms ================================
 
   def standardRoomSetup(sg: SectorGroup): SectorGroup = {
+    // TODO get rid of all this -- but what to do about items?
     val sg2 = Utils.withRandomSprites(sg, STANDARD_AMMO, Marker.Lotags.RANDOM_ITEM, StandardAmmo)
     val sg3 = Utils.withRandomSprites(sg2, BASIC_AMMO, Marker.Lotags.RANDOM_ITEM, BasicAmmo)
-    val sg4 = Utils.withRandomSprites(sg3, SpriteGroups.FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.FootSoldiers)
-    val sg5 = Utils.withRandomSprites(sg4, SpriteGroups.OCTABRAINS, Marker.Lotags.ENEMY, SpriteGroups.Octabrains)
-    val sg6 = Utils.withRandomSprites(sg5, SpriteGroups.SPACE_FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.SpaceFootSoldiers)
-    val sg7 = Utils.withRandomSprites(sg6, SpriteGroups.BASIC_GUNS, Marker.Lotags.RANDOM_ITEM, SpriteGroups.BasicGuns)
-
-    // TODO this is messy
-    val FirstSpriteGroupFromMap = 1
-    val sg8: SectorGroup = Utils.withRandomEnemySpritesFromGroup(random, sg7, spriteGroups, FirstSpriteGroupFromMap)
-    sg8
+    // val sg4 = Utils.withRandomSprites(sg3, SpriteGroups.FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.FootSoldiers)
+    // val sg5 = Utils.withRandomSprites(sg4, SpriteGroups.OCTABRAINS, Marker.Lotags.ENEMY, SpriteGroups.Octabrains)
+    // val sg6 = Utils.withRandomSprites(sg5, SpriteGroups.SPACE_FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.SpaceFootSoldiers)
+    val sg7 = Utils.withRandomSprites(sg3, SpriteGroups.BASIC_GUNS, Marker.Lotags.RANDOM_ITEM, SpriteGroups.BasicGuns)
+    sg7
   }
 
   def withEnemySpriteGroups(sg: SectorGroup): SectorGroup = {
@@ -137,6 +130,19 @@ class DropPalette2(
         throw new SpriteLogicException(msg)
       }
       Utils.withRandomSprites(sg_, spriteGroupId, Marker.Lotags.ENEMY, random.shuffle(group).toSeq)
+    }
+  }
+
+  def withItemSpriteGroups(sg: SectorGroup): SectorGroup = {
+    val itemHiTags: Set[Int] = sg.allSprites.filter(s => Marker.isMarker(s, Marker.Lotags.RANDOM_ITEM))
+      .map(_.getHiTag).filter(_ > 0).toSet
+
+    itemHiTags.foldLeft(sg){ (sg_, spriteGroupId) =>
+      val group = spriteGroups2.get(spriteGroupId).getOrElse {
+        val msg = s"There is an item marker requesting sprite group ${spriteGroupId} but there is no Sprite Group Sector with that id (marker lotag ${Marker.Lotags.SPRITE_GROUP_ID}"
+        throw new SpriteLogicException(msg)
+      }
+      Utils.withRandomSprites(sg_, spriteGroupId, Marker.Lotags.RANDOM_ITEM, random.shuffle(group).toSeq)
     }
   }
 
@@ -162,23 +168,9 @@ class DropPalette2(
 
   val exitRoom = NodeTile2(palette.getSG(11))
 
-  val startRoom = NodeTile2(palette.getSG(12)).modified { sg =>
-    val startItems: Seq[Item] = random.shuffle(Seq(Item.Armor, Item.Medkit, Item.Shotgun, Item.Chaingun, Item.PipeBomb, Item.HandgunAmmo, Item.ChaingunAmmo)).toSeq
-    Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, startItems)
-  }
+  val startRoom = NodeTile2(palette.getSG(12)).modified(withItemSpriteGroups)
 
-  val castleStairs = NodeTile2(palette.getSG(13)).modified { sg =>
-    // val enemies = Seq(
-    //   Enemy.LizTroop, Enemy.LizTroop, Enemy.LizTroop,
-    //   Enemy.LizTroopCmdr,
-    //   Enemy.Enforcer,
-    //   Enemy.OctaBrain,
-    //   Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank, Enemy.Blank
-    // )
-    val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.RANDOM_ITEM, Seq(Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.ShotgunAmmo))
-    // Utils.withRandomSprites(sg2, 0, Marker.Lotags.ENEMY, enemies)
-    Utils.withRandomSprites(sg2, 13, Marker.Lotags.ENEMY, spriteGroups2(13)) // TODO needs to be shuffled!
-  }.modified(standardRoomSetup)
+  val castleStairs = NodeTile2(palette.getSG(13)).modified(standardRoomSetup).modified(withEnemySpriteGroups).modified(withItemSpriteGroups)
 
   val moon3way = NodeTile2(palette.getSG(14)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
@@ -189,26 +181,21 @@ class DropPalette2(
   }.modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
   val greenCastle = NodeTile2(palette.getSG(16)).modified { sg =>
-    val heavies = random.shuffle(Seq(Enemy.AssaultCmdr, Enemy.MiniBattlelord, Enemy.OctaBrain, Enemy.Blank, Enemy.Blank)).toSeq
+    //val heavies = random.shuffle(Seq(Enemy.AssaultCmdr, Enemy.OctaBrain, Enemy.Blank, Enemy.Blank)).toSeq
     val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.OctaBrain, Enemy.OctaBrain, Enemy.Enforcer, Enemy.Blank)).toSeq
     val powerups = random.shuffle(Seq(Item.AtomicHealth, Item.Rpg, Item.Devastator, Item.ShrinkRay, Item.FreezeRay, Item.Medkit)).toSeq
-    val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.ENEMY, heavies)
-    val sg3 = Utils.withRandomSprites(sg2, 1, Marker.Lotags.ENEMY, enemies)
+    // val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.ENEMY, heavies)
+    val sg3 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, enemies)
     Utils.withRandomSprites(sg3, 0, Marker.Lotags.RANDOM_ITEM, powerups)
-  }.modified(standardRoomSetup)
+  }.modified(standardRoomSetup).modified(withEnemySpriteGroups).modified(withItemSpriteGroups)
 
   val buildingEdge = NodeTile2(palette.getSG(17)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-    // .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop))
 
   val cavern = NodeTile2(palette.getSG(18)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-    // .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.OctaBrain, Enemy.Blank))
 
-  val nukeSymbolCarpet = NodeTile2(palette.getSG(19)).modified(standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.Enforcer, Enemy.LizTroop, Enemy.Blank))
-    .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.AssaultCmdr, Enemy.Blank))
+  val nukeSymbolCarpet = NodeTile2(palette.getSG(19)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
-  val parkingGarage = NodeTile2(palette.getSG(20)).modified(standardRoomSetup)
-    .withEnemies(random, Seq(Enemy.LizTroop, Enemy.PigCop, Enemy.Enforcer, Enemy.Blank))
+  val parkingGarage = NodeTile2(palette.getSG(20)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
   // can have key OR heavy weapon (but only want it in the level once)
   val stoneVaults = {
@@ -241,7 +228,6 @@ class DropPalette2(
 
   val sewer = NodeTile2(PipeRoom.makePipeRoom(gameCfg, random, sewerPalette)).modified(standardRoomSetup)
     // .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.Blank), hitag=1)
-  require(sewer.tunnelConnIds.size == 4)
 
   val rooftopGate = {
     val mainRoof = palette.getSG(23)
@@ -255,21 +241,20 @@ class DropPalette2(
 
     val roof2 = mainRoof.withGroupAttached(gameCfg, mainRoof.getRedwallConnector(100), decor, decor.getRedwallConnector(100)).autoLinked
 
-    NodeTile2(roof2).modified(standardRoomSetup)
+    NodeTile2(roof2).modified(standardRoomSetup).modified(withEnemySpriteGroups)
   }
 
-  val caveGate = NodeTile2(palette.getSG(27)).modified(standardRoomSetup)
+  val caveGate = NodeTile2(palette.getSG(27)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
-  val randomMoonRoom = {
-    NodeTile2(RandomMoonRoom.makeRoom(gameCfg, random, randomMoonRoomPalette)).modified(standardRoomSetup)
-  }
+  // val randomMoonRoom = {
+  //   NodeTile2(RandomMoonRoom.makeRoom(gameCfg, random, randomMoonRoomPalette)).modified(standardRoomSetup)
+  // }
 
-  val spaceStation = NodeTile2(palette.getSG(28)).modified(standardRoomSetup)
+  val spaceStation = NodeTile2(palette.getSG(28)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
-  val chessRoom = NodeTile2(palette.getSG(29)).modified(standardRoomSetup)
+  val chessRoom = NodeTile2(palette.getSG(29)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
-  val militaryComplex = NodeTile2(palette.getSG(30)).modified(standardRoomSetup)
-
+  val militaryComplex = NodeTile2(palette.getSG(30)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
   def validateGate(gate: NodeTile2): NodeTile2 = {
     gate.sg.allRedwallConnectors.find(c => c.getConnectorId == 99).getOrElse {

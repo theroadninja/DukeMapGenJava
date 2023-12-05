@@ -41,15 +41,15 @@ object Utils {
   }
 
 
-  // TODO this is a temp hack to get working - not final design
-  def withRandomEnemySpritesFromGroup(random: RandomX, sg: SectorGroup, spriteGroups: Map[Int, Seq[Sprite]], spriteGroupId: Int): SectorGroup = {
-    val sprites = spriteGroups(spriteGroupId).map { sprite =>
-      SimpleSpritePrefab(sprite.getTex, sprite.getPal, 0, 0)
-    }
-    require(spriteGroups(1).size == 3)
-    require(spriteGroupId == 1)
-    // val enemies = Seq(Enemy.AssaultCmdr)
-    withRandomSprites(sg, spriteGroupId, Marker.Lotags.ENEMY, random.shuffle(sprites).toSeq)
-  }
+  // // TODO this is a temp hack to get working - not final design
+  // def withRandomEnemySpritesFromGroup(random: RandomX, sg: SectorGroup, spriteGroups: Map[Int, Seq[Sprite]], spriteGroupId: Int): SectorGroup = {
+  //   val sprites = spriteGroups(spriteGroupId).map { sprite =>
+  //     SimpleSpritePrefab(sprite.getTex, sprite.getPal, 0, 0)
+  //   }
+  //   require(spriteGroups(1).size == 3)
+  //   require(spriteGroupId == 1)
+  //   // val enemies = Seq(Enemy.AssaultCmdr)
+  //   withRandomSprites(sg, spriteGroupId, Marker.Lotags.ENEMY, random.shuffle(sprites).toSeq)
+  // }
 
 }
