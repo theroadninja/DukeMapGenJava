@@ -146,6 +146,8 @@ class DropPalette2(
     }
   }
 
+  def withSpriteGroups(sg: SectorGroup): SectorGroup = withEnemySpriteGroups(withItemSpriteGroups(sg))
+
   val blueRoom = NodeTile2(palette.getSG(1), DropPalette2.Blue)
   val redRoom = NodeTile2(palette.getSG(2), DropPalette2.Red)
   val greenRoom = NodeTile2(palette.getSG(3), DropPalette2.Green)
@@ -224,7 +226,7 @@ class DropPalette2(
   val fountain = NodeTile2(palette.getSG(21)).modified(standardRoomSetup)
     .withRandomItems(random, Seq(Item.Blank, Item.SmallHealth, Item.SmallHealth, Item.SmallHealth, Item.MediumHealth, Item.MediumHealth, Item.MediumHealth, Item.MediumHealth, Item.Rpg))
 
-  val sushi = NodeTile2(palette.getSG(22)).modified(standardRoomSetup)
+  val sushi = NodeTile2(palette.getSG(22)).modified(standardRoomSetup).modified(withSpriteGroups)
 
   val sewer = NodeTile2(PipeRoom.makePipeRoom(gameCfg, random, sewerPalette)).modified(standardRoomSetup)
     // .withEnemies(random, Seq(Enemy.OctaBrain, Enemy.Blank), hitag=1)

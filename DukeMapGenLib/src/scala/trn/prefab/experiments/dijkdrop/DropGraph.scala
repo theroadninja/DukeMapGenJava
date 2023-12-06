@@ -159,5 +159,15 @@ class DropGraph {
     }
   }
 
+  def prettyPrint(): Unit = {
+    // TODO do more
+    nodes.keys.foreach { nodeId =>
+      val dest = edges.filter(e => e.fromNode == nodeId).map(_.toNode)
+      println(s"${nodeId} -> ${dest}")
+
+    }
+
+  }
+
 
 }

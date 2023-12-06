@@ -251,7 +251,9 @@ object Dijkdrop2 {
     val randomMoonPal = ScalaMapLoader.paletteFromMap(gameCfg, input.randomMoonInput)
 
     val nodepal = new DropPalette2(gameCfg, random, palette, stonePalette, sewerPalette, randomMoonPal)
-    val graph2 = makeGraph2(random, nodepal)
+    val graph2: DropGraph = makeGraph2(random, nodepal)
+    // TODO - the graph generation is still buggy.  was dropped into the castle vault with no way out
+    graph2.prettyPrint()
 
     renderNewGraph(gameCfg, random, writer, nodepal, graph2)
     ExpUtil.finish(writer)
