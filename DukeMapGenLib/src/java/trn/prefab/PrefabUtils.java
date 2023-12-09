@@ -248,6 +248,7 @@ public class PrefabUtils {
 				BLANK,
 				ALTERNATE_FLOOR_TEX,
 				Marker.Lotags.SPRITE_GROUP_ID,
+				Marker.Lotags.INLINE_SPRITE_GROUP,
 				});
 	}
 

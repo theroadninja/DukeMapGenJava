@@ -32,6 +32,7 @@ object DropPalette2 {
   val RedBrick = 11 // Tile 3387
   val DirtyGrayLedge = 12
   val LightWood = 13
+  val BlueBrick = 14 // Tile 3386
 
   def isTunnelTile(sg: SectorGroup): Boolean = {
     val bb = sg.boundingBox
@@ -114,7 +115,7 @@ class DropPalette2(
     // val sg5 = Utils.withRandomSprites(sg4, SpriteGroups.OCTABRAINS, Marker.Lotags.ENEMY, SpriteGroups.Octabrains)
     // val sg6 = Utils.withRandomSprites(sg5, SpriteGroups.SPACE_FOOT_SOLDIERS, Marker.Lotags.ENEMY, SpriteGroups.SpaceFootSoldiers)
     val sg7 = Utils.withRandomSprites(sg3, SpriteGroups.BASIC_GUNS, Marker.Lotags.RANDOM_ITEM, SpriteGroups.BasicGuns)
-    sg7
+    sg7.withInlineSpriteGroupsResolved(random)
   }
 
   def withEnemySpriteGroups(sg: SectorGroup): SectorGroup = {
@@ -258,6 +259,8 @@ class DropPalette2(
 
   val militaryComplex = NodeTile2(palette.getSG(30)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
+  val sushiRestaurant = NodeTile2(palette.getSG(31)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
+
   def validateGate(gate: NodeTile2): NodeTile2 = {
     gate.sg.allRedwallConnectors.find(c => c.getConnectorId == 99).getOrElse {
       throw new SpriteLogicException(s"gate room id=${gate.sg.getGroupId} missing connector with id 99")
@@ -287,7 +290,7 @@ class DropPalette2(
       castleStairs, greenCastle, moon3way,
       bathrooms, parkingGarage, fountain, sushi, sewer,
       // randomMoonRoom, TODO this one isnt good
-      spaceStation, chessRoom, militaryComplex
+      spaceStation, chessRoom, militaryComplex, sushiRestaurant,
     ) ++ others.map(t => toPowerUp(random, t))
 
 
@@ -304,7 +307,7 @@ class DropPalette2(
       exitRoom,
       random.randomElement(gateRooms),
       keyRoom,
-      random.shuffle(normalRooms).toSeq,
+      sushiRestaurant +: random.shuffle(normalRooms).toSeq,
     )
   }
 }

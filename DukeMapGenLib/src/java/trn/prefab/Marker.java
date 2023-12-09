@@ -115,6 +115,14 @@ public class Marker {
          */
         public static int SPRITE_GROUP_ID = 31;
 
+        /**
+         * Marks a spot where a randomly chosen sprite will be placed.  The
+         * sprite is selected from the set of all non-marker sprites (and cant
+         * have that R thing set either) in the same sector.  More than one of
+         * these markers can be in the same sector.
+         */
+        public static int INLINE_SPRITE_GROUP = 32;
+
     }
 
     // TODO this text should be game-specific!

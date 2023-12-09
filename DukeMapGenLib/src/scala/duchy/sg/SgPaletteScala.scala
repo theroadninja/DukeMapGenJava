@@ -33,6 +33,13 @@ case class SgPaletteScala(
   spriteSectorGroups: Map[Int, SectorGroup],
 
 ) {
+
+  /**
+    * TODO an alternate idea I had was, instead of using a special sector, just put a bunch of sprites
+    * in a sector and one or more markers and they "choose" from the available sprites (replaces the sprite
+    * options with blank markers) -- it makes more sense for enemies to be randomly places, while item
+    * sprites probably work better in a specific position
+    */
   lazy val spriteGroups: Map[Int, Seq[Sprite]] = spriteSectorGroups.map { case (id, sg) =>
     id -> sg.allSprites.filterNot(s => Marker.isMarker(s)).toSeq
   }

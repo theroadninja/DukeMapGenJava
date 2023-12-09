@@ -162,7 +162,12 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
       sector.setFloorShade(shade.toShort)
     }
     result
+  }
 
+  def withInlineSpriteGroupsResolved(random: RandomX): SectorGroup = {
+    val spritesBySector = allSprites.groupBy(_.getSectorId.toInt)
+
+    ???
   }
 
   /**
