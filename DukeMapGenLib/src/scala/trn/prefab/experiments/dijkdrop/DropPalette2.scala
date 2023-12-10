@@ -165,7 +165,6 @@ class DropPalette2(
 
 
   val redGate = NodeTile2(palette.getSG(10))
-    // .withEnemies(random, Seq(Enemy.LizTroop, Enemy.LizTroop, Enemy.PigCop, Enemy.PigCop, Enemy.Enforcer, Enemy.Enforcer, Enemy.OctaBrain, Enemy.AssaultCmdr))
     .withEnemies(random, spriteGroups2(10), hitag = 10)
     .modified(standardRoomSetup)
 
@@ -178,16 +177,12 @@ class DropPalette2(
   val moon3way = NodeTile2(palette.getSG(14)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
   val bathrooms = NodeTile2(palette.getSG(15)).modified { sg =>
-    // val sg2 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroopOnToilet, Enemy.Blank, Enemy.Blank)).toSeq)
-    //val sg3 = Utils.withRandomSprites(sg, 0, Marker.Lotags.ENEMY, random.shuffle(Seq(Enemy.LizTroop, Enemy.LizTroopCrouch, Enemy.PigCop, Enemy.Blank)).toSeq)
-    Utils.withRandomSprites(sg, 1, Marker.Lotags.RANDOM_ITEM, random.shuffle(Seq(Item.RpgAmmo, Item.Devastator)).toSeq)
+    sg
   }.modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
   val greenCastle = NodeTile2(palette.getSG(16)).modified { sg =>
-    //val heavies = random.shuffle(Seq(Enemy.AssaultCmdr, Enemy.OctaBrain, Enemy.Blank, Enemy.Blank)).toSeq
     val enemies = random.shuffle(Seq(Enemy.LizTroop, Enemy.OctaBrain, Enemy.OctaBrain, Enemy.Enforcer, Enemy.Blank)).toSeq
     val powerups = random.shuffle(Seq(Item.AtomicHealth, Item.Rpg, Item.Devastator, Item.ShrinkRay, Item.FreezeRay, Item.Medkit)).toSeq
-    // val sg2 = Utils.withRandomSprites(sg, 0, Marker.Lotags.ENEMY, heavies)
     val sg3 = Utils.withRandomSprites(sg, 1, Marker.Lotags.ENEMY, enemies)
     Utils.withRandomSprites(sg3, 0, Marker.Lotags.RANDOM_ITEM, powerups)
   }.modified(standardRoomSetup).modified(withEnemySpriteGroups).modified(withItemSpriteGroups)
@@ -307,7 +302,7 @@ class DropPalette2(
       exitRoom,
       random.randomElement(gateRooms),
       keyRoom,
-      sushiRestaurant +: random.shuffle(normalRooms).toSeq,
+      random.shuffle(normalRooms).toSeq,
     )
   }
 }

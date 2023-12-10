@@ -49,6 +49,10 @@ public class SpriteStat {
         return this.stat & (16|32);
     }
 
+    public boolean isFaceAligned(){
+        return this.getAlignment() == ALIGN_NORMAL;
+    }
+
     public boolean isOneSided(){
         return get(64);
     }

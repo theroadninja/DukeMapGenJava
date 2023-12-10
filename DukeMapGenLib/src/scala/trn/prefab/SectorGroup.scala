@@ -4,6 +4,7 @@ import duchy.sg.SimpleConnectorScanner
 import trn.duke.{MapErrorException, TextureList}
 import trn.{PointXYZ, PointXY, MapUtil, Sector, Wall, ISpriteFilter, WallView, MapView, Sprite, MapUtilScala, RandomX, Map => DMap}
 import trn.MapImplicits._
+import trn.duke.experiments.SpritePrefab
 import trn.math.{RotatesCW, SnapAngle}
 
 import scala.collection.JavaConverters._ // this is the good one
@@ -165,9 +166,37 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   def withInlineSpriteGroupsResolved(random: RandomX): SectorGroup = {
-    val spritesBySector = allSprites.groupBy(_.getSectorId.toInt)
+    val cp = this.copy
+    val spritesBySector = cp.allSprites.groupBy(_.getSectorId.toInt)
+    val markersBySector = spritesBySector.map { case (sectorId, sprites) =>
+      sectorId -> sprites.filter(s => Marker.isMarker(s, Marker.Lotags.INLINE_SPRITE_GROUP))
+    }.filter(_._2.nonEmpty)
+    val faceSpritesBySector = spritesBySector.map { case (sectorId, sprites) =>
+      sectorId -> sprites.filter(s => s.getStat.isFaceAligned && !Marker.isMarker(s))
+    }.filter(_._2.nonEmpty)
 
-    ???
+    markersBySector.foreach { case (sectorId, markers) =>
+      val options: Seq[Sprite] = faceSpritesBySector.get(sectorId).getOrElse{
+        throw new SpriteLogicException("inline sprite group used but no usable sprites in sector", markers.head)
+      }
+
+      // replace each marker with a randomly selected sprite
+      markers.foreach { marker =>
+        val s = random.randomElement(options)
+        val prefab = new SpritePrefab {
+          val tex = s.tex
+          val pal = s.getPal
+        }
+        prefab.writeToSprite(marker)
+      }
+
+      // turn all the sprite options into a blank
+      options.foreach { s =>
+        s.setTexture(Marker.TEX)
+        s.setLotag(Marker.Lotags.BLANK)
+      }
+    }
+    cp
   }
 
   /**
@@ -198,10 +227,11 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   def withMarkerReplaced(markerHitag: Int, markerLotag: Int, item: SpritePrefab): SectorGroup = {
     val cp = copy()
     val itemSprite: Sprite = cp.sprites.find(s => Marker.isMarker(s, markerLotag) && s.getHiTag == markerHitag).getOrElse(throw new RuntimeException("missing marker"))
-    itemSprite.setTexture(item.tex)
-    itemSprite.setPal(item.pal)
-    itemSprite.setLotag(item.lotag)
-    itemSprite.setHiTag(item.hitag)
+    item.writeToSprite(itemSprite)
+    // itemSprite.setTexture(item.tex)
+    // itemSprite.setPal(item.pal)
+    // itemSprite.setLotag(item.lotag)
+    // itemSprite.setHiTag(item.hitag)
     cp
   }
 

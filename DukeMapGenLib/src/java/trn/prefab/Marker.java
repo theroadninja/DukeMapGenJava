@@ -120,6 +120,8 @@ public class Marker {
          * sprite is selected from the set of all non-marker sprites (and cant
          * have that R thing set either) in the same sector.  More than one of
          * these markers can be in the same sector.
+         *
+         * hitag: (none)
          */
         public static int INLINE_SPRITE_GROUP = 32;
 
