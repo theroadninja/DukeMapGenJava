@@ -68,6 +68,7 @@ class DropPalette2(
 
   def isFallConn(sprite: Sprite): Boolean = Marker.isMarker(sprite, Marker.Lotags.FALL_CONNECTOR)
 
+  // create a floor tunnel sprite group
   def getFloorTunnel(connectorId: Int, tunnelTheme: Int): SectorGroup = {
     val tSG = floorTunnels(tunnelTheme).sg
     tSG.withModifiedSprites { sprite =>
@@ -77,6 +78,7 @@ class DropPalette2(
     }
   }
 
+  // create a ceiling tunnel sprite group
   def getCeilingTunnel(connectorId: Int, tunnelTheme: Int): SectorGroup = {
     val tSG = ceilingTunnels(tunnelTheme).sg
     tSG.withModifiedSprites { sprite =>
@@ -172,22 +174,30 @@ class DropPalette2(
 
   val redGate = NodeTile2(palette.getSG(10)).modified(stdRoomSetup)
   val exitRoom = NodeTile2(palette.getSG(11)).modified(stdRoomSetup)
-  val startRoom = NodeTile2(palette.getSG(12)).modified(withItemSpriteGroups)
-  val castleStairs = NodeTile2(palette.getSG(13)).modified(standardRoomSetup).modified(withEnemySpriteGroups).modified(withItemSpriteGroups)
-  val moon3way = NodeTile2(palette.getSG(14)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-  val bathrooms = NodeTile2(palette.getSG(15)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-  val greenCastle = NodeTile2(palette.getSG(16)).modified(standardRoomSetup).modified(withEnemySpriteGroups).modified(withItemSpriteGroups)
-  val buildingEdge = NodeTile2(palette.getSG(17)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-  val cavern = NodeTile2(palette.getSG(18)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-  val nukeSymbolCarpet = NodeTile2(palette.getSG(19)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-  val parkingGarage = NodeTile2(palette.getSG(20)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
+  val startRoom = NodeTile2(palette.getSG(12)).modified(stdRoomSetup)
+  val castleStairs = NodeTile2(palette.getSG(13)).modified(stdRoomSetup)
+  val moon3way = NodeTile2(palette.getSG(14)).modified(stdRoomSetup)
+  val bathrooms = NodeTile2(palette.getSG(15)).modified(stdRoomSetup)
+  val greenCastle = NodeTile2(palette.getSG(16)).modified(stdRoomSetup)
+  val buildingEdge = NodeTile2(palette.getSG(17)).modified(stdRoomSetup)
+  val cavern = NodeTile2(palette.getSG(18)).modified(stdRoomSetup)
+  val nukeSymbolCarpet = NodeTile2(palette.getSG(19)).modified(stdRoomSetup)
+  val parkingGarage = NodeTile2(palette.getSG(20)).modified(stdRoomSetup)
+  val fountain = NodeTile2(palette.getSG(21)).modified(stdRoomSetup)
+  val sushi = NodeTile2(palette.getSG(22)).modified(stdRoomSetup)
 
+  val caveGate = NodeTile2(palette.getSG(27)).modified(stdRoomSetup)
+  val spaceStation = NodeTile2(palette.getSG(28)).modified(stdRoomSetup)
+  val chessRoom = NodeTile2(palette.getSG(29)).modified(stdRoomSetup)
+  val militaryComplex = NodeTile2(palette.getSG(30)).modified(stdRoomSetup)
+  val sushiRestaurant = NodeTile2(palette.getSG(31)).modified(stdRoomSetup)
+
+  // ------------------
+
+  val sewer = NodeTile2(PipeRoom.makePipeRoom(gameCfg, random, sewerPalette)).modified(stdRoomSetup)
   val stoneVaults = CustomRooms.stoneVaults(gameCfg, random, stonePalette).modified(stdRoomSetup)
 
-  val fountain = NodeTile2(palette.getSG(21)).modified(standardRoomSetup).modified(withSpriteGroups)
-  val sushi = NodeTile2(palette.getSG(22)).modified(standardRoomSetup).modified(withSpriteGroups)
-  val sewer = NodeTile2(PipeRoom.makePipeRoom(gameCfg, random, sewerPalette)).modified(standardRoomSetup)
-
+  // TODO make this work using an alternative, "algorithm-specific" marker based on texture 310
   val rooftopGate = {
     val mainRoof = palette.getSG(23)
     val decor = random.randomElement(
@@ -199,15 +209,9 @@ class DropPalette2(
     ).withAlternateFloors(random)
 
     val roof2 = mainRoof.withGroupAttached(gameCfg, mainRoof.getRedwallConnector(100), decor, decor.getRedwallConnector(100)).autoLinked
-
     NodeTile2(roof2).modified(standardRoomSetup).modified(withEnemySpriteGroups)
   }
 
-  val caveGate = NodeTile2(palette.getSG(27)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-  val spaceStation = NodeTile2(palette.getSG(28)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-  val chessRoom = NodeTile2(palette.getSG(29)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-  val militaryComplex = NodeTile2(palette.getSG(30)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
-  val sushiRestaurant = NodeTile2(palette.getSG(31)).modified(standardRoomSetup).modified(withEnemySpriteGroups)
 
   def validateGate(gate: NodeTile2): NodeTile2 = {
     gate.sg.allRedwallConnectors.find(c => c.getConnectorId == 99).getOrElse {

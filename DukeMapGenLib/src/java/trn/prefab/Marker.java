@@ -127,7 +127,10 @@ public class Marker {
 
     }
 
-    // TODO this text should be game-specific!
+
+    // TODO alternative marker for algo-specific stuff:  310
+
+    // TODO this tex should be game-specific!
     public static int MARKER_SPRITE_TEX = 355;  // the construction sprite
     public static int TEX = 355;  // shorter version!  switch to this!
 

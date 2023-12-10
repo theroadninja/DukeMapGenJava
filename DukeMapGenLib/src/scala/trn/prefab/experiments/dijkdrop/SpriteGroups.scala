@@ -10,11 +10,11 @@ object SpriteGroups {
 
   // no handgun, pipe bombs, or trip mines.  To use:  marker w/ lotag 23, hitag 16
   val StandardAmmo = Seq(Item.ChaingunAmmo, Item.ShotgunAmmo, Item.FreezeAmmo, Item.DevastatorAmmo, Item.RpgAmmo, Item.ShrinkRayAmmo)
-  val STANDARD_AMMO = 16
+  val STANDARD_AMMO = 16 // now 116
 
   // ammo for the more basic weapons
   val BasicAmmo = Seq(Item.ChaingunAmmo, Item.ShotgunAmmo, Item.HandgunAmmo)
-  val BASIC_AMMO = 17
+  val BASIC_AMMO = 17 // now 103
 
   val BasicGuns = Seq(Item.Chaingun, Item.Shotgun)
   val BASIC_GUNS = 18
