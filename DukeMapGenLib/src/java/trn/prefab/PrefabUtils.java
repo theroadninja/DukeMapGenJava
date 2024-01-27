@@ -220,8 +220,6 @@ public class PrefabUtils {
 
 		public static int ALTERNATE_FLOOR_TEX = Marker.Lotags.ALTERNATE_FLOOR_TEX;
 
-		// SPRITE GROUP = 31
-
 		public static List<Integer> ALL = Arrays.asList(new Integer[]{
 				GROUP_ID,
 				PLAYER_START,
@@ -249,6 +247,7 @@ public class PrefabUtils {
 				ALTERNATE_FLOOR_TEX,
 				Marker.Lotags.SPRITE_GROUP_ID,
 				Marker.Lotags.INLINE_SPRITE_GROUP,
+				Marker.Lotags.SG_TYPE,
 				});
 	}
 

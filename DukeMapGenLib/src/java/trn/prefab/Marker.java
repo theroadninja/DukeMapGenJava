@@ -121,9 +121,21 @@ public class Marker {
          * have that R thing set either) in the same sector.  More than one of
          * these markers can be in the same sector.
          *
+         * Note:  this doesnt use sprite groups defind elsewhere -- it only pulls from
+         * sprites in the same sector.
+         *
          * hitag: (none)
          */
         public static int INLINE_SPRITE_GROUP = 32;
+
+        /**
+         * Identifies what "type" of sprite group this is for the purpose of algorithms
+         * that assemble sprite groups into bigger sprite groups.  Its meaning depends
+         * on the algorithm being used.
+         *
+         * hitag:  the type of the sprite group
+         */
+        public static int SG_TYPE = 33;
 
     }
 

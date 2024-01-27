@@ -4,7 +4,7 @@ import trn.{Sprite, RandomX}
 import trn.prefab.{Enemy, SectorGroup, SpritePrefab, Item, Marker}
 
 
-// TODO better name, and this belonds somewhere else
+// TODO better name, and this belongs somewhere else
 case class SimpleSpritePrefab(
   override val tex: Int,
   override val pal: Int,
