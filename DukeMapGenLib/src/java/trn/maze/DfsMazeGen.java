@@ -12,8 +12,6 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import trn.duke.experiments.LegacyGrid;
-
 /**
  * TODO finish converting to duchy.experiments.render.maze.MutableMazeGraph
  */
@@ -31,14 +29,14 @@ public class DfsMazeGen {
 		 * @author Dave
 		 *
 		 */
-		Map<T, LegacyGrid.BlockInfo> nodeInfo = new HashMap<T, LegacyGrid.BlockInfo>();
+		Map<T, BlockInfo> nodeInfo = new HashMap<T, BlockInfo>();
 
 		public Graph(){}
 
-		public LegacyGrid.BlockInfo getBlockInfo(T t){
-			LegacyGrid.BlockInfo ni = nodeInfo.get(t);
+		public BlockInfo getBlockInfo(T t){
+			BlockInfo ni = nodeInfo.get(t);
 			if(ni == null){
-				ni = new LegacyGrid.BlockInfo();
+				ni = new BlockInfo();
 			}
 			nodeInfo.put(t, ni);
 			return ni;

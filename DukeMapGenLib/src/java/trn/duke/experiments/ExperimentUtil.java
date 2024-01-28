@@ -10,14 +10,9 @@ import java.util.List;
 import java.util.Random;
 
 public final class ExperimentUtil {
-    // private static final Random random = new Random();
-
-    // public static Random getRandom(){
-    //     return random;
-    // }
-
 
     /**
+     * I think this just finds overlapping walls that can be automatically turned into redwalls.
      *
      * @param map
      * @param sector0
@@ -45,28 +40,6 @@ public final class ExperimentUtil {
 
         return new ImmutablePair<List<Integer>, List<Integer>>(sector0wallsOut, sector1wallsOut);
     }
-    // /**
-    //  * orders the walls so that wall 0 points to wall 1
-    //  * @param map
-    //  * @param walls
-    //  */
-    // public static void orderWalls(Map map, Integer ... walls){
-    //     if(walls[0] == null || walls[1] == null) throw new RuntimeException();
-
-
-    //     Wall w0 = map.getWall(walls[0]);
-    //     Wall w1 = map.getWall(walls[1]);
-
-    //     if(w0.getPoint2Id() == walls[1]){
-    //         //ok
-    //     }else if(w1.getPoint2Id() == walls[0]){
-    //         Integer tmp = walls[0];
-    //         walls[0] = walls[1];
-    //         walls[1] = tmp;
-    //     }else{
-    //         throw new RuntimeException("walls are not adjacent");
-    //     }
-    // }
 
     /**
      * orders the walls so that wall 0 points to wall 1 -- list versino

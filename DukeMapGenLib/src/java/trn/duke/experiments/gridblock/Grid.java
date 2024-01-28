@@ -5,8 +5,7 @@ import java.util.HashMap;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import scala.Tuple2;
-import trn.duke.experiments.LegacyGrid.BlockInfo;
+import trn.maze.BlockInfo;
 import trn.maze.DfsMazeGen;
 import trn.maze.Heading;
 
