@@ -10,28 +10,18 @@ import trn.maze.Heading;
  * @author Dave
  *
  */
-public class NorthSouthConnector extends OrdinalConnector {
+public class NorthSouthConnector extends Connector {
 
 	public NorthSouthConnector(Block parentBlock, boolean gender) {
-		super(Connector.NORTH_SOUTH, parentBlock, gender);
+		super(
+				Connector.NORTH_SOUTH,
+				parentBlock,
+				gender,
+				gender ? Heading.NORTH : Heading.SOUTH
+		);
 	}
 
-	@Override
-	public void draw(Map map, Connector female) {
-		//male connector is north edge of south block
-		//female connector is south edge of north block
-		NorthSouthConnector southEdgeOfNorthBlock = (NorthSouthConnector)female;
-		NorthSouthConnector northEdgeOfSouthBlock = this;
-		
-		int ni = northEdgeOfSouthBlock.getCreatedSectorIndex();
-		if(ni < 0) throw new RuntimeException("invalid north index: " + ni);
-		int si = southEdgeOfNorthBlock.getCreatedSectorIndex();
-		if(si < 0) throw new RuntimeException("invalid south index:" + si);
-		if(si == ni) throw new RuntimeException("connectors are for same sector! si=ni=" + si);
 
-		MapUtil.autoLinkWalls(map, northEdgeOfSouthBlock.getCreatedSectorIndex(), southEdgeOfNorthBlock.getCreatedSectorIndex());
-	}
-	
 	@Override
 	protected Heading genderToBlockEdgeHeading(boolean gender){
 		//male connector is north edge of south block

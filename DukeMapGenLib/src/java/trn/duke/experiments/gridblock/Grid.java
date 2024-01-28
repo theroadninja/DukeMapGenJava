@@ -154,8 +154,8 @@ public class Grid {
 		boolean roomsMatch = isVerticalPassage(gc);
 		
 		if(roomsMatch){
-			int z1 = ((OrdinalConnector)north.getConnector(Heading.SOUTH)).getFloorZ();
-			int z2 = ((OrdinalConnector)south.getConnector(Heading.NORTH)).getFloorZ();
+			int z1 = (north.getConnector(Heading.SOUTH)).getFloorZ();
+			int z2 = (south.getConnector(Heading.NORTH)).getFloorZ();
 			return z1 != z2;
 		}else{
 			return false;

@@ -4,10 +4,15 @@ import trn.Map;
 import trn.MapUtil;
 import trn.maze.Heading;
 
-public class EastWestConnector extends OrdinalConnector {
+public class EastWestConnector extends Connector {
 
 	public EastWestConnector(Block parentBlock, boolean gender) {
-		super(Connector.EAST_WEST, parentBlock, gender);
+		super(
+				Connector.EAST_WEST,
+				parentBlock,
+				gender,
+				gender ? Heading.EAST : Heading.WEST
+				);
 	}
 
 	@Override
@@ -17,16 +22,6 @@ public class EastWestConnector extends OrdinalConnector {
 		return gender ? Heading.EAST : Heading.WEST; 
 	}
 
-	@Override
-	protected void draw(Map map, Connector femaleConnector) {
-		
-		EastWestConnector eastEdgeOfWestBlock = this;
-		EastWestConnector westEdgeOfEastBlock = (EastWestConnector)femaleConnector;
-		
-		MapUtil.autoLinkWalls(map, westEdgeOfEastBlock.getCreatedSectorIndex(), eastEdgeOfWestBlock.getCreatedSectorIndex());
-	}
-
-	
 	public static EastWestConnector eastEdge(Block block){
 		return new EastWestConnector(block, Connector.MALE);
 	}

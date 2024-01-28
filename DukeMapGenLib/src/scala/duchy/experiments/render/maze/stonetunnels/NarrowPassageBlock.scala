@@ -3,7 +3,7 @@ package duchy.experiments.render.maze.stonetunnels
 import org.apache.commons.lang3.tuple.Pair
 import trn.{Wall, Sector}
 import trn.duke.experiments.WallPrefab
-import trn.duke.experiments.gridblock.{AbstractBlock, SimpleBlock, NorthSouthConnector, EastWestConnector, Connector, OrdinalConnector}
+import trn.duke.experiments.gridblock.{AbstractBlock, SimpleBlock, NorthSouthConnector, EastWestConnector, Connector}
 import trn.maze.Heading
 
 object NarrowPassageBlock {
@@ -11,7 +11,7 @@ object NarrowPassageBlock {
 }
 class NarrowPassageBlock(gridCoordinate: Pair[Integer, Integer], rotation: Int) extends AbstractBlock(gridCoordinate) {
 
-  val connectors: Map[Int, OrdinalConnector] = if(rotation == NarrowPassageBlock.VERTICAL){
+  val connectors: Map[Int, Connector] = if(rotation == NarrowPassageBlock.VERTICAL){
     Map(
       Heading.NORTH.arrayIndex -> NorthSouthConnector.northEdge(this),
       Heading.SOUTH.arrayIndex -> NorthSouthConnector.southEdge(this),
@@ -77,7 +77,7 @@ class NarrowPassageBlock(gridCoordinate: Pair[Integer, Integer], rotation: Int) 
 
     val createdSectorIndex = sectorIndex
 
-    for (c: OrdinalConnector <- connectors.values) {
+    for (c: Connector <- connectors.values) {
       if (c != null) c.setSectorIndex(createdSectorIndex)
     }
 

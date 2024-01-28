@@ -1,5 +1,6 @@
 package trn.duke.experiments.gridblock;
 
+import trn.MapUtil;
 import trn.maze.Heading;
 
 /**
@@ -37,15 +38,31 @@ public abstract class Connector {
 	 * a binary connection is made from one male connector and one female connector
 	 */
 	private final boolean gender;
-	
-	
-	public Connector(int connectorType, Block parentBlock, boolean gender){
+
+	private final Heading heading;
+
+	private int sectorIndex = -1;
+	private Integer floorZ;
+
+	public Connector(int connectorType, Block parentBlock, boolean gender, Heading heading){
 		if(parentBlock == null) throw new IllegalArgumentException();
 		this.connectorType = connectorType;
 		this.parentBlock = parentBlock;
 		this.gender = gender;
+		this.heading = heading;
 	}
-	
+
+	public final void setSectorIndex(int index) {
+		this.sectorIndex = index;
+	}
+	public final void setFloorZ(Integer floorZ){
+		this.floorZ = floorZ;
+	}
+
+	public final Integer getFloorZ(){
+		return this.floorZ;
+	}
+
 	public final int getConnectorType(){
 		return this.connectorType;
 	}
@@ -57,41 +74,26 @@ public abstract class Connector {
 	public void draw(trn.Map map, Block otherBlock){
 		if(this.parentBlock == otherBlock || otherBlock == null) throw new IllegalArgumentException();
 		
-		Connector male = null;
-		Connector female = null;
-		
+		Connector other = null;
 		if(this.gender == Connector.MALE){
-			male = this;
-			female = otherBlock.getConnector(genderToBlockEdgeHeading(FEMALE));
+			// other = otherBlock.getConnector(genderToBlockEdgeHeading(FEMALE));
+			other = otherBlock.getConnector(genderToBlockEdgeHeading(FEMALE));
 		}else{
-			male = otherBlock.getConnector(genderToBlockEdgeHeading(MALE));
-			female = this;
+			// other = otherBlock.getConnector(genderToBlockEdgeHeading(MALE));
+			other = otherBlock.getConnector(genderToBlockEdgeHeading(MALE));
 		}
-		
-		//safety check
-		if(male.gender != MALE || female.gender != FEMALE) throw new RuntimeException();
-		
-		male.draw(map, female);
-		
+		this.draw(map, other);
 	}
-	
-	/**
-	 * TODO: there should be a better way to do this...maybe set the wall instead of the sector?
-	 * 
-	 * @param index
-	 */
-	public abstract void setSectorIndex(int index);
-	
+
 	protected abstract Heading genderToBlockEdgeHeading(boolean gender);
 	
-	/**
-	 * this should only be called by SimpleConnector.
-	 * 
-	 * Always calls the male connector and passes the female as the argument.
-	 * 
-	 * @param map
-	 * @param femaleConnector 
-	 */
-	protected abstract void draw(trn.Map map, Connector femaleConnector);
-	
+	protected final void draw(trn.Map map, Connector other){
+		MapUtil.autoLinkWalls(map, this.getCreatedSectorIndex(), other.getCreatedSectorIndex());
+	}
+
+	public final int getCreatedSectorIndex(){
+		if(sectorIndex == -1) throw new RuntimeException("sector index not set on connector");
+		return sectorIndex;
+	}
+
 }

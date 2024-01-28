@@ -18,7 +18,7 @@ public class SimpleBlock extends AbstractBlock implements Block {
 	public static final int WALL_LENGTH = 2048; //2 x largest grid size
 	
 	//connectors, indexed by heading
-	protected final OrdinalConnector[] connectors = new OrdinalConnector[]{null, null, null, null};
+	protected final Connector[] connectors = new Connector[]{null, null, null, null};
 	
 	//edge walls (red walls that touch the connectors) indexed by heading
 	// private final int[] walls = new int[]{-1,-1,-1,-1};
@@ -79,7 +79,7 @@ public class SimpleBlock extends AbstractBlock implements Block {
 	
 	public void setFloorZ(Integer z){
 		this.floorZ = z;
-		for(OrdinalConnector c : connectors){
+		for(Connector c : connectors){
 			c.setFloorZ(floorZ);
 		}
 		
@@ -120,7 +120,7 @@ public class SimpleBlock extends AbstractBlock implements Block {
 
 		createdSectorIndex = sectorIndex;
 		
-		for(OrdinalConnector c : connectors){
+		for(Connector c : connectors){
 			c.setSectorIndex(createdSectorIndex);
 		}
 		
@@ -128,11 +128,11 @@ public class SimpleBlock extends AbstractBlock implements Block {
 	}
 
 	@Override
-	public OrdinalConnector getConnector(Heading heading) {
+	public Connector getConnector(Heading heading) {
 		return connectors[heading.arrayIndex];
 	}
 	
-	void setConnector(Heading heading, OrdinalConnector c){
+	void setConnector(Heading heading, Connector c){
 		if(heading == null) throw new IllegalArgumentException();
 		connectors[heading.arrayIndex] = c;
 	}

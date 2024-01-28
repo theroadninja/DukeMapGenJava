@@ -146,6 +146,9 @@ public class MapUtil {
 	/**
 	 */
 	public static void autoLinkWalls(trn.Map map, int sector0, int sector1){
+		if(sector0 == sector1) throw new IllegalArgumentException("same sector");
+		if(sector0 < 0) throw new IllegalArgumentException("invalid sector0");
+		if(sector1 < 0) throw new IllegalArgumentException("invalid sector1");
 
 		Pair<List<Integer>, List<Integer>> overlappingWalls = ExperimentUtil.filterOverlappingPoints(map, sector0, sector1);
 
