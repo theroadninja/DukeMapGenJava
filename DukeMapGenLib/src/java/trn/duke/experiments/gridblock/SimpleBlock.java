@@ -21,7 +21,7 @@ public class SimpleBlock extends AbstractBlock implements Block {
 	protected final OrdinalConnector[] connectors = new OrdinalConnector[]{null, null, null, null};
 	
 	//edge walls (red walls that touch the connectors) indexed by heading
-	private final int[] walls = new int[]{-1,-1,-1,-1};
+	// private final int[] walls = new int[]{-1,-1,-1,-1};
 	
 	private int wallTex = 0;
 	private int ceilTex = 0;
@@ -39,12 +39,7 @@ public class SimpleBlock extends AbstractBlock implements Block {
 	 */
 	private int createdSectorIndex = -1;
 	
-	/** where, in gridspace, this block is located.
-	 * 
-	 * translating from gridspace to mapspace is done via simple math, since we're only dealing with a grid.
-	 */
-	
-	
+
 	public SimpleBlock(Pair<Integer, Integer> gridCoordinate){
 		super(gridCoordinate);
 		
@@ -67,15 +62,7 @@ public class SimpleBlock extends AbstractBlock implements Block {
 		return this.floorZ;
 	}
 	
-	/*
-	public void setConnectors(SimpleConnector northConn, SimpleConnector eastConn, SimpleConnector southConn, SimpleConnector westConn){
-		
-		connectors[Heading.NORTH.arrayIndex] = northConn;
-		connectors[Heading.EAST.arrayIndex] = eastConn;
-		connectors[Heading.SOUTH.arrayIndex] = southConn;
-		connectors[Heading.WEST.arrayIndex] = westConn;
-	}*/
-	
+
 	public int getCreatedSectorIndex(){
 		return this.createdSectorIndex;
 	}
@@ -98,10 +85,6 @@ public class SimpleBlock extends AbstractBlock implements Block {
 		
 	}
 	
-	/**
-	 * see also E5CreateMaze.createSector()
-	 * @param map
-	 */
 	public int draw(trn.Map map){
 		
 		int west = gridCoordinate.getLeft() * WALL_LENGTH;
@@ -146,10 +129,7 @@ public class SimpleBlock extends AbstractBlock implements Block {
 		}
 		
 		return sectorIndex;
-		
-		
 	}
-	
 
 	@Override
 	public OrdinalConnector getConnector(Heading heading) {
@@ -161,13 +141,8 @@ public class SimpleBlock extends AbstractBlock implements Block {
 		connectors[heading.arrayIndex] = c;
 	}
 
-
-
-
-	public int getWallIndex(Heading heading) {
-		return walls[heading.arrayIndex];
-	}
-
-
+	// public int getWallIndex(Heading heading) {
+	// 	return walls[heading.arrayIndex];
+	// }
 
 }

@@ -3,6 +3,9 @@ package trn;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import trn.duke.MapErrorException;
 import trn.duke.experiments.WallPrefab;
@@ -564,14 +567,18 @@ public class Wall implements HasLocationXY {
 	
 	public static Wall[] createLoop(PointXY[] points, WallPrefab spec){
 		Wall[] walls = new Wall[points.length];
-		
 		for(int i = 0; i < points.length; ++i){
 			walls[i] = new Wall(points[i], spec);
-			
 		}
-		
 		return walls;
 	}
+
+	// hack I'm adding to make scala interop easier
+	public static List<Wall> createLoopAsList(PointXY[] points, WallPrefab spec){
+		Wall[] walls = createLoop(points, spec);
+		return Arrays.asList(walls);
+	}
+
 	
 	
 	public static Wall[] createLoop(PointXY[] points, int wallTex, int xrepeat, int yrepeat){

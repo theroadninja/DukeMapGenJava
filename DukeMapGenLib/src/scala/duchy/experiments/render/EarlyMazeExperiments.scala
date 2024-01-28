@@ -1,16 +1,16 @@
 package duchy.experiments.render
 
-import duchy.experiments.render.maze.{BlockInfo, BlockTileset, MutableMazeGraph}
+import duchy.experiments.render.maze.{MutableMazeGraph, BlockInfo, BlockTileset, BlockCursor}
 import trn.maze.DfsMazeGen
 
 import collection.JavaConverters._
 import org.apache.commons.lang3.tuple.{ImmutablePair, Pair}
 import MutableMazeGraph.NodeId
+import duchy.experiments.render.maze.stonetunnels.{ItemBlock, StoneConstants, StartBlock, ExitBlock, NarrowPassageBlock}
 import trn.duke.TextureList
-import trn.duke.experiments.SpritePrefab
-import trn.duke.experiments.gridblock.{BlockCursor, Grid, GridUtils}
-import trn.duke.experiments.stonetunnels.{BlockRotation, ExitBlock, ItemBlock, NarrowPassageBlock, PassageBlock, StartBlock}
-import trn.{Main, PlayerStart, RandomX, Sector, Wall, Map => DMap}
+import trn.duke.experiments.{WallPrefab, SectorPrefab, SpritePrefab}
+import trn.duke.experiments.gridblock.{SimpleBlock, Grid, GridUtils}
+import trn.{Sector, RandomX, Wall, Main, PlayerStart, Map => DMap}
 import trn.prefab.BoundingBox
 
 import scala.+:
@@ -205,26 +205,33 @@ object EarlyMazeExperiments {
     val cursor = new BlockCursor(0, 1)
     val start = new StartBlock(cursor.get) //0,1
 
+    def passageBlock(gridCoordinate: Pair[Integer, Integer]): SimpleBlock = {
+      val sb = new SimpleBlock(gridCoordinate)
+      sb.setWallPrefab(new WallPrefab(StoneConstants.UPPER_WALL_TEX).setShade(StoneConstants.SHADE))
+      sb.setSectorPrefab(new SectorPrefab(StoneConstants.UPPER_FLOOR, StoneConstants.UPPER_CEILING).setFloorShade(StoneConstants.SHADE).setCeilingShade(StoneConstants.SHADE))
+      sb
+    }
+
+
     val grid = new Grid
     grid.add(start)
-    grid.add(new NarrowPassageBlock(cursor.moveNorth, BlockRotation.VERTICAL))
+    grid.add(new NarrowPassageBlock(cursor.moveNorth, NarrowPassageBlock.VERTICAL))
     //this blows up, but not very cleanly (should the grid check?)
     //grid.add(new PassageBlock(new ImmutablePair<Integer, Integer>(-1, 0)));
-    grid.add(new PassageBlock(cursor.moveNorth)) // 0, -1
-    grid.add(new PassageBlock(cursor.moveEast)) // 1, -1
+    grid.add(passageBlock(cursor.moveNorth)) // 0, -1
+    grid.add(passageBlock(cursor.moveEast)) // 1, -1
 
     //grid.add(new ItemBlock(new ImmutablePair<Integer, Integer>(2, -1), new SpritePrefab(TextureList.Items.CARD)));//grid.add(new ItemBlock(new ImmutablePair<Integer, Integer>(2, -1), new SpritePrefab(TextureList.Items.CARD)));
     grid.add(new ItemBlock(new ImmutablePair[Integer, Integer](2, -(1)), new SpritePrefab(TextureList.Items.ARMOR)))
-    grid.add(new PassageBlock(new ImmutablePair[Integer, Integer](3, -(1))))
-    grid.add(new PassageBlock(new ImmutablePair[Integer, Integer](4, -(1))))
-    grid.add(new PassageBlock(new ImmutablePair[Integer, Integer](5, -(1))))
+    grid.add(passageBlock(new ImmutablePair[Integer, Integer](3, -(1))))
+    grid.add(passageBlock(new ImmutablePair[Integer, Integer](4, -(1))))
+    grid.add(passageBlock(new ImmutablePair[Integer, Integer](5, -(1))))
 
-    grid.add(new PassageBlock(new ImmutablePair[Integer, Integer](5, 0)))
+    grid.add(passageBlock(new ImmutablePair[Integer, Integer](5, 0)))
 
-    //grid.add(new PassageBlock(new ImmutablePair<Integer, Integer>(5, 1)));//grid.add(new PassageBlock(new ImmutablePair<Integer, Integer>(5, 1)));
     grid.add(new ItemBlock(new ImmutablePair[Integer, Integer](5, 1), new SpritePrefab(TextureList.Enemies.LIZTROOP)))
 
-    grid.add(new PassageBlock(new ImmutablePair[Integer, Integer](5, 2)))
+    grid.add(passageBlock(new ImmutablePair[Integer, Integer](5, 2)))
     grid.add(new ExitBlock(new ImmutablePair[Integer, Integer](5, 3)))
 
     val map = createMap8(grid, start.getPlayerStart)

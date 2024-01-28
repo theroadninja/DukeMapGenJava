@@ -8,7 +8,7 @@ import trn.{PointXY, Wall, WallStat}
   *
   * TODO:  make a distinction between structure vs appearance.  This is only for appearance.
   *
-  * TODO:  call this WallBrush ?
+  * TODO:  rename to WallBrush
   */
 case class WallPrefab(
   tex: Option[Texture],

@@ -258,6 +258,12 @@ public class TextureList {
 		 * - https://infosuite.duke4.net/index.php?page=references_faq
 		 */
 		public static final int NUKE_BUTTON = 142; //TODO:  document the pallete to make it a special level
+
+		/**
+		 * Lotag of nuke button that will end a level.  Some sources say it must be 65535, others say any nonzero #.
+		 * This doesnt really belong here b/c its not a picnum, but I want it to be easy to find.
+		 */
+		public static final int NUKE_BUTTON_LOTAG = 65535;
 		
 		/** switch with 4 positions, like in the death row level */
 		public static final int MULTI_SWITCH = 146;

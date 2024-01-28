@@ -379,6 +379,13 @@ public class Map implements WallContainer {
 	public int createSectorFromLoop(Wall ... wallsToAdd){
 		return addSector(new Sector(addLoop(wallsToAdd), wallsToAdd.length));
 	}
+
+	// make it easier to work with scala
+	public int createSectorFromLoop2(List<Wall> wallsToAdd){
+		Wall[] walls = new Wall[wallsToAdd.size()];
+		wallsToAdd.toArray(walls);
+		return createSectorFromLoop(walls);
+	}
 	
 	public int createSectorFromMultipleLoops(Wall[] ... wallLoops){
 		
