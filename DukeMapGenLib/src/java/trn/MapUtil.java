@@ -1,8 +1,9 @@
 package trn;
 
+import org.apache.commons.lang3.tuple.Pair;
+import trn.duke.experiments.ExperimentUtil;
 import trn.prefab.GameConfig;
 import trn.prefab.Heading;
-import trn.prefab.SectorGroup;
 
 import java.util.*;
 
@@ -103,14 +104,16 @@ public class MapUtil {
 
 	
 	/**
-	 * This is for child sectors.  It will attempt to link (as in, create 2-sided red walls...)
+	 * This is for INNER sectors ONLY.
+	 *
+	 * It will attempt to link (as in, create 2-sided red walls...)
 	 * every wall in sectorA with every wall in sectorB.  Since whichever one is the outer sector
 	 * has more than one wall loop, the walls in the wall loop must be specified.
-	 * 
-	 * 
+	 *
+	 * See also Map.linkRedWalls()
 	 */
-	public static void linkAllWalls(Map map, int sectorA, int wallAindex, int sectorB, int wallBindex){
-		
+	public static void linkInnerSectorWallLoops(Map map, int sectorA, int wallAindex, int sectorB, int wallBindex){
+
 		List<Integer> wallsA = map.getWallLoop(wallAindex);
 		List<Integer> wallsB = map.getWallLoop(wallBindex);
 		
@@ -132,29 +135,34 @@ public class MapUtil {
 				
 				if(wallA.sameXY(wallB2) && wallA2.sameXY(wallB)){
 					foundMatch = true;
-					
-					
-					//map.linkRedWalls(sectorA, a, sectorB, wallB.getPoint2Id());
-					
 					map.linkRedWalls(sectorA, a, sectorB, b);
-					
-					
-					//wallA.setOtherSide(wallB.getPoint2Id(), sectorB);
-					//wallB2.setOtherSide(a, sectorA);
-					
 					break;
 				}
-				
 			}
-			
 			if(! foundMatch) throw new RuntimeException(String.format("failed to find match for wall %d  wallCount=%d", i, wallsA.size()));
-			
-			
 		}
-		
-		
 	}
-	
+
+	/**
+	 */
+	public static void autoLinkWalls(trn.Map map, int sector0, int sector1){
+
+		Pair<List<Integer>, List<Integer>> overlappingWalls = ExperimentUtil.filterOverlappingPoints(map, sector0, sector1);
+
+		if(overlappingWalls.getLeft().size() != 2) throw new RuntimeException(String.format("sector0=%d sector1=%d", sector0, sector1));
+		if(overlappingWalls.getRight().size() != 2) throw new RuntimeException();
+
+		ExperimentUtil.orderWalls(map, overlappingWalls.getLeft());
+		ExperimentUtil.orderWalls(map, overlappingWalls.getRight());
+
+
+		int w0 = overlappingWalls.getLeft().get(0);
+		int w1 = overlappingWalls.getRight().get(0);
+
+		map.linkRedWalls(sector0, w0, sector1, w1);
+
+	}
+
 	public static <T> T pop(Collection<T> whatever){
 		Iterator<T> it = whatever.iterator();
 		T result = it.next();

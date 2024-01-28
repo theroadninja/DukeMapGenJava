@@ -1,6 +1,7 @@
 package trn.duke.experiments.gridblock;
 
 import trn.Map;
+import trn.MapUtil;
 import trn.maze.Heading;
 
 public class EastWestConnector extends OrdinalConnector {
@@ -22,8 +23,7 @@ public class EastWestConnector extends OrdinalConnector {
 		EastWestConnector eastEdgeOfWestBlock = this;
 		EastWestConnector westEdgeOfEastBlock = (EastWestConnector)femaleConnector;
 		
-		GridUtils.linkSectors(map, westEdgeOfEastBlock.getCreatedSectorIndex(), eastEdgeOfWestBlock.getCreatedSectorIndex());
-		
+		MapUtil.autoLinkWalls(map, westEdgeOfEastBlock.getCreatedSectorIndex(), eastEdgeOfWestBlock.getCreatedSectorIndex());
 	}
 
 	

@@ -1,7 +1,6 @@
 package duchy.experiments.render
 
 import duchy.experiments.render.maze.{MutableMazeGraph, BlockInfo, BlockTileset, BlockCursor}
-import trn.maze.DfsMazeGen
 
 import collection.JavaConverters._
 import org.apache.commons.lang3.tuple.{ImmutablePair, Pair}
@@ -9,8 +8,8 @@ import MutableMazeGraph.NodeId
 import duchy.experiments.render.maze.stonetunnels.{ItemBlock, StoneConstants, StartBlock, ExitBlock, NarrowPassageBlock}
 import trn.duke.TextureList
 import trn.duke.experiments.{WallPrefab, SectorPrefab, SpritePrefab}
-import trn.duke.experiments.gridblock.{SimpleBlock, Grid, GridUtils}
-import trn.{Sector, RandomX, Wall, Main, PlayerStart, Map => DMap}
+import trn.duke.experiments.gridblock.{SimpleBlock, Grid}
+import trn.{MapUtil, Sector, RandomX, Wall, Main, PlayerStart, Map => DMap}
 import trn.prefab.BoundingBox
 
 import scala.+:
@@ -128,7 +127,7 @@ object EarlyMazeExperiments {
     // println(gridToStr2(maze2))
 
     if(true){
-      //experiment6()
+      // experiment6()
       experiment8()
     }else{
       // keep refs alive
@@ -183,8 +182,8 @@ object EarlyMazeExperiments {
     nodeIdToSector.foreach { case ((x, y), sectorId) =>
       val east = (x + 1, y)
       val south = (x, y + 1)
-      nodeIdToSector.get(east).foreach(eastId => GridUtils.linkSectors(map, sectorId, eastId))
-      nodeIdToSector.get(south).foreach(southId => GridUtils.linkSectors(map, sectorId, southId))
+      nodeIdToSector.get(east).foreach(eastId => MapUtil.autoLinkWalls(map, sectorId, eastId))
+      nodeIdToSector.get(south).foreach(southId => MapUtil.autoLinkWalls(map, sectorId, southId))
     }
 
     map

@@ -1,6 +1,7 @@
 package trn.duke.experiments.gridblock;
 
 import trn.Map;
+import trn.MapUtil;
 import trn.maze.Heading;
 
 /**
@@ -17,10 +18,8 @@ public class NorthSouthConnector extends OrdinalConnector {
 
 	@Override
 	public void draw(Map map, Connector female) {
-		
 		//male connector is north edge of south block
 		//female connector is south edge of north block
-		
 		NorthSouthConnector southEdgeOfNorthBlock = (NorthSouthConnector)female;
 		NorthSouthConnector northEdgeOfSouthBlock = this;
 		
@@ -29,8 +28,8 @@ public class NorthSouthConnector extends OrdinalConnector {
 		int si = southEdgeOfNorthBlock.getCreatedSectorIndex();
 		if(si < 0) throw new RuntimeException("invalid south index:" + si);
 		if(si == ni) throw new RuntimeException("connectors are for same sector! si=ni=" + si);
-		
-		GridUtils.linkSectors(map, northEdgeOfSouthBlock.getCreatedSectorIndex(), southEdgeOfNorthBlock.getCreatedSectorIndex());
+
+		MapUtil.autoLinkWalls(map, northEdgeOfSouthBlock.getCreatedSectorIndex(), southEdgeOfNorthBlock.getCreatedSectorIndex());
 	}
 	
 	@Override

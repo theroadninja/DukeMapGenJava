@@ -103,13 +103,9 @@ public class SimpleBlock extends AbstractBlock implements Block {
 			wallPrefab.writeTo(se);
 			wallPrefab.writeTo(sw);
 		}
-		
-		
+
 		int sectorIndex =  map.createSectorFromLoop(nw, ne, se, sw);
-		
-		
 		Sector s = map.getSector(sectorIndex);
-		
 		s.setFloorTexture(this.floorTex);
 		s.setCeilingTexture(this.ceilTex);
 		
@@ -140,9 +136,5 @@ public class SimpleBlock extends AbstractBlock implements Block {
 		if(heading == null) throw new IllegalArgumentException();
 		connectors[heading.arrayIndex] = c;
 	}
-
-	// public int getWallIndex(Heading heading) {
-	// 	return walls[heading.arrayIndex];
-	// }
 
 }

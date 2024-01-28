@@ -38,7 +38,7 @@ class ItemBlock(gridCoordinate: Pair[Integer, Integer], itemPrefab: SpritePrefab
     StoneConstants.UPPER_SECTOR.writeTo(innerSector)
     innerSector.setFloorTexture(StoneConstants.UPPER_CEILING)
     innerSector.setFloorZ(daisZ)
-    MapUtil.linkAllWalls(map, outerSectorIndex, map.getSector(outerSectorIndex).getFirstWall, innerSectorIndex, innerSector.getFirstWall)
+    MapUtil.linkInnerSectorWallLoops(map, outerSectorIndex, map.getSector(outerSectorIndex).getFirstWall, innerSectorIndex, innerSector.getFirstWall)
     if (this.itemPrefab != null) {
       val item: Sprite = new Sprite(getCenter, daisZ, innerSectorIndex)
       itemPrefab.writeTo(item)

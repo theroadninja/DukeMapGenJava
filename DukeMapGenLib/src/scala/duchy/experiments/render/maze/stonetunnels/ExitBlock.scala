@@ -6,7 +6,7 @@ import trn.{BuildConstants, PointXY, Wall, Sprite, AngleUtil}
 import trn.duke.experiments.gridblock.{Connector, NorthSouthConnector, Block, AbstractBlock}
 import trn.maze.Heading
 
-class ExitBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(gridCoordinate) with Block {
+class ExitBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(gridCoordinate) {
 
   val connector = NorthSouthConnector.northEdge(this)
 

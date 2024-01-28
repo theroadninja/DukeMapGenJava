@@ -442,7 +442,9 @@ public class Map implements WallContainer {
 	
 	/**
 	 * connects two sectors by creating the necessary link between the sectors' walls,
-	 * creating two-sided walls (which appear red in build); 
+	 * creating two-sided walls (which appear red in build);
+	 *
+	 * See Also MapUtil.linkInnerSectorWallLoops()
 	 */
 	public void linkRedWalls(int sectorIndex, int wallIndex, int sectorIndex2, int wallIndex2){
 		linkRedWallsStrict(sectorIndex, wallIndex, sectorIndex2, wallIndex2);

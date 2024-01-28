@@ -106,7 +106,7 @@ class StartBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(g
     innerSector.setCeilingTexture(StoneConstants.UPPER_CEILING)
     innerSector.setCeilingZ(floorZ - 3 * 4 * 4096)
 
-    MapUtil.linkAllWalls(map, outerSectorIndex, outerLoopCircle, innerSectorIndex, innerLoop)
+    MapUtil.linkInnerSectorWallLoops(map, outerSectorIndex, outerLoopCircle, innerSectorIndex, innerLoop)
 
 
 

@@ -3,9 +3,8 @@ package trn.duke.experiments.gridblock;
 import trn.maze.Heading;
 
 /**
- * Identifies which type of connector a block has.
- * 
- * @author Dave
+ * Primitive early version of redwall connectors.  I don't think the male/female distinction brought any value,
+ * since redwall connections don't have a direction.
  *
  */
 public abstract class Connector {
