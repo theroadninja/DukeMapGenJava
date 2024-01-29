@@ -503,7 +503,7 @@ public class RedwallConnector extends Connector implements HasLocationXY {
 
         // remove the marker sprite
         int d = map.deleteSprites((Sprite s) ->
-                s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
+                s.getTexture() == Marker.MARKER_SPRITE_TEX
                         && s.getSectorId() == spriteSectorId
                         && s.getLotag() == this.markerSpriteLotag
         );

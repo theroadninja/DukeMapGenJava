@@ -46,7 +46,7 @@ trait ConnectorCollection {
   }
 
   final def getChildPointer(): ChildPointer = {
-    val sprites: Seq[Sprite] = map.allSprites.filter(s => s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.REDWALL_CHILD)
+    val sprites: Seq[Sprite] = map.allSprites.filter(s => s.getTexture == Marker.MARKER_SPRITE_TEX && s.getLotag == Marker.Lotags.REDWALL_CHILD)
     if(sprites.size != 1) throw new SpriteLogicException(s"Wrong number of child marker sprites (${sprites.size})")
     val marker: Sprite = sprites(0)
 

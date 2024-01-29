@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-// TODO - i guess this should be a full enum
 public class Heading {
     // TODO DRY with Point3d.scala
     public static final int EAST = 0;

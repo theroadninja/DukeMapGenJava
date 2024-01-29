@@ -39,14 +39,6 @@ object ExperimentTester {
 
       println(s"   numbered groups: ${palette.numberedSectorGroupCount()}")
       println(s"  anonymous groups: ${palette.anonymousSectorGroupCount()}")
-      val multiCount = palette.allSectorGroups().asScala.map { sg =>
-
-        sg.allSprites.filter(s => s.getTex == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.MULTI_SECTOR)
-          .map(_.getLocation.asPointXY())
-
-        // sg.allRedwallConnectors.filter(_.getSectorIds().size() > 1).map(conn => conn.getWallAnchor1())
-      }.filter(_.size > 0)
-      println(s"  multi sector connectors: ${multiCount}")
     }
 
   }

@@ -656,7 +656,7 @@ class SquareTileMain(
     }
 
     grid.allPsg.foreach { psg =>
-      val enemyTags = psg.allSprites.filter(s => Marker.isMarker(s) && s.getLotag == PrefabUtils.MarkerSpriteLoTags.ENEMY)
+      val enemyTags = psg.allSprites.filter(s => Marker.isMarker(s) && s.getLotag == Marker.Lotags.ENEMY)
       if(enemyTags.nonEmpty){
         println("printing enemy")
         val s = writer.randomElement(enemyTags)

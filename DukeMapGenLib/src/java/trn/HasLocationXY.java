@@ -1,4 +1,4 @@
-package trn.prefab;
+package trn;
 
 import trn.PointXY;
 

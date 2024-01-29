@@ -14,259 +14,67 @@ import java.util.List;
 // TODO - move most of this to Marker.java
 public class PrefabUtils {
 
-	public static class MarkerHiTags {
+	// public static class MarkerHiTags {
 
-		/** for ANCHOR markers:  use the lowest floor instead of the z of this sprite */
-		public static int USE_SECTOR_FLOOR = 1;
-	}
+	// 	/** for ANCHOR markers:  use the lowest floor instead of the z of this sprite */
+	// 	public static int USE_SECTOR_FLOOR = 1;
+	// }
 
 	/**
 	 * The marker sprite tex is 355
 	 */
 	public static class MarkerSpriteLoTags {
-		
-		public static int GROUP_ID = Marker.Lotags.GROUP_ID; // 1
-
-		public static int PLAYER_START = Marker.Lotags.PLAYER_START; // 2
-
-		/**
-		 * An anchor whose position you can read to help place a sector group on the grid.
-		 * For example, if you want to place the group such that the middle of the room is in
-		 * a certain spot, put an anchor in the middle of the room and use its coordinates for
-		 * translation.
-		 */
-		public static int ANCHOR = 3;
-
-		/**
-		 * Identifies this sector group as a child of another sector group.  A redwall child group cannot have its
-		 * own ID (no marker sprites with lotag 1).
-         *
-		 * The child group can only be a child to one parent, and cannot exist on its own.  It will be absorbed into
-		 * the parent.
-		 *
-		 * TODO:  support child sectors that connect to other child sectors with the same parent.  Example:  parent is
-		 * 	sector A:  children are B and C.  The connectorIDs are arranged such that B connects to A, and C connects to
-		 * 	B.
-		 *
-		 * lotag:  4
-		 * hitag:  ID of parent sector group  (if parent doesnt exist yet, dont add this marker yet)
-         * sector placed in:   same sector as the redwall connector to use
-		 * 		the redwall connector must have a connectorID that matches a connector in the parent group
-		 * 		the parent group can only have one connector with that connectorID (TODO - update)
-		 * 		the child connector id must be > 0
-		 */
-		public static int REDWALL_CHILD = 4;
-
-
-
-		/**
-		 * Marks a sector with existing text sprites meant to spell out words.
-		 *
-		 * Marker sprite:
-		 * 	lotag: 5
-		 * 	hitag: 0 OR some ID
-		 *
-		 * Text Sprites:
-		 *   lotag:  non zero, value indicates order (smaller numbers to the left)
-		 *
-		 */
-		public static int AUTO_TEXT = 5;
-
-
-		/**
-		 * The sector group should stay right where it is.  If it has an ID ( GROUP_ID set ) then it will be scanned
-		 * and can be pasted again, but the original copy will stay where it is.
-		 *
-		 */
-		public static int STAY = 6;
-
+		// public static int GROUP_ID = Marker.Lotags.GROUP_ID; // 1
+		// public static int PLAYER_START = Marker.Lotags.PLAYER_START; // 2
+		// public static int ANCHOR = Marker.Lotags.ANCHOR; // 3
+		// public static int REDWALL_CHILD = Marker.Lotags.REDWALL_CHILD; // 4
+		// public static int AUTO_TEXT = Marker.Lotags.AUTO_TEXT;
+		// public static int STAY = 6;
 		// TODO - reserve 7 to possibly use for teleporter connectors
-		
-		// /** lotag that marks a construction sprite as connector */
-		// public static int HORIZONTAL_CONNECTOR_EAST = 16;
-		//
-		// public static int HORIZONTAL_CONNECTOR_WEST = 17;
-		//
-		// /** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the south edge of the sector */
-		// public static int VERTICAL_CONNECTOR_SOUTH = 18;
-		//
-		// /** horizontal connector that vertically connects rooms; the wall with lotag 1 is on the north edge of the sector */
-		// public static int VERTICAL_CONNECTOR_NORTH = 19;
-
-		public static int ENEMY = Marker.Lotags.ENEMY; // 8
-
-		public static int ITEM = Marker.Lotags.ITEM;
-
-		/**
-		 * Used for a sector group that isnt a real sector group but it only used as input for a particular generator
-		 * algorithm.
-		 */
-		public static int GENERATOR_INPUT = 10;
-
-		/**
-		 * This is for a companion sector group that is connected only via water/teleporters/elevators,
-		 * and not by redwalls.  This companion sector must be pasted and linked to its parent, however
-		 * it can be pasted anyway.
-		 *
-		 * See REDWALL_CHILD for a child group that connects via a redwall.
-         *
-		 * All teleporer and elevator connectors between groups must match via connector ids.
-		 *
-		 * TODO - water automatic?
-         *
-		 * Lotag: 11
-		 * Hitag:  matches sector group id of parent sector group
-		 */
-		public static int TELEPORT_CHILD = 11;
-
-
-		/**
-		 * Causes the entire sector group to be translazed along the z-axis as it is being read from the source file.
-		 * This is for lazy people who want to use elevators but forgot to pgdown the lower sector group.
-		 *
-		 * Only one of these may exist in a single source file.
-		 *
-		 * Sprite hitag:  set to amount of z to translate by - TODO better explanation - positive for down?
-		 */
-		public static int TRANSLATE_Z = 12;
-
-		/**
-		 * Generic algorithm "Hint" sprite.  The meaning of the sprite is specific to the algorithm being used to
-		 * generate the map.
-		 *
-		 * TODO possibly replaced by ALGO_GENERIC?
-		 */
-		public static int ALGO_HINT = 13;
-
-		/**
-		 * For some grid-based algorithms, to lock a room to a certain value on an axis.
-		 *
-		 * Hitag:     Locks:
-		 * 0          x=0
-		 * 1          x=1
-		 * 2          x=2
-		 * ...
-		 * 16         y=0
-		 * 17         y=1
-		 * 18         y=2
-		 * ...
-		 * 32         z=0
-		 * 33         z=1
-		 * 34         z=2
-		 * ...
-		 * 48         w=0
-		 * 49         w=1
-		 */
-		public static int ALGO_AXIS_LOCK = 14;
-
-		public static int SWITCH_REQUESTED = Marker.Lotags.SWITCH_REQUESTED; // 15
-
-		public static int ALGO_GENERIC  = Marker.Lotags.ALGO_GENERIC; // 16
-
-		/**
-		 * Elevator Connector
-		 *
-		 * To make an elevator with this:
-		 * 		marker sprite lotag 17
-		 * 		sector lotag 15
-		 */
-		public static int ELEVATOR_CONNECTOR = 17;
-
-		/**
-		 *  AUTO CONNECTOR
-		 *
-		 *  To make an elevator:
-		 *  	marker sprite lotag 20
-		 *  	sector lotag 15
-		 *  	SE sprite lotag 17
-		 *
-         *
-		 * Can become:
-		 * 	- simple connectors
-		 * 	- multi wall connectors
-		 * 	- teleporters / water
-		 * 	- elevators
-		 *
-		 */
-
+		// public static int ENEMY = Marker.Lotags.ENEMY; // 8
+		// public static int ITEM = Marker.Lotags.ITEM;
+		// public static int GENERATOR_INPUT = 10;
+		// public static int TELEPORT_CHILD = Marker.Lotags.TELEPORT_CHILD;
+		// public static int TRANSLATE_Z = Marker.Lotags.TRANSLATE_Z;
+		// public static int ALGO_HINT = 13;
+		// public static int ALGO_AXIS_LOCK = Marker.Lotags.ALGO_AXIS_LOCK;
+		// public static int SWITCH_REQUESTED = Marker.Lotags.SWITCH_REQUESTED; // 15
+		// public static int ALGO_GENERIC  = Marker.Lotags.ALGO_GENERIC; // 16
+		// public static int ELEVATOR_CONNECTOR = 17;
 		// public static int SIMPLE_CONNECTOR = 20; // now this is basically all redwall connectors
-		public static int SIMPLE_CONNECTOR = Marker.Lotags.REDWALL_MARKER;
+		// public static int SIMPLE_CONNECTOR = Marker.Lotags.REDWALL_MARKER;
 
 		// NOTE this is NOT about making child sectors.  See Redwall Child for that (lotag 4)
 		// also NOTE:  this one is not deprecated!   marker 20 does not automatically extend into other sectors
 		// you must place one of these in each sector
-		public static int MULTISECTOR_CHILD = 21;  // accomplishes multi-sector redwall conns by being a child segment
+		// public static int MULTISECTOR_CHILD = 21;  // accomplishes multi-sector redwall conns by being a child segment
 
-		/** a connector that spans multiple sectors */
-		@Deprecated // use a combination of SIMPLE_CONNECTOR + MULTISECTOR_CHILD
-		public static int MULTI_SECTOR = 22;
+		// public static int MULTI_SECTOR = 22; @Deprecated // use a combination of SIMPLE_CONNECTOR + MULTISECTOR_CHILD
 
-		public static int RANDOM_ITEM = Marker.Lotags.RANDOM_ITEM; // 23
+		// public static int RANDOM_ITEM = Marker.Lotags.RANDOM_ITEM; // 23
 
-		/**
-		 * A connector sprite that becomes a normal or water teleporter.
-		 * (but not a silent teleporter).
-		 * When done this way, you don't need an SE sprite because this sprite
-		 * becomes an SE sprite.
-		 *
-		 * You can also make a teleporter connector by putting a simple connector
-		 * in a sector group with a teleporter.
-		 */
-		public static int TELEPORT_CONNECTOR = 27;
+		// public static int TELEPORT_CONNECTOR = 27;
 
-		public static int FALL_CONNECTOR = Marker.Lotags.FALL_CONNECTOR;
+		// public static int FALL_CONNECTOR = Marker.Lotags.FALL_CONNECTOR;
 
-		public static int BLANK = Marker.Lotags.BLANK;
+		// public static int BLANK = Marker.Lotags.BLANK;
 
-		public static int ALTERNATE_FLOOR_TEX = Marker.Lotags.ALTERNATE_FLOOR_TEX;
+		// public static int ALTERNATE_FLOOR_TEX = Marker.Lotags.ALTERNATE_FLOOR_TEX;
 
-		public static List<Integer> ALL = Arrays.asList(new Integer[]{
-				GROUP_ID,
-				PLAYER_START,
-				ANCHOR,
-				REDWALL_CHILD,
-				AUTO_TEXT,
-				STAY,
-				ENEMY,
-				ITEM,
-				GENERATOR_INPUT,
-				TELEPORT_CHILD,
-				TRANSLATE_Z,
-				ALGO_HINT,
-				ALGO_AXIS_LOCK,
-				SWITCH_REQUESTED,
-				ALGO_GENERIC,
-				ELEVATOR_CONNECTOR,
-				SIMPLE_CONNECTOR,
-				MULTISECTOR_CHILD,
-				RANDOM_ITEM,
-				MULTI_SECTOR,
-				TELEPORT_CONNECTOR,
-				FALL_CONNECTOR,
-				BLANK,
-				ALTERNATE_FLOOR_TEX,
-				Marker.Lotags.SPRITE_GROUP_ID,
-				Marker.Lotags.INLINE_SPRITE_GROUP,
-				Marker.Lotags.SG_TYPE,
-				});
 	}
 
-	@Deprecated
-	public static int MARKER_SPRITE_TEX = Marker.MARKER_SPRITE_TEX;
+	// @Deprecated
+	// public static int MARKER_SPRITE_TEX = Marker.MARKER_SPRITE_TEX;
 
-	public static boolean isMarker(Sprite s, int hitag, int lotag){
+	public static boolean isMarker(Sprite s, int hitag, int lotag){ // TODO not sure if I should keep this
 	    return Marker.isMarker(s) && s.getHiTag() == hitag && s.getLotag() == lotag;
 	}
 
 
-	public static void checkValid(Sprite s) throws SpriteLogicException {
-		if(Marker.isMarker(s) && !MarkerSpriteLoTags.ALL.contains(s.getLotag())){
-			throw new SpriteLogicException("invalid marker sprite", s.getLocation().asXY());
-		}
-	}
+	// static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
 
-	static ISpriteFilter MARKER_SPRITE = new SpriteFilter(SpriteFilter.TEXTURE, MARKER_SPRITE_TEX);
-
+	/** I don't think I want this behavior to be universal across all markers */
+	@Deprecated
 	public static final int hitagToId(Sprite s){
 		return (s != null && s.getHiTag() > 0) ? s.getHiTag() : -1;
 	}

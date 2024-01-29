@@ -2,7 +2,7 @@ package trn.prefab
 
 import duchy.sg.SimpleConnectorScanner
 import trn.duke.{MapErrorException, TextureList}
-import trn.{PointXYZ, PointXY, MapUtil, Sector, Wall, ISpriteFilter, WallView, MapView, Sprite, MapUtilScala, RandomX, Map => DMap}
+import trn.{PointXYZ, PointXY, MapUtil, Sector, Wall, ISpriteFilter, WallView, Sprite, MapUtilScala, RandomX, MapView, HasLocationXY, Map => DMap}
 import trn.MapImplicits._
 import trn.math.{RotatesCW, SnapAngle}
 
@@ -661,7 +661,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   def hasMarker(lotag: Int): Boolean = {
     for(i <- 0 until map.getSpriteCount){
       val sprite = map.getSprite(i)
-      if(sprite.getTexture == PrefabUtils.MARKER_SPRITE_TEX && sprite.getLotag == lotag){
+      if(Marker.isMarker(sprite, lotag)){
         return true
       }
     }
@@ -679,7 +679,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
 
   def sprites: Seq[Sprite] = map.allSprites
 
-  def hasPlayerStart: Boolean = hasMarker(PrefabUtils.MarkerSpriteLoTags.PLAYER_START)
+  def hasPlayerStart: Boolean = hasMarker(Marker.Lotags.PLAYER_START)
 
   // TODO this is duke-specific logic
   def hasEndGame: Boolean = containsSprite{ s =>

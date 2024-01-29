@@ -2,7 +2,7 @@ package duchy.sg
 
 import org.junit.{Assert, Test}
 import trn.{PointXY, Wall, ScalaMapLoader, Sprite, WallView, LineSegmentXY, Map => DMap}
-import trn.prefab.{PrefabUtils, DukeConfig, RedwallConnector, TestUtils, MultiSectorConnector}
+import trn.prefab.{PrefabUtils, DukeConfig, RedwallConnector, TestUtils, Marker}
 import trn.MapImplicits._
 
 import java.util
@@ -10,7 +10,7 @@ import java.util.{ArrayList, List}
 
 class RedwallConnectorScannerTests {
 
-  val MarkerTex = PrefabUtils.MARKER_SPRITE_TEX
+  val MarkerTex = Marker.MARKER_SPRITE_TEX
 
   val FireHydrantTex = 981
   val TileFloorTex = 414

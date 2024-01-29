@@ -24,7 +24,7 @@ object PoolExperiment {
   val Filename = "pool.map"
 
   def hasPlayerStart(psg: PastedSectorGroup): Boolean = psg.allSprites.exists { s =>
-    s.getTexture == MapWriter.MarkerTex && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
+    s.getTexture == MapWriter.MarkerTex && s.getLotag == Marker.Lotags.PLAYER_START
   }
 
   def main(args: Array[String]): Unit = {

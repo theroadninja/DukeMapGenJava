@@ -1,10 +1,11 @@
 package trn
 
-import trn.prefab.{ConnectorScanner, GameConfig, MathIsHardException, Polygon, PrefabUtils, RedwallConnector, SectorGroup, SpriteLogicException}
+import trn.prefab.{MathIsHardException, ConnectorScanner, Polygon, PrefabUtils, GameConfig, SectorGroup, RedwallConnector, SpriteLogicException, Marker}
 import trn.{Map => DMap}
 
 import scala.collection.JavaConverters._
 import trn.MapImplicits._
+
 import scala.collection.mutable
 
 object MapUtilScala {
@@ -150,7 +151,7 @@ object MapUtilScala {
       }
     }
     destMap.allSprites.find { sprite =>
-      Polygon.containsExclusive2(destBorder, sprite.getLocation.asXY()) && sprite.getTex != PrefabUtils.MARKER_SPRITE_TEX
+      Polygon.containsExclusive2(destBorder, sprite.getLocation.asXY()) && sprite.getTex != Marker.MARKER_SPRITE_TEX
     }.foreach { sprite =>
       throw new SpriteLogicException(s"Cannot paste inner group, sprite in the way", sprite)
     }

@@ -1,8 +1,8 @@
 package trn.bespoke
 
 import trn.duke.TextureList
-import trn.{BuildConstants, HardcodedConfig, LineSegmentXY, Main, PlayerStart, PointXY, PointXYZ, ScalaMapLoader, Sector, WallView, Map => DMap}
-import trn.prefab.{CompoundGroup, DukeConfig, GameConfig, MapWriter, PasteOptions, PastedSectorGroup, PrefabPalette, PrefabUtils, RedwallConnector, SectorGroup, SectorGroupPacker, SimpleSectorGroupPacker, SpriteLogicException}
+import trn.{PointXY, Sector, ScalaMapLoader, Main, PlayerStart, BuildConstants, PointXYZ, WallView, HardcodedConfig, LineSegmentXY, Map => DMap}
+import trn.prefab.{SimpleSectorGroupPacker, MapWriter, PrefabUtils, DukeConfig, CompoundGroup, GameConfig, SectorGroup, RedwallConnector, PasteOptions, PastedSectorGroup, PrefabPalette, SectorGroupPacker, SpriteLogicException, Marker}
 
 import scala.collection.JavaConverters._
 
@@ -124,7 +124,7 @@ object MoonBase1 {
       require(DukeConfig.KeyColors.contains(keyColor))
 
       val sg2 = sg.copy
-      val keysprite = sg2.allSprites.find(s => MapWriter.isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ITEM)).get
+      val keysprite = sg2.allSprites.find(s => Marker.isMarker(s, Marker.Lotags.ITEM)).get
       keysprite.setTexture(TextureList.Items.KEY)
       keysprite.setLotag(0)
       keysprite.setPal(keyColor)

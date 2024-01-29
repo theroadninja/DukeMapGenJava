@@ -1,7 +1,7 @@
 package trn.prefab.experiments.dijkdrop
 
 import trn.prefab.experiments.ExpUtil
-import trn.prefab.{FallConnector, BoundingBox, MapWriter, DukeConfig, GameConfig, SectorGroup, Connector, ConnectorType, PrefabPalette, PastedSectorGroup, SpriteLogicException}
+import trn.prefab.{FallConnector, BoundingBox, MapWriter, DukeConfig, GameConfig, SectorGroup, Connector, PrefabPalette, PastedSectorGroup, SpriteLogicException}
 import trn.{BuildConstants, UniqueTags, RandomX, HardcodedConfig, ScalaMapLoader, Map => DMap}
 
 case class NodeConnectorId(

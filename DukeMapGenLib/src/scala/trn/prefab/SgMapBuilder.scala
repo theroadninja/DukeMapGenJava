@@ -131,7 +131,7 @@ class SgMapBuilder(private val map: DMap, gameCfg: GameConfig) extends TagGenera
     if(!map.hasPlayerStart){
       throw new IllegalStateException("Cannot delete marker sprites - there is no player start set")
     }
-    map.deleteSprites(SpriteFilter.texture(PrefabUtils.MARKER_SPRITE_TEX))
+    map.deleteSprites(SpriteFilter.texture(Marker.MARKER_SPRITE_TEX))
     markersCleared = true
   }
 

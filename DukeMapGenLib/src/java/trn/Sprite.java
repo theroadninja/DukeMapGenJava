@@ -1,7 +1,5 @@
 package trn;
 
-import trn.prefab.HasLocationXY;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

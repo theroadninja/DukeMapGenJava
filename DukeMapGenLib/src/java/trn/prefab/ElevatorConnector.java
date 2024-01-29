@@ -21,7 +21,7 @@ public class ElevatorConnector extends Connector {
     public ElevatorConnector(Sprite markerSprite){
         super(Connector.idOf(markerSprite));
         sectorId = markerSprite.getSectorId();
-        this.mustReplaceMarkerSprite = markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR;
+        this.mustReplaceMarkerSprite = markerSprite.getLotag() == Marker.Lotags.ELEVATOR_CONNECTOR;
     }
 
     private ElevatorConnector(int connectorId, int sectorId, boolean mustReplaceMarkerSprite){
@@ -66,7 +66,7 @@ public class ElevatorConnector extends Connector {
     @Override
     public boolean isLinked(Map map) {
         if(this.mustReplaceMarkerSprite){
-            List<Sprite> list = map.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR, this.sectorId);
+            List<Sprite> list = map.findSprites(Marker.MARKER_SPRITE_TEX, Marker.Lotags.ELEVATOR_CONNECTOR, this.sectorId);
             return list.size() < 1;
         }else{
             List<Sprite> list = getSESprites(map);
@@ -119,7 +119,7 @@ public class ElevatorConnector extends Connector {
 
     private void replaceMarkerSprite(ISectorGroup sg){
         if(!this.mustReplaceMarkerSprite) throw new IllegalStateException();
-        List<Sprite> list = sg.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR, sectorId);
+        List<Sprite> list = sg.findSprites(Marker.MARKER_SPRITE_TEX, Marker.Lotags.ELEVATOR_CONNECTOR, sectorId);
         // List<Sprite> list = sg.getMap().findSprites(
         //         (Sprite s) -> s.getTexture() == PrefabUtils.MARKER_SPRITE_TEX
         //                 && s.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR

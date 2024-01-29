@@ -39,7 +39,7 @@ case class SectorGroupFragment (
     */
   def requireValidMarkerSprites(): Unit = {
    for(i <- 0 until clipboard.getSpriteCount) {
-     PrefabUtils.checkValid(clipboard.getSprite(i))
+     Marker.checkValid(clipboard.getSprite(i))
    }
   }
 
@@ -47,7 +47,7 @@ case class SectorGroupFragment (
 
   def requireAtMostOneAnchor(): Unit = {
     // val anchors = clipboard.findSprites(SectorGroupScanner.MarkerTex, PrefabUtils.MarkerSpriteLoTags.ANCHOR, null).asScala
-    val anchors = findSprites(SectorGroupScanner.MarkerTex, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
+    val anchors = findSprites(SectorGroupScanner.MarkerTex, Marker.Lotags.ANCHOR)
     if(anchors.size > 1){
       throw new SpriteLogicException("more than one anchor sprite in group", anchors.map(_.getLocation.asPointXY).asJava)
 
@@ -58,7 +58,7 @@ case class SectorGroupFragment (
 }
 
 object SectorGroupScanner {
-  val MarkerTex = PrefabUtils.MARKER_SPRITE_TEX
+  val MarkerTex = Marker.MARKER_SPRITE_TEX
 
   def findSprites(map: DMap, picnum: Int, lotag: Int): Seq[Sprite] = map.findSprites(picnum, lotag, null).asScala
 
@@ -98,15 +98,15 @@ object SectorGroupScanner {
       clipboard
     }
 
-    val groupIdSprite = findAtMostOneMarker(adjusted, PrefabUtils.MarkerSpriteLoTags.GROUP_ID)
-    val teleChildSprite = findAtMostOneMarker(adjusted, PrefabUtils.MarkerSpriteLoTags.TELEPORT_CHILD)
-    val redwallChildSprite = findAtMostOneMarker(adjusted, PrefabUtils.MarkerSpriteLoTags.REDWALL_CHILD)
+    val groupIdSprite = findAtMostOneMarker(adjusted, Marker.Lotags.GROUP_ID)
+    val teleChildSprite = findAtMostOneMarker(adjusted, Marker.Lotags.TELEPORT_CHILD)
+    val redwallChildSprite = findAtMostOneMarker(adjusted, Marker.Lotags.REDWALL_CHILD)
     val spriteGroupIdSprite = findAtMostOneMarker(adjusted, Marker.Lotags.SPRITE_GROUP_ID)
     val groupSprites = Seq(groupIdSprite, teleChildSprite, redwallChildSprite, spriteGroupIdSprite).filter(_.isDefined).map(_.get)
     if(groupSprites.size == 0) {
       // check for the case where someone added a group id sprite in the 2d view but forgot to give it the marker sprite tex
       val DefaultSprite = 0
-      val mistakeCount = SectorGroupScanner.findSprites(clipboard, DefaultSprite, PrefabUtils.MarkerSpriteLoTags.GROUP_ID).size
+      val mistakeCount = SectorGroupScanner.findSprites(clipboard, DefaultSprite, Marker.Lotags.GROUP_ID).size
       if(mistakeCount > 0){
         throw new SpriteLogicException("Sector group has no ID marker sprite but it DOES have a sprite with texture 0")
       }

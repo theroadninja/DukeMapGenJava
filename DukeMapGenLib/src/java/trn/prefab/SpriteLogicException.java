@@ -1,6 +1,7 @@
 package trn.prefab;
 
 
+import trn.HasLocationXY;
 import trn.PointXY;
 import trn.Sprite;
 

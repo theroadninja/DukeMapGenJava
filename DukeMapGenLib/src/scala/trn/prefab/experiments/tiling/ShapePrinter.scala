@@ -1,8 +1,8 @@
 package trn.prefab.experiments.tiling
 
-import trn.prefab.{BoundingBox, GameConfig, MapWriter, PrefabUtils}
+import trn.prefab.{BoundingBox, MapWriter, PrefabUtils, GameConfig, Marker}
 import trn.render.WallPrefab
-import trn.{PointXY, Sprite, Map => DMap}
+import trn.{Sprite, PointXY, Map => DMap}
 
 object ShapePrinter {
   def renderBox(gameCfg: GameConfig, map: DMap, box: BoundingBox): Int = {
@@ -16,7 +16,7 @@ object ShapePrinter {
   }
 
   def addAnchor(map: DMap, sectorId: Int, loc: PointXY): Sprite = {
-    val marker = MapWriter.newMarkerSprite(sectorId, loc.withZ(map.getSector(sectorId).getFloorZ), lotag=PrefabUtils.MarkerSpriteLoTags.ANCHOR)
+    val marker = MapWriter.newMarkerSprite(sectorId, loc.withZ(map.getSector(sectorId).getFloorZ), lotag=Marker.Lotags.ANCHOR)
     map.addSprite(marker)
     marker
   }

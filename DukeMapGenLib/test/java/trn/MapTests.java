@@ -9,6 +9,7 @@ import java.util.*;
 import org.junit.Assert;
 import org.junit.Test;
 import trn.duke.TextureList;
+import trn.prefab.Marker;
 import trn.prefab.PrefabPalette;
 import trn.prefab.PrefabUtils;
 import trn.prefab.SectorGroup;
@@ -428,8 +429,8 @@ public class MapTests {
 			if(s.getTexture() == 49 || s.getTexture() == 37){
 				// shotgun texture
 			}else{
-				Assert.assertEquals(s.getTexture(), PrefabUtils.MARKER_SPRITE_TEX);
-				Assert.assertEquals(s.getLotag(), PrefabUtils.MarkerSpriteLoTags.GROUP_ID);
+				Assert.assertEquals(s.getTexture(), Marker.MARKER_SPRITE_TEX);
+				Assert.assertEquals(s.getLotag(), trn.prefab.Marker.Lotags.GROUP_ID);
 				testSectors.put((int)s.getHiTag(), (int)s.getSectorId());
 			}
 		}
@@ -998,7 +999,7 @@ public class MapTests {
 	private PlayerStart findPlayerStart(Map map){
 		for(int i = 0; i < map.getSpriteCount(); ++i){
 			Sprite sprite = map.getSprite(i);
-			if(sprite.getTex() == PrefabUtils.MARKER_SPRITE_TEX && sprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.PLAYER_START){
+			if(sprite.getTex() == Marker.MARKER_SPRITE_TEX && sprite.getLotag() == Marker.Lotags.PLAYER_START){
 				return new PlayerStart(sprite);
 			}
 		}

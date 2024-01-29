@@ -1,7 +1,7 @@
 package trn.prefab.experiments.tiling
 import trn.{PointXY, RandomX}
 import trn.{Map => DMap}
-import trn.prefab.{BoundingBox, GameConfig, MapWriter, PrefabUtils, SectorGroup, SectorGroupBuilder, SectorGroupHints, SectorGroupProperties}
+import trn.prefab.{MapWriter, PrefabUtils, SectorGroupBuilder, GameConfig, SectorGroup, SectorGroupProperties, Marker, BoundingBox, SectorGroupHints}
 import trn.render.WallPrefab
 
 /**
@@ -159,7 +159,7 @@ class OctoDiTileMaker(gameCfg: GameConfig, tiling: OctoDiamondTiling) extends Ti
 
         val sectorId = map.createSectorFromLoop(walls: _*)
 
-        val marker = MapWriter.newMarkerSprite(sectorId, bb.center.withZ(map.getSector(sectorId).getFloorZ), lotag=PrefabUtils.MarkerSpriteLoTags.ANCHOR)
+        val marker = MapWriter.newMarkerSprite(sectorId, bb.center.withZ(map.getSector(sectorId).getFloorZ), lotag=Marker.Lotags.ANCHOR)
         map.addSprite(marker)
         val props = new SectorGroupProperties(None, false, None, Seq.empty, Seq.empty)
         SectorGroupBuilder.createSectorGroup(map, props, SectorGroupHints.Empty)

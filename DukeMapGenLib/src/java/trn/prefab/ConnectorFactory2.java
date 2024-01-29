@@ -89,7 +89,7 @@ public class ConnectorFactory2 {
         Sprite s = markerSprite;
         Sector sector = map.getSector(s.getSectorId());
 
-        if(s.getLotag() == PrefabUtils.MarkerSpriteLoTags.SIMPLE_CONNECTOR) {
+        if(s.getLotag() == Marker.Lotags.SIMPLE_CONNECTOR) {
             // TODO this branch is deprecated -- replaced by RedwallConnectorScanner
 
 
@@ -142,9 +142,9 @@ public class ConnectorFactory2 {
      */
     public static Connector createOther(MapView map, Sprite markerSprite) throws MapErrorException {
         Sector sector = map.getSector(markerSprite.getSectorId());
-        if(markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR) {
+        if(markerSprite.getLotag() == Marker.Lotags.TELEPORT_CONNECTOR) {
             return new TeleportConnector(markerSprite, sector.getLotag());
-        }else if(markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.ELEVATOR_CONNECTOR) {
+        }else if(markerSprite.getLotag() == Marker.Lotags.ELEVATOR_CONNECTOR) {
             if (sector.getLotag() != 15) {
                 throw new SpriteLogicException("elevector connector in sector with lotag != 15");
             }

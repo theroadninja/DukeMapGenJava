@@ -94,9 +94,9 @@ object ConnectorScanner {
     }
   }
 
-  private[prefab] def isMultiSectorSprite(s: Sprite): Boolean = {
-    s.getTex == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.MULTI_SECTOR
-  }
+  // private[prefab] def isMultiSectorSprite(s: Sprite): Boolean = {
+  //   s.getTex == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.MULTI_SECTOR
+  // }
 
   /**
     * Using the sprites position and angle to form a ray, intersect it with all walls and return the closest one.
@@ -253,74 +253,74 @@ object ConnectorScanner {
 
   // def matchSpritesToWallSections(sprites: Seq[Sprite], wallSections: Seq[WallSection])
 
-  @deprecated // use RedwallConnectorScanner instead
-  def findMultiSectorConnectors(map: MapView): java.util.List[Connector] = {
-    // TODO - establish a max num of walls that can be used in this connector?  32? 512?
-
-
-    // TODO - need to be able to limit the search by sector id...or wont be able to rescan PSGs
-    val sectorIds = map.allSectorIds.toSet
-
-    // TODO - only intersect sprites with walls that belong to that sector...
-    // TODO - ensure that loops work
-
-    val walls = map.allWallViews.filter(_.lotag == MultiSectWallLotag)
-    if(walls.isEmpty){
-      return new java.util.ArrayList[Connector]()
-    }
-
-    val pointToWall = pointToWallMap(walls)
-    val wallsById: Map[Int, WallView] = walls.map(w => w.getWallId -> w).toMap
-
-    val sprites = map.allSprites.filter(sprite => sectorIds.contains(sprite.getSectorId)).filter(isMultiSectorSprite)
-
-    val wallSections = scanAllLines(walls, pointToWall).map { line =>
-      new WallSection(line)
-    }
-
-    sprites.foreach { sprite =>
-
-      val wallOpt = rayIntersect(sprite, map.sectorWallViewLoops(sprite.getSectorId).flatten)
-      val wall = wallOpt.getOrElse(throw new MathIsHardException("marker sprite not pointed at a wall")) // should never happen
-      SpriteLogicException.throwIf(
-        wall.lotag() != MultiSectWallLotag,
-        s"multi sector sprite pointed at wall that does not have lotag ${MultiSectWallLotag}",
-      )
-
-      val section = wallSections.find(_.wallIds.contains(wall.getWallId)).getOrElse(
-        throw new SpriteLogicException("multi sector sprite encountered wierd error", sprite) // should never happen
-      )
-
-      if(section.marker.isDefined){
-        val walls = s"walls=${section.wallIds}"
-        val msg = s"2 multisect sprites pointed at same walls near ${section.marker.get.getLocation} sprite1.sector=${sprite.getSectorId} sprite2.sector=${section.marker.get.getSectorId} ${walls}"
-        throw new SpriteLogicException(msg, sprite)
-      }else{
-        section.marker = Some(sprite)
-      }
-    }
-
-    val wallIdToSectorId = map.newWallIdToSectorIdMap
-    wallSections.filter(_.marker.isDefined).map { wallSection =>
-
-      val walls: Set[WallView] = wallSection.wallIds.map(wallsById)
-      val sortedWalls = sortContinuousWalls(walls)
-      val wallIds = sortedWalls.map(_.getWallId)//.map(Integer.valueOf)
-      val sectorIds = wallIds.map(wallIdToSectorId).toSeq
-
-      throw new RuntimeException("this code can no longer scan multi-sector conns.  Use RedwallConnectorScanner instead")
-
-      // MultiSectorConnector.create(
-      //   wallSection.marker.get,
-      //   sectorIds.map(Integer.valueOf).asJava,
-      //   wallIds.map(Integer.valueOf).asJava,
-      //   sortedWalls.asJava,
-      //   anchor(sortedWalls), //.withZ(anchorZ),
-      //   sortedWalls.head.p1,
-      //   sortedWalls.last.p2,
-      //   map
-      // )
-    }.map(_.asInstanceOf[Connector]).asJava
-  }
+//  @deprecated // use RedwallConnectorScanner instead
+//  def findMultiSectorConnectors(map: MapView): java.util.List[Connector] = {
+//    // TODO - establish a max num of walls that can be used in this connector?  32? 512?
+//
+//
+//    // TODO - need to be able to limit the search by sector id...or wont be able to rescan PSGs
+//    val sectorIds = map.allSectorIds.toSet
+//
+//    // TODO - only intersect sprites with walls that belong to that sector...
+//    // TODO - ensure that loops work
+//
+//    val walls = map.allWallViews.filter(_.lotag == MultiSectWallLotag)
+//    if(walls.isEmpty){
+//      return new java.util.ArrayList[Connector]()
+//    }
+//
+//    val pointToWall = pointToWallMap(walls)
+//    val wallsById: Map[Int, WallView] = walls.map(w => w.getWallId -> w).toMap
+//
+//    val sprites = map.allSprites.filter(sprite => sectorIds.contains(sprite.getSectorId)).filter(isMultiSectorSprite)
+//
+//    val wallSections = scanAllLines(walls, pointToWall).map { line =>
+//      new WallSection(line)
+//    }
+//
+//    sprites.foreach { sprite =>
+//
+//      val wallOpt = rayIntersect(sprite, map.sectorWallViewLoops(sprite.getSectorId).flatten)
+//      val wall = wallOpt.getOrElse(throw new MathIsHardException("marker sprite not pointed at a wall")) // should never happen
+//      SpriteLogicException.throwIf(
+//        wall.lotag() != MultiSectWallLotag,
+//        s"multi sector sprite pointed at wall that does not have lotag ${MultiSectWallLotag}",
+//      )
+//
+//      val section = wallSections.find(_.wallIds.contains(wall.getWallId)).getOrElse(
+//        throw new SpriteLogicException("multi sector sprite encountered wierd error", sprite) // should never happen
+//      )
+//
+//      if(section.marker.isDefined){
+//        val walls = s"walls=${section.wallIds}"
+//        val msg = s"2 multisect sprites pointed at same walls near ${section.marker.get.getLocation} sprite1.sector=${sprite.getSectorId} sprite2.sector=${section.marker.get.getSectorId} ${walls}"
+//        throw new SpriteLogicException(msg, sprite)
+//      }else{
+//        section.marker = Some(sprite)
+//      }
+//    }
+//
+//    val wallIdToSectorId = map.newWallIdToSectorIdMap
+//    wallSections.filter(_.marker.isDefined).map { wallSection =>
+//
+//      val walls: Set[WallView] = wallSection.wallIds.map(wallsById)
+//      val sortedWalls = sortContinuousWalls(walls)
+//      val wallIds = sortedWalls.map(_.getWallId)//.map(Integer.valueOf)
+//      val sectorIds = wallIds.map(wallIdToSectorId).toSeq
+//
+//      throw new RuntimeException("this code can no longer scan multi-sector conns.  Use RedwallConnectorScanner instead")
+//
+//      // MultiSectorConnector.create(
+//      //   wallSection.marker.get,
+//      //   sectorIds.map(Integer.valueOf).asJava,
+//      //   wallIds.map(Integer.valueOf).asJava,
+//      //   sortedWalls.asJava,
+//      //   anchor(sortedWalls), //.withZ(anchorZ),
+//      //   sortedWalls.head.p1,
+//      //   sortedWalls.last.p2,
+//      //   map
+//      // )
+//    }.map(_.asInstanceOf[Connector]).asJava
+//  }
 
 }

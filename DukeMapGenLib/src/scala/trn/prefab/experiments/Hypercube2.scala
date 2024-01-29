@@ -426,7 +426,7 @@ object Hypercube2 {
       loadRoom2(sg)
     }
     def loadRoom2(sg: SectorGroup): Room = {
-      val upperRoomOnly = sg.containsSprite(s => PrefabUtils.isMarker(s, UpperRoomTag, PrefabUtils.MarkerSpriteLoTags.ALGO_HINT))
+      val upperRoomOnly = sg.containsSprite(s => PrefabUtils.isMarker(s, UpperRoomTag, Marker.Lotags.ALGO_HINT))
       val (lowDoors, highDoors) = autoDoors(sg, upperRoomOnly)
       Room.auto(sg, highDoors, lowDoors)
     }

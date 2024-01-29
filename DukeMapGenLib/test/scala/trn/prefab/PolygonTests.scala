@@ -84,7 +84,7 @@ class PolygonTests {
     }
 
     val sg6 = testPalette.getSectorGroup(6)
-    val sectorId = sg6.sprites.find(_.getTex == PrefabUtils.MARKER_SPRITE_TEX).head.getSectorId
+    val sectorId = sg6.sprites.find(_.getTex == Marker.MARKER_SPRITE_TEX).head.getSectorId
     val shotgunAmmo = sg6.sprites.filter(_.getTex == ShotgunAmmo).map(_.getLocation.asXY)
     val freezeAmmo = sg6.sprites.filter(_.getTex == FreezeAmmo).map(_.getLocation.asXY)
     val testPoints = shotgunAmmo.flatMap { p1 => freezeAmmo.map { p2 => midPoint(p1, p2) }}
@@ -124,7 +124,7 @@ class PolygonTests {
     val testPalette: PrefabPalette = PrefabPalette.fromMap(m, true)
 
     val sg9 = testPalette.getSectorGroup(9)
-    val sectorA = sg9.sprites.find(_.getTex == PrefabUtils.MARKER_SPRITE_TEX).get.getSectorId
+    val sectorA = sg9.sprites.find(_.getTex == Marker.MARKER_SPRITE_TEX).get.getSectorId
     val polygonA = sg9.getOuterWallLoop(sectorA).map(_.getLineSegment)
     val ammo = sg9.sprites.filter(_.getTex == ShotgunAmmo).map(_.getLocation.asXY)
     require(ammo.size > 0)

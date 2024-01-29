@@ -93,12 +93,12 @@ class SectorGroupTests {
     // NOTE: using normal anchor markers as the anchors
 
     val sg = palette.getSG(1)
-    val destAnchor = sg.allSprites.filter(_.getLotag == PrefabUtils.MarkerSpriteLoTags.ANCHOR).head
+    val destAnchor = sg.allSprites.filter(_.getLotag == Marker.Lotags.ANCHOR).head
     val destSectorId = destAnchor.getSectorId
 
 
     val sgInner = palette.getSG(2)
-    val sourceAnchor = sgInner.allSprites.filter(_.getLotag == PrefabUtils.MarkerSpriteLoTags.ANCHOR).head
+    val sourceAnchor = sgInner.allSprites.filter(_.getLotag == Marker.Lotags.ANCHOR).head
     val resultSg = sg.withInnerGroup(sgInner, sourceAnchor.getLocation, destSectorId, destAnchor.getLocation, DukeConfig.empty)
 
     val builder = new TestBuilder(DMap.createNew())

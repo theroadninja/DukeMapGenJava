@@ -3,12 +3,10 @@ package trn;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import trn.duke.MapErrorException;
-import trn.prefab.HasLocationXY;
 
 public class Wall implements HasLocationXY {
 

@@ -22,7 +22,7 @@ object MapWriter {
   val MaxSectors = BuildConstants.MaxSectors
   val MapBounds = BuildConstants.MapBounds
   //val MapBounds = BoundingBox(DMap.MIN_X, DMap.MIN_Y, DMap.MAX_X, DMap.MAX_Y)
-  val MarkerTex = PrefabUtils.MARKER_SPRITE_TEX
+  val MarkerTex = Marker.MARKER_SPRITE_TEX
 
   def newMarkerSprite(
     sectorId: Int,
@@ -37,13 +37,15 @@ object MapWriter {
     s
   }
 
-  def isMarkerSprite(s: Sprite, lotag: Int): Boolean = {
-    s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
-  }
+  // /** use Marker.isMarker() instead */
+  // @Deprecated
+  // def isMarkerSprite(s: Sprite, lotag: Int): Boolean = {
+  //   s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag
+  // }
 
-  def isMarker(s: Sprite): Boolean = s.getTexture == PrefabUtils.MARKER_SPRITE_TEX
+  // def isMarker(s: Sprite): Boolean = s.getTexture == PrefabUtils.MARKER_SPRITE_TEX
 
-  def isAnchorSprite(s: Sprite): Boolean = isMarkerSprite(s, PrefabUtils.MarkerSpriteLoTags.ANCHOR)
+  def isAnchorSprite(s: Sprite): Boolean = Marker.isMarker(s, Marker.Lotags.ANCHOR)
 
   def waterSortKey(p: PointXYZ): Long = {
     val x = (p.x + 65535L) << 4
@@ -379,7 +381,7 @@ class MapWriter(
   def setAnyPlayerStart(force: Boolean = false): Unit = {
     if(!outMap.hasPlayerStart){
       val playerStarts = outMap.allSprites.filter(s =>
-        s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
+        s.getTexture == Marker.MARKER_SPRITE_TEX && s.getLotag == Marker.Lotags.PLAYER_START
       )
       if(playerStarts.size < 1) {
         if(force){
@@ -402,8 +404,8 @@ class MapWriter(
     val sectorIds = psg.getCopyState.destSectorIds().asScala
 
     val playerStarts = psg.getMap.allSprites.filter(s =>
-      s.getTexture == PrefabUtils.MARKER_SPRITE_TEX
-        && s.getLotag == PrefabUtils.MarkerSpriteLoTags.PLAYER_START
+      s.getTexture == Marker.MARKER_SPRITE_TEX
+        && s.getLotag == Marker.Lotags.PLAYER_START
         && sectorIds.contains(s.getSectorId)
     )
     if(playerStarts.size < 1) {

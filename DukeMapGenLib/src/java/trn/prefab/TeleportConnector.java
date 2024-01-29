@@ -40,7 +40,7 @@ public class TeleportConnector extends Connector {
         this.sectorId = markerSprite.getSectorId();
         //this.connectorId = markerSprite.getHiTag() > 0 ? markerSprite.getHiTag() : -1;
 
-        this.mustReplaceMarkerSprite = markerSprite.getLotag() == PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR;
+        this.mustReplaceMarkerSprite = markerSprite.getLotag() == Marker.Lotags.TELEPORT_CONNECTOR;
         this.water = (sectorLotag == Lotags.ST.WATER_ABOVE || sectorLotag == Lotags.ST.WATER_BELOW);
     }
 
@@ -86,7 +86,7 @@ public class TeleportConnector extends Connector {
     @Override
     public boolean isLinked(Map map) {
         if(this.mustReplaceMarkerSprite){
-            List<Sprite> list = map.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR, this.sectorId);
+            List<Sprite> list = map.findSprites(Marker.MARKER_SPRITE_TEX, Marker.Lotags.TELEPORT_CONNECTOR, this.sectorId);
             return list.size() < 1;
         }else{
             // TODO - use this.getSESprite()
@@ -127,7 +127,7 @@ public class TeleportConnector extends Connector {
     private Sprite getMarker27Sprite(ISectorGroup sg){
         if(!mustReplaceMarkerSprite) throw new IllegalStateException();
 
-        List<Sprite> list = sg.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.TELEPORT_CONNECTOR, sectorId);
+        List<Sprite> list = sg.findSprites(Marker.MARKER_SPRITE_TEX, Marker.Lotags.TELEPORT_CONNECTOR, sectorId);
         if(list.size() > 1) throw new SpriteLogicException("wrong number of teleporter marker sprites in sector");
         return list.size() > 0 ? list.get(0) : null;
     }

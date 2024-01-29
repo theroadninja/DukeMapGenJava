@@ -11,7 +11,7 @@ object SectorGroupProperties {
   val Default = new SectorGroupProperties(None, false, None, Seq.empty, Seq.empty)
 
   def findMarkers(map: DMap, lotag: Int, max: Option[Int] = None): Seq[Sprite] = {
-    val list = map.allSprites.filter(s => s.getTexture == PrefabUtils.MARKER_SPRITE_TEX && s.getLotag == lotag)
+    val list = map.allSprites.filter(s => s.getTexture == Marker.MARKER_SPRITE_TEX && s.getLotag == lotag)
     //val list = map.findSprites(PrefabUtils.MARKER_SPRITE_TEX, lotag, null).asScala
     max.map { m =>
       if(list.size > math.max(0, m)){
@@ -32,17 +32,17 @@ object SectorGroupProperties {
     //public List<Sprite> findSprites(Integer picnum, Integer lotag, Integer sectorId){
     // List<Sprite> idSprite = clipboard.findSprites(PrefabUtils.MARKER_SPRITE_TEX, PrefabUtils.MarkerSpriteLoTags.GROUP_ID, null);
     //map.findSprites(PrefabUtils.MARKER_SPRITE_TEX)
-    val groupIds = findMarkers(map, PrefabUtils.MarkerSpriteLoTags.GROUP_ID).map(_.getHiTag.toInt)
+    val groupIds = findMarkers(map, Marker.Lotags.GROUP_ID).map(_.getHiTag.toInt)
     SpriteLogicException.throwIf(groupIds.size > 1, s"too many group id sprites in group size=${groupIds.size}")
 
-    val zAdjust = findMarkers(map, PrefabUtils.MarkerSpriteLoTags.TRANSLATE_Z).map(_.getHiTag)
+    val zAdjust = findMarkers(map, Marker.Lotags.TRANSLATE_Z).map(_.getHiTag)
     SpriteLogicException.throwIf(zAdjust.size > 1, "only one 'translate z' marker tag allowed in a sector group")
 
-    val axisLocks = findMarkers(map, PrefabUtils.MarkerSpriteLoTags.ALGO_AXIS_LOCK).map(_.getHiTag).map(AxisLock(_))
+    val axisLocks = findMarkers(map, Marker.Lotags.ALGO_AXIS_LOCK).map(_.getHiTag).map(AxisLock(_))
 
     val switchesRequested = findMarkers(map, Marker.Lotags.SWITCH_REQUESTED).map(_.getHiTag)
 
-    new SectorGroupProperties(groupIds.headOption, hasMarker(map, PrefabUtils.MarkerSpriteLoTags.STAY), zAdjust.headOption, axisLocks, switchesRequested)
+    new SectorGroupProperties(groupIds.headOption, hasMarker(map, Marker.Lotags.STAY), zAdjust.headOption, axisLocks, switchesRequested)
   }
 }
 class SectorGroupProperties(

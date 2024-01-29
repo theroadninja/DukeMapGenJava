@@ -9,11 +9,15 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Try // this is the good one
 
 // TODO - this should probably become a constructor on SectorGroup object if/when that is ever moved completely to scala
+
+/**
+  * See also duchy.sg.SectorGroupScanner
+  */
 object SectorGroupBuilder {
 
   def isMarker(lotag: Int, sprite: Sprite): Boolean = {
     if(lotag < 0) throw new IllegalArgumentException
-    sprite.getTexture == PrefabUtils.MARKER_SPRITE_TEX && sprite.getLotag == lotag
+    sprite.getTexture == Marker.MARKER_SPRITE_TEX && sprite.getLotag == lotag
   }
 
   // // TODO - duplicate of method in AutoText
@@ -40,7 +44,7 @@ object SectorGroupBuilder {
 
   def createSectorGroup(map: DMap, sectorGroupId: Int, props: SectorGroupProperties, hints: SectorGroupHints): SectorGroup = {
     val autoTexts = scala.collection.mutable.Map[Int, AutoText]()
-    map.allSprites.filter(isMarker(PrefabUtils.MarkerSpriteLoTags.AUTO_TEXT, _)).foreach { sprite =>
+    map.allSprites.filter(isMarker(Marker.Lotags.AUTO_TEXT, _)).foreach { sprite =>
       //val autoText = AutoText(sprite, map)
       val autoText = createAutoText(sprite, map)
       val merged = autoTexts.get(autoText.autoTextId).map(_.mergedWith(autoText)).getOrElse(autoText)

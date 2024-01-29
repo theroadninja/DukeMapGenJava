@@ -1,7 +1,7 @@
 package trn.duke;
 
 import trn.Sprite
-import trn.prefab.PrefabUtils;
+import trn.prefab.{PrefabUtils, Marker};
 
 // TODO this stuff probably needs to move to GameConfig
 // TODO this is duke specific
@@ -28,7 +28,7 @@ object GameLogic {
    */
   def shouldRotate(s: Sprite): Boolean = if(s.getTex == TextureList.SE && SE_SPECIAL_ANGLE.contains(s.getLotag)) {
     false
-  } else if(s.getTex == PrefabUtils.MARKER_SPRITE_TEX && MARKER_SPECIAL_ANGLE.contains(s.getLotag)){
+  } else if(s.getTex == Marker.MARKER_SPRITE_TEX && MARKER_SPECIAL_ANGLE.contains(s.getLotag)){
     false
   } else if(s.getTex == TextureList.CYCLER) {
     false

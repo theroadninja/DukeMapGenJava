@@ -2,7 +2,7 @@ package duchy.sg
 
 import duchy.sg.RedwallSection.MultiSection
 import duchy.vector.{VectorMath, Line2D}
-import trn.prefab.{ConnectorScanner, PrefabUtils, DukeConfig, ConnectorFactory2, RedwallConnector, ConnectorType, MultiSectorConnector, SpriteLogicException}
+import trn.prefab.{ConnectorScanner, PrefabUtils, DukeConfig, ConnectorFactory2, RedwallConnector, ConnectorType, SpriteLogicException, Marker}
 import trn.{PointXYZ, PointXY, MapUtil, WallView, MapView, Sprite}
 
 import scala.collection.JavaConverters._
@@ -32,7 +32,7 @@ case class RedwallSection(marker: Sprite, sortedWalls: Seq[WallView]) {
 
   def overlaps(other: RedwallSection): Boolean = wallIdSet.intersect(other.wallIdSet).nonEmpty
 
-  def isChild: Boolean = marker.getLotag == PrefabUtils.MarkerSpriteLoTags.MULTISECTOR_CHILD
+  def isChild: Boolean = marker.getLotag == Marker.Lotags.MULTISECTOR_CHILD
 
   val isRedwall: Boolean = sortedWalls.head.isRedwall
 
@@ -75,7 +75,7 @@ object RedwallSection {
   * - match children to parents
   */
 object RedwallConnectorScanner {
-  val MarkerLotags = Seq(PrefabUtils.MarkerSpriteLoTags.SIMPLE_CONNECTOR, PrefabUtils.MarkerSpriteLoTags.MULTISECTOR_CHILD)
+  val MarkerLotags = Seq(Marker.Lotags.REDWALL_MARKER, Marker.Lotags.MULTISECTOR_CHILD)
 
   val RedwallConnectorLotags: Seq[Int] = Seq(RedwallConnector.WALL_LOTAG_1, RedwallConnector.WALL_LOTAG_2, RedwallConnector.WALL_LOTAG_3)
 
@@ -170,7 +170,7 @@ object RedwallConnectorScanner {
     val wallsById: Map[Int, WallView] = map.allWallViews.map(wv => wv.getWallId -> wv).toMap
     val pointsToWalls: Map[PointXY, Set[WallView]] = pointToWallMap(wallsById.values)
     val markers = map.allSprites.filter { s =>
-      s.getTex == PrefabUtils.MARKER_SPRITE_TEX && MarkerLotags.contains(s.getLotag) && sectorIdFilter(s.getSectorId.toInt)
+      s.getTex == Marker.MARKER_SPRITE_TEX && MarkerLotags.contains(s.getLotag) && sectorIdFilter(s.getSectorId.toInt)
     }
 
     markers.map { marker =>
