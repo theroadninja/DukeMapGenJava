@@ -1,9 +1,8 @@
 package duchy.experiments.render.maze.stonetunnels
 
-import duchy.experiments.render.maze.{SimpleBlock, AbstractBlock, LegacyConnector}
+import duchy.experiments.render.maze.{SimpleBlock, LegacyConnector, AbstractBlock, OldHeadingScala}
 import org.apache.commons.lang3.tuple.Pair
 import trn.{Wall, Sector}
-import trn.maze.Heading
 
 object NarrowPassageBlock {
   val VERTICAL = 0
@@ -12,18 +11,18 @@ class NarrowPassageBlock(gridCoordinate: Pair[Integer, Integer], rotation: Int) 
 
   val connectors: Map[Int, LegacyConnector] = if(rotation == NarrowPassageBlock.VERTICAL){
     Map(
-      Heading.NORTH.arrayIndex -> LegacyConnector.northEdge(this),
-      Heading.SOUTH.arrayIndex -> LegacyConnector.southEdge(this),
+      OldHeadingScala.NORTH.arrayIndex -> LegacyConnector.northEdge(this),
+      OldHeadingScala.SOUTH.arrayIndex -> LegacyConnector.southEdge(this),
     )
   }else{
     Map(
-      Heading.EAST.arrayIndex -> LegacyConnector.eastEdge(this),
-      Heading.WEST.arrayIndex -> LegacyConnector.westEdge(this),
+      OldHeadingScala.EAST.arrayIndex -> LegacyConnector.eastEdge(this),
+      OldHeadingScala.WEST.arrayIndex -> LegacyConnector.westEdge(this),
 
     )
   }
 
-  override def getConnector(heading: Heading): LegacyConnector = {
+  override def getConnector(heading: OldHeadingScala): LegacyConnector = {
     connectors(heading.arrayIndex)
   }
 

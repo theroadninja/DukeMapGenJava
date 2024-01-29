@@ -1,19 +1,18 @@
 package duchy.experiments.render.maze.stonetunnels
 
-import duchy.experiments.render.maze.{AbstractBlock, LegacyConnector}
+import duchy.experiments.render.maze.{LegacyConnector, AbstractBlock, OldHeadingScala}
 import org.apache.commons.lang3.tuple.Pair
 import trn.duke.TextureList
 import trn.{BuildConstants, PointXY, Wall, Sprite, AngleUtil}
-import trn.maze.Heading
 
 class ExitBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(gridCoordinate) {
 
   val connector = LegacyConnector.northEdge(this)
 
-  val connectorEdge = Heading.NORTH;  // rotation didn't exist when I originally wrote this
+  val connectorEdge = OldHeadingScala.NORTH;  // rotation didn't exist when I originally wrote this
   val floorZ = StoneConstants.UPPER_FLOORZ;
 
-  override def getConnector(heading: Heading): LegacyConnector = if (heading == connectorEdge) { connector } else { None.orNull }
+  override def getConnector(heading: OldHeadingScala): LegacyConnector = if (heading == connectorEdge) { connector } else { None.orNull }
 
   /**
     *

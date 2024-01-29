@@ -87,6 +87,9 @@ final class MapGraphics {
     }
 }
 
+/**
+ * TODO this is not duke-specific, so move it out of trn.duke.
+ */
 public class MapImageWriter {
 
     private static Integer min(Integer i, Integer j){

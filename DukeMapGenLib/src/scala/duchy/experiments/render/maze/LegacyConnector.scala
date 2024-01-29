@@ -1,7 +1,6 @@
 package duchy.experiments.render.maze
 
 import trn.MapUtil
-import trn.maze.Heading
 
 object LegacyConnector {
 
@@ -20,30 +19,30 @@ object LegacyConnector {
     */
   val EAST_WEST = 2
 
-  def genderToHeading(connectorType: Int, gender: Boolean): Heading = {
+  def genderToHeading(connectorType: Int, gender: Boolean): OldHeadingScala = {
     if (connectorType == NORTH_SOUTH) {
-      if (gender) Heading.NORTH else Heading.SOUTH
+      if (gender) OldHeadingScala.NORTH else OldHeadingScala.SOUTH
     } else if (connectorType == EAST_WEST) {
-      if (gender) Heading.EAST else Heading.WEST
+      if (gender) OldHeadingScala.EAST else OldHeadingScala.WEST
     } else {
       throw new IllegalArgumentException
     }
   }
 
-  def apply(heading: Heading, block: Block): LegacyConnector = heading match {
-    case Heading.NORTH => new LegacyConnector(LegacyConnector.NORTH_SOUTH, block, LegacyConnector.MALE)
-    case Heading.EAST => new LegacyConnector(LegacyConnector.EAST_WEST, block, LegacyConnector.MALE)
-    case Heading.SOUTH => new LegacyConnector(LegacyConnector.NORTH_SOUTH, block, LegacyConnector.FEMALE)
-    case Heading.WEST => new LegacyConnector(LegacyConnector.EAST_WEST, block, LegacyConnector.FEMALE)
+  def apply(heading: OldHeadingScala, block: Block): LegacyConnector = heading match {
+    case OldHeadingScala.NORTH => new LegacyConnector(LegacyConnector.NORTH_SOUTH, block, LegacyConnector.MALE)
+    case OldHeadingScala.EAST => new LegacyConnector(LegacyConnector.EAST_WEST, block, LegacyConnector.MALE)
+    case OldHeadingScala.SOUTH => new LegacyConnector(LegacyConnector.NORTH_SOUTH, block, LegacyConnector.FEMALE)
+    case OldHeadingScala.WEST => new LegacyConnector(LegacyConnector.EAST_WEST, block, LegacyConnector.FEMALE)
   }
 
-  def eastEdge(block: Block) = LegacyConnector(Heading.EAST, block)
+  def eastEdge(block: Block) = LegacyConnector(OldHeadingScala.EAST, block)
 
-  def westEdge(block: Block) = LegacyConnector(Heading.WEST, block)
+  def westEdge(block: Block) = LegacyConnector(OldHeadingScala.WEST, block)
 
-  def northEdge(block: Block) = LegacyConnector(Heading.NORTH, block)
+  def northEdge(block: Block) = LegacyConnector(OldHeadingScala.NORTH, block)
 
-  def southEdge(block: Block) = LegacyConnector(Heading.SOUTH, block)
+  def southEdge(block: Block) = LegacyConnector(OldHeadingScala.SOUTH, block)
 
 }
 class LegacyConnector(val connectorType: Int, parentBlock: Block, gender: Boolean) {

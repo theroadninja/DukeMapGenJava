@@ -2,7 +2,6 @@ package duchy.experiments.render.maze
 
 import org.apache.commons.lang3.tuple.Pair
 import trn.{Wall, Sector}
-import trn.maze.Heading
 
 object SimpleBlock {
 
@@ -16,7 +15,7 @@ object SimpleBlock {
   */
 class SimpleBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(gridCoordinate) {
 
-  override def getConnector(heading: Heading): LegacyConnector = connectors(heading.arrayIndex)
+  override def getConnector(heading: OldHeadingScala): LegacyConnector = connectors(heading.arrayIndex)
 
   val connectors: Seq[LegacyConnector] = Seq(
     new LegacyConnector(LegacyConnector.NORTH_SOUTH, this, LegacyConnector.MALE), // NORTH

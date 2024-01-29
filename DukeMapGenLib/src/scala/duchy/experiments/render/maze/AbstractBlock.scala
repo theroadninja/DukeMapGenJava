@@ -1,7 +1,6 @@
 package duchy.experiments.render.maze
 import org.apache.commons.lang3.tuple.Pair
 import trn.PointXY
-import trn.maze.Heading
 
 abstract class AbstractBlock(val gridCoordinate: Pair[Integer, Integer]) extends Block {
   val WALL_LENGTH: Int = 2048 //2 x largest grid size
@@ -25,8 +24,8 @@ abstract class AbstractBlock(val gridCoordinate: Pair[Integer, Integer]) extends
 
   def getCenter: PointXY = new PointXY((getWestEdge + getEastEdge) / 2, (getNorthEdge + getSouthEdge) / 2)
 
-  override def getEastConnector: LegacyConnector = getConnector(Heading.EAST)
+  override def getEastConnector: LegacyConnector = getConnector(OldHeadingScala.EAST)
 
-  override def getSouthConnector: LegacyConnector = getConnector(Heading.SOUTH)
+  override def getSouthConnector: LegacyConnector = getConnector(OldHeadingScala.SOUTH)
 
 }

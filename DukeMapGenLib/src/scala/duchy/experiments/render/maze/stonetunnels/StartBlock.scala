@@ -3,10 +3,9 @@ package duchy.experiments.render.maze.stonetunnels
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import duchy.experiments.render.Block
-import duchy.experiments.render.maze.{LegacyConnector, AbstractBlock, WallPrefab}
+import duchy.experiments.render.maze.{WallPrefab, LegacyConnector, AbstractBlock, OldHeadingScala}
 import org.apache.commons.lang3.ArrayUtils
 import trn.{PointXY, MapUtil, Sector, Wall, PlayerStart}
-import trn.maze.Heading
 
 import scala.collection.JavaConverters._
 
@@ -14,10 +13,10 @@ import scala.collection.JavaConverters._
 class StartBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(gridCoordinate) {
 
   val connector = LegacyConnector.northEdge(this)
-  val connectorEdge = Heading.NORTH;
+  val connectorEdge = OldHeadingScala.NORTH;
   val floorZ = StoneConstants.UPPER_FLOORZ;
 
-  override def getConnector(heading: Heading): LegacyConnector = {
+  override def getConnector(heading: OldHeadingScala): LegacyConnector = {
     if(heading == connectorEdge){ connector }else{ None.orNull }
   }
 
@@ -25,7 +24,7 @@ class StartBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(g
     //return player start in the center, facing the room's exit
     val x = (getWestEdge + getEastEdge) / 2
     val y = (getSouthEdge + getNorthEdge) / 2
-    new PlayerStart(x, y, floorZ, connectorEdge.getDukeAngle)
+    new PlayerStart(x, y, floorZ, OldHeadingScala.dukeAngleOf(connectorEdge))
   }
 
   /**
