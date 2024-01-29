@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * TODO - remove all references to AngleUtil so that I can move this (and PointXY, which depends on this) to a new
+ * math-only package.
+ */
 public class Heading {
     // TODO DRY with Point3d.scala
     public static final int EAST = 0;

@@ -2,7 +2,11 @@ package trn;
 
 import java.io.File;
 
-/** Trying to at least put all my lazy hardcoded stuff in one place */
+/**
+ * Trying to at least put all my lazy hardcoded stuff in one place
+ *
+ * TODO
+ */
 public final class HardcodedConfig {
 
     public static final String DOSPATH = "C:/Users/Dave/Dropbox/workspace/dosdrive/duke3d/";

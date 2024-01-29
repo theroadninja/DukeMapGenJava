@@ -8,12 +8,12 @@ public class PlayerStart {
 	
 	/** facing "up" when looking at the map in build */
 	public static final int NORTH = 1536;  //i think 2048 == 360 degrees, with 0 == east and 90 deg is south
+	// TODO dedupe with AngleUtil
 	
 	public static final int SOUTH = 512; // 90 * (2048 / 360)
 	
 	public static final int BYTE_COUNT = 14;
 
-	
 	final long x; //UINT32LE
 	final long y; //UINT32LE
 	final long z; //UINT32LE
@@ -24,7 +24,6 @@ public class PlayerStart {
 		this.y = y;
 		this.z = z;
 		this.angle = angle;
-		
 	}
 	
 	public PlayerStart(final PointXYZ xyz, int angle){
@@ -76,7 +75,6 @@ public class PlayerStart {
 	public static PlayerStart fromBytes(byte[] bytes, int start){
 		
 		//note:  ByteArrayInputStream does have a constructor that takes an offset...
-		
 		return new PlayerStart(
 				ByteUtil.readUint32LE(bytes, start),
 				ByteUtil.readUint32LE(bytes, (start += 4)),
@@ -86,7 +84,6 @@ public class PlayerStart {
 	}
 	
 	public static PlayerStart readPlayerStart(InputStream input) throws IOException{
-		
 		return new PlayerStart(
 				ByteUtil.readUint32LE(input),
 				ByteUtil.readUint32LE(input),

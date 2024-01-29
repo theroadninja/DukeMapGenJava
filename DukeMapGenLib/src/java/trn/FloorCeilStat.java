@@ -1,5 +1,8 @@
 package trn;
 
+/**
+ * TODO duplicate of CFStat
+ */
 public class FloorCeilStat {
 
     public static int PARALLAX = 1;
