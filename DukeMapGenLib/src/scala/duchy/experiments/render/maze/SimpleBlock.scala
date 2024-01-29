@@ -2,8 +2,6 @@ package duchy.experiments.render.maze
 
 import org.apache.commons.lang3.tuple.Pair
 import trn.{Wall, Sector}
-import trn.duke.experiments.{WallPrefab, SectorPrefab}
-import trn.duke.experiments.gridblock.{LegacyConnector, AbstractBlock}
 import trn.maze.Heading
 
 object SimpleBlock {
@@ -79,10 +77,10 @@ class SimpleBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(
     val sw = new Wall(west, south, wallTex, 16, 8)
 
     if (this.wallPrefab != null) {
-      wallPrefab.writeTo(nw)
-      wallPrefab.writeTo(ne)
-      wallPrefab.writeTo(se)
-      wallPrefab.writeTo(sw)
+      wallPrefab.writeToWall(nw)
+      wallPrefab.writeToWall(ne)
+      wallPrefab.writeToWall(se)
+      wallPrefab.writeToWall(sw)
     }
 
     val sectorIndex = map.createSectorFromLoop(nw, ne, se, sw)

@@ -4,7 +4,6 @@ import duchy.sg.SimpleConnectorScanner
 import trn.duke.{MapErrorException, TextureList}
 import trn.{PointXYZ, PointXY, MapUtil, Sector, Wall, ISpriteFilter, WallView, MapView, Sprite, MapUtilScala, RandomX, Map => DMap}
 import trn.MapImplicits._
-import trn.duke.experiments.SpritePrefab
 import trn.math.{RotatesCW, SnapAngle}
 
 import scala.collection.JavaConverters._ // this is the good one

@@ -1,11 +1,10 @@
 package duchy.experiments.render.maze.stonetunnels
 
-import duchy.experiments.render.maze.SimpleBlock
+import duchy.experiments.render.maze.{SimpleBlock, WallPrefab}
 import org.apache.commons.lang3.ArrayUtils
-import trn.duke.experiments.SpritePrefab
 import org.apache.commons.lang3.tuple.Pair
-import trn.{PointXY, MapUtil, Sector, Wall, Sprite}
-import trn.duke.experiments.WallPrefab
+import trn.{PointXY, MapUtil, Sector, Wall, WallBrush, Sprite}
+import trn.prefab.SpritePrefab
 
 import java.util
 
@@ -27,8 +26,7 @@ class ItemBlock(gridCoordinate: Pair[Integer, Integer], itemPrefab: SpritePrefab
     val inner_box_cw: Array[PointXY] = Array[PointXY](new PointXY(inner_west, inner_south), new PointXY(inner_west, inner_north), new PointXY(inner_east, inner_north), new PointXY(inner_east, inner_south))
     var inner_box_ccw: Array[PointXY] = util.Arrays.copyOf(inner_box_cw, inner_box_cw.length)
     inner_box_ccw = inner_box_ccw.reverse
-    val daisWall: WallPrefab = new WallPrefab(StoneConstants.UPPER_WALL)
-    daisWall.setTexture(StoneConstants.UPPER_CEILING)
+    val daisWall: WallPrefab = WallPrefab(StoneConstants.UPPER_WALL).withTexture(StoneConstants.UPPER_CEILING)
     //outer sector
     val outerSectorIndex: Int = map.createSectorFromMultipleLoops(Wall.createLoop(inner_box_ccw, daisWall), //this needs to be first b/c of linkAllWalls
       Wall.createLoop(outer_box, StoneConstants.UPPER_WALL))
@@ -41,7 +39,7 @@ class ItemBlock(gridCoordinate: Pair[Integer, Integer], itemPrefab: SpritePrefab
     MapUtil.linkInnerSectorWallLoops(map, outerSectorIndex, map.getSector(outerSectorIndex).getFirstWall, innerSectorIndex, innerSector.getFirstWall)
     if (this.itemPrefab != null) {
       val item: Sprite = new Sprite(getCenter, daisZ, innerSectorIndex)
-      itemPrefab.writeTo(item)
+      itemPrefab.writeToSprite(item)
       map.addSprite(item)
     }
     for (c <- connectors) {

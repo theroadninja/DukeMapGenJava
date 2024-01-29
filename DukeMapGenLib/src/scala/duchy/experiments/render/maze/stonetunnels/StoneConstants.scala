@@ -1,6 +1,6 @@
 package duchy.experiments.render.maze.stonetunnels
 
-import trn.duke.experiments.{WallPrefab, SectorPrefab}
+import duchy.experiments.render.maze.{SectorPrefab, WallPrefab}
 import trn.Sector
 
 object StoneConstants {
@@ -18,7 +18,7 @@ object StoneConstants {
   /** z coord, not texture */
   val UPPER_FLOORZ: Int = Sector.DEFAULT_FLOOR_Z
 
-  val UPPER_WALL: WallPrefab = new WallPrefab(StoneConstants.UPPER_WALL_TEX).setXRepeat(16).setYRepeat(8).setShade(StoneConstants.SHADE.toShort)
+  val UPPER_WALL: WallPrefab = WallPrefab(StoneConstants.UPPER_WALL_TEX).setXRepeat(16).setYRepeat(8).setShade(StoneConstants.SHADE.toShort)
 
   val UPPER_SECTOR: SectorPrefab = new SectorPrefab(UPPER_FLOOR, UPPER_CEILING).setFloorShade(SHADE.toShort).setCeilingShade(SHADE.toShort)
 

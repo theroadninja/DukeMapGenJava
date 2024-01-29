@@ -3,6 +3,9 @@ package trn.prefab
 import trn.Sprite
 
 
+/**
+  * TODO rename to SpriteBrush
+  */
 trait SpritePrefab {
   def tex: Int
   def pal: Int

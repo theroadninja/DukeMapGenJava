@@ -1,9 +1,9 @@
 package duchy.experiments.render.maze.stonetunnels
 
+import duchy.experiments.render.maze.{AbstractBlock, LegacyConnector}
 import org.apache.commons.lang3.tuple.Pair
 import trn.duke.TextureList
 import trn.{BuildConstants, PointXY, Wall, Sprite, AngleUtil}
-import trn.duke.experiments.gridblock.{LegacyConnector, AbstractBlock}
 import trn.maze.Heading
 
 class ExitBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(gridCoordinate) {

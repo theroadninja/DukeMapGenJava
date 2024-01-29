@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import trn.duke.MapErrorException;
-import trn.duke.experiments.WallPrefab;
 import trn.prefab.HasLocationXY;
 
 public class Wall implements HasLocationXY {
@@ -81,12 +80,14 @@ public class Wall implements HasLocationXY {
 	public Wall(int x, int y){
 		this(x, y, 0);
 	}
-	
-	public Wall(PointXY xy, WallPrefab spec){
+
+	// TODO get rid of this -- walls shouldn't know about WallBrushes
+	@Deprecated
+	public Wall(PointXY xy, WallBrush spec){
 		this(xy.x, xy.y);
 		
 		if(spec != null){
-			spec.writeTo(this);
+			spec.writeToWall(this);
 		}
 	}
 	
@@ -565,7 +566,7 @@ public class Wall implements HasLocationXY {
 	
 	
 	
-	public static Wall[] createLoop(PointXY[] points, WallPrefab spec){
+	public static Wall[] createLoop(PointXY[] points, WallBrush spec){
 		Wall[] walls = new Wall[points.length];
 		for(int i = 0; i < points.length; ++i){
 			walls[i] = new Wall(points[i], spec);
@@ -574,7 +575,7 @@ public class Wall implements HasLocationXY {
 	}
 
 	// hack I'm adding to make scala interop easier
-	public static List<Wall> createLoopAsList(PointXY[] points, WallPrefab spec){
+	public static List<Wall> createLoopAsList(PointXY[] points, WallBrush spec){
 		Wall[] walls = createLoop(points, spec);
 		return Arrays.asList(walls);
 	}

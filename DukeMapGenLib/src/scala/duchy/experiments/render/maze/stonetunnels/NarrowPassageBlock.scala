@@ -1,10 +1,8 @@
 package duchy.experiments.render.maze.stonetunnels
 
-import duchy.experiments.render.maze.SimpleBlock
+import duchy.experiments.render.maze.{SimpleBlock, AbstractBlock, LegacyConnector}
 import org.apache.commons.lang3.tuple.Pair
 import trn.{Wall, Sector}
-import trn.duke.experiments.WallPrefab
-import trn.duke.experiments.gridblock.{LegacyConnector, AbstractBlock}
 import trn.maze.Heading
 
 object NarrowPassageBlock {
@@ -60,12 +58,12 @@ class NarrowPassageBlock(gridCoordinate: Pair[Integer, Integer], rotation: Int) 
 
 
     val wallPrefab = StoneConstants.UPPER_WALL
-    wallPrefab.writeTo(nw)
-    wallPrefab.writeTo(ne)
-    wallPrefab.writeTo(ne2, ne3)
-    wallPrefab.writeTo(se)
-    wallPrefab.writeTo(sw)
-    wallPrefab.writeTo(sw2, sw3)
+    wallPrefab.writeToWall(nw)
+    wallPrefab.writeToWall(ne)
+    wallPrefab.writeToWalls(ne2, ne3)
+    wallPrefab.writeToWall(se)
+    wallPrefab.writeToWall(sw)
+    wallPrefab.writeToWalls(sw2, sw3)
 
     //int sectorIndex =  map.createSectorFromLoop(nw, ne, se, sw);//int sectorIndex =  map.createSectorFromLoop(nw, ne, se, sw);
     val sectorIndex = map.createSectorFromLoop(nw, ne, ne2, ne3, se, sw, sw2, sw3)

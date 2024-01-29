@@ -1,16 +1,15 @@
 package duchy.experiments.render
 
-import duchy.experiments.render.maze.{MutableMazeGraph, BlockCursor, BlockInfo, SimpleBlock, BlockTileset}
+import duchy.experiments.render.maze.{WallPrefab, MutableMazeGraph, SectorPrefab, BlockCursor, BlockInfo, Grid, SimpleBlock, BlockTileset}
 
 import collection.JavaConverters._
 import org.apache.commons.lang3.tuple.{ImmutablePair, Pair}
 import MutableMazeGraph.NodeId
 import duchy.experiments.render.maze.stonetunnels.{ItemBlock, StoneConstants, StartBlock, ExitBlock, NarrowPassageBlock}
 import trn.duke.TextureList
-import trn.duke.experiments.{WallPrefab, SectorPrefab, SpritePrefab}
-import trn.duke.experiments.gridblock.Grid
 import trn.{MapUtil, Sector, RandomX, Wall, Main, PlayerStart, Map => DMap}
 import trn.prefab.BoundingBox
+import trn.render.SimpleSpriteBrush
 
 import scala.+:
 
@@ -206,7 +205,7 @@ object EarlyMazeExperiments {
 
     def passageBlock(gridCoordinate: Pair[Integer, Integer]): SimpleBlock = {
       val sb = new SimpleBlock(gridCoordinate)
-      sb.setWallPrefab(new WallPrefab(StoneConstants.UPPER_WALL_TEX).setShade(StoneConstants.SHADE))
+      sb.setWallPrefab(WallPrefab(StoneConstants.UPPER_WALL_TEX).setShade(StoneConstants.SHADE))
       sb.setSectorPrefab(new SectorPrefab(StoneConstants.UPPER_FLOOR, StoneConstants.UPPER_CEILING).setFloorShade(StoneConstants.SHADE).setCeilingShade(StoneConstants.SHADE))
       sb
     }
@@ -221,14 +220,14 @@ object EarlyMazeExperiments {
     grid.add(passageBlock(cursor.moveEast)) // 1, -1
 
     //grid.add(new ItemBlock(new ImmutablePair<Integer, Integer>(2, -1), new SpritePrefab(TextureList.Items.CARD)));//grid.add(new ItemBlock(new ImmutablePair<Integer, Integer>(2, -1), new SpritePrefab(TextureList.Items.CARD)));
-    grid.add(new ItemBlock(new ImmutablePair[Integer, Integer](2, -(1)), new SpritePrefab(TextureList.Items.ARMOR)))
+    grid.add(new ItemBlock(new ImmutablePair[Integer, Integer](2, -(1)), SimpleSpriteBrush(TextureList.Items.ARMOR)))
     grid.add(passageBlock(new ImmutablePair[Integer, Integer](3, -(1))))
     grid.add(passageBlock(new ImmutablePair[Integer, Integer](4, -(1))))
     grid.add(passageBlock(new ImmutablePair[Integer, Integer](5, -(1))))
 
     grid.add(passageBlock(new ImmutablePair[Integer, Integer](5, 0)))
 
-    grid.add(new ItemBlock(new ImmutablePair[Integer, Integer](5, 1), new SpritePrefab(TextureList.Enemies.LIZTROOP)))
+    grid.add(new ItemBlock(new ImmutablePair[Integer, Integer](5, 1), SimpleSpriteBrush(TextureList.Enemies.LIZTROOP)))
 
     grid.add(passageBlock(new ImmutablePair[Integer, Integer](5, 2)))
     grid.add(new ExitBlock(new ImmutablePair[Integer, Integer](5, 3)))
@@ -265,10 +264,10 @@ object EarlyMazeExperiments {
 
       val currentBlock = grid.getBlock(p)
       if(grid.contains(toPair(east))){
-        currentBlock.getEastConnector().draw(map, grid.getBlock(toPair(east)))
+        currentBlock.getEastConnector.draw(map, grid.getBlock(toPair(east)))
       }
       if(grid.contains(toPair(south))){
-        currentBlock.getSouthConnector().draw(map, grid.getBlock(toPair(south)))
+        currentBlock.getSouthConnector.draw(map, grid.getBlock(toPair(south)))
       }
     }
 

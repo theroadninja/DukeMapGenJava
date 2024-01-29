@@ -3,11 +3,11 @@ package duchy.experiments.render.maze.stonetunnels
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import duchy.experiments.render.Block
+import duchy.experiments.render.maze.{LegacyConnector, AbstractBlock, WallPrefab}
 import org.apache.commons.lang3.ArrayUtils
-import trn.duke.experiments.WallPrefab
 import trn.{PointXY, MapUtil, Sector, Wall, PlayerStart}
-import trn.duke.experiments.gridblock.{LegacyConnector, AbstractBlock}
 import trn.maze.Heading
+
 import scala.collection.JavaConverters._
 
 
@@ -93,8 +93,8 @@ class StartBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(g
     // inner sector// inner sector
     ////
 
-    val innerWallPrefab: WallPrefab = new WallPrefab(wall)
-    innerWallPrefab.setXRepeat(4).setShade(0.toShort).setTexture(StoneConstants.UPPER_CEILING)
+    val innerWallPrefab: WallPrefab = WallPrefab(wall).withTexture(StoneConstants.UPPER_CEILING)
+    innerWallPrefab.setXRepeat(4).setShade(0.toShort)
 
     circle = circle.reverse
 
