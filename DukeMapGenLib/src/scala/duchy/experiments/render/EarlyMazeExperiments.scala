@@ -1,6 +1,6 @@
 package duchy.experiments.render
 
-import duchy.experiments.render.maze.{MutableMazeGraph, BlockInfo, BlockTileset, BlockCursor}
+import duchy.experiments.render.maze.{MutableMazeGraph, BlockCursor, BlockInfo, SimpleBlock, BlockTileset}
 
 import collection.JavaConverters._
 import org.apache.commons.lang3.tuple.{ImmutablePair, Pair}
@@ -8,7 +8,7 @@ import MutableMazeGraph.NodeId
 import duchy.experiments.render.maze.stonetunnels.{ItemBlock, StoneConstants, StartBlock, ExitBlock, NarrowPassageBlock}
 import trn.duke.TextureList
 import trn.duke.experiments.{WallPrefab, SectorPrefab, SpritePrefab}
-import trn.duke.experiments.gridblock.{SimpleBlock, Grid}
+import trn.duke.experiments.gridblock.Grid
 import trn.{MapUtil, Sector, RandomX, Wall, Main, PlayerStart, Map => DMap}
 import trn.prefab.BoundingBox
 

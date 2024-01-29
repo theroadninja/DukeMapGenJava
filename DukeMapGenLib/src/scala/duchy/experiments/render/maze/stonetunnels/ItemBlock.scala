@@ -1,10 +1,10 @@
 package duchy.experiments.render.maze.stonetunnels
 
+import duchy.experiments.render.maze.SimpleBlock
 import org.apache.commons.lang3.ArrayUtils
 import trn.duke.experiments.SpritePrefab
 import org.apache.commons.lang3.tuple.Pair
 import trn.{PointXY, MapUtil, Sector, Wall, Sprite}
-import trn.duke.experiments.gridblock.SimpleBlock
 import trn.duke.experiments.WallPrefab
 
 import java.util

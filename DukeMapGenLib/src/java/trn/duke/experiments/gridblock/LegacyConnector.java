@@ -8,7 +8,7 @@ import trn.maze.Heading;
  * since redwall connections don't have a direction.
  *
  */
-public class Connector {
+public class LegacyConnector {
 	
 	public static boolean MALE = true;
 	public static boolean FEMALE = false;
@@ -56,7 +56,7 @@ public class Connector {
 	private int sectorIndex = -1;
 	private Integer floorZ;
 
-	public Connector(int connectorType, Block parentBlock, boolean gender){
+	public LegacyConnector(int connectorType, Block parentBlock, boolean gender){
 		if(parentBlock == null) throw new IllegalArgumentException();
 		this.connectorType = connectorType;
 		this.parentBlock = parentBlock;
@@ -86,8 +86,8 @@ public class Connector {
 	public void draw(trn.Map map, Block otherBlock){
 		if(this.parentBlock == otherBlock || otherBlock == null) throw new IllegalArgumentException();
 		
-		Connector other = null;
-		if(this.gender == Connector.MALE){
+		LegacyConnector other = null;
+		if(this.gender == LegacyConnector.MALE){
 			other = otherBlock.getConnector(genderToHeading(connectorType, FEMALE));
 		}else{
 			other = otherBlock.getConnector(genderToHeading(connectorType, MALE));
@@ -95,7 +95,7 @@ public class Connector {
 		this.draw(map, other);
 	}
 
-	protected final void draw(trn.Map map, Connector other){
+	protected final void draw(trn.Map map, LegacyConnector other){
 		MapUtil.autoLinkWalls(map, this.getCreatedSectorIndex(), other.getCreatedSectorIndex());
 	}
 
@@ -103,20 +103,20 @@ public class Connector {
 		if(sectorIndex == -1) throw new RuntimeException("sector index not set on connector");
 		return sectorIndex;
 	}
-	public static Connector eastEdge(Block block){
-		return new Connector(Connector.EAST_WEST, block, Connector.MALE);
+	public static LegacyConnector eastEdge(Block block){
+		return new LegacyConnector(LegacyConnector.EAST_WEST, block, LegacyConnector.MALE);
 	}
 
-	public static Connector westEdge(Block block){
-		return new Connector(Connector.EAST_WEST, block, Connector.FEMALE);
+	public static LegacyConnector westEdge(Block block){
+		return new LegacyConnector(LegacyConnector.EAST_WEST, block, LegacyConnector.FEMALE);
 	}
 
-	public static Connector northEdge(Block block){
-		return new Connector(Connector.NORTH_SOUTH, block, Connector.MALE);
+	public static LegacyConnector northEdge(Block block){
+		return new LegacyConnector(LegacyConnector.NORTH_SOUTH, block, LegacyConnector.MALE);
 	}
 
-	public static Connector southEdge(Block block){
-		return new Connector(Connector.NORTH_SOUTH, block, Connector.FEMALE);
+	public static LegacyConnector southEdge(Block block){
+		return new LegacyConnector(LegacyConnector.NORTH_SOUTH, block, LegacyConnector.FEMALE);
 	}
 
 

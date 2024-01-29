@@ -1,9 +1,10 @@
 package duchy.experiments.render.maze.stonetunnels
 
+import duchy.experiments.render.maze.SimpleBlock
 import org.apache.commons.lang3.tuple.Pair
 import trn.{Wall, Sector}
 import trn.duke.experiments.WallPrefab
-import trn.duke.experiments.gridblock.{AbstractBlock, SimpleBlock, Connector}
+import trn.duke.experiments.gridblock.{LegacyConnector, AbstractBlock}
 import trn.maze.Heading
 
 object NarrowPassageBlock {
@@ -11,20 +12,20 @@ object NarrowPassageBlock {
 }
 class NarrowPassageBlock(gridCoordinate: Pair[Integer, Integer], rotation: Int) extends AbstractBlock(gridCoordinate) {
 
-  val connectors: Map[Int, Connector] = if(rotation == NarrowPassageBlock.VERTICAL){
+  val connectors: Map[Int, LegacyConnector] = if(rotation == NarrowPassageBlock.VERTICAL){
     Map(
-      Heading.NORTH.arrayIndex -> Connector.northEdge(this),
-      Heading.SOUTH.arrayIndex -> Connector.southEdge(this),
+      Heading.NORTH.arrayIndex -> LegacyConnector.northEdge(this),
+      Heading.SOUTH.arrayIndex -> LegacyConnector.southEdge(this),
     )
   }else{
     Map(
-      Heading.EAST.arrayIndex -> Connector.eastEdge(this),
-      Heading.WEST.arrayIndex -> Connector.westEdge(this),
+      Heading.EAST.arrayIndex -> LegacyConnector.eastEdge(this),
+      Heading.WEST.arrayIndex -> LegacyConnector.westEdge(this),
 
     )
   }
 
-  override def getConnector(heading: Heading): Connector = {
+  override def getConnector(heading: Heading): LegacyConnector = {
     connectors(heading.arrayIndex)
   }
 
@@ -66,18 +67,15 @@ class NarrowPassageBlock(gridCoordinate: Pair[Integer, Integer], rotation: Int) 
     wallPrefab.writeTo(sw)
     wallPrefab.writeTo(sw2, sw3)
 
-
     //int sectorIndex =  map.createSectorFromLoop(nw, ne, se, sw);//int sectorIndex =  map.createSectorFromLoop(nw, ne, se, sw);
     val sectorIndex = map.createSectorFromLoop(nw, ne, ne2, ne3, se, sw, sw2, sw3)
-
 
     val s = map.getSector(sectorIndex)
     StoneConstants.UPPER_SECTOR.writeTo(s)
 
-
     val createdSectorIndex = sectorIndex
 
-    for (c: Connector <- connectors.values) {
+    for (c: LegacyConnector <- connectors.values) {
       if (c != null) c.setSectorIndex(createdSectorIndex)
     }
 

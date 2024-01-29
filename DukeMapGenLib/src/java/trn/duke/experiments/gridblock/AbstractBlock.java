@@ -7,6 +7,8 @@ import trn.maze.Heading;
 
 public abstract class AbstractBlock implements Block {
 
+	public static final int WALL_LENGTH = 2048; //2 x largest grid size
+
 	protected final Pair<Integer, Integer> gridCoordinate;
 	
 	public AbstractBlock(Pair<Integer, Integer> gridCoordinate){
@@ -19,23 +21,23 @@ public abstract class AbstractBlock implements Block {
 	}
 	
 	public final int getOuterWallLength(){
-		return SimpleBlock.WALL_LENGTH;
+		return WALL_LENGTH;
 	}
 	
 	public final int getWestEdge(){
-		return gridCoordinate.getLeft() * SimpleBlock.WALL_LENGTH;
+		return gridCoordinate.getLeft() * WALL_LENGTH;
 	}
 	
 	public final int getEastEdge(){
-		return (gridCoordinate.getLeft() + 1) * SimpleBlock.WALL_LENGTH;
+		return (gridCoordinate.getLeft() + 1) * WALL_LENGTH;
 	}
 	
 	public final int getNorthEdge(){
-		return gridCoordinate.getRight() * SimpleBlock.WALL_LENGTH;
+		return gridCoordinate.getRight() * WALL_LENGTH;
 	}
 
 	public final int getSouthEdge(){
-		return (gridCoordinate.getRight() + 1) * SimpleBlock.WALL_LENGTH;
+		return (gridCoordinate.getRight() + 1) * WALL_LENGTH;
 	}
 	
 	public PointXY getCenter(){
@@ -43,10 +45,10 @@ public abstract class AbstractBlock implements Block {
 				(getNorthEdge() + getSouthEdge()) / 2);
 	}
 
-	public final Connector getEastConnector(){
+	public final LegacyConnector getEastConnector(){
 		return getConnector(Heading.EAST);
 	}
-	public final Connector getSouthConnector(){
+	public final LegacyConnector getSouthConnector(){
 		return getConnector(Heading.SOUTH);
 	}
 
