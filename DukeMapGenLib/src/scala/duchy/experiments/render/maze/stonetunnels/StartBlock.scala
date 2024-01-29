@@ -6,14 +6,14 @@ import duchy.experiments.render.Block
 import org.apache.commons.lang3.ArrayUtils
 import trn.duke.experiments.WallPrefab
 import trn.{PointXY, MapUtil, Sector, Wall, PlayerStart}
-import trn.duke.experiments.gridblock.{Connector, NorthSouthConnector, AbstractBlock}
+import trn.duke.experiments.gridblock.{Connector, AbstractBlock}
 import trn.maze.Heading
 import scala.collection.JavaConverters._
 
 
 class StartBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(gridCoordinate) {
 
-  val connector = NorthSouthConnector.northEdge(this)
+  val connector = Connector.northEdge(this)
   val connectorEdge = Heading.NORTH;
   val floorZ = StoneConstants.UPPER_FLOORZ;
 

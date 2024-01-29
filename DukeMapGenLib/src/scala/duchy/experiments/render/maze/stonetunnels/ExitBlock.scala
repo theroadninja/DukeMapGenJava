@@ -3,12 +3,12 @@ package duchy.experiments.render.maze.stonetunnels
 import org.apache.commons.lang3.tuple.Pair
 import trn.duke.TextureList
 import trn.{BuildConstants, PointXY, Wall, Sprite, AngleUtil}
-import trn.duke.experiments.gridblock.{Connector, NorthSouthConnector, Block, AbstractBlock}
+import trn.duke.experiments.gridblock.{Connector, AbstractBlock}
 import trn.maze.Heading
 
 class ExitBlock(gridCoordinate: Pair[Integer, Integer]) extends AbstractBlock(gridCoordinate) {
 
-  val connector = NorthSouthConnector.northEdge(this)
+  val connector = Connector.northEdge(this)
 
   val connectorEdge = Heading.NORTH;  // rotation didn't exist when I originally wrote this
   val floorZ = StoneConstants.UPPER_FLOORZ;

@@ -13,10 +13,6 @@ public class Grid {
 	
 	public Grid(){ }
 	
-	// public Grid(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
-	// 	copyFromGraphAndExpand(maze);
-	// }
-	
 	public void add(Block block){
 		gridData.put(block.getGridCoordinate(), block);
 	}
@@ -36,88 +32,6 @@ public class Grid {
 	public boolean contains(Pair<Integer, Integer> node){
 		return gridData.containsKey(node);
 	}
-
-//	/**
-//	 * turns the maze, specified by an adjacency list, into a grid implementation, where each edge
-//	 * between nodes gets its own square in the grid.
-//	 *
-//	 * e.g.    (0,0)--edge-->(0,1)
-//	 *
-//	 * becomes:
-//	 *
-//	 *     (0,0), (0,1), (0,2)
-//	 *
-//	 * Where 0,0 and 0,2 represent the nodes in the maze.  So we need to multiple node indices by 2 to
-//	 * be able to add the edges between them.
-//	 *
-//	 * SEE ALSO:  LegacyGrid
-//	 *
-//	 * @param maze
-//	 * @return
-//	 */
-//	public void copyFromGraphAndExpand(DfsMazeGen.Graph<Pair<Integer, Integer>> maze){
-//
-//		for(Pair<Integer, Integer> node : maze.getAdjacencyList().keySet()){
-//
-//
-//			BlockInfo ni = maze.getBlockInfo(node);
-//			if(ni == null){
-//				throw new RuntimeException("not supported");
-//			}else{
-//
-//				SimpleBlock sb = new SimpleBlock(toGridNode(node));
-//				sb.setWallTex(ni.getTileset().wallTexture);
-//				sb.setFloorTex(ni.getTileset().floorTexture);
-//				sb.setCeilTex(ni.getTileset().ceilingTexture);
-//				sb.setFloorZ(ni.floorZ);
-//				add(sb);
-//			}
-//
-//			//TODO:  we are adding these edges multiple times ...
-//			for(Pair<Integer, Integer> n2 : maze.getAdjacencyList().get(node)){
-//
-//				Pair<Integer, Integer> edgeBlockCoordinate = toGridEdge(node, n2);
-//
-//				if(isVerticalPassage(edgeBlockCoordinate)){
-//
-//					Block north = get(Heading.NORTH.move(edgeBlockCoordinate));
-//					Block south = get(Heading.SOUTH.move(edgeBlockCoordinate));
-//					int southZ = ((OrdinalConnector)south.getConnector(Heading.NORTH)).getFloorZ();
-//					int northZ = ((OrdinalConnector)north.getConnector(Heading.SOUTH)).getFloorZ();
-//
-//					if(validForVerticalStairs(edgeBlockCoordinate)){
-//						add(new VertStairsBlock(edgeBlockCoordinate, southZ, northZ));
-//					}else{
-//						//at least make sure the floor matches
-//						VertDoorBlock sb = new VertDoorBlock(edgeBlockCoordinate);
-//						sb.setFloorZ(southZ);
-//						add(sb);
-//					}
-//				}else if(isHorizontalPassage(edgeBlockCoordinate)){
-//
-//					Block east = get(Heading.EAST.move(edgeBlockCoordinate));
-//					Block west = get(Heading.WEST.move(edgeBlockCoordinate));
-//					int westZ = ((OrdinalConnector)west.getConnector(Heading.EAST)).getFloorZ();
-//					int eastZ = ((OrdinalConnector)east.getConnector(Heading.WEST)).getFloorZ();
-//
-//					if(westZ != eastZ){
-//
-//						add(new HorizStairsBlock(edgeBlockCoordinate, westZ, eastZ));
-//
-//					}else{
-//
-//						//for now, match the floor.  later, do horizontal stairs
-//						SimpleBlock sb = new SimpleBlock(edgeBlockCoordinate);
-//						sb.setFloorZ(westZ);
-//						add(sb);
-//					}
-//				}else{
-//					//TODO:  might still need to adjust the z coordinate, if we can
-//					add(new SimpleBlock(edgeBlockCoordinate));
-//				}
-//			}
-//		}
-//	}
 
 	public boolean isHorizontalPassage(Pair<Integer, Integer> gc){
 		

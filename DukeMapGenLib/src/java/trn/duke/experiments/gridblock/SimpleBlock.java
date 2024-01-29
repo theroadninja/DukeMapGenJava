@@ -43,11 +43,11 @@ public class SimpleBlock extends AbstractBlock implements Block {
 	public SimpleBlock(Pair<Integer, Integer> gridCoordinate){
 		super(gridCoordinate);
 		
-		this.setConnector(Heading.NORTH, new NorthSouthConnector(this, Connector.MALE));
-		this.setConnector(Heading.SOUTH, new NorthSouthConnector(this, Connector.FEMALE));
+		this.setConnector(Heading.NORTH, new Connector(Connector.NORTH_SOUTH, this, Connector.MALE));
+		this.setConnector(Heading.SOUTH, new Connector(Connector.NORTH_SOUTH, this, Connector.FEMALE));
 		
-		this.setConnector(Heading.EAST, new EastWestConnector(this, Connector.MALE));
-		this.setConnector(Heading.WEST, new EastWestConnector(this, Connector.FEMALE));
+		this.setConnector(Heading.EAST, new Connector(Connector.EAST_WEST, this, Connector.MALE));
+		this.setConnector(Heading.WEST, new Connector(Connector.EAST_WEST, this, Connector.FEMALE));
 	}
 	
 	public void setWallPrefab(WallPrefab w){

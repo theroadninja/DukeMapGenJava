@@ -3,7 +3,7 @@ package duchy.experiments.render.maze.stonetunnels
 import org.apache.commons.lang3.tuple.Pair
 import trn.{Wall, Sector}
 import trn.duke.experiments.WallPrefab
-import trn.duke.experiments.gridblock.{AbstractBlock, SimpleBlock, NorthSouthConnector, EastWestConnector, Connector}
+import trn.duke.experiments.gridblock.{AbstractBlock, SimpleBlock, Connector}
 import trn.maze.Heading
 
 object NarrowPassageBlock {
@@ -13,13 +13,13 @@ class NarrowPassageBlock(gridCoordinate: Pair[Integer, Integer], rotation: Int) 
 
   val connectors: Map[Int, Connector] = if(rotation == NarrowPassageBlock.VERTICAL){
     Map(
-      Heading.NORTH.arrayIndex -> NorthSouthConnector.northEdge(this),
-      Heading.SOUTH.arrayIndex -> NorthSouthConnector.southEdge(this),
+      Heading.NORTH.arrayIndex -> Connector.northEdge(this),
+      Heading.SOUTH.arrayIndex -> Connector.southEdge(this),
     )
   }else{
     Map(
-      Heading.EAST.arrayIndex -> EastWestConnector.eastEdge(this),
-      Heading.WEST.arrayIndex -> EastWestConnector.westEdge(this),
+      Heading.EAST.arrayIndex -> Connector.eastEdge(this),
+      Heading.WEST.arrayIndex -> Connector.westEdge(this),
 
     )
   }

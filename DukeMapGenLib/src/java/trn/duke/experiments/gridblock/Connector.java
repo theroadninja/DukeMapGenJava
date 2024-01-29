@@ -8,10 +8,20 @@ import trn.maze.Heading;
  * since redwall connections don't have a direction.
  *
  */
-public abstract class Connector {
+public class Connector {
 	
 	public static boolean MALE = true;
 	public static boolean FEMALE = false;
+
+	public static Heading genderToHeading(int connectorType, boolean gender){
+		if(connectorType == NORTH_SOUTH){
+			return gender ? Heading.NORTH : Heading.SOUTH;
+		}else if(connectorType == EAST_WEST){
+			return gender ? Heading.EAST : Heading.WEST;
+		}else{
+			throw new IllegalArgumentException();
+		}
+	}
 	
 	
 	/**
@@ -36,6 +46,8 @@ public abstract class Connector {
 	
 	/**
 	 * a binary connection is made from one male connector and one female connector
+	 *
+	 * ... gender+connectorType is a stupid way of saying which side of the block its on
 	 */
 	private final boolean gender;
 
@@ -44,12 +56,12 @@ public abstract class Connector {
 	private int sectorIndex = -1;
 	private Integer floorZ;
 
-	public Connector(int connectorType, Block parentBlock, boolean gender, Heading heading){
+	public Connector(int connectorType, Block parentBlock, boolean gender){
 		if(parentBlock == null) throw new IllegalArgumentException();
 		this.connectorType = connectorType;
 		this.parentBlock = parentBlock;
 		this.gender = gender;
-		this.heading = heading;
+		this.heading = genderToHeading(connectorType, gender);
 	}
 
 	public final void setSectorIndex(int index) {
@@ -76,17 +88,13 @@ public abstract class Connector {
 		
 		Connector other = null;
 		if(this.gender == Connector.MALE){
-			// other = otherBlock.getConnector(genderToBlockEdgeHeading(FEMALE));
-			other = otherBlock.getConnector(genderToBlockEdgeHeading(FEMALE));
+			other = otherBlock.getConnector(genderToHeading(connectorType, FEMALE));
 		}else{
-			// other = otherBlock.getConnector(genderToBlockEdgeHeading(MALE));
-			other = otherBlock.getConnector(genderToBlockEdgeHeading(MALE));
+			other = otherBlock.getConnector(genderToHeading(connectorType, MALE));
 		}
 		this.draw(map, other);
 	}
 
-	protected abstract Heading genderToBlockEdgeHeading(boolean gender);
-	
 	protected final void draw(trn.Map map, Connector other){
 		MapUtil.autoLinkWalls(map, this.getCreatedSectorIndex(), other.getCreatedSectorIndex());
 	}
@@ -95,5 +103,21 @@ public abstract class Connector {
 		if(sectorIndex == -1) throw new RuntimeException("sector index not set on connector");
 		return sectorIndex;
 	}
+	public static Connector eastEdge(Block block){
+		return new Connector(Connector.EAST_WEST, block, Connector.MALE);
+	}
+
+	public static Connector westEdge(Block block){
+		return new Connector(Connector.EAST_WEST, block, Connector.FEMALE);
+	}
+
+	public static Connector northEdge(Block block){
+		return new Connector(Connector.NORTH_SOUTH, block, Connector.MALE);
+	}
+
+	public static Connector southEdge(Block block){
+		return new Connector(Connector.NORTH_SOUTH, block, Connector.FEMALE);
+	}
+
 
 }
