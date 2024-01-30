@@ -2,7 +2,7 @@ package trn.prefab.experiments
 
 import trn.bespoke.MoonBase1
 import trn.bespoke.moonbase2.{MoonBase2, MoonBase3}
-import trn.prefab.{PrefabUtils, DukeConfig}
+import trn.prefab.{DukeConfig}
 import trn.{HardcodedConfig, ScalaMapLoader}
 
 import scala.collection.JavaConverters._

@@ -1,7 +1,7 @@
 package trn.prefab.experiments.tiling
 import trn.RandomX
 import trn.{Map => DMap}
-import trn.prefab.{BoundingBox, GameConfig, MapWriter, PrefabUtils, SectorGroup, SectorGroupBuilder, SectorGroupHints, SectorGroupProperties}
+import trn.prefab.{BoundingBox, GameConfig, SectorGroup, SectorGroupBuilder, SectorGroupHints, SectorGroupProperties}
 
 
 /**

@@ -3,7 +3,7 @@ package trn.bespoke.moonbase2
 import trn.AngleUtil
 import trn.logic.Tile2d
 import trn.math.{RotatesCW, SnapAngle}
-import trn.prefab.{GameConfig, Heading, PrefabUtils, SectorGroup}
+import trn.prefab.{GameConfig, Heading, SectorGroup}
 
 // SectorGroup decorated with extra info for this algorithm
 case class TileSectorGroup(

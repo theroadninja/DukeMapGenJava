@@ -11,7 +11,6 @@ import org.junit.Test;
 import trn.duke.TextureList;
 import trn.prefab.Marker;
 import trn.prefab.PrefabPalette;
-import trn.prefab.PrefabUtils;
 import trn.prefab.SectorGroup;
 
 public class MapTests {

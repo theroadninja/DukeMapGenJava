@@ -1,6 +1,6 @@
 package trn.prefab.experiments
 import trn.{BuildConstants, PointXY, FuncUtils, HardcodedConfig, ScalaMapLoader, Map => DMap}
-import trn.prefab.{CompassWriter, BoundingBox, MapWriter, PrefabUtils, MaxCopyHint, DukeConfig, SectorGroup, RedwallConnector, Heading, PrefabPalette, Matrix2D, EntropyProvider, PastedSectorGroup, SpriteLogicException, Marker}
+import trn.prefab.{CompassWriter, BoundingBox, MapWriter, MaxCopyHint, DukeConfig, SectorGroup, RedwallConnector, Heading, PrefabPalette, Matrix2D, EntropyProvider, PastedSectorGroup, SpriteLogicException, Marker}
 import trn.FuncImplicits._
 import trn.duke.TextureList
 import trn.prefab.grid2d.{Side, GridPiece, SimpleGridPiece, SectorGroupPiece}

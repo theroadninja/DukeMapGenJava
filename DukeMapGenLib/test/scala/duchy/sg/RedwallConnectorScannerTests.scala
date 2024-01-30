@@ -2,7 +2,7 @@ package duchy.sg
 
 import org.junit.{Assert, Test}
 import trn.{PointXY, Wall, ScalaMapLoader, Sprite, WallView, LineSegmentXY, Map => DMap}
-import trn.prefab.{PrefabUtils, DukeConfig, RedwallConnector, TestUtils, Marker}
+import trn.prefab.{DukeConfig, RedwallConnector, TestUtils, Marker}
 import trn.MapImplicits._
 
 import java.util

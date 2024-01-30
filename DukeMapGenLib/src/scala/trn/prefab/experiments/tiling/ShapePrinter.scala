@@ -1,6 +1,6 @@
 package trn.prefab.experiments.tiling
 
-import trn.prefab.{BoundingBox, MapWriter, PrefabUtils, GameConfig, Marker}
+import trn.prefab.{BoundingBox, MapWriter, GameConfig, Marker}
 import trn.render.WallPrefab
 import trn.{Sprite, PointXY, Map => DMap}
 

@@ -1,7 +1,5 @@
 package trn;
 
-import trn.prefab.PrefabUtils;
-
 import java.util.List;
 
 public class SpriteFilter implements ISpriteFilter {

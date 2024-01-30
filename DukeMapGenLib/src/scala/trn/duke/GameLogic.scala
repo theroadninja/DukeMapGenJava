@@ -1,7 +1,7 @@
 package trn.duke;
 
 import trn.Sprite
-import trn.prefab.{PrefabUtils, Marker};
+import trn.prefab.{Marker};
 
 // TODO this stuff probably needs to move to GameConfig
 // TODO this is duke specific

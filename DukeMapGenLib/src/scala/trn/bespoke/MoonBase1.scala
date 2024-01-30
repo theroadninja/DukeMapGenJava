@@ -2,7 +2,7 @@ package trn.bespoke
 
 import trn.duke.TextureList
 import trn.{PointXY, Sector, ScalaMapLoader, Main, PlayerStart, BuildConstants, PointXYZ, WallView, HardcodedConfig, LineSegmentXY, Map => DMap}
-import trn.prefab.{SimpleSectorGroupPacker, MapWriter, PrefabUtils, DukeConfig, CompoundGroup, GameConfig, SectorGroup, RedwallConnector, PasteOptions, PastedSectorGroup, PrefabPalette, SectorGroupPacker, SpriteLogicException, Marker}
+import trn.prefab.{SimpleSectorGroupPacker, MapWriter, DukeConfig, CompoundGroup, GameConfig, SectorGroup, RedwallConnector, PasteOptions, PastedSectorGroup, PrefabPalette, SectorGroupPacker, SpriteLogicException, Marker}
 
 import scala.collection.JavaConverters._
 

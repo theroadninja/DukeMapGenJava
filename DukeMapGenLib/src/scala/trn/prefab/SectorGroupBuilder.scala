@@ -34,12 +34,18 @@ object SectorGroupBuilder {
     }
   }
 
-  private def createAutoText(marker: Sprite, map: DMap): AutoText = {
+  private def hitagToId(s: Sprite): Int = if (s != null && s.getHiTag > 0) {
+    s.getHiTag
+  } else {
+    -1
+  }
+
+  private def createAutoText(marker: Sprite, map: DMap) = {
     // TODO - currently the IdMap doesnt track sprites, so we cant load them here
     if(getTextSpriteIds(marker.getSectorId, map).size < 1){
       throw new SpriteLogicException("AutoText marker (5) without any texture sprites with nonzero lotags")
     }
-    new AutoText(PrefabUtils.hitagToId(marker), Set(marker.getSectorId.toInt))
+    new AutoText(hitagToId(marker), Set(marker.getSectorId.toInt))
   }
 
   def createSectorGroup(map: DMap, sectorGroupId: Int, props: SectorGroupProperties, hints: SectorGroupHints): SectorGroup = {

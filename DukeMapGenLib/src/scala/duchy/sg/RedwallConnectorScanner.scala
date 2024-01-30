@@ -2,7 +2,7 @@ package duchy.sg
 
 import duchy.sg.RedwallSection.MultiSection
 import duchy.vector.{VectorMath, Line2D}
-import trn.prefab.{ConnectorScanner, PrefabUtils, DukeConfig, ConnectorFactory2, RedwallConnector, ConnectorType, SpriteLogicException, Marker}
+import trn.prefab.{ConnectorScanner, DukeConfig, ConnectorFactory2, RedwallConnector, ConnectorType, SpriteLogicException, Marker}
 import trn.{PointXYZ, PointXY, MapUtil, WallView, MapView, Sprite}
 
 import scala.collection.JavaConverters._

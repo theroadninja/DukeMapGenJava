@@ -1,6 +1,6 @@
 package duchy.sg
 
-import trn.prefab.{ConnectorScanner, PrefabUtils, ConnectorFactory2, Connector, Marker}
+import trn.prefab.{ConnectorFactory2, Connector, Marker}
 import trn.{MapView, CopyState, Map => DMap}
 import trn.MapImplicits._
 

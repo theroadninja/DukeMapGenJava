@@ -1,7 +1,7 @@
 package trn.prefab.experiments
 
 import trn.prefab._
-import trn.{HardcodedConfig, ScalaMapLoader, Main, BuildConstants, PointXYZ, Map => DMap}
+import trn.{HardcodedConfig, ScalaMapLoader, Main, Sprite, BuildConstants, PointXYZ, Map => DMap}
 import trn.duke.{PaletteList, TextureList}
 import trn.logic.Tile2d
 import trn.prefab.experiments.Hyper2MapBuilder.Cell
@@ -425,8 +425,13 @@ object Hypercube2 {
       val sg = palette.getSectorGroup(sectorGroupId)
       loadRoom2(sg)
     }
+
+    def isMarker(s: Sprite, hitag: Int, lotag: Int): Boolean = { // TODO not sure if I should keep this
+      Marker.isMarker(s) && s.getHiTag == hitag && s.getLotag == lotag
+    }
+
     def loadRoom2(sg: SectorGroup): Room = {
-      val upperRoomOnly = sg.containsSprite(s => PrefabUtils.isMarker(s, UpperRoomTag, Marker.Lotags.ALGO_HINT))
+      val upperRoomOnly = sg.containsSprite(s => isMarker(s, UpperRoomTag, Marker.Lotags.ALGO_HINT))
       val (lowDoors, highDoors) = autoDoors(sg, upperRoomOnly)
       Room.auto(sg, highDoors, lowDoors)
     }

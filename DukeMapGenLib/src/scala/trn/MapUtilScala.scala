@@ -1,6 +1,6 @@
 package trn
 
-import trn.prefab.{MathIsHardException, ConnectorScanner, Polygon, PrefabUtils, GameConfig, SectorGroup, RedwallConnector, SpriteLogicException, Marker}
+import trn.prefab.{MathIsHardException, ConnectorScanner, Polygon, GameConfig, SectorGroup, SpriteLogicException, Marker}
 import trn.{Map => DMap}
 
 import scala.collection.JavaConverters._

@@ -3,8 +3,8 @@ package trn.bespoke.moonbase2
 import trn.bespoke.moonbase2.MoonBase2.{rotateToMatch, getTileSpec}
 import trn.logic.{Tile2d, Point3d}
 import trn.prefab.experiments.ExpUtil
-import trn.{HardcodedConfig, RandomX, ScalaMapLoader}
-import trn.prefab.{MapWriter, PrefabUtils, DukeConfig, GameConfig, SectorGroup, PrefabPalette, Marker}
+import trn.{HardcodedConfig, RandomX, ScalaMapLoader, Sprite}
+import trn.prefab.{MapWriter, DukeConfig, GameConfig, SectorGroup, PrefabPalette, Marker}
 
 import scala.collection.mutable
 
@@ -41,10 +41,13 @@ object MoonBase3 {
   //   CompassWriter.west(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
   //   CompassWriter.north(sg).map(_ => Tile2d.Conn).getOrElse(Tile2d.Blocked),
   // )
+  def isMarker(s: Sprite, hitag: Int, lotag: Int): Boolean = { // TODO not sure if I should keep this
+    return Marker.isMarker(s) && s.getHiTag == hitag && s.getLotag == lotag
+  }
 
   def readTileSectorGroup(gameCfg: GameConfig, palette: PrefabPalette, groupId: Int): TileSectorGroup = {
     val sg = palette.getSG(groupId)
-    val connsOptional: Boolean = sg.containsSprite(s => PrefabUtils.isMarker(s, AlgoHint.WildcardConns, Marker.Lotags.ALGO_HINT))
+    val connsOptional: Boolean = sg.containsSprite(s => isMarker(s, AlgoHint.WildcardConns, Marker.Lotags.ALGO_HINT))
     val tile = if(connsOptional){
       val tmp = autoReadTile(sg)
       require(tmp == Tile2d(Tile2d.Conn), s"group ${groupId} marked as wildcard but does not have all 4 connections")
@@ -63,13 +66,13 @@ object MoonBase3 {
     if(sg.containsSprite(s => gameCfg.isKeycard(s.getTex))){
       tags.add(RoomTags.Key)
     }
-    if(sg.containsSprite(s => PrefabUtils.isMarker(s, AlgoHint.Gate, Marker.Lotags.ALGO_HINT))){
+    if(sg.containsSprite(s => isMarker(s, AlgoHint.Gate, Marker.Lotags.ALGO_HINT))){
       tags.add(RoomTags.Gate)
     }
-    if(sg.containsSprite(s => PrefabUtils.isMarker(s, AlgoHint.Unique, Marker.Lotags.ALGO_HINT))){
+    if(sg.containsSprite(s => isMarker(s, AlgoHint.Unique, Marker.Lotags.ALGO_HINT))){
       tags.add(RoomTags.Unique)
     }
-    val oneway = sg.allSprites.find(s => PrefabUtils.isMarker(s, AlgoHint.OneWay, Marker.Lotags.ALGO_HINT))
+    val oneway = sg.allSprites.find(s => isMarker(s, AlgoHint.OneWay, Marker.Lotags.ALGO_HINT))
     oneway.foreach { s =>
       tags.add(RoomTags.OneWay)
     }
