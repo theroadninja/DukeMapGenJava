@@ -1,4 +1,4 @@
-package trn;
+package trn.javax;
 
 /**
  * Defines a range of integers.  Made this because I don't want Map.java to depend on Apache Commons just for it's

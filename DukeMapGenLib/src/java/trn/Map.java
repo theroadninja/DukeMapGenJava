@@ -1,5 +1,6 @@
 package trn;
 
+import trn.javax.Range;
 import trn.prefab.MathIsHardException;
 
 import java.io.*;
@@ -1063,16 +1064,16 @@ public class Map implements WallContainer {
 		return count;
 	}
 
-	public List<Sprite> findSprites(ISpriteFilter... filters){
-		List<Sprite> results = new ArrayList<Sprite>(sprites.size());
-		for(Sprite s : sprites){
-			if(! SpriteFilter.matchAll(s, filters)){
-				continue;
-			}
-			results.add(s);
-		}
-		return results;
-	}
+	// public List<Sprite> findSprites(ISpriteFilter... filters){
+	// 	List<Sprite> results = new ArrayList<Sprite>(sprites.size());
+	// 	for(Sprite s : sprites){
+	// 		if(! SpriteFilter.matchAll(s, filters)){
+	// 			continue;
+	// 		}
+	// 		results.add(s);
+	// 	}
+	// 	return results;
+	// }
 
 	// // having trouble with scala vs java varargs -- will figure it out later
 	// public List<Sprite> findSprites4Scala(List<ISpriteFilter> filters){

@@ -1,7 +1,8 @@
-package trn;
+package trn.javax;
 
 import org.junit.Assert;
 import org.junit.Test;
+import trn.javax.Range;
 
 public class RangeTests {
 

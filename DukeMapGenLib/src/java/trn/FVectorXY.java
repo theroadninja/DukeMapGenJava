@@ -44,6 +44,20 @@ public final class FVectorXY {
         return new FVectorXY(y, -x);
     }
 
+    public FVectorXY rotatedDegreesCW(double degrees){
+        while(degrees < 0.0){
+            degrees += 360.0;
+        }
+        while(degrees > 360.0){
+            degrees -= 360.0;
+        }
+
+        double r = Math.toRadians(degrees);
+        double x2 = Math.cos(r) * x - Math.sin(r) * y;
+        double y2 = Math.sin(r) * x + Math.cos(r) * y;
+        return new FVectorXY(x2, y2);
+    }
+
     public FVectorXY add(FVectorXY p){
         return new FVectorXY(x + p.x, y + p.y);
     }
@@ -67,6 +81,12 @@ public final class FVectorXY {
     @Override
     public String toString(){
         return "{ FVectorXY x=" + this.x + " y=" + y + " }";
+    }
+
+    public boolean almostEquals(FVectorXY rh) {
+        final double delta = 0.000001;
+        return Math.abs(x - rh.x) < delta && Math.abs(y - rh.y) < delta;
+
     }
 
 

@@ -7,14 +7,6 @@ import java.util.List;
 
 public class RedConnUtil {
 
-    // public static ConnectorFilter SouthConnector = new ConnectorTypeFilter(ConnectorType.VERTICAL_SOUTH);
-    // public static ConnectorFilter NorthConnector = new ConnectorTypeFilter(ConnectorType.VERTICAL_NORTH);
-
-    // still used by Hypercube2
-    // public static ConnectorFilter EastConnector = new ConnectorTypeFilter(ConnectorType.HORIZONTAL_EAST);
-    // public static ConnectorFilter WestConnector = new ConnectorTypeFilter(ConnectorType.HORIZONTAL_WEST);
-
-
     static List<Integer> toList(int element){
         return new ArrayList<Integer>(){{
             add(element);
@@ -28,22 +20,6 @@ public class RedConnUtil {
         }
         return results;
     }
-
-    // /** use ReadOnlySectorGroup.getCompassConnectors() instead of this */
-    // @Deprecated
-    // public static int connectorTypeForHeading(int heading){
-    //     if(Heading.E == heading){
-    //         return ConnectorType.HORIZONTAL_EAST;
-    //     }else if(Heading.W == heading){
-    //         return ConnectorType.HORIZONTAL_WEST;
-    //     }else if(Heading.N == heading){
-    //         return ConnectorType.VERTICAL_NORTH;
-    //     }else if(Heading.S == heading){
-    //         return ConnectorType.VERTICAL_SOUTH;
-    //     }else{
-    //         throw new IllegalArgumentException();
-    //     }
-    // }
 
     public static int headingForConnectorType(int connectorType){
         if(connectorType == ConnectorType.VERTICAL_SOUTH){
