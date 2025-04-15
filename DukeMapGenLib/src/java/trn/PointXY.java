@@ -207,6 +207,36 @@ public class PointXY {
 		return this.x * other.x + this.y * other.y;
 	}
 
+	public PointXY snappedToGrid(int gridSize) {
+		if(gridSize < 0 || gridSize % 8 != 0){
+			throw new IllegalArgumentException(String.format("invalid grid size: %s", gridSize));
+		}
+
+		return new PointXY(snapToGrid(x, gridSize), snapToGrid(y, gridSize));
+	}
+
+	// this has a bias towards 0
+	public static int snapToGrid(int x, int gridSize) {
+		if(gridSize < 0 || gridSize % 8 != 0){
+			throw new IllegalArgumentException(String.format("invalid grid size: %s", gridSize));
+		}
+		if(x < 0){
+			return -1 * snapToGrid(Math.abs(x), gridSize);
+		}
+
+		int left = x % gridSize;
+		if(left == 0){
+			return x;
+		}else{
+			int right = gridSize - left;
+			if(left <= right){
+				return x - left;
+			}else{
+				return x + right;
+			}
+		}
+	}
+
 	/**
 	 * Tests intersection between segments (a, a+b) and (c, c+d).
 	 * WARNING:  returns false for perfect overlap

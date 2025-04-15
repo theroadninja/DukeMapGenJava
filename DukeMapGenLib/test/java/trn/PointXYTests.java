@@ -324,4 +324,51 @@ public class PointXYTests {
     public void testToHeadingThrows2(){
         p(1, 2).toHeading();
     }
+
+    @Test
+    public void testSnapToGrid(){
+        Assert.assertEquals(0, PointXY.snapToGrid(-1, 8));
+        Assert.assertEquals(0, PointXY.snapToGrid(0, 8));
+        Assert.assertEquals(0, PointXY.snapToGrid(1, 8));
+        Assert.assertEquals(0, PointXY.snapToGrid(2, 8));
+        Assert.assertEquals(0, PointXY.snapToGrid(3, 8));
+        Assert.assertEquals(0, PointXY.snapToGrid(4, 8));
+        Assert.assertEquals(8, PointXY.snapToGrid(5, 8));
+        Assert.assertEquals(8, PointXY.snapToGrid(6, 8));
+        Assert.assertEquals(8, PointXY.snapToGrid(7, 8));
+        Assert.assertEquals(8, PointXY.snapToGrid(8, 8));
+        Assert.assertEquals(8, PointXY.snapToGrid(9, 8));
+
+
+        Assert.assertEquals(992, PointXY.snapToGrid(1024 - 31, 32));
+        Assert.assertEquals(992, PointXY.snapToGrid(1024 - 16, 32));
+        Assert.assertEquals(1024, PointXY.snapToGrid(1024 - 15, 32));
+        Assert.assertEquals(1024, PointXY.snapToGrid(1024 - 1, 32));
+        Assert.assertEquals(1024, PointXY.snapToGrid(1024, 32));
+        Assert.assertEquals(1024, PointXY.snapToGrid(1024 + 1, 32));
+        Assert.assertEquals(1024, PointXY.snapToGrid(1024 + 16, 32));
+        Assert.assertEquals(1056, PointXY.snapToGrid(1024 + 17, 32));
+        Assert.assertEquals(1056, PointXY.snapToGrid(1024 + 31, 32));
+        Assert.assertEquals(1056, PointXY.snapToGrid(1024 + 32, 32));
+
+
+        Assert.assertEquals(-80, PointXY.snapToGrid(-64 - 16, 16));
+        Assert.assertEquals(-80, PointXY.snapToGrid(-64 - 9, 16));
+        Assert.assertEquals(-64, PointXY.snapToGrid(-64 - 8, 16));
+        Assert.assertEquals(-64, PointXY.snapToGrid(-64 - 1, 16));
+        Assert.assertEquals(-64, PointXY.snapToGrid(-64, 16));
+        Assert.assertEquals(-64, PointXY.snapToGrid(-64 + 1, 16));
+        Assert.assertEquals(-48, PointXY.snapToGrid(-64 + 8, 16));
+        Assert.assertEquals(-48, PointXY.snapToGrid(-64 + 15, 16));
+        Assert.assertEquals(-48, PointXY.snapToGrid(-64 + 16, 16));
+    }
+
+    @Test
+    public void testSnappedToGrid() {
+        Assert.assertEquals(p(0, 0), p(0, 0).snappedToGrid(8));
+        Assert.assertEquals(p(0, 0), p(1, 1).snappedToGrid(8));
+        Assert.assertEquals(p(8, 0), p(7, 4).snappedToGrid(8));
+
+        Assert.assertEquals(p(-32, 0), p(-20, -8).snappedToGrid(32));
+    }
 }
