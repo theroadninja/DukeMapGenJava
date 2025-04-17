@@ -6,6 +6,7 @@ import trn.{PointXY, RandomX, ISpriteFilter, WallView, IdMap, BuildConstants, Po
 import trn.MapImplicits._
 import trn.FuncImplicits._
 import trn.math.{RotatesCW, SnapAngle}
+import trn.prefab.MapWriter.newMarkerSprite
 import trn.prefab.experiments._
 import trn.render.WallAnchor
 
@@ -340,6 +341,19 @@ class MapWriter(
     sgBuilder.nextUniqueHiTag(),
     startLower
   )
+
+  def linkTeleporters(
+    connA: TeleportConnector,
+    connB: TeleportConnector,
+  ): Unit = TeleportConnector.linkTeleporters(
+    connA,
+    this,
+    connB,
+    this,
+    sgBuilder.nextUniqueHiTag(),
+  )
+
+
 
   def applyPaletteToAll(textureId: Int, palette: Int): Unit = {
     if(textureId < 0 || palette < 0) throw new IllegalArgumentException

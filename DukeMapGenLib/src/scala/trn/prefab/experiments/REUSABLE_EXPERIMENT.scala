@@ -11,7 +11,7 @@ object REUSABLE_EXPERIMENT {
 
   def main(args: Array[String]): Unit = {
 
-    val gameCfg = DukeConfig.load(HardcodedConfig.getAtomicWidthsFile)
+    val gameCfg = BaseExperiment.gameConfig
     val result = tryRun(gameCfg)
     ExpUtil.write(result)
 
@@ -35,7 +35,7 @@ object REUSABLE_EXPERIMENT {
 
     // smallest grid size is 8?
     // val side = new LineSegmentXY(new PointXY(0, 0), new PointXY(2056, 0))
-    val side = new LineSegmentXY(new PointXY(2056, 0), new PointXY(0, 0))
+    val side = new LineSegmentXY(new PointXY(4096 + 1024, 0), new PointXY(0, 0))
     PentagonPrinter.printPentagon(writer.getMap, side, Some(128))
     ExpUtil.finish(writer) // auto-add player start
     writer.outMap

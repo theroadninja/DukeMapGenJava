@@ -5,9 +5,14 @@ import trn.duke.TextureList
 
 object RandomItemMarker {
 
+
   // TODO start using this older java syntax for consts that I'm using for enums
   /** hitag to indicate item should be chosen according to the "ammo" algo for subway */
   val SUBWAY_AMMO = 1
+
+  object Hitags {
+    // SubwayAmmo = 1
+  }
 
 
   def writeTo(random: RandomX, sprite: Sprite): Unit = {
@@ -17,6 +22,14 @@ object RandomItemMarker {
       case SUBWAY_AMMO => writeSubwayAmmo(random, sprite)
     }
   }
+
+  def writeTo(tex: Int, sprite: Sprite): Unit = {
+    require(Marker.isMarker(sprite, Marker.Lotags.RANDOM_ITEM))
+    sprite.setTexture(tex)
+    sprite.setLotag(0)
+    sprite.setHiTag(0)
+  }
+
 
   def writeSubwayAmmo(random: RandomX, sprite: Sprite): Unit = {
     require(Marker.isMarker(sprite, Marker.Lotags.RANDOM_ITEM)) // 23

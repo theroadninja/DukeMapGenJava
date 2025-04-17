@@ -41,12 +41,12 @@ object Item {
   val MediumHealth = Item(TextureList.Items.HEALTH_MEDIUM)
   val Medkit = Item(TextureList.Items.HEALTH_MEDKIT)
   val Armor = Item(TextureList.Items.ARMOR)
-  // val Steroids = Item(TextureList.Items.STEROIDS)
-  // val Scuba = Item(TextureList.Items.SCUBA)
-  // val Jetpack = Item(TextureList.Items.JETPACK)
-  // val Nightvision = Item(TextureList.Items.NIGHT_VISION)
-  // val Boots = Item(TextureList.Items.BOOTS)
-  // val HoloDuke = Item(TextureList.Items.HOLODUKE)
+  val Steroids = Item(TextureList.Items.STEROIDS)
+  val Scuba = Item(TextureList.Items.SCUBA)
+  val Jetpack = Item(TextureList.Items.JETPACK)
+  val Nightvision = Item(TextureList.Items.NIGHT_VISION)
+  val Boots = Item(TextureList.Items.BOOTS)
+  val HoloDuke = Item(TextureList.Items.HOLODUKE)
   val AtomicHealth = Item(TextureList.Items.HEALTH_ATOMIC)
 
 

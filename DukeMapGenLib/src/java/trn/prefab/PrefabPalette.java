@@ -89,7 +89,7 @@ public class PrefabPalette {
 	}
 
 	public SectorGroup getSectorGroup(int sectorGroupId){
-	    if(!this.numberedSectorGroups.containsKey(sectorGroupId)) throw new NoSuchElementException();
+	    if(!this.numberedSectorGroups.containsKey(sectorGroupId)) throw new NoSuchElementException(String.format("sg id=%s", sectorGroupId));
 		return this.numberedSectorGroups.get(sectorGroupId);
 	}
 

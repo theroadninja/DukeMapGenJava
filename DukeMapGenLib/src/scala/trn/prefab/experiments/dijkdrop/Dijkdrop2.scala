@@ -5,6 +5,7 @@ import trn.prefab.{FallConnector, MapWriter, DukeConfig, EnemyMarker, SectorGrou
 import trn.prefab.experiments.ExpUtil
 import trn.prefab.experiments.dijkdrop.Room.RoomId
 import trn.prefab.experiments.dijkdrop.SpriteGroups.{STANDARD_AMMO, StandardAmmo, BASIC_AMMO, BasicAmmo}
+import trn.prefab.layout.GridLayout
 
 import scala.collection.JavaConverters._
 

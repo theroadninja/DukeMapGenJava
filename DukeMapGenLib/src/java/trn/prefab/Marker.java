@@ -59,7 +59,7 @@ public class Marker {
          * 	hitag: 0 OR some ID
          *
          * Text Sprites:
-         *   lotag:  non zero, value indicates order (smaller numbers to the left)
+         *   lotag:  MUST be non zero, value indicates order (smaller numbers to the left)
          *
          */
         public static int AUTO_TEXT = 5;
@@ -216,6 +216,8 @@ public class Marker {
          * Since I don't know what I'm doing yet, the hitag will just indicate behavior for specific algorithms.
          *
          * For more info see the RandomItemMarker class.
+         *
+         * To implement, see RandomItemMarker (??)
          */
         public static int RANDOM_ITEM = 23;
 

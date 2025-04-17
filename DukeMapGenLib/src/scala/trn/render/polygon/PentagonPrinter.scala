@@ -20,7 +20,7 @@ object PentagonPrinter {
   ): Int = {
     require(side.getManhattanLength > 1)
 
-    // TODO: add snapping ability to turtle
+    // TODO: add correct texture stretch settings
 
     val t = Turtle(side, TurtleOptions(gridSnap))
 

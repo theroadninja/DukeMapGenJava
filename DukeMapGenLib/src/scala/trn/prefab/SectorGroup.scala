@@ -405,6 +405,11 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     }
   }
 
+  def getFirstAutoTextById(autoTextId: Int): Option[AutoText] = {
+    val results: Seq[AutoText] = this.autoTexts.asScala.filter(_.autoTextId == autoTextId)
+    results.headOption
+  }
+
   // @throws(classOf[MapErrorException])
   // protected def updateConnectors(): Unit = ???
   protected def updateConnectors(): Unit = {
@@ -700,5 +705,7 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
   }
 
   def getAnchorSprite: Option[Sprite] = sprites.find(MapWriter.isAnchorSprite)
+
+  def findFirstMarker(lotag: Int): Option[Sprite] = allSprites.find(Marker.isMarker(_, lotag))
 
 }

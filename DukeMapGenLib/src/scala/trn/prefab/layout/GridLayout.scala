@@ -1,4 +1,4 @@
-package trn.prefab.experiments.dijkdrop
+package trn.prefab.layout
 
 import trn.prefab.BoundingBox
 
