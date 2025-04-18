@@ -375,7 +375,7 @@ public class TextureList {
 		public static final int LIZMAN_JUMP = 2165;
 		public static final int ROTATEGUN = 2360;
 		public static final int GREENSLIME = 2370;
-		public static final int BOSS1 = 2630;
+		public static final int BOSS1 = 2630;  // Pal 21 to make him a miniboss
 		public static final int BOSS1_STAYPUT = 2631;
 		public static final int BOSS2 = 2710;
 		public static final int BOSS3 = 2760;

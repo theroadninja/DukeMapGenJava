@@ -55,7 +55,8 @@ object HuntTheWumpus {
 
 
 
-    val rooms = random.shuffle(Seq(START, WUMPUS, RPG, AMBUSH, ITEM, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY)).toSeq
+    val rooms = random.shuffle(Seq(START, WUMPUS, RPG, AMBUSH, ITEM, ITEM, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY)).toSeq
+    require(rooms.size == 12)
 
 
 

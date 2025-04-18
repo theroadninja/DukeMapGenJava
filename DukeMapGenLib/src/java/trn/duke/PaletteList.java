@@ -35,4 +35,8 @@ public class PaletteList {
     public static int KEYCARD_RED = 21;
     public static int KEYCARD_YELLOW = 23;
 
+
+    /** turns Boss1 (2630) into a mini boss */
+    public static int MINIBOSS = 21;
+
 }

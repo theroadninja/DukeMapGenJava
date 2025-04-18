@@ -36,6 +36,7 @@ class WumpusRoom(roomId: Int, sg: SectorGroup) {
 
 object WumpusRoom {
   private val Items = Seq(
+    Item.Armor,
     Item.Medkit,
     Item.Steroids,
     Item.Scuba,
