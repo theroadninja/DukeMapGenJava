@@ -24,6 +24,12 @@ object LogicalMap {
   def apply[V, E](): LogicalMap[V, E] = new LogicalMap
 }
 
+/**
+  * Its a graph where the vertexes are aligned to a grid.
+  *
+  * @tparam V the type of the vertex, e.g. LogicalRoom
+  * @tparam E info about an edge
+  */
 class LogicalMap[V, E] {
   val nodes = mutable.Map[Point3d, V]()
   val edges = mutable.Map[Edge, E]()
@@ -52,10 +58,26 @@ class LogicalMap[V, E] {
     nodes.put(p, value)
   }
 
+  def putAll(path: Seq[Point3d], fillValue: V): Unit = path.foreach(p => put(p, fillValue))
+
+  /** TODO code that calls this probably has bugs -- see putEdgeSafe() */
+  @Deprecated
   def putEdge(a: Point3d, b: Point3d, edgeValue: E): Unit = {
     require(nodes.isDefinedAt(a) && nodes.isDefinedAt(b))
 //    val p = Seq(a, b).sorted
 //    edges.put(Edge(p(0), p(1)), edgeValue)
+    edges.put(Edge.sorted(a, b), edgeValue)
+  }
+
+  /** putEdge allowed you to define an edge between points that were not adjacent */
+  def putEdgeSafe(a: Point3d, b: Point3d, edgeValue: E): Unit = {
+    require(nodes.isDefinedAt(a) && nodes.isDefinedAt(b))
+
+    // they must be next to each other
+    require(a.manhattanDistance(b) == 1)
+
+    //    val p = Seq(a, b).sorted
+    //    edges.put(Edge(p(0), p(1)), edgeValue)
     edges.put(Edge.sorted(a, b), edgeValue)
   }
 

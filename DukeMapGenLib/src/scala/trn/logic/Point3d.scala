@@ -30,9 +30,16 @@ case class Point3d(x: Int, y: Int, z: Int) extends Ordered[Point3d] {
     case Point3d.NORTH => n
   }
 
+  def manhattanDistance(other: Point3d): Int = {
+    Math.abs(x - other.x) + Math.abs(y - other.y) + Math.abs(z - other.z)
+  }
+
 }
 
 object Point3d {
+  val Zero = Point3d(0, 0, 0)
+
+
   /** TODO DRY with trn.prefab.Heading (that heading probably needs to be moved to trn.logic ... ) */
   val EAST = 0
   val SOUTH = 1
