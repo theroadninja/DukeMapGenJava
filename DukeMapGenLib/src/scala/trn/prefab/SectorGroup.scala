@@ -694,6 +694,8 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     s.getTexture == TextureList.Switches.NUKE_BUTTON && s.getLotag != 0
   }
 
+  /** use scanAnchors() instead */
+  @Deprecated
   def getAnchor: PointXYZ = getAnchorSprite.getOrElse(
     throw new SpriteLogicException("no anchor sprite")
   ).getLocation
@@ -704,7 +706,14 @@ class SectorGroup(val map: DMap, val sectorGroupId: Int, val props: SectorGroupP
     new PointXY(bb.xMin, bb.yMin).withZ(0)
   }
 
-  def getAnchorSprite: Option[Sprite] = sprites.find(MapWriter.isAnchorSprite)
+  /** use scanAnchors() instead */
+  @Deprecated
+  private def getAnchorSprite: Option[Sprite] = sprites.find(MapWriter.isAnchorSprite)
+
+  /**
+    * Returns all the anchors it found.  Multiple anchors are possible because sector groups can be merged.
+    */
+  def scanAnchors(): Seq[PointXYZ] = MarkerScala.scanAnchors(allSprites)
 
   def findFirstMarker(lotag: Int): Option[Sprite] = allSprites.find(Marker.isMarker(_, lotag))
 

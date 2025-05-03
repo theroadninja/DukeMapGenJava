@@ -7,6 +7,8 @@ import java.util.List;
 
 /**
  * Support code for Marker Sprites
+ *
+ * See also trn.prefab.MarkerScala in the scala project.
  */
 public class Marker {
 
@@ -28,6 +30,10 @@ public class Marker {
          * For example, if you want to place the group such that the middle of the room is in
          * a certain spot, put an anchor in the middle of the room and use its coordinates for
          * translation.
+         *
+         * IN PROGRESSS:
+         *    hitag = 0 normal anchor
+         *    hitag = 2 paired markers - the anchor is in the center of the bounding box their form
          */
         public static int ANCHOR = 3;
 

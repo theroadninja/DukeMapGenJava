@@ -1,8 +1,26 @@
 package trn.prefab
 
-import trn.PointXY
+import trn.{PointXY, PointXYZ}
 
 object BoundingBox {
+
+  // doesnt really belong here, but its the best place to put it for now.
+  def centerXYZ(a: PointXYZ, b: PointXYZ): PointXYZ = {
+    val minx = math.min(a.x, b.x)
+    val miny = math.min(a.y, b.y)
+    val minz = math.min(a.z, b.z)
+    val maxx = math.max(a.x, b.x)
+    val maxy = math.max(a.y, b.y)
+    val maxz = math.max(a.z, b.z)
+
+    def midPoint(minVal: Int, maxVal: Int): Int = minVal + ((maxVal - minVal)/2)
+
+    new PointXYZ(
+      midPoint(minx, maxx),
+      midPoint(miny, maxy),
+      midPoint(minz, maxz),
+    )
+  }
 
   /**
     * @return a bounding box containing all the points

@@ -4,13 +4,15 @@ import scala.collection.mutable.ListBuffer
 import org.junit.Assert
 import org.junit.Test
 import org.junit.Before
-import trn.PointXY
+import trn.{PointXY, PointXYZ}
 
 class BoundingBoxTests {
 
   private def b(xmin: Int, ymin: Int, xmax: Int, ymax: Int): BoundingBox = BoundingBox(xmin, ymin, xmax, ymax)
 
   private def p(x: Int, y: Int): PointXY = new PointXY(x, y)
+
+  private def P(x: Int, y: Int, z: Int): PointXYZ = new PointXYZ(x, y, z)
 
   @Test
   def testBoundingBox: Unit = {
@@ -336,4 +338,23 @@ class BoundingBoxTests {
     Assert.assertEquals(b(2, 15, 40, 300), b(1, 5, 20, 100).transform(Matrix2D.scale(2, 3)))
   }
 
+  @Test
+  def testCenterXYZ(): Unit = {
+    Assert.assertEquals(
+      P(4, 4, 4),
+      BoundingBox.centerXYZ(P(0, 0, 0), P(8, 8, 8)),
+    )
+    Assert.assertEquals(
+      P(4, 4, 4),
+      BoundingBox.centerXYZ(P(8, 8, 8), P(0, 0, 0)),
+    )
+    Assert.assertEquals(
+      P(0, 40, -8),
+      BoundingBox.centerXYZ(P(-8, 100, -4), P(8, -20, -12)),
+    )
+    Assert.assertEquals(
+      P(0, 40, -8),
+      BoundingBox.centerXYZ(P(8, -20, -12), P(-8, 100, -4))
+    )
+  }
 }

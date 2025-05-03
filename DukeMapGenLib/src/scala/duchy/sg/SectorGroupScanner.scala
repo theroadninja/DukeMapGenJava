@@ -1,6 +1,6 @@
 package duchy.sg
 
-import trn.prefab.{SectorGroupHints, GameConfig, SectorGroup, SectorGroupProperties, ChildPointer, SectorGroupBuilder, SpriteLogicException, Marker, TagGenerator}
+import trn.prefab.{SectorGroupHints, MarkerScala, GameConfig, SectorGroup, SectorGroupProperties, ChildPointer, SectorGroupBuilder, SpriteLogicException, Marker, TagGenerator}
 import trn.{PointXYZ, MapUtil, CopyState, MapImplicits, Sprite, Map => DMap}
 import trn.MapImplicits._
 
@@ -135,6 +135,7 @@ object SectorGroupScanner {
       groupIdSprite.map(_.getHiTag),
     )
     frag.requireValidMarkerSprites()
+    MarkerScala.validateSprites(clipboard.allSprites).headOption.foreach(_.throwSelf())
     frag
   }
 

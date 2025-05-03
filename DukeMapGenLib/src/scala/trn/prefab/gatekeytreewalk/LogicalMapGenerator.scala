@@ -117,7 +117,7 @@ object LogicalMapGenerator {
       // put key in a new space, adjacent to the path
       val keyloc = walker.step(map, attachPoint).get
       map.put(keyloc, TWRoom.key(keyZone), overwrite=false)
-      map.putEdge(attachPoint, keyloc, "")
+      map.putEdgeSafe(attachPoint, keyloc, "")
       keyloc
     }
   }
@@ -156,7 +156,6 @@ object LogicalMapGenerator {
     start: Point3d = Point3d.Zero,
     stepCount: Int = 3,
   ): LogicalMap[TWRoom, String] = {
-    // TODO not sure whether to replace LogicalMap or not
     val map = LogicalMap[TWRoom, String]
 
     val walker = new Walker(random)
@@ -170,18 +169,11 @@ object LogicalMapGenerator {
     current = path.last
 
     current = attachGate(walker, map, Seq(0), 1)
-    // var gateLoc,  = walker.gateLocation(map, Seq(0))
-    // map.put(gateLoc, TWRoom.gate(1))
-    // map.putEdgeSafe(current, gateLoc, "") // TODO - so "" means normal connection?
 
     path = walker.flatWalk(map, current, stepCount)
     map.putAll(path, TWRoom.normal(1))
     fillEdges(map, current +: path, "")
-
     current = attachGate(walker, map, Seq(1), 2)
-    // current = walker.gateLocation(map, Seq(0, 1))
-    // map.put(current, TWRoom.gate(2))
-    // map.putEdgeSafe(path.last, current, "")
 
     path = walker.flatWalk(map, current, stepCount)
     map.putAll(path, TWRoom.normal(2))
