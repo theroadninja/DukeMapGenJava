@@ -9,6 +9,8 @@ import java.util.List;
  * Support code for Marker Sprites
  *
  * See also trn.prefab.MarkerScala in the scala project.
+ *
+ * For the "hint" version, see @SectorGroupHints
  */
 public class Marker {
 

@@ -63,5 +63,7 @@ case class SgPaletteScala(
 
   def getSpriteGroup(spriteGroupId: Int): Seq[Sprite] = spriteGroups(spriteGroupId)
 
+  def getSG(id: Int): SectorGroup = numberedGroups(id)
+
 
 }

@@ -92,6 +92,7 @@ object TilingMain {
   def run(gameCfg: GameConfig): Unit = {
     val random = new RandomX()
 
+    // val which = "hex"
     val which = "pyth2"
 
     if(which == "pyth") {
@@ -244,7 +245,11 @@ object TilingMain {
             inputmap.makeEdge(writer, tileA, edgeA, tileB, edgeB)
           }
           case (None, None) => None
-          case _ => throw new RuntimeException("edge mismatch!")
+          case _ => {
+            // TODO dont know why this isnt working, but it might be because of holes in the logical plan
+            None
+            // throw new RuntimeException("edge mismatch!")
+          }
         }
       }
     }

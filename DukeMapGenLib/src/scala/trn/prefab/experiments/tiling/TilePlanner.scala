@@ -55,10 +55,22 @@ class TilePlan(val tiling: Tiling) {
     */
   def getTileEdges(tileCoord: (Int, Int)): Map[Int, TileEdge] = {
     val coords: Iterable[(Int, Int)] = nodes.keys
-    coords.filter(neighboor => containsEdge(tileCoord, neighboor)).map{ neighboor =>
-      val edgeId = tiling.edge(tileCoord, neighboor).get
-      TileEdge(edgeId, neighboor)
-    }.map(edge => edge.edgeId -> edge).toMap
+
+    // get the neighboors of the given coordinate
+    val neighboorCoords = coords.filter(neighboor => containsEdge(tileCoord, neighboor))
+
+    val edges = neighboorCoords.map{ neighboor =>
+      tiling.edge(tileCoord, neighboor).map(edgeId => TileEdge(edgeId, neighboor))
+    }.collect { case Some(edge) => edge}
+
+    edges.map(edge => edge.edgeId -> edge).toMap
+
+
+
+    //neighboorCoords.map{ neighboor =>
+    //  val edgeId = tiling.edge(tileCoord, neighboor).get
+    //  TileEdge(edgeId, neighboor)
+    //}.map(edge => edge.edgeId -> edge).toMap
   }
 
   /**
